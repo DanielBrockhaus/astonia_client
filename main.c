@@ -693,8 +693,8 @@ int win_init(char *title,int width,int height) {
 #endif
         if (dd_windowed && editor) wnd=CreateWindowEx(0,"MAINWNDMOAC",title,WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME|WS_MAXIMIZEBOX|WS_MINIMIZEBOX,CW_USEDEFAULT,CW_USEDEFAULT,width+8,height+27,NULL,NULL,instance,NULL);
         else
-#endif																// +6, +25
-            if (dd_windowed) wnd=CreateWindowEx(0,"MAINWNDMOAC",title,WS_POPUP|WS_CAPTION|WS_DLGFRAME,CW_USEDEFAULT,CW_USEDEFAULT,width,height,NULL,NULL,instance,NULL);
+#endif
+            if (dd_windowed) wnd=CreateWindowEx(0,"MAINWNDMOAC",title,WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME|WS_MAXIMIZEBOX|WS_MINIMIZEBOX,CW_USEDEFAULT,CW_USEDEFAULT,width,height,NULL,NULL,instance,NULL);
             else wnd=CreateWindowEx(WS_EX_TOPMOST,"MAINWNDMOAC",title,WS_POPUP,0,0,width,height,NULL,NULL,instance,NULL);
 
     mainwnd=wnd;
@@ -1723,7 +1723,7 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
     rrandomize();
 
     sprintf(buf,"Astonia 3 v%d.%d.%d",(VERSION>>16)&255,(VERSION>>8)&255,(VERSION)&255);
-    if (win_init(buf,800,600)==-1) {
+    if (win_init(buf,width,height)==-1) {
         win_exit();
         MessageBox(NULL,"Can't Create a Window.","Error",MB_APPLMODAL|MB_OK|MB_ICONSTOP);
         return -1;

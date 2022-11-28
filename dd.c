@@ -57,6 +57,8 @@ int newlight=0;
 int XRES;               // set to indicate the maximal size of the offscreen surface - respective the display mode to set
 int YRES;               // set to indicate the maximal size of the offscreen surface - respective the display mode to set
 
+float mouse_scale=1.0f;      // mouse input needs to be scaled by this factor because the display window is stretched
+
 int dd_usevidmem;       // whats up really
 
 char dderr[256]={""};
@@ -702,11 +704,42 @@ void dd_flip(void) {
     if (dd_windowed) {
         HDC srcdc;
         HDC tgtdc;
+        RECT r;
+        int xs,ys;
 
         srcdc=dd_get_dc(ddbs);
         tgtdc=GetDC(mainwnd);
 
-        if (srcdc && tgtdc) BitBlt(tgtdc,0,0,XRES,YRES,srcdc,0,0,SRCCOPY);
+        GetClientRect(mainwnd,&r);
+        xs=r.right-r.left;
+        ys=r.bottom-r.top;
+
+        if (xs!=XRES && ys!=YRES) {
+            if (xs>2400 && xs<2600 && ys>1800 && ys<2000) { // snap in at 3X resolution
+                BitBlt(tgtdc,0,2400,xs,ys,NULL,0,0,BLACKNESS);
+                BitBlt(tgtdc,1800,0,xs,ys,NULL,0,0,BLACKNESS);
+                xs=2400; ys=1800;
+            } else if (xs>1600 && xs<1800 && ys>1200 && ys<1400) { // snap in at 2X resolution
+                BitBlt(tgtdc,0,1200,xs,ys,NULL,0,0,BLACKNESS);
+                BitBlt(tgtdc,1600,0,xs,ys,NULL,0,0,BLACKNESS);
+                xs=1600; ys=1200;
+            } else {
+                if (xs*YRES<ys*XRES) {
+                    ys=xs*YRES/XRES;
+                    BitBlt(tgtdc,0,ys,xs,r.bottom-r.top-ys,NULL,0,0,BLACKNESS);
+                }
+                if (xs*YRES>ys*XRES) {
+                    xs=ys*XRES/YRES;
+                    BitBlt(tgtdc,xs,0,r.right-r.left-xs,ys,NULL,0,0,BLACKNESS);
+                }
+            }
+            mouse_scale=1.0*xs/XRES;
+
+            if (srcdc && tgtdc) StretchBlt(tgtdc,0,0,xs,ys,srcdc,0,0,XRES,YRES,SRCCOPY);
+        } else {
+            if (srcdc && tgtdc) BitBlt(tgtdc,0,0,XRES,YRES,srcdc,0,0,SRCCOPY);
+            mouse_scale=1.0;
+        }
 
         dd_release_dc(ddbs,srcdc);
         ReleaseDC(mainwnd,tgtdc);

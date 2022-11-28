@@ -1814,8 +1814,8 @@ void set_cmd_key_states(void) {
 
     GetCursorPos(&p);
     if (dd_windowed) ScreenToClient(mainwnd,&p);
-    mousex=p.x-x_offset;
-    mousey=p.y-y_offset;
+    mousex=(p.x-x_offset)/mouse_scale;
+    mousey=(p.y-y_offset)/mouse_scale;
 }
 
 static int get_near_ground(int x,int y) {
@@ -3241,7 +3241,7 @@ LRESULT FAR PASCAL _export main_wnd_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM 
             if (capbut!=-1) {
                 POINT p;
                 // ClipCursor(NULL);
-                p.x=but[capbut].x+x_offset; p.y=but[capbut].y+y_offset; ClientToScreen(wnd,&p);
+                p.x=but[capbut].x*mouse_scale+x_offset; p.y=but[capbut].y*mouse_scale+y_offset; ClientToScreen(wnd,&p);
                 SetCursorPos(p.x,p.y);
                 ReleaseCapture();
                 ShowCursor(1);

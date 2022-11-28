@@ -15,6 +15,8 @@
 extern int XRES;        // set to indicate the maximal size of the offscreen surface - respective the display mode to set
 extern int YRES;        // set to indicate the maximal size of the offscreen surface - respective the display mode to set
 
+extern float mouse_scale;   // mouse input needs to be scaled by this factor because the display window is stretched
+
 #define DD_SYSMEM       0
 #define DD_VIDMEM       1
 #define DD_LOCMEM       2
