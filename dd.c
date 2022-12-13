@@ -63,7 +63,6 @@ int dd_usevidmem;       // whats up really
 char dderr[256]={""};
 const char *DDERR=dderr;
 
-unsigned int BPP;
 unsigned int R_MASK;
 unsigned int G_MASK;
 unsigned int B_MASK;
@@ -384,13 +383,7 @@ int dd_init(int width,int height) {
         YRES=height;
     }
 
-
-
-    // quick 32bit hack
-    if (BPP!=16 && !dd_usesysmem) {
-        note("forceing back surface into systemmemory! switch to a 16bit display mode to avoid this.");
-        dd_usesysmem=1;
-    }
+    dd_usesysmem=1;
 
     // set cooperative level
     if ((err=dd->lpVtbl->SetCooperativeLevel(dd,mainwnd,DDSCL_NORMAL))!=DD_OK) return dd_error("SetCooperativeLevel()",err);
@@ -413,19 +406,13 @@ int dd_init(int width,int height) {
     ddsd.ddpfPixelFormat.dwSize=sizeof(ddsd.ddpfPixelFormat);
     ddsd.ddpfPixelFormat.dwFlags=DDPF_RGB;
     ddsd.ddpfPixelFormat.u1.dwRGBBitCount=16;
-    if (BPP==16) {
-        // current
-        ddsd.ddpfPixelFormat.u2.dwRBitMask=R_MASK;
-        ddsd.ddpfPixelFormat.u3.dwGBitMask=G_MASK;
-        ddsd.ddpfPixelFormat.u4.dwBBitMask=B_MASK;
-        ddsd.ddpfPixelFormat.u5.dwRGBAlphaBitMask=0;
-    } else {
-        // RGBM_R5G6B5
-        ddsd.ddpfPixelFormat.u2.dwRBitMask=0xF800;
-        ddsd.ddpfPixelFormat.u3.dwGBitMask=0x07E0;
-        ddsd.ddpfPixelFormat.u4.dwBBitMask=0x001F;
-        ddsd.ddpfPixelFormat.u5.dwRGBAlphaBitMask=0;
-    }
+
+    // RGBM_R5G6B5
+    ddsd.ddpfPixelFormat.u2.dwRBitMask=0xF800;
+    ddsd.ddpfPixelFormat.u3.dwGBitMask=0x07E0;
+    ddsd.ddpfPixelFormat.u4.dwBBitMask=0x001F;
+    ddsd.ddpfPixelFormat.u5.dwRGBAlphaBitMask=0;
+
     if ((err=dd->lpVtbl->CreateSurface(dd,&ddsd,&ddbs,NULL))!=DD_OK) return dd_error("CreateSurface(ddbs)",err);    // create Backsurface
 
     // do some neccassary clipper stuff
@@ -451,7 +438,6 @@ int dd_init(int width,int height) {
     dd_usevidmem=ddsd.ddsCaps.dwCaps&DDSCAPS_VIDEOMEMORY;
     xres=ddsd.u1.lPitch/2;
     yres=ddsd.dwHeight;
-    BPP=ddsd.ddpfPixelFormat.u1.dwRGBBitCount;
 
     if (!(ddsd.ddpfPixelFormat.dwFlags&DDPF_RGB)) return dd_error("CANNOT HANDLE PIXEL FORMAT",-1);
     R_MASK=ddsd.ddpfPixelFormat.u2.dwRBitMask;
@@ -459,8 +445,6 @@ int dd_init(int width,int height) {
     B_MASK=ddsd.ddpfPixelFormat.u4.dwBBitMask;
 
     if (R_MASK==0xF800 && G_MASK==0x07E0 && B_MASK==0x001F) { rgbm=RGBM_R5G6B5; D_MASK=0xE79C; } else if (R_MASK==0x7C00 && G_MASK==0x03E0 && B_MASK==0x001F) { rgbm=RGBM_X1R5G5B5; D_MASK=0x739C; } else if (R_MASK==0x001F && G_MASK==0x07E0 && B_MASK==0xF800) { rgbm=RGBM_B5G6R5; D_MASK=0xE79C; } else return dd_error("CANNOT HANDLE RGB MASK",-1);
-
-    note("rgbm=%s BPP=%d %s",rgbmstr[rgbm],BPP,dd_usevidmem?"videomemory":"non-videomemory");
 
     // determin how much videomemory is in use so far
     dd_vidmeminuse+=dd_vidmembytes(ddps);
@@ -488,7 +472,7 @@ int dd_init(int width,int height) {
             ddsd.dwHeight=restab[r][1];
             ddsd.ddpfPixelFormat.dwSize=sizeof(ddsd.ddpfPixelFormat);
             ddsd.ddpfPixelFormat.dwFlags=DDPF_RGB;
-            ddsd.ddpfPixelFormat.u1.dwRGBBitCount=BPP;
+            ddsd.ddpfPixelFormat.u1.dwRGBBitCount=32;
             ddsd.ddpfPixelFormat.u2.dwRBitMask=R_MASK;
             ddsd.ddpfPixelFormat.u3.dwGBitMask=G_MASK;
             ddsd.ddpfPixelFormat.u4.dwBBitMask=B_MASK;
@@ -521,7 +505,7 @@ int dd_init(int width,int height) {
                 ddsd.dwHeight=restab[r][1];
                 ddsd.ddpfPixelFormat.dwSize=sizeof(ddsd.ddpfPixelFormat);
                 ddsd.ddpfPixelFormat.dwFlags=DDPF_RGB;
-                ddsd.ddpfPixelFormat.u1.dwRGBBitCount=BPP;
+                ddsd.ddpfPixelFormat.u1.dwRGBBitCount=32;
                 ddsd.ddpfPixelFormat.u2.dwRBitMask=R_MASK;
                 ddsd.ddpfPixelFormat.u3.dwGBitMask=G_MASK;
                 ddsd.ddpfPixelFormat.u4.dwBBitMask=B_MASK;
