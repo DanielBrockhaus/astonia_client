@@ -66,11 +66,12 @@ FONT 8, "MS Sans Serif"
  CONTROL "Laptop 1152x864", IDC_RES1152, "BUTTON", BS_AUTORADIOBUTTON, 120, 172, 68, 12
  CONTROL "Laptop 800x600", IDC_RES800B, "BUTTON", BS_AUTORADIOBUTTON, 120, 148, 72, 12
  CONTROL "Laptop 1280x1024", IDC_RES1280, "BUTTON", BS_AUTORADIOBUTTON, 120, 184, 72, 12
- CHECKBOX "Reduce Lighting (faster)", IDC_LIGHT, 204, 112, 100, 12
- CHECKBOX "Reduce Animations (faster)", IDC_ANIM, 204, 124, 100, 12
- CHECKBOX "Shade Walls (nice but slow)", IDC_WALLS, 204, 148, 100, 12
- CHECKBOX "Shade Floor (nice but slow)", IDC_FLOOR, 204, 160, 104, 12
- CHECKBOX "Large Text (ugly and slow)", IDC_LARGETEXT, 204, 184, 104, 12
+ CHECKBOX "Reduce Lighting (faster)", IDC_LIGHT,        204, 112, 100, 12
+ CHECKBOX "Reduce Animations (faster)", IDC_ANIM,       204, 124, 100, 12
+ CHECKBOX "Shade Walls (nice but slow)", IDC_WALLS,     204, 148, 100, 12
+ CHECKBOX "Shade Floor (nice but slow)", IDC_FLOOR,     204, 160, 104, 12
+ CHECKBOX "Large Text (ugly and slow)", IDC_LARGETEXT,  204, 184, 104, 12
+ CHECKBOX "Realistic Lighting", IDC_NEWLIGHT,           204, 200, 104, 12
  LTEXT "Character to play:", -1, 14, 76, 60, 8
  LTEXT "Your account's password:", -1, 14, 114, 86, 8
  CHECKBOX "Enable Sound", IDC_SOUND, 40, 162, 64, 12

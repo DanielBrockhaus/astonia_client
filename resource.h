@@ -51,6 +51,8 @@ produced by Borland Resource Workshop
 #define IDC_SYSMEM	106
 #define IDC_VIDMEM	105
 #define IDC_USERNAME	103
+#define IDC_NEWLIGHT    479
+
 #define IDI_MOAC	1
 #define IDCU_USEWITH	15
 #define IDCU_USE	14

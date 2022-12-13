@@ -787,7 +787,7 @@ void update_light(HWND hwnd) {
 }
 
 void update_newlight(HWND hwnd) {
-    CheckDlgButton(hwnd,479,newlight);
+    CheckDlgButton(hwnd,IDC_NEWLIGHT,newlight);
 }
 
 void update_anim(HWND hwnd) {
@@ -1061,7 +1061,7 @@ BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
                     update_light(wnd);
                     return 1;
 
-                case 479:
+                case IDC_NEWLIGHT:
                     if (newlight) newlight=0;
                     else newlight=1;
                     update_newlight(wnd);

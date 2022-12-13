@@ -27,7 +27,7 @@ questlog.obj:	questlog.c main.h
 neuquant.obj:   neuquant.c neuquant.h
 
 resource.res:   resource.rc
-		$(BCCPATH)\brcc32 -fo resource.res resource.rc
+		$(BCCPATH)\bin\brcc32 -fo resource.res resource.rc
 
 clean:
 		del *.obj
