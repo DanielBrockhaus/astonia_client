@@ -13,8 +13,6 @@
 #define max(a,b) ((a) > (b) ? (a) : (b))
 #define abs(a)	((a)<0 ? (-(a)) : (a))
 
-extern int reduce_anim;
-
 // extern
 
 extern int playersprite_override;
@@ -495,7 +493,6 @@ int trans_charno(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,
         case 157:	csprite=39;                 // fire demon
             helper=tick&31;
             if (helper>15) helper=32-helper;
-            if (reduce_anim) helper=16;
             sat=5; light=-80; cr=60+helper*3;
             break;
 

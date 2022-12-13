@@ -41,7 +41,6 @@ int xmemcheck_failed=0;
 HWND mainwnd=NULL;
 HINSTANCE instance=NULL;
 int opt_res=800;
-int reduce_anim=0;
 int shade_walls=0;
 int shade_floor=0;
 int largetext=0;
@@ -732,10 +731,6 @@ void update_newlight(HWND hwnd) {
     CheckDlgButton(hwnd,IDC_NEWLIGHT,newlight);
 }
 
-void update_anim(HWND hwnd) {
-    CheckDlgButton(hwnd,IDC_ANIM,reduce_anim);
-}
-
 void update_walls(HWND hwnd) {
     CheckDlgButton(hwnd,IDC_WALLS,shade_walls);
 }
@@ -767,7 +762,7 @@ void save_options(void) {
     write(handle,&save_pwd,sizeof(save_pwd));
     write(handle,&opt_res,sizeof(opt_res));
     write(handle,&dummy,sizeof(dummy));
-    write(handle,&reduce_anim,sizeof(reduce_anim));
+    write(handle,&dummy,sizeof(dummy));
     write(handle,&shade_walls,sizeof(shade_walls));
     write(handle,&shade_floor,sizeof(shade_floor));
     write(handle,&largetext,sizeof(largetext));
@@ -803,7 +798,7 @@ void load_options(void) {
     read(handle,&save_pwd,sizeof(save_pwd));
     read(handle,&opt_res,sizeof(opt_res));
     read(handle,&dummy,sizeof(dummy));
-    read(handle,&reduce_anim,sizeof(reduce_anim));
+    read(handle,&dummy,sizeof(dummy));
     read(handle,&shade_walls,sizeof(shade_walls));
     read(handle,&shade_floor,sizeof(shade_floor));
     read(handle,&largetext,sizeof(largetext));
@@ -840,7 +835,6 @@ BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
             update_savepwd(wnd);
             update_sound(wnd);
             update_newlight(wnd);
-            update_anim(wnd);
             update_walls(wnd);
             update_floor(wnd);
             update_large(wnd);
@@ -906,12 +900,6 @@ BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
                     if (newlight) newlight=0;
                     else newlight=1;
                     update_newlight(wnd);
-                    return 1;
-
-                case IDC_ANIM:
-                    if (reduce_anim) reduce_anim=0;
-                    else reduce_anim=1;
-                    update_anim(wnd);
                     return 1;
 
                 case IDC_WALLS:
