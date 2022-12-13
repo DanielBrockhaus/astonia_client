@@ -321,7 +321,6 @@ int do_display_questlog(int nr) {
     return y;
 }
 
-
 void quest_select(int nr) {
     if (nr<0 || nr>9) return;
 

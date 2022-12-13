@@ -32,6 +32,7 @@ extern void prefetch_game(int attick);
 extern void init_game(void);
 extern void exit_game(void);
 void display_cmd(void);
+void quest_select(int nr);
 extern int gfx_force_png;
 extern int gfx_force_dh;
 extern int mirror,newmirror;
@@ -2987,7 +2988,7 @@ void insert_text(void) {
 
     OpenClipboard(mainwnd);
     h=GetClipboardData(CF_TEXT);
-    if (h && (ptr=GlobalLock(h))) {
+    if (h && (ptr=GlobalLock(h))!=NULL) {
         while (*ptr) {
             if (*ptr>=32) cmd_proc(*ptr);
             ptr++;

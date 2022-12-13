@@ -40,10 +40,6 @@ produced by Borland Resource Workshop
 #define IDC_ACCOUNT	127
 #define IDC_WEBSITE	128
 
-#define IDC_LINE1	129
-#define IDC_LINE2	130
-#define IDC_LINE3	131
-
 #define IDC_RES1152	117
 
 #define IDC_ALPHA1	111

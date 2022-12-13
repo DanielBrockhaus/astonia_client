@@ -586,7 +586,6 @@ extern int target_port;
 extern int target_server;
 extern int update_server;
 extern int base_server;
-extern int backup_server;
 extern int developer_server;
 extern char username[40];
 extern char password[16];

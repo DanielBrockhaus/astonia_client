@@ -575,12 +575,6 @@ int parse_cmd(char *s) {
             } else if (tolower(*s)=='t') {  // -t <num> maximum number of videocache tiles
                 dd_maxtile=strtol(s+1,&end,10);
                 s=end;
-            } else if (tolower(*s)=='b') {
-                s++;
-                backup_server=1;
-            } else if (tolower(*s)=='c') {
-                s++;
-                backup_server=2;
             } else if (tolower(*s)=='d') {
                 s++;
                 developer_server=strtol(s+1,&end,10);
@@ -725,14 +719,6 @@ void update_res(HWND hwnd) {
 
 }
 
-void update_line(HWND hwnd) {
-    if (backup_server==0) CheckRadioButton(hwnd,IDC_LINE1,IDC_LINE3,IDC_LINE1);
-    else if (backup_server==1) CheckRadioButton(hwnd,IDC_LINE1,IDC_LINE3,IDC_LINE2);
-    else if (backup_server==2) CheckRadioButton(hwnd,IDC_LINE1,IDC_LINE3,IDC_LINE3);
-    else { CheckRadioButton(hwnd,IDC_LINE1,IDC_LINE3,IDC_LINE1); backup_server=0; }
-
-}
-
 int save_pwd=0;
 void update_savepwd(HWND hwnd) {
     CheckDlgButton(hwnd,IDC_SAVEPWD,save_pwd);
@@ -792,7 +778,7 @@ void save_options(void) {
     write(handle,&largetext,sizeof(largetext));
     write(handle,&enable_sound,sizeof(enable_sound));
     write(handle,&user_keys,sizeof(user_keys));
-    write(handle,&backup_server,sizeof(backup_server));
+    write(handle,&dummy,sizeof(dummy));
     write(handle,&newlight,sizeof(newlight));
     close(handle);
 }
@@ -828,7 +814,7 @@ void load_options(void) {
     read(handle,&largetext,sizeof(largetext));
     read(handle,&enable_sound,sizeof(enable_sound));
     read(handle,&user_keys,sizeof(user_keys));
-    read(handle,&backup_server,sizeof(backup_server));	backup_server=0;
+    read(handle,&dummy,sizeof(dummy));
     read(handle,&newlight,sizeof(newlight));
     close(handle);
 }
@@ -865,7 +851,6 @@ BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
             update_floor(wnd);
             update_large(wnd);
             update_res(wnd);
-            update_line(wnd);
             return TRUE;
         case WM_COMMAND:
             switch (wparam) {
@@ -887,21 +872,18 @@ BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
                     dd_usealpha=1;
                     update_alpha(wnd);
                     update_res(wnd);
-                    update_line(wnd);
                     return 1;
 
                 case IDC_ALPHA8:
                     dd_usealpha=8;
                     update_alpha(wnd);
                     update_res(wnd);
-                    update_line(wnd);
                     return 1;
 
                 case IDC_ALPHA31:
                     dd_usealpha=31;
                     update_alpha(wnd);
                     update_res(wnd);
-                    update_line(wnd);
                     return 1;
 
                 case IDC_RES800:
@@ -912,28 +894,7 @@ BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
                     opt_res=wparam;
                     update_alpha(wnd);
                     update_res(wnd);
-                    update_line(wnd);
                     return 1;
-
-                case IDC_LINE1:
-                    backup_server=0;
-                    update_alpha(wnd);
-                    update_res(wnd);
-                    update_line(wnd);
-                    return 1;
-                case IDC_LINE2:
-                    backup_server=1;
-                    update_alpha(wnd);
-                    update_res(wnd);
-                    update_line(wnd);
-                    return 1;
-                case IDC_LINE3:
-                    backup_server=2;
-                    update_alpha(wnd);
-                    update_res(wnd);
-                    update_line(wnd);
-                    return 1;
-
 
                 case IDC_SAVEPWD:
                     if (save_pwd) save_pwd=0;
@@ -1274,30 +1235,12 @@ int updater(void) {
 
     if (!SetWindowText(hwnd,"ASTONIA 3 - Updater: Looking Up Hostname")) return -1;
 
-    if (backup_server==0) {
-        he=gethostbyname("update.astonia.com");
-        if (he) {
-            update_server=ntohl(*(unsigned long *)(*he->h_addr_list));
-        } else {
-            update_server=(195<<24)|(90<<16)|(31<<8)|(33<<0);
-            fail("gethostbyname1 failed, using default");
-        }
-    } else if (backup_server==1) {
-        he=gethostbyname("update2.astonia.com");
-        if (he) {
-            update_server=ntohl(*(unsigned long *)(*he->h_addr_list));
-        } else {
-            update_server=(195<<24)|(50<<16)|(166<<8)|(6<<0);
-            fail("gethostbyname2 failed, using default");
-        }
+    he=gethostbyname("update.astonia.com");
+    if (he) {
+        update_server=ntohl(*(unsigned long *)(*he->h_addr_list));
     } else {
-        he=gethostbyname("update3.astonia.com");
-        if (he) {
-            update_server=ntohl(*(unsigned long *)(*he->h_addr_list));
-        } else {
-            update_server=(195<<24)|(50<<16)|(166<<8)|(6<<0);
-            fail("gethostbyname3 failed, using default");
-        }
+        update_server=(195<<24)|(90<<16)|(31<<8)|(33<<0);
+        fail("gethostbyname1 failed, using default");
     }
 
     note("Using update server at %u.%u.%u.%u",(update_server>>24)&255,(update_server>>16)&255,(update_server>>8)&255,(update_server>>0)&255);

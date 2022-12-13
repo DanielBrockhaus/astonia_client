@@ -1771,7 +1771,7 @@ int do_display_help(int nr) {
             y=dd_drawtext_break(10,y,202,lightbluecolor,0,"* F");
             y=dd_drawtext_break(10,y,202,lightbluecolor,0,"* G");
             y=dd_drawtext_break(10,y,202,lightbluecolor,0,"* I");
-            y=dd_drawtext_break(10,y,202,lightbluecolor,0,"* K");
+            dd_drawtext_break(10,y,202,lightbluecolor,0,"* K");
 
             y=oldy;
             y=dd_drawtext_break(110,y,202,lightbluecolor,0,"* L");
