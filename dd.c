@@ -48,7 +48,6 @@ unsigned short int irgb_blend(unsigned short int a,unsigned short int b,int alph
 
 int dd_usesysmem=0;     // set from outside
 int dd_usealpha=1;      // set from outside from 1 (full alpha) to 31(no alpha)
-int dd_windowed=0;      // set from outside
 int dd_maxtile=DD_VID32MB;   // (max=0xFFFD) maximum number of tiles this client should use (for multiclient sessions)
 int dd_gamma=8;
 int dd_lighteffect=16;
@@ -376,27 +375,8 @@ int dd_init(int width,int height) {
     int err,s,r,flags,freevidmem;
     char buf[1024];
 
-    // return dd_init_old(width,height);
-
-    note("NEW starting %s using %s (%dx%d)",dd_windowed?"WINDOWED":"FULLSCREEN",dd_usesysmem?"system memory":"video memory",width,height);
-
     // create dd
     if ((err=DirectDrawCreate(NULL,&dd,NULL))!=DD_OK) return dd_error("DirectDrawCreate()",err);
-
-    // determin current display mode (needed for windowed mode, or if we should auto-detect the offscreen size)
-    if (!width || dd_windowed) {
-        bzero(&ddsd,sizeof(ddsd));
-        ddsd.dwSize=sizeof(ddsd);
-        ddsd.dwFlags=DDSD_ALL;
-        if ((err=dd->lpVtbl->GetDisplayMode(dd,&ddsd))!=DD_OK) return dd_error("GetDisplayMode()",err);
-        note("mode %s",ddsdstr(buf,&ddsd));
-        R_MASK=ddsd.ddpfPixelFormat.u2.dwRBitMask;
-        G_MASK=ddsd.ddpfPixelFormat.u3.dwGBitMask;
-        B_MASK=ddsd.ddpfPixelFormat.u4.dwBBitMask;
-        XRES=ddsd.dwWidth;
-        YRES=ddsd.dwHeight;
-        BPP=ddsd.ddpfPixelFormat.u1.dwRGBBitCount;
-    }
 
     // you can force any screen (and offscreen) size
     if (width) {
@@ -404,77 +384,55 @@ int dd_init(int width,int height) {
         YRES=height;
     }
 
-    if (dd_windowed) {
 
-        // quick 32bit hack
-        if (BPP!=16 && !dd_usesysmem) {
-            note("forceing back surface into systemmemory! switch to a 16bit display mode to avoid this.");
-            dd_usesysmem=1;
-        }
 
-        // set cooperative level
-        if ((err=dd->lpVtbl->SetCooperativeLevel(dd,mainwnd,DDSCL_NORMAL))!=DD_OK) return dd_error("SetCooperativeLevel()",err);
-
-        // get the primary surface
-        bzero(&ddsd,sizeof(ddsd));
-        ddsd.dwSize=sizeof(ddsd);
-        ddsd.dwFlags=DDSD_CAPS;
-        ddsd.ddsCaps.dwCaps=DDSCAPS_PRIMARYSURFACE;
-        if ((err=dd->lpVtbl->CreateSurface(dd,&ddsd,&ddps,NULL))!=DD_OK) return dd_error("CreateSurface(ddps)",err);
-
-        // create a back surface (offscreen, always using a 16 bit mode, prefering the one of the current screen mode if this is also 16 bit)
-        bzero(&ddsd,sizeof(ddsd));
-        ddsd.dwSize=sizeof(ddsd);
-        ddsd.dwFlags=DDSD_CAPS|DDSD_WIDTH|DDSD_HEIGHT|DDSD_PIXELFORMAT;
-        if (dd_usesysmem) ddsd.ddsCaps.dwCaps=DDSCAPS_OFFSCREENPLAIN|DDSCAPS_SYSTEMMEMORY;
-        else ddsd.ddsCaps.dwCaps=DDSCAPS_OFFSCREENPLAIN|DDSCAPS_VIDEOMEMORY;
-        ddsd.dwWidth=XRES;
-        ddsd.dwHeight=YRES;
-        ddsd.ddpfPixelFormat.dwSize=sizeof(ddsd.ddpfPixelFormat);
-        ddsd.ddpfPixelFormat.dwFlags=DDPF_RGB;
-        ddsd.ddpfPixelFormat.u1.dwRGBBitCount=16;
-        if (BPP==16) {
-            // current
-            ddsd.ddpfPixelFormat.u2.dwRBitMask=R_MASK;
-            ddsd.ddpfPixelFormat.u3.dwGBitMask=G_MASK;
-            ddsd.ddpfPixelFormat.u4.dwBBitMask=B_MASK;
-            ddsd.ddpfPixelFormat.u5.dwRGBAlphaBitMask=0;
-        } else {
-            // RGBM_R5G6B5
-            ddsd.ddpfPixelFormat.u2.dwRBitMask=0xF800;
-            ddsd.ddpfPixelFormat.u3.dwGBitMask=0x07E0;
-            ddsd.ddpfPixelFormat.u4.dwBBitMask=0x001F;
-            ddsd.ddpfPixelFormat.u5.dwRGBAlphaBitMask=0;
-        }
-        if ((err=dd->lpVtbl->CreateSurface(dd,&ddsd,&ddbs,NULL))!=DD_OK) return dd_error("CreateSurface(ddbs)",err);    // create Backsurface
-
-        // do some neccassary clipper stuff
-        if ((err=dd->lpVtbl->CreateClipper(dd,0,&ddcl,NULL))!=DD_OK) return dd_error("CreateClipper(ddbs)",err);        // CreateClipper
-        if ((err=ddcl->lpVtbl->SetHWnd(ddcl,0,mainwnd))!=DD_OK) return dd_error("SetHWnd(ddcl)",err);                   // Attach Clipper to Window
-        if ((err=ddps->lpVtbl->SetClipper(ddps,ddcl))!=DD_OK) return dd_error("SetClipper(ddps)",err);                  // Attach Clipper to ddps
-    } else {
-        // set cooperative level
-        if ((err=dd->lpVtbl->SetCooperativeLevel(dd,mainwnd,DDSCL_EXCLUSIVE|DDSCL_FULLSCREEN))!=DD_OK) return dd_error("SetCooperativeLevel()",err);
-
-        // set the display mode (16bit)
-        if ((err=dd->lpVtbl->SetDisplayMode(dd,XRES,YRES,16))!=DD_OK) return dd_error("SetDisplayMode()",err);
-
-        // create the primary surface with one back surface
-        bzero(&ddsd,sizeof(ddsd));
-        ddsd.dwSize=sizeof(ddsd);
-        ddsd.dwFlags=DDSD_CAPS|DDSD_BACKBUFFERCOUNT;
-        if (dd_usesysmem) ddsd.ddsCaps.dwCaps=DDSCAPS_PRIMARYSURFACE|DDSCAPS_FLIP|DDSCAPS_COMPLEX|DDSCAPS_SYSTEMMEMORY;
-        else ddsd.ddsCaps.dwCaps=DDSCAPS_PRIMARYSURFACE|DDSCAPS_FLIP|DDSCAPS_COMPLEX;
-        ddsd.dwBackBufferCount=1;
-        if ((err=dd->lpVtbl->CreateSurface(dd,&ddsd,&ddps,NULL))!=DD_OK) return dd_error("CreateSurface(ddps)",err);
-
-        // get the back surface
-        bzero(&ddsd,sizeof(ddsd));
-        ddsd.dwSize=sizeof(ddsd);
-        ddsd.dwFlags=DDSD_CAPS;
-        ddsd.ddsCaps.dwCaps=DDSCAPS_BACKBUFFER;
-        if ((err=ddps->lpVtbl->GetAttachedSurface(ddps,&ddsd.ddsCaps,&ddbs))!=DD_OK) return dd_error("GetAttachedSurface(ddbs)",err);
+    // quick 32bit hack
+    if (BPP!=16 && !dd_usesysmem) {
+        note("forceing back surface into systemmemory! switch to a 16bit display mode to avoid this.");
+        dd_usesysmem=1;
     }
+
+    // set cooperative level
+    if ((err=dd->lpVtbl->SetCooperativeLevel(dd,mainwnd,DDSCL_NORMAL))!=DD_OK) return dd_error("SetCooperativeLevel()",err);
+
+    // get the primary surface
+    bzero(&ddsd,sizeof(ddsd));
+    ddsd.dwSize=sizeof(ddsd);
+    ddsd.dwFlags=DDSD_CAPS;
+    ddsd.ddsCaps.dwCaps=DDSCAPS_PRIMARYSURFACE;
+    if ((err=dd->lpVtbl->CreateSurface(dd,&ddsd,&ddps,NULL))!=DD_OK) return dd_error("CreateSurface(ddps)",err);
+
+    // create a back surface (offscreen, always using a 16 bit mode, prefering the one of the current screen mode if this is also 16 bit)
+    bzero(&ddsd,sizeof(ddsd));
+    ddsd.dwSize=sizeof(ddsd);
+    ddsd.dwFlags=DDSD_CAPS|DDSD_WIDTH|DDSD_HEIGHT|DDSD_PIXELFORMAT;
+    if (dd_usesysmem) ddsd.ddsCaps.dwCaps=DDSCAPS_OFFSCREENPLAIN|DDSCAPS_SYSTEMMEMORY;
+    else ddsd.ddsCaps.dwCaps=DDSCAPS_OFFSCREENPLAIN|DDSCAPS_VIDEOMEMORY;
+    ddsd.dwWidth=XRES;
+    ddsd.dwHeight=YRES;
+    ddsd.ddpfPixelFormat.dwSize=sizeof(ddsd.ddpfPixelFormat);
+    ddsd.ddpfPixelFormat.dwFlags=DDPF_RGB;
+    ddsd.ddpfPixelFormat.u1.dwRGBBitCount=16;
+    if (BPP==16) {
+        // current
+        ddsd.ddpfPixelFormat.u2.dwRBitMask=R_MASK;
+        ddsd.ddpfPixelFormat.u3.dwGBitMask=G_MASK;
+        ddsd.ddpfPixelFormat.u4.dwBBitMask=B_MASK;
+        ddsd.ddpfPixelFormat.u5.dwRGBAlphaBitMask=0;
+    } else {
+        // RGBM_R5G6B5
+        ddsd.ddpfPixelFormat.u2.dwRBitMask=0xF800;
+        ddsd.ddpfPixelFormat.u3.dwGBitMask=0x07E0;
+        ddsd.ddpfPixelFormat.u4.dwBBitMask=0x001F;
+        ddsd.ddpfPixelFormat.u5.dwRGBAlphaBitMask=0;
+    }
+    if ((err=dd->lpVtbl->CreateSurface(dd,&ddsd,&ddbs,NULL))!=DD_OK) return dd_error("CreateSurface(ddbs)",err);    // create Backsurface
+
+    // do some neccassary clipper stuff
+    if ((err=dd->lpVtbl->CreateClipper(dd,0,&ddcl,NULL))!=DD_OK) return dd_error("CreateClipper(ddbs)",err);        // CreateClipper
+    if ((err=ddcl->lpVtbl->SetHWnd(ddcl,0,mainwnd))!=DD_OK) return dd_error("SetHWnd(ddcl)",err);                   // Attach Clipper to Window
+    if ((err=ddps->lpVtbl->SetClipper(ddps,ddcl))!=DD_OK) return dd_error("SetClipper(ddps)",err);                  // Attach Clipper to ddps
+
 
     // now check the display mode
     bzero(&ddsd,sizeof(ddsd));
@@ -700,79 +658,54 @@ int dd_unlock_ptr(void) {
 void dd_flip(void) {
     int err;
 
+    HDC srcdc;
+    HDC tgtdc;
+    RECT r;
+    int xs,ys;
 
-    if (dd_windowed) {
-        HDC srcdc;
-        HDC tgtdc;
-        RECT r;
-        int xs,ys;
+    srcdc=dd_get_dc(ddbs);
+    tgtdc=GetDC(mainwnd);
 
-        srcdc=dd_get_dc(ddbs);
-        tgtdc=GetDC(mainwnd);
+    GetClientRect(mainwnd,&r);
+    xs=r.right-r.left;
+    ys=r.bottom-r.top;
 
-        GetClientRect(mainwnd,&r);
-        xs=r.right-r.left;
-        ys=r.bottom-r.top;
-
-        if (xs!=XRES && ys!=YRES) {
-            if (xs>2400 && xs<2600 && ys>1800 && ys<2000) { // snap in at 3X resolution
-                BitBlt(tgtdc,0,2400,xs,ys,NULL,0,0,BLACKNESS);
-                BitBlt(tgtdc,1800,0,xs,ys,NULL,0,0,BLACKNESS);
-                xs=2400; ys=1800;
-            } else if (xs>1600 && xs<1800 && ys>1200 && ys<1400) { // snap in at 2X resolution
-                BitBlt(tgtdc,0,1200,xs,ys,NULL,0,0,BLACKNESS);
-                BitBlt(tgtdc,1600,0,xs,ys,NULL,0,0,BLACKNESS);
-                xs=1600; ys=1200;
-            } else {
-                if (xs*YRES<ys*XRES) {
-                    ys=xs*YRES/XRES;
-                    BitBlt(tgtdc,0,ys,xs,r.bottom-r.top-ys,NULL,0,0,BLACKNESS);
-                }
-                if (xs*YRES>ys*XRES) {
-                    xs=ys*XRES/YRES;
-                    BitBlt(tgtdc,xs,0,r.right-r.left-xs,ys,NULL,0,0,BLACKNESS);
-                }
-            }
-            mouse_scale=1.0*xs/XRES;
-
-            if (mouse_scale!=2.0f) {
-                if (srcdc) SetStretchBltMode(srcdc,HALFTONE);
-                if (tgtdc) SetStretchBltMode(tgtdc,HALFTONE);
-            } else {
-                if (srcdc) SetStretchBltMode(srcdc,COLORONCOLOR);
-                if (tgtdc) SetStretchBltMode(tgtdc,COLORONCOLOR);
-            }
-            if (srcdc && tgtdc) StretchBlt(tgtdc,0,0,xs,ys,srcdc,0,0,XRES,YRES,SRCCOPY);
+    if (xs!=XRES && ys!=YRES) {
+        if (xs>2400 && xs<2600 && ys>1800 && ys<2000) { // snap in at 3X resolution
+            BitBlt(tgtdc,0,2400,xs,ys,NULL,0,0,BLACKNESS);
+            BitBlt(tgtdc,1800,0,xs,ys,NULL,0,0,BLACKNESS);
+            xs=2400; ys=1800;
+        } else if (xs>1600 && xs<1800 && ys>1200 && ys<1400) { // snap in at 2X resolution
+            BitBlt(tgtdc,0,1200,xs,ys,NULL,0,0,BLACKNESS);
+            BitBlt(tgtdc,1600,0,xs,ys,NULL,0,0,BLACKNESS);
+            xs=1600; ys=1200;
         } else {
-            if (srcdc && tgtdc) BitBlt(tgtdc,0,0,XRES,YRES,srcdc,0,0,SRCCOPY);
-            mouse_scale=1.0;
+            if (xs*YRES<ys*XRES) {
+                ys=xs*YRES/XRES;
+                BitBlt(tgtdc,0,ys,xs,r.bottom-r.top-ys,NULL,0,0,BLACKNESS);
+            }
+            if (xs*YRES>ys*XRES) {
+                xs=ys*XRES/YRES;
+                BitBlt(tgtdc,xs,0,r.right-r.left-xs,ys,NULL,0,0,BLACKNESS);
+            }
         }
+        mouse_scale=1.0*xs/XRES;
 
-        dd_release_dc(ddbs,srcdc);
-        ReleaseDC(mainwnd,tgtdc);
-    } else
-    /*if (dd_windowed) {
-               POINT p;
-               RECT wrc,brc;
-
-               p.x=0;
-               p.y=0;
-               ClientToScreen(mainwnd,&p);
-               wrc.left=p.x;
-               wrc.top=p.y;
-               wrc.right=wrc.left+XRES;
-               wrc.bottom=wrc.top+YRES;
-
-               brc.left=0;
-               brc.top=0;
-               brc.right=XRES;
-               brc.bottom=YRES;
-
-           if ((err=ddps->lpVtbl->Blt(ddps,&wrc,ddbs,&brc,DDBLT_WAIT,NULL))!=DD_OK) dd_error("flipping Blt(ddps,ddbs)",err);
-       }
-       else */ {
-        if ((err=ddps->lpVtbl->Flip(ddps,NULL,DDFLIP_WAIT))!=DD_OK) dd_error("Flip(ddps)",err);
+        if (mouse_scale!=2.0f) {
+            if (srcdc) SetStretchBltMode(srcdc,HALFTONE);
+            if (tgtdc) SetStretchBltMode(tgtdc,HALFTONE);
+        } else {
+            if (srcdc) SetStretchBltMode(srcdc,COLORONCOLOR);
+            if (tgtdc) SetStretchBltMode(tgtdc,COLORONCOLOR);
+        }
+        if (srcdc && tgtdc) StretchBlt(tgtdc,0,0,xs,ys,srcdc,0,0,XRES,YRES,SRCCOPY);
+    } else {
+        if (srcdc && tgtdc) BitBlt(tgtdc,0,0,XRES,YRES,srcdc,0,0,SRCCOPY);
+        mouse_scale=1.0;
     }
+
+    dd_release_dc(ddbs,srcdc);
+    ReleaseDC(mainwnd,tgtdc);
 }
 
 int dd_islost(void) {

@@ -23,7 +23,6 @@ extern float mouse_scale;   // mouse input needs to be scaled by this factor bec
 
 extern int dd_usesysmem;
 extern int dd_usealpha;         // set from outside from 1 (full alpha) to 31(no alpha)
-extern int dd_windowed;         // set from outside
 extern int dd_maxtile;          // maximum number of tiles this client should use
 extern double gamma;            // set me to adjust gamma, call dd_reset() afterwards
 extern int dd_gamma;

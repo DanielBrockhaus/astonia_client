@@ -1813,7 +1813,7 @@ void set_cmd_key_states(void) {
     vk_spell=vk_alt;
 
     GetCursorPos(&p);
-    if (dd_windowed) ScreenToClient(mainwnd,&p);
+    ScreenToClient(mainwnd,&p);
     mousex=(p.x-x_offset)/mouse_scale;
     mousey=(p.y-y_offset)/mouse_scale;
 }
@@ -3434,7 +3434,7 @@ void flip_at(unsigned int t) {
             DispatchMessage(&msg);
         }
         tnow=GetTickCount();
-        if (dd_windowed && GetActiveWindow()!=mainwnd) {
+        if (GetActiveWindow()!=mainwnd) {
             Sleep(100);
         } else Sleep(1);
 #ifdef DOSOUND

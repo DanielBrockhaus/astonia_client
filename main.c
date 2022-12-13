@@ -584,9 +584,6 @@ int parse_cmd(char *s) {
             else if (tolower(*s)=='s') {  // -s use systemmemory
                 s++;
                 dd_usesysmem=1;
-            } else if (tolower(*s)=='w') {  // -w windowed mode
-                s++;
-                dd_windowed=1;
             } else if (tolower(*s)=='t') {  // -t <num> maximum number of videocache tiles
                 dd_maxtile=strtol(s+1,&end,10);
                 s=end;
@@ -671,6 +668,8 @@ LRESULT FAR PASCAL _export main_wnd_proc_safe(HWND wnd,UINT msg,WPARAM wparam,LP
 int win_init(char *title,int width,int height) {
     WNDCLASS wc;
     HWND wnd;
+    RECT r;
+    int x,y;
 
     lastwnd=GetForegroundWindow();
 
@@ -687,15 +686,10 @@ int win_init(char *title,int width,int height) {
 
     RegisterClass(&wc);
 #ifdef EDITOR
-#ifdef MR
-    if (dd_windowed) wnd=CreateWindowEx(0,"MAINWNDMOAC",editor?"moac edit":title,WS_POPUP,1400,0,width,height,NULL,NULL,instance,NULL);
+    if (editor) wnd=CreateWindowEx(0,"MAINWNDMOAC",title,WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME|WS_MAXIMIZEBOX|WS_MINIMIZEBOX,CW_USEDEFAULT,CW_USEDEFAULT,width+8,height+27,NULL,NULL,instance,NULL);
     else
 #endif
-        if (dd_windowed && editor) wnd=CreateWindowEx(0,"MAINWNDMOAC",title,WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME|WS_MAXIMIZEBOX|WS_MINIMIZEBOX,CW_USEDEFAULT,CW_USEDEFAULT,width+8,height+27,NULL,NULL,instance,NULL);
-        else
-#endif
-            if (dd_windowed) wnd=CreateWindowEx(0,"MAINWNDMOAC",title,WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME|WS_MAXIMIZEBOX|WS_MINIMIZEBOX,CW_USEDEFAULT,CW_USEDEFAULT,width,height,NULL,NULL,instance,NULL);
-            else wnd=CreateWindowEx(WS_EX_TOPMOST,"MAINWNDMOAC",title,WS_POPUP,0,0,width,height,NULL,NULL,instance,NULL);
+        wnd=CreateWindowEx(0,"MAINWNDMOAC",title,WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME|WS_MAXIMIZEBOX|WS_MINIMIZEBOX,CW_USEDEFAULT,CW_USEDEFAULT,width,height,NULL,NULL,instance,NULL);
 
     mainwnd=wnd;
 
@@ -703,17 +697,11 @@ int win_init(char *title,int width,int height) {
     ShowWindow(wnd,SW_SHOW);
     UpdateWindow(wnd);
 
-    if (dd_windowed) {
-        RECT r;
-        int x,y;
+    GetClientRect(wnd,&r);
+    x=r.right-r.left;
+    y=r.bottom-r.top;
 
-        GetClientRect(wnd,&r);
-        x=r.right-r.left;
-        y=r.bottom-r.top;
-
-        SetWindowPos(wnd,HWND_TOP,0,0,width+width-x,height+height-y,0);
-
-    }
+    SetWindowPos(wnd,HWND_TOP,0,0,width+width-x,height+height-y,0);
 
     return 0;
 }
@@ -726,7 +714,6 @@ int win_exit(void) {
     }
 
     UnregisterClass("MAINWNDMOAC",instance);
-    if (!dd_windowed) SetForegroundWindow(lastwnd);
 
     return 0;
 }
@@ -1578,7 +1565,6 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 #ifdef STAFFER
     editor=1;
     areaid=1;
-    dd_windowed=1;
     if (lpCmdLine && isdigit(lpCmdLine[0])) areaid=atoi(lpCmdLine);
 #else
     load_options();
@@ -1627,13 +1613,10 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
     if (!quickstart && win_start()) goto done;
 
 #ifdef EDITOR
-    if (editor) quickstart=1;
-    if (editor && dd_windowed) {
+    if (editor) {
+        quickstart=1;
         width=0;
         height=0;
-    } else if (editor) {
-        width=1024;
-        height=768;
     } else
 #endif
     {
