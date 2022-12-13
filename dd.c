@@ -735,6 +735,13 @@ void dd_flip(void) {
             }
             mouse_scale=1.0*xs/XRES;
 
+            if (mouse_scale!=2.0f) {
+                if (srcdc) SetStretchBltMode(srcdc,HALFTONE);
+                if (tgtdc) SetStretchBltMode(tgtdc,HALFTONE);
+            } else {
+                if (srcdc) SetStretchBltMode(srcdc,COLORONCOLOR);
+                if (tgtdc) SetStretchBltMode(tgtdc,COLORONCOLOR);
+            }
             if (srcdc && tgtdc) StretchBlt(tgtdc,0,0,xs,ys,srcdc,0,0,XRES,YRES,SRCCOPY);
         } else {
             if (srcdc && tgtdc) BitBlt(tgtdc,0,0,XRES,YRES,srcdc,0,0,SRCCOPY);
