@@ -572,18 +572,6 @@ int parse_cmd(char *s) {
                 while (isspace(*s)) s++;
                 n=0; while (n<16 && *s && !isspace(*s)) password[n++]=*s++;
                 password[n]=0;
-            }
-            /*
-            else if (tolower(*s)=='f') {  // -fp -fr        play record
-    s++;
-                    if (*s=='p') { filmmode=2; s++; }
-                    else if (*s=='r') { filmmode=1; s++; }
-                    else return -4;
-}
-            */
-            else if (tolower(*s)=='s') {  // -s use systemmemory
-                s++;
-                dd_usesysmem=1;
             } else if (tolower(*s)=='t') {  // -t <num> maximum number of videocache tiles
                 dd_maxtile=strtol(s+1,&end,10);
                 s=end;
@@ -727,20 +715,6 @@ void update_alpha(HWND hwnd) {
     else { CheckRadioButton(hwnd,IDC_ALPHA1,IDC_ALPHA31,IDC_ALPHA31); dd_usealpha=31; }
 }
 
-void update_memtype(HWND hwnd) {
-    if (dd_usesysmem) CheckRadioButton(hwnd,IDC_VIDMEM,IDC_SYSMEM,IDC_SYSMEM);
-    else if (!dd_usesysmem) CheckRadioButton(hwnd,IDC_VIDMEM,IDC_SYSMEM,IDC_VIDMEM);
-}
-
-void update_vidmem(HWND hwnd) {
-    if (dd_maxtile==DD_VID32MB) CheckRadioButton(hwnd,IDC_VID4MB,IDC_VID32MB,IDC_VID32MB);
-    else if (dd_maxtile==DD_VID16MB) CheckRadioButton(hwnd,IDC_VID4MB,IDC_VID32MB,IDC_VID16MB);
-    else if (dd_maxtile==DD_VID8MB) CheckRadioButton(hwnd,IDC_VID4MB,IDC_VID32MB,IDC_VID8MB);
-    else if (dd_maxtile==DD_VID4MB) CheckRadioButton(hwnd,IDC_VID4MB,IDC_VID32MB,IDC_VID4MB);
-    else { CheckRadioButton(hwnd,IDC_VID4MB,IDC_VID32MB,IDC_VID32MB); dd_maxtile=DD_VID32MB; }
-
-}
-
 void update_res(HWND hwnd) {
     if (opt_res==IDC_RES800) CheckRadioButton(hwnd,IDC_RES800,IDC_RES1280,IDC_RES800);
     else if (opt_res==IDC_RES1024) CheckRadioButton(hwnd,IDC_RES800,IDC_RES1280,IDC_RES1024);
@@ -795,6 +769,7 @@ void update_large(HWND hwnd) {
 
 void save_options(void) {
     int handle;
+    int dummy;
     char nullbuff[sizeof(password)];
 
     bzero(nullbuff,sizeof(nullbuff));
@@ -803,7 +778,7 @@ void save_options(void) {
     if (handle==-1) return;
 
     write(handle,&dd_usealpha,sizeof(dd_usealpha));
-    write(handle,&dd_usesysmem,sizeof(dd_usesysmem));
+    write(handle,&dummy,sizeof(dummy));
     write(handle,&dd_maxtile,sizeof(dd_maxtile));
     write(handle,username,sizeof(username));
     if (save_pwd) write(handle,password,sizeof(password));
@@ -823,7 +798,7 @@ void save_options(void) {
 }
 
 void load_options(void) {
-    int handle,len;
+    int handle,len,dummy;
     char buf[80];
 
     handle=open("vendor.dat",O_RDONLY|O_BINARY);
@@ -840,7 +815,7 @@ void load_options(void) {
     newlight=1;
 
     read(handle,&dd_usealpha,sizeof(dd_usealpha));
-    read(handle,&dd_usesysmem,sizeof(dd_usesysmem));
+    read(handle,&dummy,sizeof(dummy));
     read(handle,&dd_maxtile,sizeof(dd_maxtile));
     read(handle,username,sizeof(username));
     read(handle,password,sizeof(password));
@@ -881,8 +856,6 @@ BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
             SendDlgItemMessage(wnd,1999,STM_SETIMAGE,IMAGE_BITMAP,(LPARAM)LoadBitmap(instance,MAKEINTRESOURCE(BITMAP_STARTUP)));
             //SetWindowPos(GetDlgItem(wnd,1999),0,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE);
             update_alpha(wnd);
-            update_memtype(wnd);
-            update_vidmem(wnd);
             update_savepwd(wnd);
             update_sound(wnd);
             update_light(wnd);
@@ -913,8 +886,6 @@ BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
                 case IDC_ALPHA1:
                     dd_usealpha=1;
                     update_alpha(wnd);
-                    update_memtype(wnd);
-                    update_vidmem(wnd);
                     update_res(wnd);
                     update_line(wnd);
                     return 1;
@@ -922,8 +893,6 @@ BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
                 case IDC_ALPHA8:
                     dd_usealpha=8;
                     update_alpha(wnd);
-                    update_memtype(wnd);
-                    update_vidmem(wnd);
                     update_res(wnd);
                     update_line(wnd);
                     return 1;
@@ -931,62 +900,6 @@ BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
                 case IDC_ALPHA31:
                     dd_usealpha=31;
                     update_alpha(wnd);
-                    update_memtype(wnd);
-                    update_vidmem(wnd);
-                    update_res(wnd);
-                    update_line(wnd);
-                    return 1;
-
-                case IDC_SYSMEM:
-                    dd_usesysmem=1;
-                    update_alpha(wnd);
-                    update_memtype(wnd);
-                    update_vidmem(wnd);
-                    update_res(wnd);
-                    update_line(wnd);
-                    return 1;
-
-                case IDC_VIDMEM:
-                    dd_usesysmem=0;
-                    update_alpha(wnd);
-                    update_memtype(wnd);
-                    update_vidmem(wnd);
-                    update_res(wnd);
-                    update_line(wnd);
-                    return 1;
-
-                case IDC_VID4MB:
-                    dd_maxtile=DD_VID4MB;
-                    update_alpha(wnd);
-                    update_memtype(wnd);
-                    update_vidmem(wnd);
-                    update_res(wnd);
-                    update_line(wnd);
-                    return 1;
-
-                case IDC_VID8MB:
-                    dd_maxtile=DD_VID8MB;
-                    update_alpha(wnd);
-                    update_memtype(wnd);
-                    update_vidmem(wnd);
-                    update_res(wnd);
-                    update_line(wnd);
-                    return 1;
-
-                case IDC_VID16MB:
-                    dd_maxtile=DD_VID16MB;
-                    update_alpha(wnd);
-                    update_memtype(wnd);
-                    update_vidmem(wnd);
-                    update_res(wnd);
-                    update_line(wnd);
-                    return 1;
-
-                case IDC_VID32MB:
-                    dd_maxtile=DD_VID32MB;
-                    update_alpha(wnd);
-                    update_memtype(wnd);
-                    update_vidmem(wnd);
                     update_res(wnd);
                     update_line(wnd);
                     return 1;
@@ -998,8 +911,6 @@ BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
                 case IDC_RES1280:
                     opt_res=wparam;
                     update_alpha(wnd);
-                    update_memtype(wnd);
-                    update_vidmem(wnd);
                     update_res(wnd);
                     update_line(wnd);
                     return 1;
@@ -1007,24 +918,18 @@ BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
                 case IDC_LINE1:
                     backup_server=0;
                     update_alpha(wnd);
-                    update_memtype(wnd);
-                    update_vidmem(wnd);
                     update_res(wnd);
                     update_line(wnd);
                     return 1;
                 case IDC_LINE2:
                     backup_server=1;
                     update_alpha(wnd);
-                    update_memtype(wnd);
-                    update_vidmem(wnd);
                     update_res(wnd);
                     update_line(wnd);
                     return 1;
                 case IDC_LINE3:
                     backup_server=2;
                     update_alpha(wnd);
-                    update_memtype(wnd);
-                    update_vidmem(wnd);
                     update_res(wnd);
                     update_line(wnd);
                     return 1;

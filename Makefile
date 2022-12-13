@@ -26,7 +26,7 @@ sound.obj:      sound.c main.h
 questlog.obj:	questlog.c main.h
 neuquant.obj:   neuquant.c neuquant.h
 
-resource.res:   resource.rc
+resource.res:   resource.rc resource.h
 		$(BCCPATH)\bin\brcc32 -fo resource.res resource.rc
 
 clean:
