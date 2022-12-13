@@ -29,7 +29,6 @@ extern int nocut;
 extern int allcut;
 
 extern int mapoffx,mapoffy;
-extern int reduce_light;
 
 int fsprite_cnt=0,f2sprite_cnt=0,gsprite_cnt=0,g2sprite_cnt=0,isprite_cnt=0,csprite_cnt=0;
 int qs_time=0,dg_time=0,ds_time=0;
@@ -476,11 +475,7 @@ void set_map_lights(struct map *cmap) {
         }
 
         cmap[mn].value=0;
-        if ((cmap[mn].flags&CMF_LIGHT)==15) cmap[mn].rlight=15;
-        else if (reduce_light) {
-            cmap[mn].rlight=(cmap[mn].flags&CMF_LIGHT)/4*4;
-            //cmap[mn].rlight=(cmap[mn].flags&CMF_LIGHT)/2*2;
-        } else cmap[mn].rlight=(cmap[mn].flags&CMF_LIGHT);
+        cmap[mn].rlight=(cmap[mn].flags&CMF_LIGHT);
 
         if (cmap[mn].rlight!=15) {
             //cmap[mn].rlight+=cmap[mn].dim;	what?

@@ -24,8 +24,6 @@ produced by Borland Resource Workshop
 #define IDC_RES800B	118
 #define IDC_RES1280	119
 
-#define IDC_LIGHT	120
-
 #define IDC_ANIM	121
 
 #define IDC_WALLS	122

@@ -41,7 +41,6 @@ int xmemcheck_failed=0;
 HWND mainwnd=NULL;
 HINSTANCE instance=NULL;
 int opt_res=800;
-int reduce_light=0;
 int reduce_anim=0;
 int shade_walls=0;
 int shade_floor=0;
@@ -729,10 +728,6 @@ void update_sound(HWND hwnd) {
     CheckDlgButton(hwnd,IDC_SOUND,enable_sound);
 }
 
-void update_light(HWND hwnd) {
-    CheckDlgButton(hwnd,IDC_LIGHT,reduce_light);
-}
-
 void update_newlight(HWND hwnd) {
     CheckDlgButton(hwnd,IDC_NEWLIGHT,newlight);
 }
@@ -771,7 +766,7 @@ void save_options(void) {
     else write(handle,nullbuff,sizeof(password));
     write(handle,&save_pwd,sizeof(save_pwd));
     write(handle,&opt_res,sizeof(opt_res));
-    write(handle,&reduce_light,sizeof(reduce_light));
+    write(handle,&dummy,sizeof(dummy));
     write(handle,&reduce_anim,sizeof(reduce_anim));
     write(handle,&shade_walls,sizeof(shade_walls));
     write(handle,&shade_floor,sizeof(shade_floor));
@@ -807,7 +802,7 @@ void load_options(void) {
     read(handle,password,sizeof(password));
     read(handle,&save_pwd,sizeof(save_pwd));
     read(handle,&opt_res,sizeof(opt_res));
-    read(handle,&reduce_light,sizeof(reduce_light));
+    read(handle,&dummy,sizeof(dummy));
     read(handle,&reduce_anim,sizeof(reduce_anim));
     read(handle,&shade_walls,sizeof(shade_walls));
     read(handle,&shade_floor,sizeof(shade_floor));
@@ -844,7 +839,6 @@ BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
             update_alpha(wnd);
             update_savepwd(wnd);
             update_sound(wnd);
-            update_light(wnd);
             update_newlight(wnd);
             update_anim(wnd);
             update_walls(wnd);
@@ -906,12 +900,6 @@ BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
                     if (enable_sound) enable_sound=0;
                     else enable_sound=1;
                     update_sound(wnd);
-                    return 1;
-
-                case IDC_LIGHT:
-                    if (reduce_light) reduce_light=0;
-                    else reduce_light=1;
-                    update_light(wnd);
                     return 1;
 
                 case IDC_NEWLIGHT:
