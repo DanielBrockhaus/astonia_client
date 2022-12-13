@@ -698,13 +698,6 @@ int win_exit(void) {
 
 // startup
 
-void update_alpha(HWND hwnd) {
-    if (dd_usealpha==1) CheckRadioButton(hwnd,IDC_ALPHA1,IDC_ALPHA31,IDC_ALPHA1);
-    else if (dd_usealpha==8) CheckRadioButton(hwnd,IDC_ALPHA1,IDC_ALPHA31,IDC_ALPHA8);
-    else if (dd_usealpha==31) CheckRadioButton(hwnd,IDC_ALPHA1,IDC_ALPHA31,IDC_ALPHA31);
-    else { CheckRadioButton(hwnd,IDC_ALPHA1,IDC_ALPHA31,IDC_ALPHA31); dd_usealpha=31; }
-}
-
 void update_res(HWND hwnd) {
     if (opt_res==IDC_RES800) CheckRadioButton(hwnd,IDC_RES800,IDC_RES1280,IDC_RES800);
     else if (opt_res==IDC_RES1024) CheckRadioButton(hwnd,IDC_RES800,IDC_RES1280,IDC_RES1024);
@@ -744,7 +737,7 @@ void save_options(void) {
     handle=open("conflict.dat",O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,0666);
     if (handle==-1) return;
 
-    write(handle,&dd_usealpha,sizeof(dd_usealpha));
+    write(handle,&dummy,sizeof(dummy));
     write(handle,&dummy,sizeof(dummy));
     write(handle,&dd_maxtile,sizeof(dd_maxtile));
     write(handle,username,sizeof(username));
@@ -781,7 +774,7 @@ void load_options(void) {
 
     newlight=1;
 
-    read(handle,&dd_usealpha,sizeof(dd_usealpha));
+    read(handle,&dummy,sizeof(dummy));
     read(handle,&dummy,sizeof(dummy));
     read(handle,&dd_maxtile,sizeof(dd_maxtile));
     read(handle,username,sizeof(username));
@@ -822,7 +815,6 @@ BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
             CreateWindowEx(WS_EX_STATICEDGE,"STATIC",NULL,SS_BITMAP|WS_VISIBLE|WS_CHILD,0,0,0,0,wnd,(HMENU)1999,instance,NULL);
             SendDlgItemMessage(wnd,1999,STM_SETIMAGE,IMAGE_BITMAP,(LPARAM)LoadBitmap(instance,MAKEINTRESOURCE(BITMAP_STARTUP)));
             //SetWindowPos(GetDlgItem(wnd,1999),0,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE);
-            update_alpha(wnd);
             update_savepwd(wnd);
             update_sound(wnd);
             update_newlight(wnd);
@@ -845,31 +837,12 @@ BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
                     EndDialog(wnd,0);
                     return TRUE;
 
-                case IDC_ALPHA1:
-                    dd_usealpha=1;
-                    update_alpha(wnd);
-                    update_res(wnd);
-                    return 1;
-
-                case IDC_ALPHA8:
-                    dd_usealpha=8;
-                    update_alpha(wnd);
-                    update_res(wnd);
-                    return 1;
-
-                case IDC_ALPHA31:
-                    dd_usealpha=31;
-                    update_alpha(wnd);
-                    update_res(wnd);
-                    return 1;
-
                 case IDC_RES800:
                 case IDC_RES800B:
                 case IDC_RES1024:
                 case IDC_RES1152:
                 case IDC_RES1280:
                     opt_res=wparam;
-                    update_alpha(wnd);
                     update_res(wnd);
                     return 1;
 

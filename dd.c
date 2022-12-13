@@ -40,7 +40,6 @@ unsigned short int irgb_blend(unsigned short int a,unsigned short int b,int alph
 
 // direct x basics //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int dd_usealpha=1;      // set from outside from 1 (full alpha) to 31(no alpha)
 int dd_maxtile=DD_VID32MB;   // (max=0xFFFD) maximum number of tiles this client should use (for multiclient sessions)
 int dd_gamma=8;
 int dd_lighteffect=16;

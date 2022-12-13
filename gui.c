@@ -2474,7 +2474,6 @@ static void exec_cmd(int cmd,int a) {
     return;
 }
 
-#define GEN_SET_ALPHA           1 // a
 #define GEN_SET_GAMMA           2 // a
 #define GEN_FORCE_PNG           3 // a developer only
 #define GEN_SET_LIGHTEFFECT	5
@@ -2483,12 +2482,6 @@ static void exec_cmd(int cmd,int a) {
 #pragma argsused
 int exec_gen(int gen,int a,char *c) {
     switch (gen) {
-        case GEN_SET_ALPHA:
-            if (a<1) return -1;
-            if (a>32) return -1;
-            dd_usealpha=a;
-            dd_reset_cache(1,1,1);
-            return dd_usealpha;
         case GEN_SET_GAMMA:
             if (a<1) return -1;
             if (a>31) return -1;
@@ -2549,11 +2542,6 @@ int client_cmd(char *buf) {
 
     if (!strncmp(buf,"#ps ",3)) {
         playersprite_override=atoi(&buf[3]);
-        return 1;
-    }
-    if (!strncmp(buf,"#ua ",4)) {
-        exec_gen(GEN_SET_ALPHA,atoi(&buf[4]),NULL);
-        addline("alpha=%d",dd_usealpha);
         return 1;
     }
     if (!strncmp(buf,"#gamma ",7)) {

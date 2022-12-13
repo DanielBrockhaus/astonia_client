@@ -14,9 +14,6 @@ produced by Borland Resource Workshop
 #define IDD_STARTUP	1
 #define IDC_PASSWORD	104
 
-#define IDC_ALPHA8	112
-#define IDC_ALPHA31	113
-
 #define IDC_SAVEPWD	114
 
 #define IDC_RES800	115
@@ -33,8 +30,6 @@ produced by Borland Resource Workshop
 #define IDC_WEBSITE	128
 
 #define IDC_RES1152	117
-
-#define IDC_ALPHA1	111
 
 #define IDC_USERNAME	103
 

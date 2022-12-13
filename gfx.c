@@ -339,6 +339,7 @@ static char* pakfilename_str(char *dst,int sprite) {
 
 // gfx convert (reallocate image->rgb and image->a - convert src into this pointers) - sprite is just for output
 
+// TODO: remove usealpha
 static int load_gfx_1(IMAGE *image,unsigned int srcsize,unsigned char *src,int usealpha) {
     int x,y,a,r,g,b;
     unsigned char *end=src+srcsize;
@@ -996,9 +997,9 @@ int gfx_load_image_pak(IMAGE *image,int sprite) {
 
     // convert GFX_DATAFORMAT into image
     switch (pak_cache[pidx].dat[i].dat_type) {
-        case DATATYPE_GFX_1:    ret=load_gfx_1(image,realsize,buf,dd_usealpha); break;
-        case DATATYPE_GFX_2:    ret=load_gfx_2(image,realsize,buf,pak_cache[pidx].pal_cnt,pak_cache[pidx].pal,dd_usealpha); break;
-        case DATATYPE_GFX_3:    ret=load_gfx_3(image,realsize,buf,pak_cache[pidx].pal_cnt,pak_cache[pidx].pal,dd_usealpha); break;
+        case DATATYPE_GFX_1:    ret=load_gfx_1(image,realsize,buf,1); break;
+        case DATATYPE_GFX_2:    ret=load_gfx_2(image,realsize,buf,pak_cache[pidx].pal_cnt,pak_cache[pidx].pal,1); break;
+        case DATATYPE_GFX_3:    ret=load_gfx_3(image,realsize,buf,pak_cache[pidx].pal_cnt,pak_cache[pidx].pal,1); break;
         default:                return fail("oops in gfx_load_image_pak(%d,%d)",sprite,pidx);
     }
 
@@ -1023,7 +1024,7 @@ int _gfx_load_image(IMAGE *image,int sprite) {
 
     if (gfx_force_png) {
         sprintf(filename,"%s%08d/%08d.png",GFXPATH,(sprite/1000)*1000,sprite);
-        if (gfx_load_image_png(image,filename,dd_usealpha)==0) return 0;
+        if (gfx_load_image_png(image,filename,1)==0) return 0;
         note("%s not found",filename);
     }
 
@@ -1034,14 +1035,14 @@ int _gfx_load_image(IMAGE *image,int sprite) {
 #ifdef DEVELOPER
     // check if we can load it in a XXXXXXXX path
     sprintf(filename,"%s%08d/%08d.png",GFXPATH,(sprite/1000)*1000,sprite);
-    if (gfx_load_image_png(image,filename,dd_usealpha)==0) return 0;
+    if (gfx_load_image_png(image,filename,1)==0) return 0;
 #endif
 
 #ifdef STAFFER
     // check if we can load it in a XXXXXXXX path
     sprintf(filename,"gfx/%08d.png",sprite);
     note("trying %s",filename);
-    if (gfx_load_image_png(image,filename,dd_usealpha)==0) return 0;
+    if (gfx_load_image_png(image,filename,1)==0) return 0;
 #endif
 
     note("missing sprite %d!",sprite);
@@ -1053,7 +1054,7 @@ int _gfx_load_image(IMAGE *image,int sprite) {
 #ifdef DEVELOPER
     // then load the missing sprite image from png
     sprintf(filename,"%s00000000/00000002.png",GFXPATH);
-    if (gfx_load_image_png(image,filename,dd_usealpha)==0) return 0;
+    if (gfx_load_image_png(image,filename,1)==0) return 0;
 #endif
 
     paranoia("can't even find the missing image as png file - i'll quit");
