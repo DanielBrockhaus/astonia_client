@@ -41,8 +41,6 @@ int xmemcheck_failed=0;
 HWND mainwnd=NULL;
 HINSTANCE instance=NULL;
 int opt_res=800;
-int shade_walls=0;
-int shade_floor=0;
 int largetext=0;
 int vendor=1;
 extern int newlight;
@@ -731,13 +729,6 @@ void update_newlight(HWND hwnd) {
     CheckDlgButton(hwnd,IDC_NEWLIGHT,newlight);
 }
 
-void update_walls(HWND hwnd) {
-    CheckDlgButton(hwnd,IDC_WALLS,shade_walls);
-}
-
-void update_floor(HWND hwnd) {
-    CheckDlgButton(hwnd,IDC_FLOOR,shade_floor);
-}
 
 void update_large(HWND hwnd) {
     CheckDlgButton(hwnd,IDC_LARGETEXT,largetext);
@@ -763,8 +754,8 @@ void save_options(void) {
     write(handle,&opt_res,sizeof(opt_res));
     write(handle,&dummy,sizeof(dummy));
     write(handle,&dummy,sizeof(dummy));
-    write(handle,&shade_walls,sizeof(shade_walls));
-    write(handle,&shade_floor,sizeof(shade_floor));
+    write(handle,&dummy,sizeof(dummy));
+    write(handle,&dummy,sizeof(dummy));
     write(handle,&largetext,sizeof(largetext));
     write(handle,&enable_sound,sizeof(enable_sound));
     write(handle,&user_keys,sizeof(user_keys));
@@ -799,8 +790,8 @@ void load_options(void) {
     read(handle,&opt_res,sizeof(opt_res));
     read(handle,&dummy,sizeof(dummy));
     read(handle,&dummy,sizeof(dummy));
-    read(handle,&shade_walls,sizeof(shade_walls));
-    read(handle,&shade_floor,sizeof(shade_floor));
+    read(handle,&dummy,sizeof(dummy));
+    read(handle,&dummy,sizeof(dummy));
     read(handle,&largetext,sizeof(largetext));
     read(handle,&enable_sound,sizeof(enable_sound));
     read(handle,&user_keys,sizeof(user_keys));
@@ -835,8 +826,6 @@ BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
             update_savepwd(wnd);
             update_sound(wnd);
             update_newlight(wnd);
-            update_walls(wnd);
-            update_floor(wnd);
             update_large(wnd);
             update_res(wnd);
             return TRUE;
@@ -900,18 +889,6 @@ BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
                     if (newlight) newlight=0;
                     else newlight=1;
                     update_newlight(wnd);
-                    return 1;
-
-                case IDC_WALLS:
-                    if (shade_walls) shade_walls=0;
-                    else shade_walls=1;
-                    update_walls(wnd);
-                    return 1;
-
-                case IDC_FLOOR:
-                    if (shade_floor) shade_floor=0;
-                    else shade_floor=1;
-                    update_floor(wnd);
                     return 1;
                 case IDC_LARGETEXT:
                     if (largetext) largetext=0;
@@ -1375,7 +1352,6 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
     int width,height;
     char buf[80];
     extern int x_offset,y_offset,x_max,y_max;
-    extern int lightquality;
     struct hostent *he;
     extern int  areaid;
 
@@ -1454,11 +1430,6 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
         }
         x_max=x_offset+800;
         y_max=y_offset+600;
-
-        lightquality=0;
-        if (shade_walls) lightquality|=1;
-        if (shade_floor) lightquality|=3;
-
     }
 
 #ifndef NO_UPDATE

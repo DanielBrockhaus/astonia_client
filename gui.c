@@ -61,7 +61,6 @@ int winxres,winyres;
 int display_vc=0;
 
 int playersprite_override=0;
-int lightquality=0;
 int nocut=0;
 int allcut=0;
 
@@ -2478,7 +2477,6 @@ static void exec_cmd(int cmd,int a) {
 #define GEN_SET_ALPHA           1 // a
 #define GEN_SET_GAMMA           2 // a
 #define GEN_FORCE_PNG           3 // a developer only
-#define GEN_SET_LIGHTQUALITY    4 // a
 #define GEN_SET_LIGHTEFFECT	5
 #define GEN_FORCE_DH            6 // a developer only
 
@@ -2502,9 +2500,6 @@ int exec_gen(int gen,int a,char *c) {
             gfx_force_png=a;
             dd_reset_cache(1,1,1);
             return gfx_force_png;
-        case GEN_SET_LIGHTQUALITY:
-            lightquality=a;
-            return lightquality;
         case GEN_SET_LIGHTEFFECT:
             if (a<1) return -1;
             if (a>31) return -1;
@@ -2519,218 +2514,6 @@ int exec_gen(int gen,int a,char *c) {
     }
     return 0;
 }
-
-/*void moac_tinproc(int t, char *buf)
-{
-        if (t!=TIN_TEXT) return;
-
-        if (!strncmp(buf,"#ps ",3)) {
-                playersprite_override=atoi(&buf[3]);
-        }
-        else if (!strncmp(buf,"#ua ",4)) {
-                exec_gen(GEN_SET_ALPHA,atoi(&buf[4]),NULL);
-                addline("alpha=%d",dd_usealpha);
-        }
-        else if (!strncmp(buf,"#lq",3)) {
-                exec_gen(GEN_SET_LIGHTQUALITY,(lightquality+1)%4,NULL);
-                addline("lightquality=%d",lightquality);
-        }
-        else if (!strncmp(buf,"#gamma ",7)) {
-                exec_gen(GEN_SET_GAMMA,atoi(&buf[7]),NULL);
-                addline("using gamma %d",dd_gamma);
-        }
-    else if (!strncmp(buf,"#light ",7)) {
-                exec_gen(GEN_SET_LIGHTEFFECT,atoi(&buf[7]),NULL);
-                addline("using light %d",dd_lighteffect);
-        }
-        else if (!strncmp(buf,"#png",4)) {
-                exec_gen(GEN_FORCE_PNG,gfx_force_png^1,NULL);
-                addline("png=%d",gfx_force_png);
-        }
-        else {
-#ifdef EDITOR
-                if (editor) editor_tinproc(t,buf); else
-#endif
-                cmd_text(buf);
-        }
-
-        tin_do(t,TIN_DO_CLEAR,0);
-}*/
-
-// tin
-
-/*void init_tin(int t, int max, int sx, int sy, int dx, unsigned short int color, const char *set, int maxhistory)
-{
-        if (!tin) {
-                tin=xcalloc(MAX_TIN*sizeof(TIN),MEM_GUI);
-                curtin=0;
-        }
-
-        PARANOIA( if (max<=1) paranoia("init_tin: tin[%d] max<=1",t); )
-        PARANOIA( if (t<1 || t>=MAX_TIN) paranoia("init_tin: tin[%d] out of range",t); )
-        PARANOIA( if (tin[t].max) paranoia("init_tin: tin[%d] already inited",t); )
-        PARANOIA( if (!set) paranoia("init_tin: even tin[%d] needs a set",t); )
-
-        tin[t].max=max;
-        tin[t].buf=xcalloc(tin[t].max,MEM_GUI);
-        tin[t].set=set;
-        tin[t].sx=sx;
-        tin[t].sy=sy;
-        tin[t].dx=dx;
-        tin[t].color=color;
-        tin[t].maxhistory=maxhistory;
-        tin[t].history=xcalloc(tin[t].max*tin[t].maxhistory,MEM_GUI);
-        tin[t].curhistory=0;
-        tin[t].runhistory=-1;
-}
-
-void exit_tin(void)
-{
-        int i;
-
-        if (!tin) return;
-
-        for (i=0; i<MAX_TIN; i++) {
-                xfree(tin[i].buf);
-                xfree(tin[i].history);
-        }
-        xfree(tin);
-        tin=NULL;
-        curtin=0;
-}
-
-void tin_do(int t, int tindo, char c)
-{
-        char *buf;
-        int pos,max,i;
-        static int callenter=0;
-
-        if (t==0) return;
-
-        PARANOIA( if (!tin) paranoia("tin_do: tin not inited at all"); )
-        PARANOIA( if (t<1 || t>=MAX_TIN) paranoia("tin_do: tin[%d] out of range",t); )
-        PARANOIA( if (!tin[t].max) paranoia("tin_do: tin[%d] not inited",t); )
-
-        buf=tin[t].buf;
-        pos=tin[t].pos;
-        max=tin[t].max;
-
-        switch(tindo)
-        {
-                case TIN_DO_ADD:
-                        for (i=0; ; i++) if (tin[t].set[i]==0) return; else if(tin[t].set[i]==c) break;
-                        if (pos==max-1) goto beep;
-                        if (buf[max-1]) MessageBeep(-1);
-                        memmove(buf+pos+1,buf+pos,max-pos-2);
-                        buf[pos]=c;
-                        tin[t].pos++;
-                        tin[t].runhistory=-1;
-                        return;
-
-                case TIN_DO_DEL:
-                        if (!buf[pos]) goto beep;
-                        memmove(buf+pos,buf+pos+1,max-pos-1);
-                        tin[t].runhistory=-1;
-                        return;
-
-                case TIN_DO_BS:
-                        if (pos==0) goto beep;
-                        memmove(buf+pos-1,buf+pos,max-pos);
-                        tin[t].pos--;
-                        tin[t].runhistory=-1;
-                        return;
-
-                case TIN_DO_MOVE:
-                        if (c<0) pos--; else if (c>0) pos++;
-                        if (pos<0 || (pos>0 && !buf[pos-1])) goto beep;
-                        tin[t].pos=pos;
-                        return;
-
-                case TIN_DO_HOME:
-                        if (pos==0) goto beep;
-                        tin[t].pos=0;
-                        return;
-
-                case TIN_DO_END:
-                        pos=strlen(buf);
-                        if (pos==tin[t].pos) goto beep;
-                        tin[t].pos=pos;
-                        return;
-
-                case TIN_DO_SEEK:
-                        if (c<0) {
-                                if (pos>0) pos--;
-                                while (pos>0 && isalnum(buf[pos-1])) pos--;
-                        }
-                        else if (c>0) {
-                                if (buf[pos]) pos++;
-                                while (buf[pos] && (pos==0 || isalnum(buf[pos-1]))) pos++;
-                        }
-                        if (tin[t].pos==pos) goto beep;
-                        tin[t].pos=pos;
-                        return;
-
-                case TIN_DO_CLEAR:
-                        // copy to history
-                        strcpy(tin[t].history+tin[t].max*tin[t].curhistory,tin[t].buf);
-                        tin[t].curhistory=(tin[t].curhistory+1)%tin[t].maxhistory;
-                        tin[t].runhistory=-1;
-
-                        // reset buf
-                        tin[t].buf[tin[t].pos=0]=0;
-                        return;
-
-                case TIN_DO_ENTER:
-                        if (callenter) return;
-                        callenter=1;
-                        moac_tinproc(t,tin[t].buf);
-                        callenter=0;
-                        return;
-
-                case TIN_DO_PREVHIST:
-                        if (tin[t].runhistory==-1) {
-                                strcpy(tin[t].history+tin[t].max*tin[t].curhistory,tin[t].buf);
-                                tin[t].runhistory=(tin[t].curhistory+tin[t].maxhistory-1)%tin[t].maxhistory;
-                        }
-                        else if ((tin[t].runhistory+tin[t].maxhistory-1)%tin[t].maxhistory!=tin[t].curhistory) tin[t].runhistory=(tin[t].runhistory+tin[t].maxhistory-1)%tin[t].maxhistory;
-                        else goto beep;
-
-                        sprintf(tin[t].buf,"%s",tin[t].history+tin[t].max*tin[t].runhistory);
-                        tin[t].pos=strlen(tin[t].buf);
-
-                        return;
-
-                case TIN_DO_NEXTHIST:
-                        if (tin[t].runhistory==-1) goto beep;
-                        else if (tin[t].runhistory!=tin[t].curhistory) tin[t].runhistory=(tin[t].runhistory+1)%tin[t].maxhistory;
-                        else goto beep;
-
-                        sprintf(tin[t].buf,"%s",tin[t].history+tin[t].max*tin[t].runhistory);
-                        tin[t].pos=strlen(tin[t].buf);
-                        return;
-        }
-
-        return;
-beep:
-        MessageBeep(-1);
-}
-
-void display_tin(int t, int dd_frame)
-{
-        int x,y,cx;
-        PARANOIA( if (!tin) paranoia("display_tin: tin not inited at all"); )
-        PARANOIA( if (t<1 || t>=MAX_TIN) paranoia("display_tin: tin[%d] out of range",t); )
-        PARANOIA( if (!tin[t].max) paranoia("display_tin: tin[%d] not inited",t); )
-
-        x=tin[t].sx;
-        y=tin[t].sy;
-
-        dd_drawtext(x,y,tin[t].color,DD_LEFT|DD_LARGE|dd_frame,tin[t].buf);
-        if ((now/500)&1) {
-                cx=x-1+dd_textlen(DD_LEFT|DD_LARGE,tin[t].buf,tin[t].pos);
-                dd_drawtext(cx,y,tin[t].color,DD_LEFT|DD_LARGE,"|");
-        }
-}*/
 
 #define MAXCMDLINE	199
 #define MAXHIST		20
@@ -2771,11 +2554,6 @@ int client_cmd(char *buf) {
     if (!strncmp(buf,"#ua ",4)) {
         exec_gen(GEN_SET_ALPHA,atoi(&buf[4]),NULL);
         addline("alpha=%d",dd_usealpha);
-        return 1;
-    }
-    if (!strncmp(buf,"#lq",3)) {
-        exec_gen(GEN_SET_LIGHTQUALITY,(lightquality+1)%4,NULL);
-        addline("lightquality=%d",lightquality);
         return 1;
     }
     if (!strncmp(buf,"#gamma ",7)) {

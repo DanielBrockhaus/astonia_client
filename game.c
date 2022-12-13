@@ -24,7 +24,6 @@ extern int itmsel;
 extern int chrsel;
 extern unsigned int now;
 
-extern int lightquality;
 extern int nocut;
 extern int allcut;
 
@@ -1418,16 +1417,16 @@ void display_game_map(struct map *cmap) {
         if (cmap[mn].rg.sprite) {
             dl=dl_next_set(get_lay_sprite(cmap[mn].gsprite,GND_LAY),cmap[mn].rg.sprite,scrx,scry-10,light);
             if (!dl) { note("error in game #1"); continue; }
-            if (lightquality&2) {
-                if ((mna=quick[i].mn[3])!=0 && (cmap[mna].rlight)) dl->ddfx.ll=cmap[mna].rlight;
-                else dl->ddfx.ll=light;
-                if ((mna=quick[i].mn[5])!=0 && (cmap[mna].rlight)) dl->ddfx.rl=cmap[mna].rlight;
-                else dl->ddfx.rl=light;
-                if ((mna=quick[i].mn[1])!=0 && (cmap[mna].rlight)) dl->ddfx.ul=cmap[mna].rlight;
-                else dl->ddfx.ul=light;
-                if ((mna=quick[i].mn[7])!=0 && (cmap[mna].rlight)) dl->ddfx.dl=cmap[mna].rlight;
-                else dl->ddfx.dl=light;
-            }
+
+            if ((mna=quick[i].mn[3])!=0 && (cmap[mna].rlight)) dl->ddfx.ll=cmap[mna].rlight;
+            else dl->ddfx.ll=light;
+            if ((mna=quick[i].mn[5])!=0 && (cmap[mna].rlight)) dl->ddfx.rl=cmap[mna].rlight;
+            else dl->ddfx.rl=light;
+            if ((mna=quick[i].mn[1])!=0 && (cmap[mna].rlight)) dl->ddfx.ul=cmap[mna].rlight;
+            else dl->ddfx.ul=light;
+            if ((mna=quick[i].mn[7])!=0 && (cmap[mna].rlight)) dl->ddfx.dl=cmap[mna].rlight;
+            else dl->ddfx.dl=light;
+
             dl->ddfx.scale=cmap[mn].rg.scale;
             dl->ddfx.cr=cmap[mn].rg.cr;
             dl->ddfx.cg=cmap[mn].rg.cg;
@@ -1450,16 +1449,16 @@ void display_game_map(struct map *cmap) {
         if (cmap[mn].rg2.sprite) {
             dl=dl_next_set(get_lay_sprite(cmap[mn].gsprite2,GND2_LAY),cmap[mn].rg2.sprite,scrx,scry,light);
             if (!dl) { note("error in game #2"); continue; }
-            if (lightquality&2) {
-                if ((mna=quick[i].mn[3])!=0 && (cmap[mna].rlight)) dl->ddfx.ll=cmap[mna].rlight;
-                else dl->ddfx.ll=light;
-                if ((mna=quick[i].mn[5])!=0 && (cmap[mna].rlight)) dl->ddfx.rl=cmap[mna].rlight;
-                else dl->ddfx.rl=light;
-                if ((mna=quick[i].mn[1])!=0 && (cmap[mna].rlight)) dl->ddfx.ul=cmap[mna].rlight;
-                else dl->ddfx.ul=light;
-                if ((mna=quick[i].mn[7])!=0 && (cmap[mna].rlight)) dl->ddfx.dl=cmap[mna].rlight;
-                else dl->ddfx.dl=light;
-            }
+
+            if ((mna=quick[i].mn[3])!=0 && (cmap[mna].rlight)) dl->ddfx.ll=cmap[mna].rlight;
+            else dl->ddfx.ll=light;
+            if ((mna=quick[i].mn[5])!=0 && (cmap[mna].rlight)) dl->ddfx.rl=cmap[mna].rlight;
+            else dl->ddfx.rl=light;
+            if ((mna=quick[i].mn[1])!=0 && (cmap[mna].rlight)) dl->ddfx.ul=cmap[mna].rlight;
+            else dl->ddfx.ul=light;
+            if ((mna=quick[i].mn[7])!=0 && (cmap[mna].rlight)) dl->ddfx.dl=cmap[mna].rlight;
+            else dl->ddfx.dl=light;
+
             dl->ddfx.scale=cmap[mn].rg2.scale;
             dl->ddfx.cr=cmap[mn].rg2.cr;
             dl->ddfx.cg=cmap[mn].rg2.cg;
@@ -1484,23 +1483,19 @@ void display_game_map(struct map *cmap) {
 
         // blit fsprites
         if (cmap[mn].rf.sprite) {
-            if (lightquality&1) {
-                dl=dl_next_set(get_lay_sprite(cmap[mn].fsprite,GME_LAY),cmap[mn].rf.sprite,scrx,scry-9,light);
-                if (!dl) { note("error in game #3"); continue; }
-                dl->h=-9;
-                if ((mna=quick[i].mn[3])!=0 && (cmap[mna].rlight)) dl->ddfx.ll=cmap[mna].rlight;
-                else dl->ddfx.ll=light;
-                if ((mna=quick[i].mn[5])!=0 && (cmap[mna].rlight)) dl->ddfx.rl=cmap[mna].rlight;
-                else dl->ddfx.rl=light;
-                if ((mna=quick[i].mn[1])!=0 && (cmap[mna].rlight)) dl->ddfx.ul=cmap[mna].rlight;
-                else dl->ddfx.ul=light;
-                if ((mna=quick[i].mn[7])!=0 && (cmap[mna].rlight)) dl->ddfx.dl=cmap[mna].rlight;
-                else dl->ddfx.dl=light;
-            } else {
-                dl=dl_next_set(GME_LAY,cmap[mn].rf.sprite,scrx,scry-9,light);
-                if (!dl) { note("error in game #4"); continue; }
-                dl->h=-9;
-            }
+
+            dl=dl_next_set(get_lay_sprite(cmap[mn].fsprite,GME_LAY),cmap[mn].rf.sprite,scrx,scry-9,light);
+            if (!dl) { note("error in game #3"); continue; }
+            dl->h=-9;
+            if ((mna=quick[i].mn[3])!=0 && (cmap[mna].rlight)) dl->ddfx.ll=cmap[mna].rlight;
+            else dl->ddfx.ll=light;
+            if ((mna=quick[i].mn[5])!=0 && (cmap[mna].rlight)) dl->ddfx.rl=cmap[mna].rlight;
+            else dl->ddfx.rl=light;
+            if ((mna=quick[i].mn[1])!=0 && (cmap[mna].rlight)) dl->ddfx.ul=cmap[mna].rlight;
+            else dl->ddfx.ul=light;
+            if ((mna=quick[i].mn[7])!=0 && (cmap[mna].rlight)) dl->ddfx.dl=cmap[mna].rlight;
+            else dl->ddfx.dl=light;
+
 
             // fsprite can increase the height of items and fsprite2
             heightadd=is_yadd_sprite(cmap[mn].rf.sprite);
@@ -1529,23 +1524,19 @@ void display_game_map(struct map *cmap) {
 
         // ... 2nd (fsprite2)
         if (cmap[mn].rf2.sprite) {
-            if (lightquality&1) {
-                dl=dl_next_set(get_lay_sprite(cmap[mn].fsprite2,GME_LAY),cmap[mn].rf2.sprite,scrx,scry+1,light);
-                if (!dl) { note("error in game #5"); continue; }
-                dl->h=1;
-                if ((mna=quick[i].mn[3])!=0 && (cmap[mna].rlight)) dl->ddfx.ll=cmap[mna].rlight;
-                else dl->ddfx.ll=light;
-                if ((mna=quick[i].mn[5])!=0 && (cmap[mna].rlight)) dl->ddfx.rl=cmap[mna].rlight;
-                else dl->ddfx.rl=light;
-                if ((mna=quick[i].mn[1])!=0 && (cmap[mna].rlight)) dl->ddfx.ul=cmap[mna].rlight;
-                else dl->ddfx.ul=light;
-                if ((mna=quick[i].mn[7])!=0 && (cmap[mna].rlight)) dl->ddfx.dl=cmap[mna].rlight;
-                else dl->ddfx.dl=light;
-            } else {
-                dl=dl_next_set(GME_LAY,cmap[mn].rf2.sprite,scrx,scry+1,light);
-                if (!dl) { note("error in game #6"); continue; }
-                dl->h=1;
-            }
+
+            dl=dl_next_set(get_lay_sprite(cmap[mn].fsprite2,GME_LAY),cmap[mn].rf2.sprite,scrx,scry+1,light);
+            if (!dl) { note("error in game #5"); continue; }
+            dl->h=1;
+            if ((mna=quick[i].mn[3])!=0 && (cmap[mna].rlight)) dl->ddfx.ll=cmap[mna].rlight;
+            else dl->ddfx.ll=light;
+            if ((mna=quick[i].mn[5])!=0 && (cmap[mna].rlight)) dl->ddfx.rl=cmap[mna].rlight;
+            else dl->ddfx.rl=light;
+            if ((mna=quick[i].mn[1])!=0 && (cmap[mna].rlight)) dl->ddfx.ul=cmap[mna].rlight;
+            else dl->ddfx.ul=light;
+            if ((mna=quick[i].mn[7])!=0 && (cmap[mna].rlight)) dl->ddfx.dl=cmap[mna].rlight;
+            else dl->ddfx.dl=light;
+
             dl->y+=1;
             dl->h+=1;
             dl->h+=heightadd;
@@ -1575,16 +1566,16 @@ void display_game_map(struct map *cmap) {
         if (cmap[mn].isprite) {
             dl=dl_next_set(get_lay_sprite(cmap[mn].isprite,GME_LAY),cmap[mn].ri.sprite,scrx,scry-8,itmsel==mn?DDFX_BRIGHT:light);
             if (!dl) { note("error in game #8 (%d,%d)",cmap[mn].ri.sprite,cmap[mn].isprite); continue; }
-            if (lightquality&1) {
-                if ((mna=quick[i].mn[3])!=0 && (cmap[mna].rlight)) dl->ddfx.ll=cmap[mna].rlight;
-                else dl->ddfx.ll=light;
-                if ((mna=quick[i].mn[5])!=0 && (cmap[mna].rlight)) dl->ddfx.rl=cmap[mna].rlight;
-                else dl->ddfx.rl=light;
-                if ((mna=quick[i].mn[1])!=0 && (cmap[mna].rlight)) dl->ddfx.ul=cmap[mna].rlight;
-                else dl->ddfx.ul=light;
-                if ((mna=quick[i].mn[7])!=0 && (cmap[mna].rlight)) dl->ddfx.dl=cmap[mna].rlight;
-                else dl->ddfx.dl=light;
-            }
+
+            if ((mna=quick[i].mn[3])!=0 && (cmap[mna].rlight)) dl->ddfx.ll=cmap[mna].rlight;
+            else dl->ddfx.ll=light;
+            if ((mna=quick[i].mn[5])!=0 && (cmap[mna].rlight)) dl->ddfx.rl=cmap[mna].rlight;
+            else dl->ddfx.rl=light;
+            if ((mna=quick[i].mn[1])!=0 && (cmap[mna].rlight)) dl->ddfx.ul=cmap[mna].rlight;
+            else dl->ddfx.ul=light;
+            if ((mna=quick[i].mn[7])!=0 && (cmap[mna].rlight)) dl->ddfx.dl=cmap[mna].rlight;
+            else dl->ddfx.dl=light;
+
             dl->h+=heightadd-8;
             dl->ddfx.scale=cmap[mn].ri.scale;
             dl->ddfx.cr=cmap[mn].ri.cr;
