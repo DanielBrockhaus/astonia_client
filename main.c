@@ -1728,7 +1728,6 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 #ifdef DOSOUND
     init_sound(mainwnd);
 #endif
-    vid_init();
 
     if (largetext) {
         extern int namesize;

@@ -67,7 +67,6 @@ void dd_text_pageup(void);
 void dd_text_pagedown(void);
 int dd_text_init_done(void);
 void dd_add_text(char *ptr);
-void vid_init(void);
 void dd_set_textfont(int nr);
 
 #define DD_OFFSET               0       // this has to be zero, so bzero on the structures default this

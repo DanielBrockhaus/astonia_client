@@ -26,12 +26,6 @@ void dd_create_font(void);
 void dd_init_text(void);
 void dd_black(void);
 
-void vid_show(int nr);
-void vid_check_for_erasure(int sidx);
-static void vid_add_cache_small(struct vid_cache *vn);
-static void vid_free_cache(struct vid_cache *vc);
-static void vid_reset(void);
-
 // extern ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern HWND mainwnd;
@@ -57,8 +51,6 @@ int XRES;               // set to indicate the maximal size of the offscreen sur
 int YRES;               // set to indicate the maximal size of the offscreen surface - respective the display mode to set
 
 float mouse_scale=1.0f;      // mouse input needs to be scaled by this factor because the display window is stretched
-
-int dd_usevidmem;       // whats up really
 
 char dderr[256]={""};
 const char *DDERR=dderr;
@@ -90,20 +82,6 @@ int dd_tick=0;
 LPDIRECTDRAW dd=NULL;
 LPDIRECTDRAWCLIPPER ddcl=NULL;
 LPDIRECTDRAWSURFACE ddps=NULL,ddbs=NULL;
-
-#define DDCS_MAX        32
-LPDIRECTDRAWSURFACE ddcs[DDCS_MAX];
-int ddcs_usemem[DDCS_MAX];
-int ddcs_used=0;
-int ddcs_xres[DDCS_MAX];        // cache resolution in pixels
-int ddcs_yres[DDCS_MAX];        // cache resolution in pixels
-int ddcs_xmax[DDCS_MAX];        // cache resolution in pixels
-int ddcs_ymax[DDCS_MAX];        // cache resolution in pixels
-int ddcs_tdx[DDCS_MAX];         // cache resolution in tiles
-int ddcs_tdy[DDCS_MAX];         // cache resolution in tiles
-int ddcs_tiles[DDCS_MAX];       // number of tiles
-int ddcs_total=0;               // total number of tiles
-int dd_vidmeminuse=0;           // number of bytes videomemory used
 
 int clipsx,clipsy,clipex,clipey;
 int clipstore[32][4],clippos=0;
@@ -283,30 +261,6 @@ static int dd_vidmembytes(LPDIRECTDRAWSURFACE sur) {
     return ddsd.dwHeight*ddsd.u1.lPitch;
 }
 
-static int ddcs_set_info(int s,int usemem,int xmax,int ymax) {
-    DDSURFACEDESC ddsd;
-    char buf[1024];
-    int err;
-
-    bzero(&ddsd,sizeof(ddsd));
-    ddsd.dwSize=sizeof(ddsd);
-    ddsd.dwFlags=DDSD_ALL;
-    if ((err=ddcs[s]->lpVtbl->GetSurfaceDesc(ddcs[s],&ddsd))!=DD_OK) return dd_error("GetSurfaceDesc(ddcs[s])",err);
-    note("ddcs[%d] is %s",s,ddsdstr(buf,&ddsd));
-
-    ddcs_usemem[s]=usemem;
-    ddcs_xres[s]=ddsd.u1.lPitch/2;
-    ddcs_yres[s]=ddsd.dwHeight;
-    ddcs_xmax[s]=xmax;
-    ddcs_ymax[s]=ymax;
-    ddcs_tdx[s]=ddcs_xres[s]/TILESIZEDX;
-    ddcs_tdy[s]=ddcs_yres[s]/TILESIZEDY;
-    ddcs_tiles[s]=ddcs_tdx[s]*ddcs_tdy[s];
-    ddcs_total+=ddcs_tiles[s];
-
-    return 0;
-}
-
 void dd_get_client_info(struct client_info *ci) {
     int n;
     DDCAPS caps;
@@ -325,13 +279,6 @@ void dd_get_client_info(struct client_info *ci) {
 
     ci->systemtotal=memstat.dwTotalPhys;
     ci->systemfree=memstat.dwAvailPhys;
-
-    bzero(ci->surface,sizeof(ci->surface));
-    for (n=0; n<min(ddcs_used,CL_MAX_SURFACE); n++) {
-        ci->surface[n].xres=ddcs_xres[n];
-        ci->surface[n].yres=ddcs_yres[n];
-        ci->surface[n].type=ddcs_usemem[n];
-    }
 }
 
 int dd_set_color_key(void) {
@@ -344,29 +291,7 @@ int dd_set_color_key(void) {
     key.dwColorSpaceLowValue=scrcolorkey;
     key.dwColorSpaceHighValue=scrcolorkey;
 
-    for (s=0; s<ddcs_used; s++) {
-        if ((err=ddcs[s]->lpVtbl->SetColorKey(ddcs[s],DDCKEY_SRCBLT,&key))!=DD_OK) return dd_error("SetColorKey()",err);
-    }
-
     return 0;
-}
-
-int get_free_vidmem(int *free) {
-    int err;
-    DDCAPS ddcaps;
-
-    *free=0;
-
-    // determin free video memory
-    bzero(&ddcaps,sizeof(ddcaps));
-    ddcaps.dwSize=sizeof(ddcaps);
-    if ((err=dd->lpVtbl->GetCaps(dd,&ddcaps,NULL))!=DD_OK) return err;
-    // note("videomemory total=%.1fM free=%.1fM used=%.1fM",ddcaps.dwVidMemTotal/(1024*1024.0),ddcaps.dwVidMemFree/(1024*1024.0),dd_vidmeminuse/(1024*1024.0));
-    note("videomemory total=%db free=%db used=%db",ddcaps.dwVidMemTotal,ddcaps.dwVidMemFree,dd_vidmeminuse);
-
-    *free=ddcaps.dwVidMemFree;
-
-    return DD_OK;
 }
 
 int dd_init(int width,int height) {
@@ -435,7 +360,6 @@ int dd_init(int width,int height) {
     ddsd.dwFlags=DDSD_ALL;
     if ((err=ddbs->lpVtbl->GetSurfaceDesc(ddbs,&ddsd))!=DD_OK) return dd_error("GetSurfaceDesc(ddbs)",err);
     note("ddbs is %s",ddsdstr(buf,&ddsd));
-    dd_usevidmem=ddsd.ddsCaps.dwCaps&DDSCAPS_VIDEOMEMORY;
     xres=ddsd.u1.lPitch/2;
     yres=ddsd.dwHeight;
 
@@ -445,90 +369,6 @@ int dd_init(int width,int height) {
     B_MASK=ddsd.ddpfPixelFormat.u4.dwBBitMask;
 
     if (R_MASK==0xF800 && G_MASK==0x07E0 && B_MASK==0x001F) { rgbm=RGBM_R5G6B5; D_MASK=0xE79C; } else if (R_MASK==0x7C00 && G_MASK==0x03E0 && B_MASK==0x001F) { rgbm=RGBM_X1R5G5B5; D_MASK=0x739C; } else if (R_MASK==0x001F && G_MASK==0x07E0 && B_MASK==0xF800) { rgbm=RGBM_B5G6R5; D_MASK=0xE79C; } else return dd_error("CANNOT HANDLE RGB MASK",-1);
-
-    // determin how much videomemory is in use so far
-    dd_vidmeminuse+=dd_vidmembytes(ddps);
-    dd_vidmeminuse+=dd_vidmembytes(ddbs);
-
-    // create some local video memory cache surfaces (using the format of the back surface)
-    while (dd_usevidmem && ddcs_used<DDCS_MAX) {
-
-        // get_free_vidmem(&freevidmem);
-
-        for (r=0; r<max_restab; r++) {
-
-            if (ddcs_total+(restab[r][0]/TILESIZEDX)*(restab[r][1]/TILESIZEDY)>dd_maxtile || ddcs_total>=dd_maxtile) continue;
-            // if (restab[r][0]*restab[r][1]*2>freevidmem) { note("skip"); continue; }
-
-            // dont allocate the real small surfaces if we a lot tiles already
-            //if (ddcs_total/10>(restab[r][0]/TILESIZEDX)*(restab[r][1]/TILESIZEDY)) continue;
-
-
-            bzero(&ddsd,sizeof(ddsd));
-            ddsd.dwSize=sizeof(ddsd);
-            ddsd.dwFlags=DDSD_CAPS|DDSD_WIDTH|DDSD_HEIGHT|DDSD_PIXELFORMAT;
-            ddsd.ddsCaps.dwCaps=DDSCAPS_OFFSCREENPLAIN|DDSCAPS_VIDEOMEMORY|DDSCAPS_LOCALVIDMEM;
-            ddsd.dwWidth=restab[r][0];
-            ddsd.dwHeight=restab[r][1];
-            ddsd.ddpfPixelFormat.dwSize=sizeof(ddsd.ddpfPixelFormat);
-            ddsd.ddpfPixelFormat.dwFlags=DDPF_RGB;
-            ddsd.ddpfPixelFormat.u1.dwRGBBitCount=32;
-            ddsd.ddpfPixelFormat.u2.dwRBitMask=R_MASK;
-            ddsd.ddpfPixelFormat.u3.dwGBitMask=G_MASK;
-            ddsd.ddpfPixelFormat.u4.dwBBitMask=B_MASK;
-            ddsd.ddpfPixelFormat.u5.dwRGBAlphaBitMask=0;
-            if ((err=dd->lpVtbl->CreateSurface(dd,&ddsd,&ddcs[ddcs_used],NULL))!=DD_OK) continue;
-            if (ddcs_set_info(ddcs_used,DD_LOCMEM,restab[r][0],restab[r][1])==-1) return -1;
-            dd_vidmeminuse+=dd_vidmembytes(ddcs[ddcs_used]);
-            ddcs_used++;
-
-            break;
-        }
-        if (r==max_restab) break;
-    }
-
-    // create some video memory cache surfaces (using the format of the back surface)
-    if (ddcs_total<150) while (dd_usevidmem && ddcs_used<DDCS_MAX) {
-
-            // get_free_vidmem(&freevidmem);
-
-            for (r=0; r<max_restab; r++) {
-
-                if (ddcs_total+(restab[r][0]/TILESIZEDX)*(restab[r][1]/TILESIZEDY)>dd_maxtile || ddcs_total>=dd_maxtile) continue;
-                // if (restab[r][0]*restab[r][1]*2>freevidmem) { note("skip"); continue; }
-
-                bzero(&ddsd,sizeof(ddsd));
-                ddsd.dwSize=sizeof(ddsd);
-                ddsd.dwFlags=DDSD_CAPS|DDSD_WIDTH|DDSD_HEIGHT|DDSD_PIXELFORMAT;
-                ddsd.ddsCaps.dwCaps=DDSCAPS_OFFSCREENPLAIN|DDSCAPS_VIDEOMEMORY;
-                ddsd.dwWidth=restab[r][0];
-                ddsd.dwHeight=restab[r][1];
-                ddsd.ddpfPixelFormat.dwSize=sizeof(ddsd.ddpfPixelFormat);
-                ddsd.ddpfPixelFormat.dwFlags=DDPF_RGB;
-                ddsd.ddpfPixelFormat.u1.dwRGBBitCount=32;
-                ddsd.ddpfPixelFormat.u2.dwRBitMask=R_MASK;
-                ddsd.ddpfPixelFormat.u3.dwGBitMask=G_MASK;
-                ddsd.ddpfPixelFormat.u4.dwBBitMask=B_MASK;
-                ddsd.ddpfPixelFormat.u5.dwRGBAlphaBitMask=0;
-                if ((err=dd->lpVtbl->CreateSurface(dd,&ddsd,&ddcs[ddcs_used],NULL))!=DD_OK) continue;
-                if (ddcs_set_info(ddcs_used,DD_VIDMEM,restab[r][0],restab[r][1])==-1) return -1;
-                dd_vidmeminuse+=dd_vidmembytes(ddcs[ddcs_used]);
-                ddcs_used++;
-                break;
-            }
-            if (r==max_restab) break;
-        }
-
-    note("----");
-    get_free_vidmem(&freevidmem);
-
-    // display information about the cache surfaces
-    for (s=0; s<ddcs_used; s++) {
-        note("ddcs[%d] memtype=%d %d*%d=%d tiles",s,ddcs_usemem[s],ddcs_xres[s]/TILESIZEDX,ddcs_yres[s]/TILESIZEDY,ddcs_tiles[s]);
-    }
-    note("total_tiles=%d (maxtiles=%d)",ddcs_total,dd_maxtile);
-
-    //if (ddcs_total<2) return dd_error("NOT ENOUGH TILES",-1);
 
     // initialize cache (will initialize color tables, too)
     if (dd_init_cache()==-1) return -1;
@@ -561,14 +401,6 @@ int dd_exit(void) {
     //gfx_exit();
     //dd_exit_cache();
 
-    for (s=0; s<ddcs_used; s++) {
-        left=ddcs[s]->lpVtbl->Release(ddcs[s]);
-        ddcs[s]=NULL;
-        // note("released ddcs[%d]. %d references left",s,left);
-    }
-    ddcs_used=0;
-    ddcs_total=0;
-
     if (ddps) {
         left=ddps->lpVtbl->Release(ddps);
         ddps=NULL;
@@ -587,8 +419,6 @@ int dd_exit(void) {
         dd=NULL;
         // note("released dd. %d references left",left);
     }
-
-    dd_vidmeminuse=0;
 
     if (left==12345678) return left; // grrr
 
@@ -697,7 +527,6 @@ int dd_islost(void) {
 
     if (ddps->lpVtbl->IsLost(ddps)!=DD_OK) return 1; // ddps->lpVtbl->Restore(ddps); else ok++;
     if (ddbs->lpVtbl->IsLost(ddbs)!=DD_OK) return 1; // ddbs->lpVtbl->Restore(ddbs); else ok++;
-    for (s=0; s<ddcs_used; s++) if (ddcs[s]->lpVtbl->IsLost(ddcs[s])!=DD_OK) return 1;
 
     return 0;
 }
@@ -708,13 +537,6 @@ int dd_restore(void) {
 
     if (ddps->lpVtbl->IsLost(ddps)!=DD_OK) if (ddps->lpVtbl->Restore(ddps)!=DD_OK) return -1;
     if (ddbs->lpVtbl->IsLost(ddbs)!=DD_OK) if (ddbs->lpVtbl->Restore(ddbs)!=DD_OK) return -1;
-
-    for (s=0; s<ddcs_used; s++) {
-        if (ddcs[s]->lpVtbl->IsLost(ddcs[s])!=DD_OK) {
-            cacheflag=1;
-            if (ddcs[s]->lpVtbl->Restore(ddcs[s])!=DD_OK) return -1;
-        }
-    }
 
     if (cacheflag) { dd_reset_cache(0,0,1); cacheflag=0; }
 
@@ -802,8 +624,6 @@ struct systemcache {
     unsigned int used;
     unsigned int lost;
     unsigned int tick;
-
-    struct vid_cache **vc;
 };
 
 typedef struct systemcache SYSTEMCACHE;
@@ -1027,7 +847,6 @@ void dd_exit_cache(void) {
     for (i=0; i<max_systemcache; i++) {
         xfree(systemcache[i].rgb);
         xfree(systemcache[i].apix);
-        xfree(systemcache[i].vc);
     }
     xfree(systemcache);
     systemcache=NULL;
@@ -1075,24 +894,10 @@ int dd_reset_cache(int reset_image,int reset_system,int reset_video) {
 
             if (systemcache[sidx].sprite==SPRITE_NONE) continue;
 
-            vmax=systemcache[sidx].tdx*systemcache[sidx].tdy;
-            for (v=0; v<vmax; v++) {
-                if (systemcache[sidx].vc[v]==((void *)(-1))) systemcache[sidx].vc[v]=NULL;
-                if (systemcache[sidx].vc[v]==NULL) continue;
-
-                vid_free_cache(systemcache[sidx].vc[v]);
-                systemcache[sidx].vc[v]=NULL;
-            }
-
             systemcache[sidx].sprite=SPRITE_NONE;
         }
 
         for (i=0; i<SYS_HASH_SIZE; i++) sys_hash[i]=-1;
-    }
-
-    // videocache
-    if (reset_video) {
-        vid_reset();
     }
 
     return 0;
@@ -2044,16 +1849,6 @@ static int sc_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int 
 
         if (nidx!=-1) systemcache[nidx].hprev=systemcache[sidx].hprev;
 
-        vmax=systemcache[sidx].tdx*systemcache[sidx].tdy;
-        for (v=0; v<vmax; v++) {
-            if (systemcache[sidx].vc[v]==((void *)(-1))) systemcache[sidx].vc[v]=NULL;
-            if (systemcache[sidx].vc[v]==NULL) continue;
-
-            vid_free_cache(systemcache[sidx].vc[v]);
-            systemcache[sidx].vc[v]=NULL;
-        }
-        //vid_check_for_erasure(sidx); - enable for debugging
-
         systemcache[sidx].sprite=SPRITE_NONE;
     }
 
@@ -2097,11 +1892,6 @@ static int sc_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int 
 
     systemcache[sidx].tdx=(systemcache[sidx].xres+TILESIZEDX-1)/TILESIZEDX;
     systemcache[sidx].tdy=(systemcache[sidx].yres+TILESIZEDY-1)/TILESIZEDY;
-
-    vmax=systemcache[sidx].tdx*systemcache[sidx].tdy;
-
-    systemcache[sidx].vc=xrealloc(systemcache[sidx].vc,vmax*sizeof(struct vid_cache **),MEM_VPC);
-    for (v=0; v<vmax; v++) systemcache[sidx].vc[v]=NULL;
 
     systemcache[sidx].lost=1;
 
@@ -3222,697 +3012,6 @@ void dd_text_pagedown(void) {
     }
 }
 
-//#define DEBUGGING
-
-#ifdef DEBUGGING
-void vid_mark(struct vid_cache *vc,int type);
-#endif
-
-#define VID_MIN_KEEP_BYTES	300
-#define VID_MIN_KEEP_DX		10
-#define VID_MIN_KEEP_DY		10
-
-struct vid_cache {
-    unsigned char cs;
-    unsigned char dx,dy;
-
-    unsigned short px,py;
-    unsigned short size;
-
-    unsigned short vidx;        // index into vidx array of sprite which is using this entry
-    unsigned int sidx;      // index nr. of sprite which is using this entry
-
-    struct vid_cache *next;         // large cache: next entry in large list
-    // small cache: next entry in free list
-
-    struct vid_cache *prev;     // large cache: previous entry in large list
-    // small cache: previous entry in free list
-
-    struct vid_cache *child;    // large cache: first child
-    // small cache: next child
-
-    struct vid_cache *parent;   // large cache: unused
-    // small cache: parent
-
-    unsigned int used,tick,junk;
-    unsigned int value;
-};
-
-struct vid_cache *vcs_first=NULL;
-struct vid_cache *vcs_last=NULL;
-
-struct vid_cache *vcl_first=NULL;
-struct vid_cache *vcl_last=NULL;
-
-struct vid_cache *vc_unused=NULL;
-
-static struct vid_cache *insert_new_hint=NULL;
-static struct vid_cache *insert_used_hint=NULL;
-
-// Initialise video cache
-void vid_init(void) {
-    int n,x,y;
-    struct vid_cache *vc;
-    struct vid_cache *vc_mempool;
-    int mempoolsize=0;
-
-    //printf("vid init start\n");
-    for (n=0; n<ddcs_used; n++) {
-        for (y=0; y+TILESIZEDY-1<ddcs_ymax[n]; y+=TILESIZEDY) {
-            for (x=0; x+TILESIZEDX-1<ddcs_xmax[n]; x+=TILESIZEDX) {
-                // create new entry
-                if (!mempoolsize) {
-                    mempoolsize=256;
-                    vc_mempool=xmalloc(sizeof(struct vid_cache)*mempoolsize,MEM_VLC);
-                }
-                vc=vc_mempool++; mempoolsize--;
-                //vc=xmalloc(sizeof(struct vid_cache),MEM_VLC);
-
-                // add to large entry list
-                vc->next=vcl_first;
-                vc->prev=NULL;
-                if (vcl_first) vcl_first->prev=vc;
-                vcl_first=vc;
-                if (!vcl_last) vcl_last=vc;
-
-                // add values
-                vc->child=NULL;
-                vc->parent=NULL;
-                vc->cs=n;
-                vc->dx=TILESIZEDX;
-                vc->dy=TILESIZEDY;
-                vc->px=x;
-                vc->py=y;
-                vc->sidx=SIDX_NONE;
-                vc->size=TILESIZEDX*TILESIZEDY;
-                vc->vidx=VIDX_NONE;
-
-                vc->used=vc->tick=vc->value=vc->junk=0;
-            }
-        }
-    }
-
-    //printf("vid init done\n");
-}
-
-// calculate the value of this cache entry (ie is it worth keeping?)
-static unsigned int vid_value(struct vid_cache *vc) {
-    return min(1024,vc->used)+(vc->tick<<8);
-}
-
-// add a cache entry to the unused list
-static void vid_free_free_small(struct vid_cache *vc) {
-    vc->next=vc_unused;
-    vc_unused=vc;
-}
-
-// get a unused cache entry from out internal list (faster than malloc'ing and free'ing them over and over)
-static struct vid_cache* vid_get_free_small(void) {
-    struct vid_cache *vn;
-
-    if (vc_unused) {
-        vn=vc_unused;
-        vc_unused=vn->next;
-    } else {
-        int n;
-
-        vn=xmalloc(sizeof(struct vid_cache)*256,MEM_VSC);
-        for (n=1; n<256; n++) {
-            vid_free_free_small(vn+n);
-        }
-
-        //vn=xmalloc(sizeof(struct vid_cache),MEM_VSC);
-    }
-
-    return vn;
-}
-
-
-// reset video cache (eg after the surface was lost)
-static void vid_reset(void) {
-    struct vid_cache *vr,*vl,*tmp;
-    int sidx,vidx;
-
-    //printf("vid reset start.\n");
-
-    for (vl=vcl_first; vl; vl=vl->next) {
-        for (vr=vl->child; vr; vr=tmp) {
-            tmp=vr->child;
-
-            if (vr->sidx!=SIDX_NONE) {
-                systemcache[vr->sidx].vc[vr->vidx]=NULL;
-                systemcache[vr->sidx].lost++;
-                vid_free_free_small(vr);
-            }
-        }
-        vl->used=vl->tick=vl->value=0;
-        vl->child=vl->parent=NULL;
-    }
-
-    for (vr=vcs_first; vr; vr=tmp) {
-        tmp=vr->next;
-        vid_free_free_small(vr);
-    }
-    vcs_first=NULL;
-    vcs_last=NULL;
-    insert_new_hint=NULL;
-    insert_used_hint=NULL;
-
-    // purely error checking:
-    for (sidx=0; sidx<max_systemcache; sidx++) {
-        for (vidx=0; vidx<systemcache[sidx].tdx*systemcache[sidx].tdy; vidx++) {
-            if (systemcache[sidx].vc[vidx]) {
-                printf("systemcache %d,%d still linked to %p\n",sidx,vidx,systemcache[sidx].vc[vidx]);
-            }
-
-        }
-    }
-    //printf("vid reset done.\n");
-}
-
-// create the bitmap for a video cache entry from a systemcache entry
-static int vid_create(struct vid_cache *vc,int sidx,int sx,int sy,int dx,int dy) {
-    SYSTEMCACHE *sc;
-    int x,y,start,dststep,srcstep;
-    unsigned short int *ptr,*dst,*src,rgb;
-    unsigned int pix=0;
-
-    start=GetTickCount();
-
-    // easy use of sc and vc ...
-    sc=&systemcache[sidx];
-
-    // copy the colors to the tile
-    ptr=dd_lock_surface(ddcs[vc->cs]);
-    if (!ptr) return fail("dd_lock_surface(ddbs); failed in sys_copy()");
-
-    dststep=ddcs_xres[vc->cs]-dx;
-    dst=&ptr[vc->px+vc->py*ddcs_xres[vc->cs]];
-
-    srcstep=sc->xres-dx;
-    src=&sc->rgb[sx+sy*sc->xres];
-
-    for (y=0; y<dy; y++) {
-        for (x=0; x<dx; x++) {
-            rgb=*src++;
-            if (rgb!=scrcolorkey) pix++;
-            *dst++=rgb;
-        }
-        dst+=dststep;
-        src+=srcstep;
-    }
-
-    dd_unlock_surface(ddcs[vc->cs]);
-
-    vm_time+=GetTickCount()-start;
-    vm_cnt++;
-
-    return pix==0;
-}
-
-// blit a video cache entry to the back surface
-static void vid_blit(struct vid_cache *vc,int sx,int sy,int dx,int dy) {
-    int err,addx=0,addy=0,start;
-    RECT rc;
-
-    if (sx<clipsx) { addx=clipsx-sx; dx-=addx; sx=clipsx; }
-    if (sy<clipsy) { addy=clipsy-sy; dy-=addy; sy=clipsy; }
-    if (sx+dx>=clipex) dx=clipex-sx;
-    if (sy+dy>=clipey) dy=clipey-sy;
-
-    if (dy<=0 || dx<=0) return;
-
-    if (dx>vc->dx || dy>vc->dy) {
-        printf("want: %dx%d, have: %dx%d\n",dx,dy,vc->dx,vc->dy);
-        return;
-    }
-
-    start=GetTickCount();
-
-    rc.left=vc->px+addx;
-    rc.top=vc->py+addy;
-    rc.right=rc.left+dx;
-    rc.bottom=rc.top+dy;
-
-    if ((err=ddbs->lpVtbl->BltFast(ddbs,sx+x_offset,sy+y_offset,ddcs[vc->cs],&rc,DDBLTFAST_SRCCOLORKEY|DDBLTFAST_WAIT))!=DD_OK) {
-        char buf[256];
-        sprintf(buf,"vc_blit(): %d,%d -> %d,%d to %d,%d from %d (%d,%d %dx%d) daddy: %d,%d size %dx%d, addx=%d, addy=%d, want size %dx%d",
-                rc.left,rc.top,rc.right,rc.bottom,sx+x_offset,sy+y_offset,vc->cs,vc->px,vc->py,vc->dx,vc->dy,
-                vc->parent?vc->parent->px:42,
-                vc->parent?vc->parent->py:42,
-                vc->parent?vc->parent->dx:42,
-                vc->parent?vc->parent->dy:42,
-                addx,addy,dx,dy);
-        dd_error(buf,err);
-    }
-
-    vc_time+=GetTickCount()-start;
-    vc_cnt++;
-}
-
-// remove large cache entry from large chain
-void vid_remove_vcl(struct vid_cache *vcl) {
-    // remove from chain
-    if (vcl->next) vcl->next->prev=vcl->prev;
-    else vcl_last=vcl->prev;
-    if (vcl->prev) vcl->prev->next=vcl->next;
-    else vcl_first=vcl->next;
-}
-
-// insert large cache entry to correct position in chain
-void vid_insert_vcl(struct vid_cache *vcl,struct vid_cache *hint1,struct vid_cache *hint2) {
-    struct vid_cache *vc,*hint;
-    int start;
-    //int step=0,nostep=0,prevstep=0,nextstep=0;
-    //static int calls=0,steps=0,nosteps=0,prevsteps=0,nextsteps=0;
-
-    //printf("vid insert start\n");
-    start=GetTickCount();
-
-    if (!hint2) hint=hint1;
-    else if (!hint1) hint=hint2;
-    else if (abs(hint1->value-vcl->value)<abs(hint2->value-vcl->value)) hint=hint1;
-    else hint=hint2;
-
-    //printf("insert start\n");
-    if (hint==vcl) { printf("hu?\n"); hint=NULL; }
-
-    /* //check if hint is part of chain (slow!)
-for (vc=vcl_first; vc; vc=vc->next) {
-        if (vc==hint) break;
-        //step++; nostep++;
-}
-if (hint!=vc) { printf("hint not found!\n"); hint=NULL; }*/
-
-    // find correct place in list
-    if (!hint) {    // no hint? search whole chain
-        for (vc=vcl_first; vc; vc=vc->next) {
-            if (vc->value>=vcl->value) break;
-            //step++; nostep++;
-        }
-    } else {
-        if (hint->value>vcl->value) {   // we need to go backwards
-            for (vc=hint; vc->prev; vc=vc->prev) {
-                if (vc->prev->value<=vcl->value) break;
-                //step++; prevstep++;
-            }
-        } else { // go forward
-            for (vc=hint; vc; vc=vc->next) {
-                if (vc->value>=vcl->value) break;
-                //step++; nextstep++;
-            }
-        }
-    }
-
-    /*calls++;
-    steps+=step;
-    nosteps+=nostep;
-    prevsteps+=prevstep;
-    nextsteps+=nextstep;
-
-    if (calls%1000==0 || step>20) {
-        if (hint) printf("%d step calls: %d, step: %d steps per call: %d (%d,%d,%d) hint=%d, want=%d\n",step,calls,steps,steps/calls,nosteps,prevsteps,nextsteps,hint->value,vcl->value);
-    }*/
-
-    // add to new place in chain
-    if (vc) {   // not end of chain
-        if (vc->prev) vc->prev->next=vcl;
-        else vcl_first=vcl;
-        vcl->prev=vc->prev;
-        vc->prev=vcl;
-        vcl->next=vc;
-    } else {    // end of chain
-        vcl->prev=vcl_last;
-        vcl->next=NULL;
-        vcl_last->next=vcl;
-        vcl_last=vcl;
-    }
-
-    vi_time+=GetTickCount()-start;
-
-    //printf("vid insert stop\n");
-}
-
-// add small cache entry to list containing free (but used) entries
-static void vid_add_cache_small(struct vid_cache *vn) {
-    vn->next=vcs_first;
-    vn->prev=NULL;
-    if (vcs_first) vcs_first->prev=vn;
-    vcs_first=vn;
-    if (!vcs_last) vcs_last=vn;
-
-#ifdef DEBUGGING
-    vid_mark(vn,2);
-#endif
-}
-
-// mark small cache entry as free (but used) and add it to the free chain
-static void vid_free_cache(struct vid_cache *vc) {
-    vc->sidx=SIDX_NONE;
-    vc->vidx=VIDX_NONE;
-
-    vid_add_cache_small(vc);
-}
-
-#ifdef DEBUGGING
-void vid_mark(struct vid_cache *vc,int type) {
-    int err;
-    RECT rc;
-    DDBLTFX bltfx;
-
-    bzero(&bltfx,sizeof(bltfx));
-    bltfx.dwSize=sizeof(bltfx);
-    if (type==0) bltfx.u5.dwFillColor=rgb2scr[IRGB(0,0,16)];
-    else if (type==1) bltfx.u5.dwFillColor=rgb2scr[IRGB(16,0,0)];
-    else bltfx.u5.dwFillColor=rgb2scr[IRGB(0,16,0)];
-
-    rc.left=vc->px;
-    rc.top=vc->py;
-    rc.right=vc->px+vc->dx;
-    rc.bottom=vc->py+vc->dy;
-
-    if ((err=ddbs->lpVtbl->Blt(ddcs[vc->cs],&rc,NULL,NULL,DDBLT_COLORFILL|DDBLT_WAIT,&bltfx))!=DD_OK) {
-        dd_error("vid erase1",err);
-    }
-    if (type==0) bltfx.u5.dwFillColor=rgb2scr[IRGB(0,0,31)];
-    else if (type==1) bltfx.u5.dwFillColor=rgb2scr[IRGB(31,0,0)];
-    else bltfx.u5.dwFillColor=rgb2scr[IRGB(0,31,0)];
-
-    rc.left=vc->px+1;
-    rc.top=vc->py+1;
-    rc.right=vc->px+vc->dx-1;
-    rc.bottom=vc->py+vc->dy-1;
-
-    if (rc.left>=rc.right || rc.top>=rc.bottom) return;
-
-    if ((err=ddbs->lpVtbl->Blt(ddcs[vc->cs],&rc,NULL,NULL,DDBLT_COLORFILL|DDBLT_WAIT,&bltfx))!=DD_OK) {
-        char buf[80];
-        sprintf(buf,"vid erase2: %d,%d %d,%d (%dx%d at %d,%d)",rc.left,rc.top,rc.right,rc.bottom,vc->dx,vc->dy,vc->px,vc->py);
-        dd_error(buf,err);
-    }
-}
-#endif
-
-// remove small cache entry from free (but used) list and add it to unused list
-static void vid_remove_free_small(struct vid_cache *vc) {
-    if (vc->next) vc->next->prev=vc->prev;
-    else vcs_last=vc->prev;
-    if (vc->prev) vc->prev->next=vc->next;
-    else vcs_first=vc->next;
-    vid_free_free_small(vc);
-}
-
-// check the children of a large entry and unify adjacent ones
-static void vid_unify(struct vid_cache *vcl) {
-    struct vid_cache *vc1,*vc2,*prev;
-
-    for (vc1=vcl->child; vc1; vc1=vc1->child) {
-        if (vc1->sidx!=SIDX_NONE) continue;
-
-        for (vc2=vcl->child,prev=vcl; vc2; prev=vc2,vc2=vc2->child) {
-            if (vc1==vc2) continue;
-            if (vc2->sidx!=SIDX_NONE) continue;
-
-            /*if (vc1->dx!=vc2->dx && vc1->dy!=vc2->dy) continue;
-            if (vc1->px!=vc2->px && vc1->py!=vc2->py) continue;
-
-            printf("trying unify: %d,%d %dx%d with %d,%d %dx%d\n",vc1->px,vc1->py,vc1->dx,vc1->dy,vc2->px,vc2->py,vc2->dx,vc2->dy);*/
-
-            if (vc1->px+vc1->dx==vc2->px && vc1->py==vc2->py && vc1->dy==vc2->dy) {
-                vc1->dx+=vc2->dx;
-
-                prev->child=vc2->child;
-                vid_remove_free_small(vc2);
-
-#ifdef DEBUGGING
-                vid_mark(vc1,2);
-#endif
-                return;
-            }
-            if (vc1->py+vc1->dy==vc2->py && vc1->px==vc2->px && vc1->dx==vc2->dx) {
-                vc1->dy+=vc2->dy;
-
-                prev->child=vc2->child;
-                vid_remove_free_small(vc2);
-
-#ifdef DEBUGGING
-                vid_mark(vc1,2);
-#endif
-                return;
-            }
-
-        }
-    }
-}
-
-// create a small cache entry which contains the systemcache bitmat addressed by sidx sx,sy dx,dy
-// updates small and large chains
-static struct vid_cache* vid_make_tile(int vidx,int sidx,int sx,int sy,int dx,int dy) {
-    struct vid_cache *vcs,*bestvcs=NULL,*tmp;
-    struct vid_cache *vcl;
-    struct vid_cache *vc;
-    struct vid_cache *vn;
-    int waste,bestwaste=99999999,size,empty,cnt;
-
-    //printf("make tile start\n");
-
-    // search free list to find fitting tile
-    size=dx+dy;
-    for (vcs=vcs_first,cnt=0; vcs && cnt<25; vcs=vcs->next,cnt++) {
-        if (vcs->dx<dx || vcs->dy<dy) continue;
-
-        waste=vcs->size-size;
-        if (waste<bestwaste) {
-            bestwaste=waste;
-            bestvcs=vcs;
-        }
-    }
-
-    // put entries we looked at at end of chain
-    if (vcs && vcs->prev && vcs->next) {
-        vcs_first->prev=vcs_last;
-        vcs_last->next=vcs_first;
-        vcs_last=vcs->prev;
-        vcs_last->next=NULL;
-        vcs->prev=NULL;
-        vcs_first=vcs;
-    }
-
-    if (bestvcs) {      // we found one in the small list. remove it from list and use it
-        // remove from free list
-        if (bestvcs->prev) bestvcs->prev->next=bestvcs->next;
-        else vcs_first=bestvcs->next;
-
-        if (bestvcs->next) bestvcs->next->prev=bestvcs->prev;
-        else vcs_last=bestvcs->prev;
-
-        vc=bestvcs;
-    } else {        // none found in small list. get one entry from big list, move it to the bottom and
-        // create a small entry for the new tile from the big one
-        // remove from first place in list and update hint if needed
-        vcl=vcl_first;
-        if (insert_new_hint==vcl) insert_new_hint=vcl->next;
-        if (insert_used_hint==vcl) insert_used_hint=vcl->next;
-        vcl_first=vcl->next;
-        vcl_first->prev=NULL;
-
-        //printf("looping on\n");
-        // delete sprites and free children
-        for (vc=vcl->child; vc; vc=tmp) {
-            tmp=vc->child;
-
-            if (vc->sidx!=SIDX_NONE) {
-                systemcache[vc->sidx].vc[vc->vidx]=NULL;
-                systemcache[vc->sidx].lost++;
-                vid_free_free_small(vc);
-            } else {
-                vid_remove_free_small(vc);
-            }
-        }
-
-        // reset stats
-        vcl->used=1;    //systemcache[sidx].used;
-        vcl->tick=dd_tick;
-        vcl->junk=dd_tick+rrand(24*90);
-        vcl->value=vid_value(vcl);
-
-        vid_insert_vcl(vcl,insert_new_hint,NULL); insert_new_hint=vcl;
-
-        // create small cache entry and initialise it from large entry
-        vc=vid_get_free_small();
-
-        vcl->child=vc;
-        vc->cs=vcl->cs;
-        vc->dx=vcl->dx;
-        vc->dy=vcl->dy;
-        vc->child=NULL;
-        vc->px=vcl->px;
-        vc->py=vcl->py;
-        vc->size=vc->dx*vc->dy;
-        vc->parent=vcl;
-        vc->sidx=SIDX_NONE;
-        vc->vidx=VIDX_NONE;
-    }
-
-#ifdef DEBUGGING
-    vid_mark(vc,0);
-#endif
-
-
-    empty=vid_create(vc,sidx,sx,sy,dx,dy);
-
-    if (empty) {    // add to small cache if empty
-        vid_add_cache_small(vc);
-
-        return NULL;
-    }
-
-    // remember the sprite stored
-    vc->vidx=vidx;
-    vc->sidx=sidx;
-    vc->next=NULL;
-    vc->prev=NULL;
-
-#if 1
-    if (vc->dx-dx>vc->dy-dy) {
-        if (vc->dx-dx>VID_MIN_KEEP_DX && vc->dy>VID_MIN_KEEP_DY && (vc->dx-dx)*(vc->dy)>VID_MIN_KEEP_BYTES) {   // worth keeping?
-            // create new small cache entry
-            vn=vid_get_free_small();
-
-            // add it to the list of tiles belonging to large entry
-            vn->child=vc->child;
-            vc->child=vn;
-
-            // note surface
-            vn->cs=vc->cs;
-
-            // compute position
-            vn->px=vc->px+dx;
-            vn->py=vc->py;
-
-            // compute size
-            vn->dx=vc->dx-dx;
-            vn->dy=vc->dy;
-            vn->size=vn->dx*vn->dy;
-
-            // not used, so erase sprite index
-            vn->sidx=SIDX_NONE;
-            vn->vidx=VIDX_NONE;
-
-            // remember parent
-            vn->parent=vc->parent;
-
-            // and add to free list
-            vid_add_cache_small(vn);
-        }
-
-        if (vc->dy-dy>VID_MIN_KEEP_DY && dx>VID_MIN_KEEP_DX && (vc->dy-dy)*(dx)>VID_MIN_KEEP_BYTES) {   // worth keeping?
-            // create new small cache entry
-            vn=vid_get_free_small();
-
-            // add it to the list of tiles belonging to large entry
-            vn->child=vc->child;
-            vc->child=vn;
-
-            // note surface
-            vn->cs=vc->cs;
-
-            // compute position
-            vn->px=vc->px;
-            vn->py=vc->py+dy;
-
-            // compute size
-            vn->dx=dx;
-            vn->dy=vc->dy-dy;
-            vn->size=vn->dx*vn->dy;
-
-            // not used, so erase sprite index
-            vn->sidx=SIDX_NONE;
-            vn->vidx=VIDX_NONE;
-
-            // remember parent
-            vn->parent=vc->parent;
-
-            // and add to free list
-            vid_add_cache_small(vn);
-        }
-    } else {
-        if (vc->dx-dx>VID_MIN_KEEP_DX && dy>VID_MIN_KEEP_DY && (vc->dx-dx)*(dy)>VID_MIN_KEEP_BYTES) {   // worth keeping?
-            // create new small cache entry
-            vn=vid_get_free_small();
-
-            // add it to the list of tiles belonging to large entry
-            vn->child=vc->child;
-            vc->child=vn;
-
-            // note surface
-            vn->cs=vc->cs;
-
-            // compute position
-            vn->px=vc->px+dx;
-            vn->py=vc->py;
-
-            // compute size
-            vn->dx=vc->dx-dx;
-            vn->dy=dy;
-            vn->size=vn->dx*vn->dy;
-
-            // not used, so erase sprite index
-            vn->sidx=SIDX_NONE;
-            vn->vidx=VIDX_NONE;
-
-            // remember parent
-            vn->parent=vc->parent;
-
-            // and add to free list
-            vid_add_cache_small(vn);
-        }
-
-        if (vc->dy-dy>VID_MIN_KEEP_DY && vc->dx>VID_MIN_KEEP_DX && (vc->dy-dy)*(vc->dx)>VID_MIN_KEEP_BYTES) {   // worth keeping?
-            // create new small cache entry
-            vn=vid_get_free_small();
-
-            // add it to the list of tiles belonging to large entry
-            vn->child=vc->child;
-            vc->child=vn;
-
-            // note surface
-            vn->cs=vc->cs;
-
-            // compute position
-            vn->px=vc->px;
-            vn->py=vc->py+dy;
-
-            // compute size
-            vn->dx=vc->dx;
-            vn->dy=vc->dy-dy;
-            vn->size=vn->dx*vn->dy;
-
-            // not used, so erase sprite index
-            vn->sidx=SIDX_NONE;
-            vn->vidx=VIDX_NONE;
-
-            // remember parent
-            vn->parent=vc->parent;
-
-            // and add to free list
-            vid_add_cache_small(vn);
-        }
-    }
-#endif
-    vc->dx=dx;
-    vc->dy=dy;
-    vc->size=vc->dx*vc->dy;
-
-    vid_unify(vc->parent);
-
-    //printf("creating kids done (%p %d,%d %dx%d)\n",vc,vc->px,vc->py,vc->dx,vc->dy);
-
-    //printf("make tile done2\n");
-
-    return vc;
-}
-
 // blit a systemcache entry to backsurface without touching the video cache
 void sc_blit3(SYSTEMCACHE *sc,int sx,int sy) {
     int x,y,addx=0,addy=0,sstep,dstep,dx,dy;
@@ -4000,74 +3099,9 @@ static int sc_blit2(DDFX *ddfx,int sidx,int scrx,int scry) {
     // easy use of sc
     sc=&systemcache[sidx];
 
-    if (!vcl_first || (sc->lost && min(1024,sc->used)+(sc->tick<<8)-256<vcl_first->value)) {    // not in cache and not important enough to add to cache
-        sc_blit3(sc,scrx,scry);
-        sc_blits++;
-    } else {
-        // loop over all neccassary tiles
-        for (ty=0; ty<sc->tdy; ty++) {
-            for (tx=0; tx<sc->tdx; tx++) {
+    sc_blit3(sc,scrx,scry);
+    sc_blits++;
 
-                v=vget(tx,ty,sc->tdx,sc->tdy);
-
-                if (sc->vc[v]==((void *)(-1))) continue; // empty tile
-
-                if ((vc=sc->vc[v])!=NULL) {
-                    vid_blit(vc,scrx+tx*TILESIZEDX,scry+ty*TILESIZEDY,min(TILESIZEDX,sc->xres-tx*TILESIZEDX),min(TILESIZEDY,sc->yres-ty*TILESIZEDY));
-
-                    vc_hit++;
-
-                    // increase usage count of tile:
-                    // get large cache tile containing this tile
-                    vcl=vc->parent;
-
-                    if ((unsigned)dd_tick>vcl->junk) {
-                        vcl->used=vcl_first->used;
-                        vcl->tick=vcl_first->tick;
-                        vcl->value=vcl_first->value;
-                    } else {
-                        if (vc->size>(TILESIZEDX*TILESIZEDY/2)) use=8;
-                        else if (vc->size>(TILESIZEDX*TILESIZEDY/4)) use=4;
-                        else if (vc->size>(TILESIZEDX*TILESIZEDY/8)) use=2;
-                        else use=1;
-
-                        vcl->used+=use;
-                        vcl->tick=dd_tick;
-                        vcl->value=vid_value(vcl);
-                    }
-
-                    // re-sort
-                    vc=vcl->next;           // remember insert hint
-                    if (!vc) vc=vcl_last->prev; // we are at end of list, return the one in front of us
-                    if (insert_used_hint==vcl) insert_used_hint=vcl->next;
-
-                    vid_remove_vcl(vcl);
-                    vid_insert_vcl(vcl,vc,insert_used_hint); insert_used_hint=vcl;
-
-                    continue;
-                }
-
-                vc_miss++;
-
-                // build
-                vc=vid_make_tile(v,sidx,tx*TILESIZEDX,ty*TILESIZEDY,min(TILESIZEDX,sc->xres-tx*TILESIZEDX),min(TILESIZEDY,sc->yres-ty*TILESIZEDY));
-
-                // note and ignore empty ones
-                if (!vc) { sc->vc[v]=((void *)(-1)); continue; }
-
-                // remember
-                sc->vc[v]=vc;
-
-                vc_unique++;
-
-                // and, finally, blit it onto the screen
-                vid_blit(sc->vc[v],scrx+tx*TILESIZEDX,scry+ty*TILESIZEDY,min(TILESIZEDX,sc->xres-tx*TILESIZEDX),min(TILESIZEDY,sc->yres-ty*TILESIZEDY));
-            }
-        }
-        sc->lost=0;
-        sc->used=0;
-        sc->tick=0;
-    }
     // draw the alpha pixels
     if (sc->acnt) sc_blit_apix(sidx,scrx,scry,ddfx->grid,ddfx->freeze);
 
@@ -4079,231 +3113,4 @@ static int sc_blit2(DDFX *ddfx,int sidx,int scrx,int scry) {
     return 0;
 };
 
-#ifdef DEVELOPER
-static int children,large,small;
-static int used,freed,wasted,w40;
 
-void vid_show_child(struct vid_cache *vc,struct vid_cache *parent,int nr) {
-    int tused=0,tfreed=0,w40ed=0;
-
-    for (; vc; vc=vc->child) {
-        //if (vc->sidx!=SIDX_NONE) printf(" used child at %d, pos %d,%d, size %dx%d (%d) used by sprite %d at pos %d\n",vc->cs,vc->px,vc->py,vc->dx,vc->dy,vc->size,vc->sidx,vc->vidx);
-        //else printf(" unused child at %d, pos %d,%d, size %dx%d (%d) used by sprite %d at pos %d\n",vc->cs,vc->px,vc->py,vc->dx,vc->dy,vc->size,vc->sidx,vc->vidx);
-        if (vc->parent!=parent) {
-            printf(" child has wrong parent! (%d)\n",nr);
-            exit(1);
-        }
-        if (vc->sidx!=SIDX_NONE) { children++; tused+=vc->size; } else tfreed+=vc->size;
-
-        w40ed+=48*48-vc->dx*vc->dy;
-    }
-    //printf("Used: %dB, Free: %dB, Wasted: %dB / %dB\n",tused,tfreed,parent->size-tused-tfreed,w40ed);
-
-    used+=tused; freed+=tfreed; wasted+=parent->size-tused-tfreed; w40+=w40ed;
-}
-
-void vid_show(int nr) {
-    struct vid_cache *vc,*prev=NULL;
-    unsigned int lastvalue=0;
-
-    children=large=small=0;
-    used=freed=wasted=w40=0;
-
-    //printf("large entries:\n");
-    for (vc=vcl_first; vc; vc=vc->next) {
-        //printf("surface %d, pos %d,%d, size %dx%d (%p,%p), child: %p, used=%d, age=%d, value=%d\n",vc->cs,vc->px,vc->py,vc->dx,vc->dy,vc->next,vc->prev,vc->child,vc->used,dd_tick-vc->tick,vc->value);
-        if (vc->value!=vid_value(vc)) {
-            printf("large: value is incorrect (%d)\n",nr);
-            exit(1);
-        }
-        if (vc->value<lastvalue) {
-            printf("large: chain is not ordered! %d %d (%d)\n",lastvalue,vc->value,nr);
-            exit(1);
-        }
-        if (vc->prev!=prev) {
-            printf("large: mismatch: prev!=prev (%d)\n",nr);
-            exit(1);
-        }
-        if (vc->child) vid_show_child(vc->child,vc,nr);
-
-        prev=vc;
-        lastvalue=vc->value;
-
-        large++;
-    }
-    if (prev!=vcl_last) {
-        printf("large last not correctly set. (%d)\n",nr);
-        exit(1);
-    }
-
-    //printf("small entries:\n");
-    prev=NULL;
-    for (vc=vcs_first; vc; vc=vc->next) {
-        //printf("surface %d, pos %d,%d, size %dx%d (%p,%p), dad is at surface %d, pos %d,%d, size %dx%d\n",vc->cs,vc->px,vc->py,vc->dx,vc->dy,vc->next,vc->prev,vc->parent->cs,vc->parent->px,vc->parent->py,vc->parent->dx,vc->parent->dy);
-
-        if (vc->prev!=prev) {
-            printf("small: mismatch: prev!=prev (%d)\n",nr);
-            exit(1);
-        }
-
-        if (vc->sidx!=SIDX_NONE) {
-            printf("small: free sprite %p with sidx set?? (%d)\n",vc,nr);
-            exit(1);
-        }
-
-        prev=vc;
-
-        small++;
-    }
-    if (prev!=vcs_last) {
-        printf("small last not correctly set (%d).\n",nr);
-        exit(1);
-    }
-
-    note("dd_tick=%d (%dK %dK %dK)",dd_tick,dd_tick>>2,dd_tick<<2,dd_tick<<6);
-
-    note("used=%d, large=%d, free=%d\n",children,large,small);
-    note("Used %dK, Free %dK, Waste %dK, Waste2 %dK\n",used>>9,freed>>9,wasted>>9,w40>>9);
-}
-
-void vid_test(void) {
-    int n;
-
-    for (n=0; n<200000; n++) {
-        if (n%1000==0) printf("%d...\n",n);
-
-        vid_make_tile(n,3,42,42,rrand(70)+10,rrand(70)+10);
-    }
-
-    vid_show(0);
-}
-
-void vid_describe(struct vid_cache *vc) {
-    struct vid_cache *vr,*vl;
-
-    for (vr=vc_unused; vr; vr=vr->next) {
-        if (vr==vc) {
-            printf("vc is in unused list\n");
-        }
-    }
-
-    for (vr=vcs_first; vr; vr=vr->next) {
-        if (vr==vc) {
-            printf("vc is in free list\n");
-        }
-    }
-
-    for (vl=vcl_first; vl; vl=vl->next) {
-        if (vl==vc) {
-            printf("vc is in large cache\n");
-            break;
-        }
-        for (vr=vl->child; vr; vr=vr->child) {
-            if (vc==vr) {
-                printf("vc has parent:\n");
-                if (vr->parent!=vl) {
-                    printf(" but link is destroyed.\n");
-                }
-                vid_describe(vl);
-            }
-        }
-    }
-}
-
-void vid_check_for_erasure(int sidx) {
-    struct vid_cache *vc,*vcc;
-
-    printf("erase-check\n");
-    for (vc=vcl_first; vc; vc=vc->next) {
-        for (vcc=vc->child; vcc; vcc=vcc->child) {
-            if (vcc->sidx==(unsigned)sidx) {
-                printf("child not erased:\n");
-                vid_describe(vcc);
-                printf("---\n");
-            }
-            if (vcc->parent!=vc) {
-                printf("parent wrong!\n");
-            }
-        }
-    }
-}
-
-void vid_display(void) {
-    int m,n,x,y,diff,used;
-    unsigned short *ptr;
-    struct vid_cache *vc,*vcc;
-    static int sur_y[DDCS_MAX];
-
-    if ((ptr=dd_lock_surface(ddbs))==NULL) return;
-
-    for (n=0,y=100; n<ddcs_used; n++) {
-        sur_y[n]=y;
-        y+=ddcs_tdy[n];
-    }
-
-    for (vc=vcl_first; vc; vc=vc->next) {
-        for (vcc=vc->child,used=0; vcc; vcc=vcc->child) {
-            if (vcc->sidx) {
-                used+=vcc->size;
-            }
-        }
-        x=vc->px/TILESIZEDX+750;
-        y=sur_y[vc->cs]+vc->py/TILESIZEDY;
-
-        diff=100*used/(TILESIZEDX*TILESIZEDY);
-
-        if (diff==0) dd_pixel_fast(x,y,rgb2scr[IRGB(16,0,0)],ptr);
-        else if (diff<50) dd_pixel_fast(x,y,rgb2scr[IRGB(31,0,0)],ptr);
-        else if (diff<75) dd_pixel_fast(x,y,rgb2scr[IRGB(24,24,0)],ptr);
-        else if (diff<88) dd_pixel_fast(x,y,rgb2scr[IRGB(0,0,31)],ptr);
-        else if (diff<101) dd_pixel_fast(x,y,rgb2scr[IRGB(0,31,0)],ptr);
-        else dd_pixel_fast(x,y,rgb2scr[IRGB(31,31,31)],ptr);
-
-    }
-
-    for (vc=vcl_first; vc; vc=vc->next) {
-        x=vc->px/TILESIZEDX+700;
-        y=sur_y[vc->cs]+vc->py/TILESIZEDY;
-
-        diff=sqrt((dd_tick-vc->tick));
-
-        if (diff<30) dd_pixel_fast(x,y,rgb2scr[IRGB(31-diff,0,0)],ptr);
-        else dd_pixel_fast(x,y,rgb2scr[IRGB(0,0,0)],ptr);
-
-    }
-
-    for (vc=vcl_first; vc; vc=vc->next) {
-        x=vc->px/TILESIZEDX+650;
-        y=sur_y[vc->cs]+vc->py/TILESIZEDY;
-
-        diff=sqrt(sqrt(vc->used*50));
-
-        if (diff<30) dd_pixel_fast(x,y,rgb2scr[IRGB(0,diff,0)],ptr);
-        else dd_pixel_fast(x,y,rgb2scr[IRGB(0,31,0)],ptr);
-
-    }
-
-    dd_unlock_surface(ddbs);
-}
-
-int vid_display2(int nr) {
-    int err;
-    RECT rc,rc2;
-
-    if (nr>ddcs_used) return 0;
-
-    rc.left=0;
-    rc.top=0;
-    rc.right=ddcs_xmax[nr-1];
-    rc.bottom=ddcs_ymax[nr-1];
-
-    rc2.left=x_offset;
-    rc2.top=y_offset;
-    rc2.right=rc2.left+min(800,ddcs_xmax[nr-1]);
-    rc2.bottom=rc2.top+min(600,ddcs_ymax[nr-1]);
-
-    if ((err=ddbs->lpVtbl->Blt(ddbs,&rc2,ddcs[nr-1],&rc,DDBLT_WAIT,0))!=DD_OK) dd_error("sys_blit()",err);
-
-    return nr;
-}
-#endif
