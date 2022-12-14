@@ -339,8 +339,7 @@ static char* pakfilename_str(char *dst,int sprite) {
 
 // gfx convert (reallocate image->rgb and image->a - convert src into this pointers) - sprite is just for output
 
-// TODO: remove usealpha
-static int load_gfx_1(IMAGE *image,unsigned int srcsize,unsigned char *src,int usealpha) {
+static int load_gfx_1(IMAGE *image,unsigned int srcsize,unsigned char *src) {
     int x,y,a,r,g,b;
     unsigned char *end=src+srcsize;
     unsigned short int rgb;
@@ -361,9 +360,6 @@ static int load_gfx_1(IMAGE *image,unsigned int srcsize,unsigned char *src,int u
                 rgb=IRGB(r,g,b);
             }
 
-            if (a<=usealpha/2) a=0;
-            else if (a>=31-usealpha/2) a=31;
-
             if (!a) rgb=rgbcolorkey;
 
             image->rgb[x+y*image->xres]=rgb;
@@ -381,7 +377,7 @@ static int load_gfx_1(IMAGE *image,unsigned int srcsize,unsigned char *src,int u
     return 0;
 }
 
-static int load_gfx_2(IMAGE *image,unsigned int srcsize,unsigned char *src,int pal_cnt,unsigned short int *pal,int usealpha) {
+static int load_gfx_2(IMAGE *image,unsigned int srcsize,unsigned char *src,int pal_cnt,unsigned short int *pal) {
     int x,y,a,r,g,b,p;
     unsigned char *end=src+srcsize;
     unsigned short int rgb;
@@ -405,8 +401,6 @@ static int load_gfx_2(IMAGE *image,unsigned int srcsize,unsigned char *src,int p
 
             }
 
-            if (a<=usealpha/2) a=0;
-            else if (a>=31-usealpha/2) a=31;
             if (!a) rgb=rgbcolorkey;
 
             image->rgb[x+y*image->xres]=rgb;
@@ -424,7 +418,7 @@ static int load_gfx_2(IMAGE *image,unsigned int srcsize,unsigned char *src,int p
     return 0;
 }
 
-static int load_gfx_3(IMAGE *image,unsigned int srcsize,unsigned char *src,int pal_cnt,unsigned short int *pal,int usealpha) {
+static int load_gfx_3(IMAGE *image,unsigned int srcsize,unsigned char *src,int pal_cnt,unsigned short int *pal) {
     int x,y,a,r,g,b,amask,p;
     unsigned char *end=src+srcsize;
     unsigned short int rgb;
@@ -471,9 +465,6 @@ static int load_gfx_3(IMAGE *image,unsigned int srcsize,unsigned char *src,int p
                     a=0;
                 }
 
-                if (a<=usealpha/2) a=0;
-                else if (a>=31-usealpha/2) a=31;
-
                 if (!a) rgb=rgbcolorkey;
 
                 image->rgb[x+y*image->xres]=rgb;
@@ -507,9 +498,6 @@ static int load_gfx_3(IMAGE *image,unsigned int srcsize,unsigned char *src,int p
                     rgb=pal[p];
                 }
 
-                if (a<=usealpha/2) a=0;
-                else if (a>=31-usealpha/2) a=31;
-
                 if (!a) rgb=rgbcolorkey;
 
                 image->rgb[x+y*image->xres]=rgb;
@@ -522,46 +510,6 @@ static int load_gfx_3(IMAGE *image,unsigned int srcsize,unsigned char *src,int p
     if (src!=end) {
         note("type 3 is confused");
     }
-
-
-    /*for (y=0; y<image->yres; y++) {
-            for (x=0; x<image->xres; x++) {
-
-                    if (src==end) return fail("srcsize seems to be not long enough [type 3]!");
-
-                    if (*src) {
-            if (pal_cnt<=128) {
-                a=*src&amask;
-                if (a==amask) a=31; else a>>=3;
-
-                p=(*src&(~amask));
-
-                src++;
-            } else {
-                a=*src++; a>>=3;
-                p=*src++;
-            }
-
-                            if (p>pal_cnt) return fail("index(%d) out of palette(%d) [type 3]!",p,pal_cnt);
-
-                            rgb=pal[p];
-                    }
-                    else {
-                            src++;
-                            a=0;
-                    }
-
-                    if (a<=usealpha/2) a=0;
-        else if (a>=31-usealpha/2) a=31;
-
-        if (!a) rgb=rgbcolorkey;
-
-                    image->rgb[x+y*image->xres]=rgb;
-                    image->a[x+y*image->xres]=a;
-
-                    if (a && a!=31) hasalpha=1;
-            }
-    }*/
 
     if (hasalpha==0) {
         xfree(image->a);
@@ -997,9 +945,9 @@ int gfx_load_image_pak(IMAGE *image,int sprite) {
 
     // convert GFX_DATAFORMAT into image
     switch (pak_cache[pidx].dat[i].dat_type) {
-        case DATATYPE_GFX_1:    ret=load_gfx_1(image,realsize,buf,1); break;
-        case DATATYPE_GFX_2:    ret=load_gfx_2(image,realsize,buf,pak_cache[pidx].pal_cnt,pak_cache[pidx].pal,1); break;
-        case DATATYPE_GFX_3:    ret=load_gfx_3(image,realsize,buf,pak_cache[pidx].pal_cnt,pak_cache[pidx].pal,1); break;
+        case DATATYPE_GFX_1:    ret=load_gfx_1(image,realsize,buf); break;
+        case DATATYPE_GFX_2:    ret=load_gfx_2(image,realsize,buf,pak_cache[pidx].pal_cnt,pak_cache[pidx].pal); break;
+        case DATATYPE_GFX_3:    ret=load_gfx_3(image,realsize,buf,pak_cache[pidx].pal_cnt,pak_cache[pidx].pal); break;
         default:                return fail("oops in gfx_load_image_pak(%d,%d)",sprite,pidx);
     }
 
