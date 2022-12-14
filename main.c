@@ -2,6 +2,8 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
+// TODO: test and fix editor to work with new screen resolution logic
+
 #include <windows.h>
 #include <commctrl.h>
 #include <stdarg.h>
@@ -667,7 +669,7 @@ int win_init(char *title,int width,int height) {
     if (editor) wnd=CreateWindowEx(0,"MAINWNDMOAC",title,WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME|WS_MAXIMIZEBOX|WS_MINIMIZEBOX,CW_USEDEFAULT,CW_USEDEFAULT,width+8,height+27,NULL,NULL,instance,NULL);
     else
 #endif
-        wnd=CreateWindowEx(0,"MAINWNDMOAC",title,WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME|WS_MAXIMIZEBOX|WS_MINIMIZEBOX,CW_USEDEFAULT,CW_USEDEFAULT,width,height,NULL,NULL,instance,NULL);
+        wnd=CreateWindowEx(0,"MAINWNDMOAC",title,WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_MAXIMIZEBOX|WS_MINIMIZEBOX,CW_USEDEFAULT,CW_USEDEFAULT,width,height,NULL,NULL,instance,NULL);
 
     mainwnd=wnd;
 
@@ -699,12 +701,11 @@ int win_exit(void) {
 // startup
 
 void update_res(HWND hwnd) {
-    if (opt_res==IDC_RES800) CheckRadioButton(hwnd,IDC_RES800,IDC_RES1280,IDC_RES800);
-    else if (opt_res==IDC_RES1024) CheckRadioButton(hwnd,IDC_RES800,IDC_RES1280,IDC_RES1024);
-    else if (opt_res==IDC_RES1280) CheckRadioButton(hwnd,IDC_RES800,IDC_RES1280,IDC_RES1280);
-    else if (opt_res==IDC_RES1152) CheckRadioButton(hwnd,IDC_RES800,IDC_RES1280,IDC_RES1152);
-    else if (opt_res==IDC_RES800B) CheckRadioButton(hwnd,IDC_RES800,IDC_RES1280,IDC_RES800B);
-    else { CheckRadioButton(hwnd,IDC_RES800,IDC_RES1280,IDC_RES800); opt_res=IDC_RES800; }
+    if (opt_res==IDC_RES800) CheckRadioButton(hwnd,IDC_RES800,IDC_RES2400,IDC_RES800);
+    else if (opt_res==IDC_RES1200) CheckRadioButton(hwnd,IDC_RES800,IDC_RES2400,IDC_RES1200);
+    else if (opt_res==IDC_RES1600) CheckRadioButton(hwnd,IDC_RES800,IDC_RES2400,IDC_RES1600);
+    else if (opt_res==IDC_RES2400) CheckRadioButton(hwnd,IDC_RES800,IDC_RES2400,IDC_RES2400);
+    else { CheckRadioButton(hwnd,IDC_RES800,IDC_RES2400,IDC_RES800); opt_res=IDC_RES800; }
 
 }
 
@@ -838,10 +839,9 @@ BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
                     return TRUE;
 
                 case IDC_RES800:
-                case IDC_RES800B:
-                case IDC_RES1024:
-                case IDC_RES1152:
-                case IDC_RES1280:
+                case IDC_RES1200:
+                case IDC_RES1600:
+                case IDC_RES2400:
                     opt_res=wparam;
                     update_res(wnd);
                     return 1;
@@ -1388,17 +1388,16 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 #ifdef EDITOR
     if (editor) {
         quickstart=1;
-        width=0;
-        height=0;
+        width=800;
+        height=600;
     } else
 #endif
     {
         switch (opt_res) {
-            case IDC_RES1024:	width=1024; height=768; x_offset=(1024-800)/2; y_offset=(768-600)/2; break;
-            case IDC_RES1152:	width=1152; height=864; x_offset=(1152-800)/2; y_offset=(864-600)/2; break;
-            case IDC_RES1280:	width=1280; height=1024; x_offset=(1280-800)/2; y_offset=(1024-600)/2; break;
+            case IDC_RES1200:	width=1200; height=900; x_offset=y_offset=0; break;
+            case IDC_RES1600:	width=1600; height=1200; x_offset=y_offset=0; break;
+            case IDC_RES2400:	width=2400; height=1800; x_offset=y_offset=0; break;
             case IDC_RES800:
-            case IDC_RES800B:
             default:		width=800; height=600; x_offset=y_offset=0; break;
         }
         x_max=x_offset+800;

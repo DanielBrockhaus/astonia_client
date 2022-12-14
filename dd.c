@@ -301,9 +301,12 @@ int dd_init(int width,int height) {
     if ((err=DirectDrawCreate(NULL,&dd,NULL))!=DD_OK) return dd_error("DirectDrawCreate()",err);
 
     // you can force any screen (and offscreen) size
-    if (width) {
+    if (editor) {
         XRES=width;
         YRES=height;
+    } else {
+        XRES=800;
+        YRES=600;
     }
 
     // set cooperative level
@@ -317,6 +320,7 @@ int dd_init(int width,int height) {
     if ((err=dd->lpVtbl->CreateSurface(dd,&ddsd,&ddps,NULL))!=DD_OK) return dd_error("CreateSurface(ddps)",err);
 
     // create a back surface (offscreen, always using a 16 bit mode, prefering the one of the current screen mode if this is also 16 bit)
+    note("back surface: %dx%d",XRES,YRES);
     bzero(&ddsd,sizeof(ddsd));
     ddsd.dwSize=sizeof(ddsd);
     ddsd.dwFlags=DDSD_CAPS|DDSD_WIDTH|DDSD_HEIGHT|DDSD_PIXELFORMAT;
@@ -480,27 +484,10 @@ void dd_flip(void) {
     ys=r.bottom-r.top;
 
     if (xs!=XRES && ys!=YRES) {
-        if (xs>2400 && xs<2600 && ys>1800 && ys<2000) { // snap in at 3X resolution
-            BitBlt(tgtdc,0,2400,xs,ys,NULL,0,0,BLACKNESS);
-            BitBlt(tgtdc,1800,0,xs,ys,NULL,0,0,BLACKNESS);
-            xs=2400; ys=1800;
-        } else if (xs>1600 && xs<1800 && ys>1200 && ys<1400) { // snap in at 2X resolution
-            BitBlt(tgtdc,0,1200,xs,ys,NULL,0,0,BLACKNESS);
-            BitBlt(tgtdc,1600,0,xs,ys,NULL,0,0,BLACKNESS);
-            xs=1600; ys=1200;
-        } else {
-            if (xs*YRES<ys*XRES) {
-                ys=xs*YRES/XRES;
-                BitBlt(tgtdc,0,ys,xs,r.bottom-r.top-ys,NULL,0,0,BLACKNESS);
-            }
-            if (xs*YRES>ys*XRES) {
-                xs=ys*XRES/YRES;
-                BitBlt(tgtdc,xs,0,r.right-r.left-xs,ys,NULL,0,0,BLACKNESS);
-            }
-        }
+
         mouse_scale=1.0*xs/XRES;
 
-        if (mouse_scale!=2.0f) {
+        if (mouse_scale!=2.0f && mouse_scale!=3.0f) {
             if (srcdc) SetStretchBltMode(srcdc,HALFTONE);
             if (tgtdc) SetStretchBltMode(tgtdc,HALFTONE);
         } else {

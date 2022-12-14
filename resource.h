@@ -17,9 +17,9 @@ produced by Borland Resource Workshop
 #define IDC_SAVEPWD	114
 
 #define IDC_RES800	115
-#define IDC_RES1024	116
-#define IDC_RES800B	118
-#define IDC_RES1280	119
+#define IDC_RES1200	116
+#define IDC_RES1600	117
+#define IDC_RES2400	118
 
 #define IDC_LARGETEXT	124
 
@@ -28,8 +28,6 @@ produced by Borland Resource Workshop
 #define IDC_CREATE	126
 #define IDC_ACCOUNT	127
 #define IDC_WEBSITE	128
-
-#define IDC_RES1152	117
 
 #define IDC_USERNAME	103
 
