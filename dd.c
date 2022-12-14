@@ -79,7 +79,7 @@ int dd_tick=0;
 
 LPDIRECTDRAW dd=NULL;
 LPDIRECTDRAWCLIPPER ddcl=NULL;
-LPDIRECTDRAWSURFACE ddps=NULL,ddbs=NULL;
+LPDIRECTDRAWSURFACE ddbs=NULL;
 
 int clipsx,clipsy,clipex,clipey;
 int clipstore[32][4],clippos=0;
@@ -312,13 +312,6 @@ int dd_init(int width,int height) {
     // set cooperative level
     if ((err=dd->lpVtbl->SetCooperativeLevel(dd,mainwnd,DDSCL_NORMAL))!=DD_OK) return dd_error("SetCooperativeLevel()",err);
 
-    // get the primary surface
-    bzero(&ddsd,sizeof(ddsd));
-    ddsd.dwSize=sizeof(ddsd);
-    ddsd.dwFlags=DDSD_CAPS;
-    ddsd.ddsCaps.dwCaps=DDSCAPS_PRIMARYSURFACE;
-    if ((err=dd->lpVtbl->CreateSurface(dd,&ddsd,&ddps,NULL))!=DD_OK) return dd_error("CreateSurface(ddps)",err);
-
     // create a back surface (offscreen, always using a 16 bit mode, prefering the one of the current screen mode if this is also 16 bit)
     note("back surface: %dx%d",XRES,YRES);
     bzero(&ddsd,sizeof(ddsd));
@@ -342,16 +335,6 @@ int dd_init(int width,int height) {
     // do some neccassary clipper stuff
     if ((err=dd->lpVtbl->CreateClipper(dd,0,&ddcl,NULL))!=DD_OK) return dd_error("CreateClipper(ddbs)",err);        // CreateClipper
     if ((err=ddcl->lpVtbl->SetHWnd(ddcl,0,mainwnd))!=DD_OK) return dd_error("SetHWnd(ddcl)",err);                   // Attach Clipper to Window
-    if ((err=ddps->lpVtbl->SetClipper(ddps,ddcl))!=DD_OK) return dd_error("SetClipper(ddps)",err);                  // Attach Clipper to ddps
-
-
-    // now check the display mode
-    bzero(&ddsd,sizeof(ddsd));
-    ddsd.dwSize=sizeof(ddsd);
-    ddsd.dwFlags=DDSD_ALL;
-    if ((err=dd->lpVtbl->GetDisplayMode(dd,&ddsd))!=DD_OK) return dd_error("GetDisplayMode()",err);
-    if (ddsd.ddpfPixelFormat.u1.dwRGBBitCount!=16) note("16 bit display modes might be faster"); // return dd_error("need a 16bit screen mode",-1);
-    note("ddps %s",ddsdstr(buf,&ddsd));
 
     // get informations about the back surface
     bzero(&ddsd,sizeof(ddsd));
@@ -400,10 +383,10 @@ int dd_exit(void) {
     //gfx_exit();
     //dd_exit_cache();
 
-    if (ddps) {
-        left=ddps->lpVtbl->Release(ddps);
-        ddps=NULL;
-        // note("released ddps. %d references left",left);
+    if (ddbs) {
+        left=ddbs->lpVtbl->Release(ddbs);
+        ddbs=NULL;
+        // note("released ddbs. %d references left",left);
     }
 
     if (ddcl) {
@@ -507,7 +490,6 @@ void dd_flip(void) {
 int dd_islost(void) {
     int s;
 
-    if (ddps->lpVtbl->IsLost(ddps)!=DD_OK) return 1; // ddps->lpVtbl->Restore(ddps); else ok++;
     if (ddbs->lpVtbl->IsLost(ddbs)!=DD_OK) return 1; // ddbs->lpVtbl->Restore(ddbs); else ok++;
 
     return 0;
@@ -517,7 +499,6 @@ int dd_restore(void) {
     int s;
     static int cacheflag=0;
 
-    if (ddps->lpVtbl->IsLost(ddps)!=DD_OK) if (ddps->lpVtbl->Restore(ddps)!=DD_OK) return -1;
     if (ddbs->lpVtbl->IsLost(ddbs)!=DD_OK) if (ddbs->lpVtbl->Restore(ddbs)!=DD_OK) return -1;
 
     if (cacheflag) { dd_reset_cache(0,0,1); cacheflag=0; }
@@ -2070,10 +2051,6 @@ void dd_black(void) {
 
     if ((err=ddbs->lpVtbl->Blt(ddbs,&rc,NULL,NULL,DDBLT_COLORFILL|DDBLT_WAIT,&bltfx))!=DD_OK) {
         //sprintf(buf,"dd_black(ddbs,%d,%d):",xres,yres);
-        dd_error(buf,err);
-    }
-    if ((err=ddbs->lpVtbl->Blt(ddps,&rc,NULL,NULL,DDBLT_COLORFILL|DDBLT_WAIT,&bltfx))!=DD_OK) {
-        //sprintf(buf,"dd_black(ddps,%d,%d):",xres,yres);
         dd_error(buf,err);
     }
 }
