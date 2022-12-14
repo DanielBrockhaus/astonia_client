@@ -408,7 +408,7 @@ int dd_exit(void) {
 
     if (ddcl) {
         left=ddcl->lpVtbl->Release(ddcl);
-        ddps=NULL;
+        ddcl=NULL;
         // note("released ddcl. %d references left",left);
     }
 
