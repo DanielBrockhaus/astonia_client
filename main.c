@@ -663,7 +663,7 @@ int win_init(char *title,int width,int height) {
 
     RegisterClass(&wc);
 #ifdef EDITOR
-    if (editor) wnd=CreateWindowEx(0,"MAINWNDMOAC",title,WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME|WS_MAXIMIZEBOX|WS_MINIMIZEBOX,CW_USEDEFAULT,CW_USEDEFAULT,width+8,height+27,NULL,NULL,instance,NULL);
+    if (editor) wnd=CreateWindowEx(0,"MAINWNDMOAC",title,WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_MAXIMIZEBOX|WS_MINIMIZEBOX,CW_USEDEFAULT,CW_USEDEFAULT,width+8,height+27,NULL,NULL,instance,NULL);
     else
 #endif
         wnd=CreateWindowEx(0,"MAINWNDMOAC",title,WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_MAXIMIZEBOX|WS_MINIMIZEBOX,CW_USEDEFAULT,CW_USEDEFAULT,width,height,NULL,NULL,instance,NULL);
@@ -674,11 +674,13 @@ int win_init(char *title,int width,int height) {
     ShowWindow(wnd,SW_SHOW);
     UpdateWindow(wnd);
 
-    GetClientRect(wnd,&r);
-    x=r.right-r.left;
-    y=r.bottom-r.top;
+    if (!editor) {
+        GetClientRect(wnd,&r);
+        x=r.right-r.left;
+        y=r.bottom-r.top;
 
-    SetWindowPos(wnd,HWND_TOP,0,0,width+width-x,height+height-y,0);
+        SetWindowPos(wnd,HWND_TOP,0,0,width+width-x,height+height-y,0);
+    }
 
     return 0;
 }
@@ -1385,8 +1387,8 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 #ifdef EDITOR
     if (editor) {
         quickstart=1;
-        width=800;
-        height=600;
+        width=1600;
+        height=1200;
     } else
 #endif
     {
