@@ -40,7 +40,6 @@ unsigned short int irgb_blend(unsigned short int a,unsigned short int b,int alph
 
 // direct x basics //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int dd_maxtile=DD_VID32MB;   // (max=0xFFFD) maximum number of tiles this client should use (for multiclient sessions)
 int dd_gamma=8;
 int dd_lighteffect=16;
 int newlight=0;
@@ -56,7 +55,6 @@ const char *DDERR=dderr;
 unsigned int R_MASK;
 unsigned int G_MASK;
 unsigned int B_MASK;
-unsigned int D_MASK;
 
 #define RGBM_R5G6B5     0
 #define RGBM_X1R5G5B5   1
@@ -69,7 +67,6 @@ int x_max,y_max;
 
 int vc_cnt=0,sc_cnt=0,ap_cnt=0,np_cnt=0,tp_cnt=0,vm_cnt=0,sm_cnt=0;
 int vc_time=0,ap_time=0,tp_time=0,sc_time=0,vm_time=0,bless_time=0,vi_time=0,im_time=0;
-//int sb_time=0,ol_time=0;
 
 int rgbm=-1;
 int xres;
@@ -168,42 +165,6 @@ static int dd_error(const char *txt,int err) {
     return -1;
 }
 
-static int restab[][2]={
-    {1920,1920},   // optimal size
-    {1920,1440},   // good sizes...
-    {1920,960},   // ...
-    {1920,480},   // ...
-    {1920,240},   // ...
-    {1440,1440},   // good sizes...
-    {1440,960},   // ...
-    {1440,480},   // ...
-    {1440,240},   // ...
-    {960,960},   // ...
-    {960,480},   // ...
-    {960,240},   // ...
-    {800,960},   // ...
-    {800,480},   // ...
-    {800,240},   // ...
-    {480,480},   // ...
-    {480,240},   // ...
-    {240,240},   // ...
-    {144,144},   // ...
-    {800,144},   // ...
-    {800,96},   // ...
-    {800,48},   // ...
-    {96,96}    // ... must not contain any surface which will yield less than 3 tiles!
-
-
-    /*{  1600,   1200},	// try big standard sizes... - faulty?
-    {  1280,   1200},
-{   800,    600},
-{   640,    480},
-{   320,    200},
-{   160,    160}*/
-};
-
-static int max_restab=sizeof(restab)/(2*sizeof(int));
-
 static char* binstr(char *buf,unsigned int val,int num) {
     int i;
     char *run=buf;
@@ -216,9 +177,6 @@ static char* binstr(char *buf,unsigned int val,int num) {
 }
 
 static char* ddsdstr(char *buf,DDSURFACEDESC *ddsd) {
-    // char rbuf[64];
-    // char gbuf[64];
-    // char bbuf[64];
     int bpp,pitch;
     char *memstr;
 
@@ -253,8 +211,6 @@ static int dd_vidmembytes(LPDIRECTDRAWSURFACE sur) {
     if ((err=sur->lpVtbl->GetSurfaceDesc(sur,&ddsd))!=DD_OK) return dd_error("GetSurfaceDesc(ddcs[s])",err);
 
     if (ddsd.ddsCaps.dwCaps&DDSCAPS_SYSTEMMEMORY) return 0; // if it's not there, it has to be in video memory - works for funnymemory as well
-
-    // note("%dx%d,%d,%d",ddsd.dwHeight,ddsd.dwWidth,ddsd.u1.lPitch/2,ddsd.u1.lPitch);
 
     return ddsd.dwHeight*ddsd.u1.lPitch;
 }
@@ -312,7 +268,7 @@ int dd_init(int width,int height) {
     // set cooperative level
     if ((err=dd->lpVtbl->SetCooperativeLevel(dd,mainwnd,DDSCL_NORMAL))!=DD_OK) return dd_error("SetCooperativeLevel()",err);
 
-    // create a back surface (offscreen, always using a 16 bit mode, prefering the one of the current screen mode if this is also 16 bit)
+    // create a back surface (offscreen, always using a 16 bit mode)
     note("back surface: %dx%d",XRES,YRES);
     bzero(&ddsd,sizeof(ddsd));
     ddsd.dwSize=sizeof(ddsd);
@@ -350,7 +306,10 @@ int dd_init(int width,int height) {
     G_MASK=ddsd.ddpfPixelFormat.u3.dwGBitMask;
     B_MASK=ddsd.ddpfPixelFormat.u4.dwBBitMask;
 
-    if (R_MASK==0xF800 && G_MASK==0x07E0 && B_MASK==0x001F) { rgbm=RGBM_R5G6B5; D_MASK=0xE79C; } else if (R_MASK==0x7C00 && G_MASK==0x03E0 && B_MASK==0x001F) { rgbm=RGBM_X1R5G5B5; D_MASK=0x739C; } else if (R_MASK==0x001F && G_MASK==0x07E0 && B_MASK==0xF800) { rgbm=RGBM_B5G6R5; D_MASK=0xE79C; } else return dd_error("CANNOT HANDLE RGB MASK",-1);
+    if (R_MASK==0xF800 && G_MASK==0x07E0 && B_MASK==0x001F) { rgbm=RGBM_R5G6B5; }
+    else if (R_MASK==0x7C00 && G_MASK==0x03E0 && B_MASK==0x001F) { rgbm=RGBM_X1R5G5B5; }
+    else if (R_MASK==0x001F && G_MASK==0x07E0 && B_MASK==0xF800) { rgbm=RGBM_B5G6R5; }
+    else return dd_error("CANNOT HANDLE RGB MASK",-1);
 
     // initialize cache (will initialize color tables, too)
     if (dd_init_cache()==-1) return -1;
@@ -520,8 +479,6 @@ int vget(int tx,int ty,int tdx,int tdy) {
 }
 
 
-#define VIDX_NONE   0xFFFF              // still not set (invalid position)
-#define VIDX_KILL   0xFFFE              // was empty so there was no need to store it
 #define SIDX_NONE       -1              // still not set (invalid position) set in videocache[v].sidx
 #define SPRITE_NONE     -1
 #define IIDX_NONE       -1
@@ -621,10 +578,6 @@ int vc_miss=0,vc_hit=0,vc_unique=0,vc_unique24=0,sc_blits=0;
 int dd_init_cache(void) {
     int scr,rgb,r,g,b,s,i,v,x,y;
     int tr,tg,tb;
-    //unsigned char gammatab[32];
-    //unsigned char darkitab[16][32];
-
-    // perfect testing values for luzia max_imagecacge=100; max_systemcache=200; max_videocache=512;
 
     // imagecache
     max_imagecache=1024;
@@ -645,7 +598,7 @@ int dd_init_cache(void) {
     for (i=0; i<IMA_HASH_SIZE; i++) ima_hash[i]=-1;
 
     // systemcache
-    max_systemcache=1024*10; //*20;
+    max_systemcache=1024*10;
     systemcache=xcalloc(max_systemcache*sizeof(SYSTEMCACHE),MEM_GLOB);
     for (i=0; i<max_systemcache; i++) {
         systemcache[i].sprite=SPRITE_NONE;
@@ -694,18 +647,6 @@ int dd_init_cache(void) {
     scr2rgb[scrcolorkey]=IRGB(31,31,0);
     rgb2scr[rgbcolorkey]=scrcolorkey;
 
-    /*for (v=0; v<=31; v++) {
-            gammatab[v]=(pow((double)v/31.0,gamma)*31.0+0.5);
-    }
-
-    for (i=1; i<=15; i++) {
-            // double darken=1+(15-i)*0.06 + (i==1?0.5:0);
-            double darken=1+(15-i)*(15-i)*0.003;
-            for (v=0; v<=31; v++) {
-                    darkitab[i][v]=(pow((double)v/32.0,darken)*32.0+0.5);
-            }
-    }*/
-
     // light
     rgbfx_light=xcalloc(MAX_RGBFX_LIGHT*sizeof(unsigned short int *),MEM_GLOB);
     for (i=0; i<16; i++) rgbfx_light[i]=xcalloc(65536*sizeof(unsigned short),MEM_GLOB);
@@ -717,41 +658,17 @@ int dd_init_cache(void) {
             g=IGET_G(rgb);
             b=IGET_B(rgb);
 
-#if 0                   // 1=ankmode 0=dbmode
-            {
-                int gray,scal;
-                const int grayshift=8; // 8;
-                const int darkshift=6; // 4;// 8 for db (guess); but 4 is already to bright for me:(
-                // const int scalshift=64; // 0;
 
-                gray=(6969*r+23434*g+2365*b)/32768;
-                // scal=max(max(r,g),b);
-
-                r=(i+darkshift)*( (14-(i-1))*gray + ((i-1)+grayshift)*r )/((14+grayshift)*(15+darkshift));
-                g=(i+darkshift)*( (14-(i-1))*gray + ((i-1)+grayshift)*g )/((14+grayshift)*(15+darkshift));
-                b=(i+darkshift)*( (14-(i-1))*gray + ((i-1)+grayshift)*b )/((14+grayshift)*(15+darkshift));
-                //r=( ( ((31-scal)*/*((14-(i-1))*gray + ((i-1)+grayshift)*r)/(14+grayshift))*/r) ) + ((i+darkshift)*( (14-(i-1))*gray + ((i-1)+grayshift)*r )/((14+grayshift)*(15+darkshift)))*(scal+scalshift) )/(31+scalshift);
-                //g=( ( ((31-scal)*/*((14-(i-1))*gray + ((i-1)+grayshift)*g)/(14+grayshift))*/g) ) + ((i+darkshift)*( (14-(i-1))*gray + ((i-1)+grayshift)*g )/((14+grayshift)*(15+darkshift)))*(scal+scalshift) )/(31+scalshift);
-                //b=( ( ((31-scal)*/*((14-(i-1))*gray + ((i-1)+grayshift)*b)/(14+grayshift))*/b) ) + ((i+darkshift)*( (14-(i-1))*gray + ((i-1)+grayshift)*b )/((14+grayshift)*(15+darkshift)))*(scal+scalshift) )/(31+scalshift);
-            }
-#else
             {
                 static int lightmulti[16]={0,2,4,8,16,18,20,22,24,26,27,28,29,30,31,32};
-                //static int lightmulti[16]={ 0, 4, 8,12,16,18,20,22,24,26,27,28,29,30,31,32};
                 int lm=lightmulti[i],le=dd_lighteffect;
 
                 if (newlight) le=i;
-
-                //le=0;
-                //str=(r+g+b)/3+max(max(r,g),b);
-                //le=max(0,le-str/8);
 
                 r=min(31,(lm+le)*(r*dd_gamma/8)/(32+le));
                 g=min(31,(lm+le)*(g*dd_gamma/8)/(32+le));
                 b=min(31,(lm+le)*(b*dd_gamma/8)/(32+le));
             }
-#endif
-
 
             if (r<0 || r>31 || g<0 || g>31 || b<0 || b>31) paranoia("some ill rgbfx_light here r=%d g=%d b=%d i=%d",r,g,b,i);
 
@@ -2464,14 +2381,11 @@ static int bless_hight[200];
 void dd_draw_bless_pix(int x,int y,int nr,int color,int front,unsigned short *ptr) {
     int sy;
 
-    //sy=sin((nr%36)/36.0*M_PI*2)*8;
     sy=bless_sin[nr%36];
     if (front && sy<0) return;
     if (!front && sy>=0) return;
 
-    //x+=cos((nr%36)/36.0*M_PI*2)*16;
     x+=bless_cos[nr%36];
-    //y=y+sy-20+sin((nr%200)/200.0*M_PI*2)*20;
     y=y+sy+bless_hight[nr%200];
 
     if (x<clipsx || x>=clipex || y<clipsy || y>=clipey) return;
@@ -2529,11 +2443,6 @@ void dd_draw_bless(int x,int y,int ticker,int strength,int front) {
     dd_unlock_surface(ddbs);
 
     bless_time+=GetTickCount()-start;
-    /*bless_cnt++;
-
-    if ((bless_cnt&1023)==1023) {
-        addline("bless: %d / %d (%f ms/bless)",bless_time,bless_cnt,(double)bless_time/bless_cnt);
-    }*/
 }
 
 void dd_draw_potion(int x,int y,int ticker,int strength,int front) {
@@ -2700,7 +2609,6 @@ int dd_drawtext_char(int sx,int sy,int c,unsigned short int color) {
         }
 
         dst+=*rawrun;
-        //x+=*rawrun;
         rawrun++;
 
         if (dst-vidptr>xres*yres || dst<vidptr) {
@@ -2987,10 +2895,8 @@ void sc_blit3(SYSTEMCACHE *sc,int sx,int sy) {
 
     if ((ptr=dd_lock_surface(ddbs))==NULL) return;
 
-    //spos=addx+addy*sc->xres;
     src=sc->rgb+addx+addy*sc->xres;
     sstep=sc->xres-dx;
-    //dpos=sx+sy*xres;
     dst=ptr+(sx+x_offset)+(sy+y_offset)*xres;
     dstep=xres-dx;
 
@@ -3023,10 +2929,8 @@ void sc_blit4(SYSTEMCACHE *sc,int scrx,int scry,int sx,int sy,int dx,int dy) {
 
     if ((ptr=dd_lock_surface(ddbs))==NULL) return;
 
-    //spos=addx+addy*sc->xres;
     src=sc->rgb+addx+sx+(addy+sy)*sc->xres;
     sstep=sc->xres-dx;
-    //dpos=sx+sy*xres;
     dst=ptr+(sx+x_offset+scrx)+(sy+y_offset+scry)*xres;
     dstep=xres-dx;
 

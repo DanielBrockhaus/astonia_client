@@ -21,7 +21,6 @@ extern float mouse_scale;   // mouse input needs to be scaled by this factor bec
 #define DD_VIDMEM       1
 #define DD_LOCMEM       2
 
-extern int dd_maxtile;          // maximum number of tiles this client should use
 extern double gamma;            // set me to adjust gamma, call dd_reset() afterwards
 extern int dd_gamma;
 extern int dd_lighteffect;
@@ -207,16 +206,10 @@ extern int yres;
 extern unsigned int R_MASK;
 extern unsigned int G_MASK;
 extern unsigned int B_MASK;
-extern unsigned int D_MASK;
 
 //-----------
 #define TILESIZEDX	48
 #define TILESIZEDY	48
-
-#define	DD_VID32MB	(9000*40*40/TILESIZEDX/TILESIZEDY)
-#define	DD_VID16MB	(4000*40*40/TILESIZEDX/TILESIZEDY)
-#define	DD_VID8MB	(1500*40*40/TILESIZEDX/TILESIZEDY)
-#define	DD_VID4MB	(600*40*40/TILESIZEDX/TILESIZEDY)
 
 int dd_init_cache(void);
 void dd_exit_cache(void);

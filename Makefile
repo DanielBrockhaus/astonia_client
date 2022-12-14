@@ -30,6 +30,6 @@ resource.res:   resource.rc resource.h
 		$(BCCPATH)\bin\brcc32 -fo resource.res resource.rc
 
 clean:
-		del *.obj
-		del moac.exe
+		rm *.obj
+		rm moac.exe
 

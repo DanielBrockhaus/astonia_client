@@ -570,9 +570,6 @@ int parse_cmd(char *s) {
                 while (isspace(*s)) s++;
                 n=0; while (n<16 && *s && !isspace(*s)) password[n++]=*s++;
                 password[n]=0;
-            } else if (tolower(*s)=='t') {  // -t <num> maximum number of videocache tiles
-                dd_maxtile=strtol(s+1,&end,10);
-                s=end;
             } else if (tolower(*s)=='d') {
                 s++;
                 developer_server=strtol(s+1,&end,10);
@@ -740,7 +737,7 @@ void save_options(void) {
 
     write(handle,&dummy,sizeof(dummy));
     write(handle,&dummy,sizeof(dummy));
-    write(handle,&dd_maxtile,sizeof(dd_maxtile));
+    write(handle,&dummy,sizeof(dummy));
     write(handle,username,sizeof(username));
     if (save_pwd) write(handle,password,sizeof(password));
     else write(handle,nullbuff,sizeof(password));
@@ -777,7 +774,7 @@ void load_options(void) {
 
     read(handle,&dummy,sizeof(dummy));
     read(handle,&dummy,sizeof(dummy));
-    read(handle,&dd_maxtile,sizeof(dd_maxtile));
+    read(handle,&dummy,sizeof(dummy));
     read(handle,username,sizeof(username));
     read(handle,password,sizeof(password));
     read(handle,&save_pwd,sizeof(save_pwd));
@@ -1478,8 +1475,6 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
         MessageBox(NULL,"Can't Create a Window.","Error",MB_APPLMODAL|MB_OK|MB_ICONSTOP);
         return -1;
     }
-
-    //dd_maxtile=100;
 
     if (dd_init(width,height)==-1) {
         char buf[512];
