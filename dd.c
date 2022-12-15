@@ -410,6 +410,37 @@ int dd_unlock_ptr(void) {
     return dd_unlock_surface(ddbs);
 }
 
+
+#define MAXTEXTER   1024
+struct texter {
+    int x,y;
+    char *text;
+    int color;
+    int flags;
+};
+
+int textcnt=0;
+struct texter texter[MAXTEXTER];
+int newtext=1;
+
+void texter_add(int x, int y,int color,int flags,const char *text) {
+    int r,g,b;
+
+    if (textcnt>=MAXTEXTER) return;
+
+    r=(int)((((color>>11)&31)/31.0f)*255.0f);
+    g=(int)((((color>>5) &63)/63.0f)*255.0f);
+    b=(int)((((color)    &31)/31.0f)*255.0f);
+
+
+    texter[textcnt].x=x;
+    texter[textcnt].y=y;
+    texter[textcnt].color=(r)|(g<<8)|(b<<16);
+    texter[textcnt].flags=flags;
+    texter[textcnt].text=strdup(text);
+    textcnt++;
+}
+
 void dd_flip(void) {
     int err;
 
@@ -440,6 +471,49 @@ void dd_flip(void) {
     } else {
         if (srcdc && tgtdc) BitBlt(tgtdc,0,0,XRES,YRES,srcdc,0,0,SRCCOPY);
         mouse_scale=1.0;
+    }
+
+    {
+        static HFONT fonts=NULL,fontm=NULL,fontb=NULL;
+        int n,x,y,flags;
+        char *text;
+
+        if (!fonts) {
+            #define fontname "Arial"
+            fonts=CreateFont(8*mouse_scale,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_OUTLINE_PRECIS,CLIP_DEFAULT_PRECIS,ANTIALIASED_QUALITY,VARIABLE_PITCH,TEXT(fontname));
+            fontm=CreateFont(10*mouse_scale,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_OUTLINE_PRECIS,CLIP_DEFAULT_PRECIS,ANTIALIASED_QUALITY,VARIABLE_PITCH,TEXT(fontname));
+            fontb=CreateFont(12*mouse_scale,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_OUTLINE_PRECIS,CLIP_DEFAULT_PRECIS,ANTIALIASED_QUALITY,VARIABLE_PITCH,TEXT(fontname));
+        }
+        SetBkMode(tgtdc,TRANSPARENT);
+
+        for (n=0; n<textcnt; n++) {
+            x=(texter[n].x)*mouse_scale;
+            y=(texter[n].y-1)*mouse_scale;
+            text=texter[n].text;
+            flags=texter[n].flags;
+
+            if (flags&DD_SMALL) SelectObject(tgtdc,fonts);
+            else if (flags&DD_LARGE) SelectObject(tgtdc,fontb);
+            else SelectObject(tgtdc,fontm);
+
+
+            if (flags&DD_CENTER) SetTextAlign(tgtdc,TA_CENTER|TA_TOP);
+            else if (flags&DD_RIGHT) SetTextAlign(tgtdc,TA_RIGHT|TA_TOP);
+            else SetTextAlign(tgtdc,TA_LEFT|TA_TOP);
+
+            if (flags&(DD_SHADE|DD_FRAME)) {
+                SetTextColor(tgtdc,0);
+                TextOut(tgtdc,x-1,y,text,strlen(text));
+                TextOut(tgtdc,x,y-1,text,strlen(text));
+                TextOut(tgtdc,x+1,y,text,strlen(text));
+                TextOut(tgtdc,x,y+1,text,strlen(text));
+            }
+
+            SetTextColor(tgtdc,texter[n].color);
+            TextOut(tgtdc,x,y,text,strlen(text));
+            free(text);
+        }
+        textcnt=0;
     }
 
     dd_release_dc(ddbs,srcdc);
@@ -2226,6 +2300,11 @@ int dd_drawtext(int sx,int sy,unsigned short int color,int flags,const char *tex
     const char *c;
     DDFONT *font;
 
+    if (newtext) {
+        texter_add(sx+x_offset,sy+y_offset,color,flags,text);
+        return dd_textlength(flags,text);
+    }
+
     start=GetTickCount();
 
     if (flags&DD__SHADEFONT) {
@@ -2589,6 +2668,13 @@ int dd_drawtext_char(int sx,int sy,int c,unsigned short int color) {
     int x,y,start;
 
     if (c>127 || c<0) return 0;
+
+    if (newtext) {
+        char text[2]={0,0};
+        text[0]=c;
+        texter_add(sx,sy,color,0,text);
+        return textfont[c].dim;
+    }
 
     if ((vidptr=ptr=dd_lock_surface(ddbs))==NULL) return 0;
 

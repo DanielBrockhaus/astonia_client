@@ -2544,6 +2544,13 @@ int client_cmd(char *buf) {
         playersprite_override=atoi(&buf[3]);
         return 1;
     }
+
+    if (!strncmp(buf,"#text",5)) {
+        extern int newtext;
+        newtext=1-newtext;
+        return 1;
+    }
+
     if (!strncmp(buf,"#gamma ",7)) {
         exec_gen(GEN_SET_GAMMA,atoi(&buf[7]),NULL);
         addline("using gamma %d",dd_gamma);
