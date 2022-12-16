@@ -442,10 +442,10 @@ void texter_add(int x, int y,int color,int flags,const char *text) {
 }
 
 void dd_flip(void) {
-    int err;
-
     HDC srcdc;
     HDC tgtdc;
+    HDC tmpdc;
+    HBITMAP bm;
     RECT r;
     int xs,ys;
 
@@ -456,22 +456,28 @@ void dd_flip(void) {
     xs=r.right-r.left;
     ys=r.bottom-r.top;
 
+    tmpdc=CreateCompatibleDC(tgtdc);
+    bm=CreateCompatibleBitmap(tgtdc,xs,ys);
+    SelectObject(tmpdc,bm);
+
     if (xs!=XRES && ys!=YRES) {
 
         mouse_scale=1.0*xs/XRES;
 
         if (mouse_scale!=2.0f && mouse_scale!=3.0f) {
             if (srcdc) SetStretchBltMode(srcdc,HALFTONE);
-            if (tgtdc) SetStretchBltMode(tgtdc,HALFTONE);
+            if (tmpdc) SetStretchBltMode(tmpdc,HALFTONE);
         } else {
             if (srcdc) SetStretchBltMode(srcdc,COLORONCOLOR);
-            if (tgtdc) SetStretchBltMode(tgtdc,COLORONCOLOR);
+            if (tmpdc) SetStretchBltMode(tmpdc,COLORONCOLOR);
         }
-        if (srcdc && tgtdc) StretchBlt(tgtdc,0,0,xs,ys,srcdc,0,0,XRES,YRES,SRCCOPY);
+        if (srcdc && tmpdc) StretchBlt(tmpdc,0,0,xs,ys,srcdc,0,0,XRES,YRES,SRCCOPY);
     } else {
-        if (srcdc && tgtdc) BitBlt(tgtdc,0,0,XRES,YRES,srcdc,0,0,SRCCOPY);
+        if (srcdc && tmpdc) BitBlt(tmpdc,0,0,XRES,YRES,srcdc,0,0,SRCCOPY);
         mouse_scale=1.0;
     }
+
+    dd_release_dc(ddbs,srcdc);
 
     {
         static HFONT fonts=NULL,fontm=NULL,fontb=NULL;
@@ -484,7 +490,7 @@ void dd_flip(void) {
             fontm=CreateFont(10*mouse_scale,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_OUTLINE_PRECIS,CLIP_DEFAULT_PRECIS,ANTIALIASED_QUALITY,VARIABLE_PITCH,TEXT(fontname));
             fontb=CreateFont(12*mouse_scale,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_OUTLINE_PRECIS,CLIP_DEFAULT_PRECIS,ANTIALIASED_QUALITY,VARIABLE_PITCH,TEXT(fontname));
         }
-        SetBkMode(tgtdc,TRANSPARENT);
+        SetBkMode(tmpdc,TRANSPARENT);
 
         for (n=0; n<textcnt; n++) {
             x=(texter[n].x)*mouse_scale;
@@ -492,31 +498,35 @@ void dd_flip(void) {
             text=texter[n].text;
             flags=texter[n].flags;
 
-            if (flags&DD_SMALL) SelectObject(tgtdc,fonts);
-            else if (flags&DD_LARGE) SelectObject(tgtdc,fontb);
-            else SelectObject(tgtdc,fontm);
+            if (flags&DD_SMALL) SelectObject(tmpdc,fonts);
+            else if (flags&DD_LARGE) SelectObject(tmpdc,fontb);
+            else SelectObject(tmpdc,fontm);
 
 
-            if (flags&DD_CENTER) SetTextAlign(tgtdc,TA_CENTER|TA_TOP);
-            else if (flags&DD_RIGHT) SetTextAlign(tgtdc,TA_RIGHT|TA_TOP);
-            else SetTextAlign(tgtdc,TA_LEFT|TA_TOP);
+            if (flags&DD_CENTER) SetTextAlign(tmpdc,TA_CENTER|TA_TOP);
+            else if (flags&DD_RIGHT) SetTextAlign(tmpdc,TA_RIGHT|TA_TOP);
+            else SetTextAlign(tmpdc,TA_LEFT|TA_TOP);
 
             if (flags&(DD_SHADE|DD_FRAME)) {
-                SetTextColor(tgtdc,0);
-                TextOut(tgtdc,x-1,y,text,strlen(text));
-                TextOut(tgtdc,x,y-1,text,strlen(text));
-                TextOut(tgtdc,x+1,y,text,strlen(text));
-                TextOut(tgtdc,x,y+1,text,strlen(text));
+                SetTextColor(tmpdc,0);
+                TextOut(tmpdc,x-1,y,text,strlen(text));
+                TextOut(tmpdc,x,y-1,text,strlen(text));
+                TextOut(tmpdc,x+1,y,text,strlen(text));
+                TextOut(tmpdc,x,y+1,text,strlen(text));
             }
 
-            SetTextColor(tgtdc,texter[n].color);
-            TextOut(tgtdc,x,y,text,strlen(text));
+            SetTextColor(tmpdc,texter[n].color);
+            TextOut(tmpdc,x,y,text,strlen(text));
             free(text);
         }
         textcnt=0;
     }
 
-    dd_release_dc(ddbs,srcdc);
+    if (tgtdc && tmpdc) BitBlt(tgtdc,0,0,xs,ys,tmpdc,0,0,SRCCOPY);
+
+    SelectObject(tmpdc,NULL);
+    DeleteObject(bm);
+    DeleteDC(tmpdc);
     ReleaseDC(mainwnd,tgtdc);
 }
 
