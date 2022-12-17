@@ -477,7 +477,6 @@ void set_map_lights(struct map *cmap) {
         cmap[mn].rlight=(cmap[mn].flags&CMF_LIGHT);
 
         if (cmap[mn].rlight!=15) {
-            //cmap[mn].rlight+=cmap[mn].dim;	what?
             cmap[mn].rlight=max(0,cmap[mn].rlight);
             cmap[mn].rlight=min(14,cmap[mn].rlight);
         }

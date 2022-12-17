@@ -22,6 +22,11 @@ DDFONT *fontb_framed=NULL;
 DDFONT *fontc_shaded=NULL;
 DDFONT *fontc_framed=NULL;
 
+float fontdim_a[256];
+float fontdim_b[256];
+float fontdim_c[256];
+float *fontdim=fontdim_b;
+
 void dd_create_font(void);
 void dd_init_text(void);
 void dd_black(void);
@@ -456,9 +461,11 @@ void dd_flip(void) {
     xs=r.right-r.left;
     ys=r.bottom-r.top;
 
-    tmpdc=CreateCompatibleDC(tgtdc);
-    bm=CreateCompatibleBitmap(tgtdc,xs,ys);
-    SelectObject(tmpdc,bm);
+    if (newtext) {
+        tmpdc=CreateCompatibleDC(tgtdc);
+        bm=CreateCompatibleBitmap(tgtdc,xs,ys);
+        SelectObject(tmpdc,bm);
+    } else tmpdc=tgtdc;
 
     if (xs!=XRES && ys!=YRES) {
 
@@ -480,36 +487,46 @@ void dd_flip(void) {
     dd_release_dc(ddbs,srcdc);
 
     {
-        static HFONT fonts=NULL,fontm=NULL,fontb=NULL;
+        static HFONT wfonts=NULL,wfontm=NULL,wfontb=NULL;
         int n,x,y,flags;
         char *text;
 
-        if (!fonts) {
+        if (!wfonts) {
             ABC abc;
             int n;
 
-            #define fontname "Arial"
-            fonts=CreateFont(8*mouse_scale,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_OUTLINE_PRECIS,CLIP_DEFAULT_PRECIS,ANTIALIASED_QUALITY,VARIABLE_PITCH,TEXT(fontname));
-            fontm=CreateFont(10*mouse_scale,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_OUTLINE_PRECIS,CLIP_DEFAULT_PRECIS,ANTIALIASED_QUALITY,VARIABLE_PITCH,TEXT(fontname));
-            fontb=CreateFont(12*mouse_scale,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_OUTLINE_PRECIS,CLIP_DEFAULT_PRECIS,ANTIALIASED_QUALITY,VARIABLE_PITCH,TEXT(fontname));
+            #define fontname "Small"
+            wfonts=CreateFont(10*mouse_scale,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_OUTLINE_PRECIS,CLIP_DEFAULT_PRECIS,ANTIALIASED_QUALITY,VARIABLE_PITCH,TEXT(fontname));
+            wfontm=CreateFont(11*mouse_scale,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_OUTLINE_PRECIS,CLIP_DEFAULT_PRECIS,ANTIALIASED_QUALITY,VARIABLE_PITCH,TEXT(fontname));
+            wfontb=CreateFont(15*mouse_scale,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_OUTLINE_PRECIS,CLIP_DEFAULT_PRECIS,ANTIALIASED_QUALITY,VARIABLE_PITCH,TEXT(fontname));
 
-            SelectObject(tmpdc,fontm);
+            SelectObject(tmpdc,wfontm);
             for (n=32; n<128; n++) {
                 GetCharABCWidths(tmpdc,n,n,&abc);
-                fonta[n].dim=(abc.abcA+abc.abcB+abc.abcC)/mouse_scale;
+                fontdim_a[n]=(abc.abcA+abc.abcB+abc.abcC)/mouse_scale;
+            }
+            SelectObject(tmpdc,wfonts);
+            for (n=32; n<128; n++) {
+                GetCharABCWidths(tmpdc,n,n,&abc);
+                fontdim_b[n]=(abc.abcA+abc.abcB+abc.abcC)/mouse_scale;
+            }
+            SelectObject(tmpdc,wfontb);
+            for (n=32; n<128; n++) {
+                GetCharABCWidths(tmpdc,n,n,&abc);
+                fontdim_c[n]=(abc.abcA+abc.abcB+abc.abcC)/mouse_scale;
             }
         }
         SetBkMode(tmpdc,TRANSPARENT);
 
         for (n=0; n<textcnt; n++) {
             x=(texter[n].x)*mouse_scale;
-            y=(texter[n].y-1)*mouse_scale;
+            y=(texter[n].y-3)*mouse_scale;
             text=texter[n].text;
             flags=texter[n].flags;
 
-            if (flags&DD_SMALL) SelectObject(tmpdc,fonts);
-            else if (flags&DD_LARGE) SelectObject(tmpdc,fontb);
-            else SelectObject(tmpdc,fontm);
+            if (flags&DD_SMALL) SelectObject(tmpdc,wfonts);
+            else if (flags&DD_LARGE) SelectObject(tmpdc,wfontb);
+            else SelectObject(tmpdc,wfontm);
 
 
             if (flags&DD_CENTER) SetTextAlign(tmpdc,TA_CENTER|TA_TOP);
@@ -531,12 +548,15 @@ void dd_flip(void) {
         textcnt=0;
     }
 
-    if (tgtdc && tmpdc) BitBlt(tgtdc,0,0,xs,ys,tmpdc,0,0,SRCCOPY);
 
-    SelectObject(tmpdc,NULL);
-    DeleteObject(bm);
-    DeleteDC(tmpdc);
-    ReleaseDC(mainwnd,tgtdc);
+    if (newtext) {
+        if (tgtdc && tmpdc) BitBlt(tgtdc,0,0,xs,ys,tmpdc,0,0,SRCCOPY);
+
+        SelectObject(tmpdc,NULL);
+        DeleteObject(bm);
+        DeleteDC(tmpdc);
+        ReleaseDC(mainwnd,tgtdc);
+    }
 }
 
 int dd_islost(void) {
@@ -2287,11 +2307,11 @@ int dd_textlength(int flags,const char *text) {
     float x;
     const char *c;
 
-    if (flags&DD_SMALL) font=fontb;
-    else if (flags&DD_BIG) font=fontc;
-    else font=fonta;
+    if (flags&DD_SMALL) { font=fontb; fontdim=fontdim_b; }
+    else if (flags&DD_BIG) { font=fontc; fontdim=fontdim_c; }
+    else { font=fonta; fontdim=fontdim_a; }
 
-    for (x=0,c=text; *c && *c!=DDT; c++) x+=font[*c].dim;
+    for (x=0,c=text; *c && *c!=DDT; c++) if (newtext) x+=fontdim[*c]; else x+=font[*c].dim;
 
     return (int)(x+0.5f);
 }
@@ -2303,11 +2323,11 @@ int dd_textlen(int flags,const char *text,int n) {
 
     if (n<0) return dd_textlength(flags,text);
 
-    if (flags&DD_SMALL) font=fontb;
-    else if (flags&DD_BIG) font=fontc;
-    else font=fonta;
+    if (flags&DD_SMALL) { font=fontb; fontdim=fontdim_b; }
+    else if (flags&DD_BIG) { font=fontc; fontdim=fontdim_c; }
+    else { font=fonta; fontdim=fontdim_a; }
 
-    for (x=0,c=text; *c && *c!=DDT && n; c++,n--) x+=font[*c].dim;
+    for (x=0,c=text; *c && *c!=DDT && n; c++,n--) if (newtext) x+=fontdim_a[*c]; else x+=font[*c].dim;
 
     return (int)(x+0.5f);
 }
@@ -2339,17 +2359,14 @@ int dd_drawtext(int sx,int sy,unsigned short int color,int flags,const char *tex
         else if (flags&DD_BIG) font=fontc;
         else font=fonta;
     }
-
     if (!font) return 42;
 
     if (flags&DD_CENTER) {
-        float tmp;
-        for (tmp=0,c=text; *c; c++) tmp+=font[*c].dim;
-        sx-=(int)(tmp+0.5f)/2;
+        for (x=0,c=text; *c; c++) x+=font[*c].dim;
+        sx-=x/2;
     } else if (flags&DD_RIGHT) {
-        float tmp;
-        for (tmp=0,c=text; *c; c++) tmp+=font[*c].dim;
-        sx-=(int)(tmp+0.5f);
+        for (x=0,c=text; *c; c++) x+=font[*c].dim;
+        sx-=x;
     }
 
     if (flags&DD_SHADE) {
@@ -2695,7 +2712,7 @@ int dd_drawtext_char(int sx,int sy,int c,unsigned short int color) {
         char text[2]={0,0};
         text[0]=c;
         texter_add(sx,sy,color,0,text);
-        return textfont[c].dim;
+        return fontdim[c];
     }
 
     if ((vidptr=ptr=dd_lock_surface(ddbs))==NULL) return 0;
@@ -2733,16 +2750,16 @@ int dd_drawtext_char(int sx,int sy,int c,unsigned short int color) {
 }
 
 int dd_text_len(const char *text) {
-    int x;
+    float x;
     const char *c;
 
-    for (x=0,c=text; *c; c++) x+=textfont[*c].dim;
+    for (x=0,c=text; *c; c++) if (newtext) x+=fontdim[*c]; else x+=textfont[*c].dim;
 
-    return x;
+    return (int)(x+0.5f);
 }
 
 int dd_char_len(char c) {
-    return textfont[c].dim;
+    if (newtext) return fontdim[c]; else return textfont[c].dim;
 }
 
 
@@ -2824,27 +2841,12 @@ void dd_display_text(void) {
 
             if (text[pos].c>0 && text[pos].c<32) continue;
 
-            /*if (text[pos].c>0 && text[pos].c<32) {
-                int i;
-                printf("better numbers (%d,%d): ",pos,text[pos].c);
-
-                x=((int)text[pos].c)*12+TEXTDISPLAY_X;
-
-                // better display for numbers
-                for (i=pos+1; isdigit(text[i].c) || text[i].c=='-'; i++) {
-                    x-=textfont[text[i].c].dim;
-                    printf("[%c]",text[i].c);
-                }
-                printf("\n",pos,text[pos].c); fflush(stdout);
-                continue;
-            }*/
             if (bp==buf) {
                 lastcolor=text[pos].color;
             }
             if (lastcolor!=text[pos].color) {
                 *bp=0;
                 x+=dd_drawtext(x,y,palette[lastcolor],0,buf);
-                printf("[%s] in %d\n",buf,lastcolor);
                 bp=buf; lastcolor=text[pos].color;
             }
             *bp++=text[pos].c;
@@ -2852,7 +2854,6 @@ void dd_display_text(void) {
         if (bp!=buf) {
             *bp=0;
             dd_drawtext(x,y,palette[lastcolor],0,buf);
-            printf("[%s] in %d\n",buf,lastcolor);
         }
     }
 }
