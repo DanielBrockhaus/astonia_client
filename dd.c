@@ -426,7 +426,7 @@ struct texter {
 
 int textcnt=0;
 struct texter texter[MAXTEXTER];
-int newtext=1;
+int newtext=0;
 
 void texter_add(int x, int y,int color,int flags,const char *text) {
     int r,g,b;
@@ -520,7 +520,7 @@ void dd_flip(void) {
 
         for (n=0; n<textcnt; n++) {
             x=(texter[n].x)*mouse_scale;
-            y=(texter[n].y-3)*mouse_scale;
+            y=(texter[n].y-2)*mouse_scale;
             text=texter[n].text;
             flags=texter[n].flags;
 
