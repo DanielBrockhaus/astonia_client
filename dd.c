@@ -25,7 +25,7 @@ DDFONT *fontc_framed=NULL;
 float fontdim_a[256];
 float fontdim_b[256];
 float fontdim_c[256];
-float *fontdim=fontdim_b;
+float *fontdim=fontdim_a;
 
 void dd_create_font(void);
 void dd_init_text(void);
@@ -486,7 +486,7 @@ void dd_flip(void) {
 
     dd_release_dc(ddbs,srcdc);
 
-    {
+    if (newtext) {
         static HFONT wfonts=NULL,wfontm=NULL,wfontb=NULL;
         int n,x,y,flags;
         char *text;
@@ -546,10 +546,7 @@ void dd_flip(void) {
             free(text);
         }
         textcnt=0;
-    }
 
-
-    if (newtext) {
         if (tgtdc && tmpdc) BitBlt(tgtdc,0,0,xs,ys,tmpdc,0,0,SRCCOPY);
 
         SelectObject(tmpdc,NULL);
@@ -2304,30 +2301,31 @@ void dd_display_pulseback(int fx,int fy,int tx,int ty) {
 
 int dd_textlength(int flags,const char *text) {
     DDFONT *font;
+    float *dim;
     float x;
     const char *c;
 
-    if (flags&DD_SMALL) { font=fontb; fontdim=fontdim_b; }
-    else if (flags&DD_BIG) { font=fontc; fontdim=fontdim_c; }
-    else { font=fonta; fontdim=fontdim_a; }
+    if (flags&DD_SMALL) { font=fontb; dim=fontdim_b; }
+    else if (flags&DD_BIG) { font=fontc; dim=fontdim_c; }
+    else { font=fonta; dim=fontdim_a; }
 
-    for (x=0,c=text; *c && *c!=DDT; c++) if (newtext) x+=fontdim[*c]; else x+=font[*c].dim;
+    for (x=0,c=text; *c && *c!=DDT; c++) if (newtext) x+=dim[*c]; else x+=font[*c].dim;
 
     return (int)(x+0.5f);
 }
 
 int dd_textlen(int flags,const char *text,int n) {
     DDFONT *font;
-    float x;
+    float x,*dim;
     const char *c;
 
     if (n<0) return dd_textlength(flags,text);
 
-    if (flags&DD_SMALL) { font=fontb; fontdim=fontdim_b; }
-    else if (flags&DD_BIG) { font=fontc; fontdim=fontdim_c; }
-    else { font=fonta; fontdim=fontdim_a; }
+    if (flags&DD_SMALL) { font=fontb; dim=fontdim_b; }
+    else if (flags&DD_BIG) { font=fontc; dim=fontdim_c; }
+    else { font=fonta; dim=fontdim_a; }
 
-    for (x=0,c=text; *c && *c!=DDT && n; c++,n--) if (newtext) x+=fontdim_a[*c]; else x+=font[*c].dim;
+    for (x=0,c=text; *c && *c!=DDT && n; c++,n--) if (newtext) x+=dim[*c]; else x+=font[*c].dim;
 
     return (int)(x+0.5f);
 }
@@ -2817,8 +2815,8 @@ void dd_set_textfont(int nr) {
     int n;
 
     switch (nr) {
-        case 0:	textfont=fonta; textdisplay_dy=10; break;
-        case 1:	textfont=fontc; textdisplay_dy=12; break;
+        case 0:	textfont=fonta; textdisplay_dy=10; fontdim=fontdim_a; break;
+        case 1:	textfont=fontc; textdisplay_dy=12; fontdim=fontdim_c; break;
     }
     bzero(text,MAXTEXTLINES*MAXTEXTLETTERS*sizeof(struct letter));
     textnextline=textdisplayline=0;
@@ -2859,7 +2857,8 @@ void dd_display_text(void) {
 }
 
 void dd_add_text(char *ptr) {
-    int n,m,pos,x=0,color=0,tmp,link=0;
+    int n,m,pos,color=0,link=0;
+    float x=0.0f,tmp;
     char buf[256];
 
     pos=textnextline*MAXTEXTLETTERS;
@@ -2898,7 +2897,9 @@ void dd_add_text(char *ptr) {
 #define INDENT_TEXT
 #ifdef INDENT_TEXT
             for (m=0; m<2; m++) {
-                text[pos].c=32; x+=textfont[32].dim;
+                text[pos].c=32;
+                if (newtext) x+=fontdim[32];
+                else x+=textfont[32].dim;
                 text[pos].color=color;
                 text[pos].link=link;
                 pos++;
@@ -2914,7 +2915,9 @@ void dd_add_text(char *ptr) {
             text[pos].color=color;
             text[pos].link=link;
         }
-        text[pos].c=32; x+=textfont[32].dim;
+        text[pos].c=32;
+        if (newtext) x+=fontdim[32];
+        else x+=textfont[32].dim;
         text[pos].color=color;
         text[pos].link=link;
 
@@ -2952,7 +2955,10 @@ int dd_scantext(int x,int y,char *hit) {
 
     for (pos=n*MAXTEXTLETTERS,dx=m=0; m<MAXTEXTLETTERS && text[pos].c; m++,pos++) {
         if (text[pos].c>0 && text[pos].c<32) { dx=((int)text[pos].c)*12+TEXTDISPLAY_X; continue; }
-        dx+=textfont[text[pos].c].dim;
+
+        if (newtext) dx+=fontdim[text[pos].c];
+        else dx+=textfont[text[pos].c].dim;
+
         if (dx+TEXTDISPLAY_X>x) {
             if (text[pos].link) {   // link palette color
                 while ((text[pos].link || text[pos].c==0) && panic++<5000) {
