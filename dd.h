@@ -179,7 +179,7 @@ void dd_line2(int fx,int fy,int tx,int ty,unsigned short col,unsigned short *ptr
 void dd_display_strike(int fx,int fy,int tx,int ty);
 
 struct ddfont {
-    unsigned char dim;
+    float dim;
     unsigned char *raw;
 };
 
