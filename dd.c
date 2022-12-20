@@ -2339,7 +2339,7 @@ int dd_drawtext(int sx,int sy,unsigned short int color,int flags,const char *tex
 
     if (newtext) {
         texter_add(sx+x_offset,sy+y_offset,color,flags,text);
-        return dd_textlength(flags,text);
+        return sx+dd_textlength(flags,text);
     }
 
     start=GetTickCount();
@@ -2844,7 +2844,7 @@ void dd_display_text(void) {
             }
             if (lastcolor!=text[pos].color) {
                 *bp=0;
-                x+=dd_drawtext(x,y,palette[lastcolor],0,buf);
+                x=dd_drawtext(x,y,palette[lastcolor],0,buf);
                 bp=buf; lastcolor=text[pos].color;
             }
             *bp++=text[pos].c;
