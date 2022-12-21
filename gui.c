@@ -2926,8 +2926,8 @@ LRESULT FAR PASCAL _export main_wnd_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM 
             return 0;
 
         case WM_MOUSEMOVE:
-            mousex=(signed short int)LOWORD(lparam);
-            mousey=(signed short int)HIWORD(lparam);
+            mousex=(signed short int)LOWORD(lparam)/mouse_scale;
+            mousey=(signed short int)HIWORD(lparam)/mouse_scale;
 #ifdef EDITOR
             if (editor) return editor_mouseproc(msg);
 #endif
