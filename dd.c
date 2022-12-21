@@ -2847,6 +2847,7 @@ void dd_display_text(void) {
     int n,m,rn,x,y,pos;
     char buf[256],*bp;
     unsigned short lastcolor;
+    extern int largetext;
 
     for (n=textdisplayline,y=TEXTDISPLAY_Y; y<=TEXTDISPLAY_Y+TEXTDISPLAY_SY-TEXTDISPLAY_DY; n++,y+=TEXTDISPLAY_DY) {
         rn=n%MAXTEXTLINES;
@@ -2865,14 +2866,16 @@ void dd_display_text(void) {
             }
             if (lastcolor!=text[pos].color) {
                 *bp=0;
-                x=dd_drawtext(x,y,palette[lastcolor],0,buf);
+                if (largetext) x=dd_drawtext(x,y,palette[lastcolor],DD_BIG,buf);
+                else x=dd_drawtext(x,y,palette[lastcolor],0,buf);
                 bp=buf; lastcolor=text[pos].color;
             }
             *bp++=text[pos].c;
         }
         if (bp!=buf) {
             *bp=0;
-            dd_drawtext(x,y,palette[lastcolor],0,buf);
+            if (largetext) dd_drawtext(x,y,palette[lastcolor],DD_BIG,buf);
+            else dd_drawtext(x,y,palette[lastcolor],0,buf);
         }
     }
 }
