@@ -4,23 +4,10 @@
 
 
 #define DEVELOPER               // this one will compile the developer version - comment me out for the final release
-//#define STAFFER
-//#define HACKER
-
-#ifdef STAFFER
-    #define EDITOR
-    #define NO_UPDATE
-    #define US
-#endif
 
 #ifdef DEVELOPER
     #define EDITOR
     #define NO_UPDATE
-    #define DB                      // used to set the client to DBs home roundabouts
-//define MR                      // used to set the client to MRs home roundabouts
-//#define US
-#else
-    #define US                      // used to set the client to the original server (in USA)
 #endif
 
 #define PARANOIA(a) a

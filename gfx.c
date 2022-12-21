@@ -986,13 +986,6 @@ int _gfx_load_image(IMAGE *image,int sprite) {
     if (gfx_load_image_png(image,filename,1)==0) return 0;
 #endif
 
-#ifdef STAFFER
-    // check if we can load it in a XXXXXXXX path
-    sprintf(filename,"gfx/%08d.png",sprite);
-    note("trying %s",filename);
-    if (gfx_load_image_png(image,filename,1)==0) return 0;
-#endif
-
     note("missing sprite %d!",sprite);
 
     // then load the missing sprite image from pak

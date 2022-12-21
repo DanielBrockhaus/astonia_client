@@ -2915,8 +2915,6 @@ void dd_add_text(char *ptr) {
             bzero(text+pos,sizeof(struct letter)*MAXTEXTLETTERS);
             x=tmp;
 
-#define INDENT_TEXT
-#ifdef INDENT_TEXT
             for (m=0; m<2; m++) {
                 text[pos].c=32;
                 if (newtext) x+=fontdim[32];
@@ -2925,7 +2923,6 @@ void dd_add_text(char *ptr) {
                 text[pos].link=link;
                 pos++;
             }
-#endif
 
         } else x+=tmp;
 

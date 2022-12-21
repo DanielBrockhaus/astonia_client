@@ -44,7 +44,6 @@ struct map {
     unsigned int csprite;       // character base sprite
     unsigned int cn;        // character number (for commands)
     unsigned char cflags;       // character flags
-    //unsigned char level;		// character level
     unsigned char action;       // character action, duration and step
     unsigned char duration;
     unsigned char step;
@@ -64,26 +63,12 @@ struct map {
     //char dim; 	what?
     struct complex_sprite rc;
 
-    /*unsigned int rcsprite;          // real sprite of character    (csprite)
-unsigned char rc_scale;		// scale of char sprite
-unsigned int rc_tint;
-unsigned int rc_c1,rc_c2,rc_c3,rc_c4;*/
-
     struct complex_sprite ri;
-
-    /*unsigned int risprite;          // real sprite of item         (isprite)
-    unsigned char ri_scale;
-    unsigned int ri_tint;
-    unsigned short ri_c1,ri_c2,ri_c3,ri_c4;*/
 
     struct complex_sprite rf;
     struct complex_sprite rf2;
     struct complex_sprite rg;
     struct complex_sprite rg2;
-    //unsigned int rfsprite;          // real sprite of item         (isprite)
-    //unsigned int rfsprite2;         // real sprite of item         (isprite)
-    //unsigned int rgsprite;          // real sprite of ground       (gsprite)
-    //unsigned int rgsprite2;         // real sprite of ground       (gsprite)
 
     char xadd;                      // add this to the x position of the field used for c sprite
     char yadd;                      // add this to the y position of the field used for c sprite
@@ -504,33 +489,12 @@ void addline(const char *format,...);
     #define MAPDY			(DIST*2+1)
     #define MAXMN                   (MAPDX*MAPDY)
 
-/*
-#define DX_UP                   1
-#define DX_DOWN                 2
-#define DX_LEFT                 3
-#define DX_RIGHT                4
-#define DX_LEFTUP               5
-#define DX_LEFTDOWN             6
-#define DX_RIGHTUP              7
-#define DX_RIGHTDOWN            8
-
-#define DX_N                    DX_LEFTUP
-#define DX_S                    DX_RIGHTDOWN
-#define DX_W                    DX_LEFTDOWN
-#define DX_E                    DX_RIGHTUP
-#define DX_NW                   DX_LEFT
-#define DX_SW                   DX_DOWN
-#define DX_NE                   DX_UP
-#define DX_SE                   DX_RIGHT
-*/
 
     #define MAX_INBUF	        0xFFFFF
     #define MAX_OUTBUF	        0xFFFFF
 
-// #define mapmn(x,y) 	(x+y*MAPDX)
 static int mapmn(int x,int y) {
     if (x<0 || y<0 || x>=MAPDX || y>=MAPDY) {
-        // printf("noe %d %d\n",x,y);
         return -1;
     }
     return (x+y*MAPDX);
@@ -595,18 +559,6 @@ extern unsigned int unique;
 
 extern int tick;
 extern int lasttick;                    // ticks in inbuf
-
-// extern int lastticksize;             // size inbuf must reach to get the last tick complete in the queue
-
-// extern struct z_stream_s zs;
-
-// extern int ticksize;
-// extern int inused;
-// extern int indone;
-// extern unsigned char inbuf[MAX_INBUF];
-
-// extern int outused;
-// extern unsigned char outbuf[MAX_OUTBUF];
 
 extern int act;
 extern int actx;

@@ -70,11 +70,7 @@ MFILE *emf;
 MFILE *cmf;
 PFILE *pre;
 
-    #ifdef STAFFER
-char zonepath[1024]={"c:/a3edit/"};  // set via parse cmd - zone path - requires '/' at the end
-    #else
 char zonepath[1024]={"Z:/astonia/zones/"};  // set via parse cmd - zone path - requires '/' at the end
-    #endif
 int  areaid=1;                                  // set via parse cmd - area id
 
 EFLAG eflags[]={

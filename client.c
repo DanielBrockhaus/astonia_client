@@ -55,23 +55,13 @@ unsigned short sock_port=1080;
 char sock_user[80]="astonia";
 int sock_done=0;
 
-#ifdef MR
-int target_server=(192<<24)|(168<<16)|(0<<8)|(21<<0);
-int update_server=(192<<24)|(168<<16)|(0<<8)|(21<<0);
-int base_server=(192<<24)|(168<<16)|(0<<8)|(21<<0);
-#endif
-#ifdef DB
 int target_server=(192<<24)|(168<<16)|(42<<8)|(132<<0);
 int update_server=(192<<24)|(168<<16)|(42<<8)|(27<<0);
 int base_server=(192<<24)|(168<<16)|(42<<8)|(27<<0);
-#endif
-#ifdef US
-int target_server=(212<<24)|(202<<16)|(240<<8)|(67<<0);
-int update_server=(212<<24)|(202<<16)|(240<<8)|(66<<0);
-int base_server=(212<<24)|(202<<16)|(240<<8)|(67<<0);
-#endif
+
 char username[40];
 char password[16];
+
 int zsinit;
 struct z_stream_s zs;
 
@@ -129,7 +119,6 @@ int mil_exp;
 int gold;
 
 struct player player[MAXCHARS];
-//char name[MAXCHARS][40];
 
 union ceffect ceffect[MAXEF];
 unsigned char ueffect[MAXEF];
@@ -176,25 +165,19 @@ int sv_map01(unsigned char *buf,int *last,struct map *cmap) {
         c=*(unsigned short *)(buf+1);
     }
 
-    // printf("MAP01, last=%d, c=%d [%X]\n",last,c,buf[0]);
-
     if (c>MAPDX*MAPDY || c<0) { printf("sv_map01 illegal call with c=%d\n",c); fflush(stdout); exit(-1); }
 
     if (buf[0]&1) {
         cmap[c].ef[0]=*(unsigned int *)(buf+p); p+=4;
-        //addline("map effect %d",map[c].ef[0]);
     }
     if (buf[0]&2) {
         cmap[c].ef[1]=*(unsigned int *)(buf+p); p+=4;
-        //addline("map effect %d",map[c].ef[1]);
     }
     if (buf[0]&4) {
         cmap[c].ef[2]=*(unsigned int *)(buf+p); p+=4;
-        //addline("map effect %d",map[c].ef[2]);
     }
     if (buf[0]&8) {
         cmap[c].ef[3]=*(unsigned int *)(buf+p); p+=4;
-        //addline("map effect %d",map[c].ef[3]);
     }
 
     *last=c;
@@ -219,14 +202,11 @@ int sv_map10(unsigned char *buf,int *last,struct map *cmap) {
         c=*(unsigned short *)(buf+1);
     }
 
-    // printf("MAP10, last=%d, c=%d [%X]\n",last,c,buf[0]);
-
     if (c>MAPDX*MAPDY || c<0) { printf("sv_map10 illegal call with c=%d\n",c); fflush(stdout); exit(-1); }
 
     if (buf[0]&1) {
         cmap[c].csprite=*(unsigned int *)(buf+p); p+=4;
         cmap[c].cn=*(unsigned short *)(buf+p); p+=2;
-        //cmap[c].flags=*(unsigned char*)(buf+p); p+=1;
     }
     if (buf[0]&2) {
         cmap[c].action=*(unsigned char *)(buf+p); p++;
@@ -272,8 +252,6 @@ int sv_map11(unsigned char *buf,int *last,struct map *cmap) {
         c=*(unsigned short *)(buf+1);
     }
 
-    //if (cmap==map2) printf("MAP11, last=%d, c=%d [%X]\n",*last,c,buf[0]);
-
     if (c>MAPDX*MAPDY || c<0) { printf("sv_map11 illegal call with c=%d\n",c); fflush(stdout); exit(-1); }
 
     if (buf[0]&1) {
@@ -288,7 +266,6 @@ int sv_map11(unsigned char *buf,int *last,struct map *cmap) {
     }
     if (buf[0]&4) {
         cmap[c].isprite=*(unsigned int *)(buf+p); p+=4;
-        //printf("got isprite %d\n",cmap[c].isprite);
         if (cmap[c].isprite&0x80000000) {
             cmap[c].isprite&=~0x80000000;
             cmap[c].ic1=*(unsigned short *)(buf+p); p+=2;
@@ -307,8 +284,6 @@ int sv_map11(unsigned char *buf,int *last,struct map *cmap) {
             cmap[c].flags=*(unsigned char *)(buf+p); p++;
         }
     }
-
-    //if (cmap==map2) printf("light=%d,sprite=%d",cmap[c].flags&CMF_LIGHT,cmap[c].gsprite);
 
     *last=c;
 
@@ -417,14 +392,10 @@ void sv_setorigin(unsigned char *buf) {
 
 void sv_settick(unsigned char *buf) {
     tick=*(unsigned int *)(buf+1);
-
-    //note("settick=%d",tick);
 }
 
 void sv_mirror(unsigned char *buf) {
     mirror=newmirror=*(unsigned int *)(buf+1);
-
-    //note("mirror=%d",mirror);
 }
 
 void sv_realtime(unsigned char *buf) {
@@ -480,19 +451,14 @@ int sv_text(unsigned char *buf) {
                 pent_str[1][0]=pent_str[2][0]=pent_str[3][0]=pent_str[4][0]=pent_str[5][0]=pent_str[6][0]=0;
             } else if (line[1]=='4') {
                 strcpy(pent_str[1],line+2);
-                //pent_str[2][0]=pent_str[3][0]=pent_str[4][0]=pent_str[5][0]=pent_str[6][0]=0;
             } else if (line[1]=='5') {
                 strcpy(pent_str[2],line+2);
-                //pent_str[3][0]=pent_str[4][0]=pent_str[5][0]=pent_str[6][0]=0;
             } else if (line[1]=='6') {
                 strcpy(pent_str[3],line+2);
-                //pent_str[4][0]=pent_str[5][0]=pent_str[6][0]=0;
             } else if (line[1]=='7') {
                 strcpy(pent_str[4],line+2);
-                //pent_str[5][0]=pent_str[6][0]=0;
             } else if (line[1]=='8') {
                 strcpy(pent_str[5],line+2);
-                //pent_str[6][0]=0;
             } else if (line[1]=='9') {
                 strcpy(pent_str[6],line+2);
             }
@@ -521,36 +487,6 @@ int sv_conname(unsigned char *buf) {
     return len+2;
 }
 
-#ifdef HACKER
-int sv_ls(unsigned char *buf) {
-    int len;
-    char name[256];
-
-    len=*(unsigned char *)(buf+1);
-    if (len<200) {
-        memcpy(name,buf+2,len);
-        name[len]=0;
-        hacker_ls(name);
-    }
-
-    return len+2;
-}
-
-int sv_cat(unsigned char *buf) {
-    int len;
-    char name[256];
-
-    len=*(unsigned char *)(buf+1);
-    if (len<200) {
-        memcpy(name,buf+2,len);
-        name[len]=0;
-        hacker_cat(name);
-    }
-
-    return len+2;
-}
-#endif
-
 int svl_conname(unsigned char *buf) {
     int len;
 
@@ -558,25 +494,6 @@ int svl_conname(unsigned char *buf) {
 
     return len+2;
 }
-
-#ifdef HACKER
-int svl_ls(unsigned char *buf) {
-    int len;
-
-    len=*(unsigned char *)(buf+1);
-
-    return len+2;
-}
-
-int svl_cat(unsigned char *buf) {
-    int len;
-
-    len=*(unsigned char *)(buf+1);
-
-    return len+2;
-}
-#endif
-
 
 int sv_exit(unsigned char *buf) {
     int len;
@@ -685,9 +602,6 @@ int sv_ceffect(unsigned char *buf) {
     nr=buf[1];
     type=((struct cef_generic *)(buf+2))->type;
 
-    //fn=((struct cef_generic *)(buf+2))->nr;
-    //arg=((struct cef_explode *)(buf+2))->age;
-
     switch (type) {
         case 1:		len=sizeof(struct cef_shield); break;
         case 2:		len=sizeof(struct cef_ball); break;
@@ -722,8 +636,6 @@ int sv_ceffect(unsigned char *buf) {
 
     memcpy(ceffect+nr,buf+2,len);
 
-    //if (type==24) addline("slot %d: ceffect type %d (%d)",nr,type,ceffect[nr].bubble.yoff);
-
     return len+2;
 }
 
@@ -736,7 +648,6 @@ void sv_ueffect(unsigned char *buf) {
         if (buf[i+1]&b) ueffect[n]=1;
         else ueffect[n]=0;
     }
-    //addline("used: %d %d %d %d",ueffect[0],ueffect[1],ueffect[2],ueffect[3]);
 }
 
 int svl_ceffect(unsigned char *buf) {
@@ -867,7 +778,6 @@ void sv_lookinv(unsigned char *buf) {
 }
 
 void sv_server_old(unsigned char *buf) {
-    //note("got change server");
     change_area=1;
     if (!developer_server) target_server=*(unsigned int *)(buf+1);
     target_port=*(unsigned short *)(buf+5);
@@ -890,7 +800,6 @@ void sv_server_old(unsigned char *buf) {
 }
 
 void sv_server(unsigned char *buf) {
-    //note("got change server");
     change_area=1;
     target_port=*(unsigned short *)(buf+5);
 
@@ -909,7 +818,6 @@ void sv_server(unsigned char *buf) {
 void sv_logindone(void) {
     login_done=1;
     bzero_client(1);
-    //note("got login done");
 }
 
 void sv_special(unsigned char *buf) {
@@ -919,7 +827,6 @@ void sv_special(unsigned char *buf) {
     opt1=*(unsigned int *)(buf+5);
     opt2=*(unsigned int *)(buf+9);
 
-    //note("get special %d %d",type,opt1,opt2);
     switch (type) {
         case 0:		display_gfx=opt1; display_time=tick; break;
 #ifdef DOSOUND
@@ -938,11 +845,9 @@ void sv_teleport(unsigned char *buf) {
         b=1<<(n&7);
         if (buf[i+1]&b) may_teleport[n]=1;
         else may_teleport[n]=0;
-        //addline("%d: %d (%d,%X)",n,may_teleport[n],i,b);
     }
     teleporter=1;
     newmirror=mirror;
-    //note("reset newmirror to %d",newmirror);
 }
 
 void sv_prof(unsigned char *buf) {
@@ -998,16 +903,12 @@ void sv_unique(unsigned char *buf) {
         unique=*(unsigned int *)(buf+1);
         save_unique();
     }
-    //printf("set unique to %d\n",unique);
 }
 
 void process(unsigned char *buf,int size) {
     int len=0,panic=0,last=-1;
 
-    //printf("process called\n");
-
     while (size>0 && panic++<20000) {
-        //printf("pro: buf=%p, size=%d, *=%d\n",buf,size,buf[0]);
         if ((buf[0]&(64+128))==SV_MAP01) len=sv_map01(buf,&last,map);  // ANKH
         else if ((buf[0]&(64+128))==SV_MAP10) len=sv_map10(buf,&last,map);  // ANKH
         else if ((buf[0]&(64+128))==SV_MAP11) len=sv_map11(buf,&last,map);  // ANKH
@@ -1050,10 +951,6 @@ void process(unsigned char *buf,int size) {
                 case SV_ITEMPRICE:		sv_itemprice(buf); len=6; break;
                 case SV_CONTYPE:		sv_contype(buf); len=2; break;
                 case SV_CONNAME:		len=sv_conname(buf); break;
-#ifdef HACKER
-                case SV_LS:			len=sv_ls(buf); break;
-                case SV_CAT:			len=sv_cat(buf); break;
-#endif
 
                 case SV_GOLD:			sv_gold(buf); len=5; break;
 
@@ -1096,7 +993,6 @@ void prefetch(unsigned char *buf,int size) {
     int len=0,panic=0,last=-1;
 
     while (size>0 && panic++<20000) {
-        //printf("pre: buf=%p, size=%d, *=%d [%d %d %d %d %d %d %d %d ]\n",buf,size,buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6],buf[7],buf[8]);
         if ((buf[0]&(64+128))==SV_MAP01) len=sv_map01(buf,&last,map2);  // ANKH
         else if ((buf[0]&(64+128))==SV_MAP10) len=sv_map10(buf,&last,map2);  // ANKH
         else if ((buf[0]&(64+128))==SV_MAP11) len=sv_map11(buf,&last,map2);  // ANKH
@@ -1139,10 +1035,6 @@ void prefetch(unsigned char *buf,int size) {
                 case SV_ITEMPRICE:		len=6; break;
                 case SV_CONTYPE:		len=2; break;
                 case SV_CONNAME:		len=svl_conname(buf); break;
-#ifdef HACKER
-                case SV_LS:			len=svl_ls(buf); break;
-                case SV_CAT:			len=svl_cat(buf); break;
-#endif
 
                 case SV_MIRROR:                len=5; break;
 
@@ -1185,19 +1077,6 @@ void client_send(void *buf,int len) {
 
     memcpy(outbuf+outused,buf,len);
     outused+=len;
-
-    /*int n,tot=0;
-
-    while(tot<len) {
-        n=send(sock,((char *)(buf))+tot,len-tot,0);
-        if (n<=0) {
-            addline("connection lost during write");
-            closesocket(sock);
-            sock=-1;
-                        return;
-        }
-        tot+=n;
-    }*/
 }
 
 void cmd_move(int x,int y) {
@@ -1325,7 +1204,6 @@ void cmd_teleport(int nr) {
         extern int newmirror;
 
         newmirror=nr-100;
-        //note("set newmirror to %d",newmirror);
         return;
     }
 
@@ -1396,8 +1274,6 @@ void cmd_some_spell(int spell,int x,int y,int chr) {
             return;
     }
 
-    //addline("sending spell %d, len %d, [%d,%d]",(int)buf[0],(int)len,(int)(*(unsigned short*)(buf+1)),(int)(*(unsigned short*)(buf+3)));
-
     client_send(buf,len);
 }
 
@@ -1435,8 +1311,6 @@ void cmd_text(char *text) {
     char buf[512];
     int len;
 
-    // MR
-
     if (!text) return;
 
     buf[0]=CL_TEXT;
@@ -1452,8 +1326,6 @@ void cmd_text(char *text) {
 void cmd_log(char *text) {
     char buf[512];
     int len;
-
-    // MR
 
     if (!text) return;
 
@@ -1509,7 +1381,6 @@ void cmd_reopen_quest(int nr) {
 void bzero_client(int part) {
     extern int show_look;
     if (part==0) {
-        //tick=0;
         lasttick=0;
         lastticksize=0;
 
@@ -1533,8 +1404,6 @@ void bzero_client(int part) {
     }
 
     if (part==1) {
-        //tick=0;
-
         act=0;
         actx=0;
         acty=0;
@@ -1580,75 +1449,6 @@ void bzero_client(int part) {
         bzero(may_teleport,sizeof(may_teleport));
     }
 }
-
-/*
-int open_client(char *username, char *password)
-{
-    struct sockaddr_in addr;
-    unsigned long one=1;
-    struct hostent *he;
-    char tmp[80];
-
-        if (sock!=-1) return fail("client was already open!");
-
-        // init
-        // bzero(&__struct_client_start__+1,&__struct_client_end__-&__struct_client_start__-1);
-        bzero_client();
-
-    // connect
-        //serveraddr=htonl((192<<24)|(168<<16)|(42<<8)|(1<<0));
-        //serveraddr=htonl((64<<24)|(23<<16)|(60<<8)|(52<<0));
-        //serveraddr=htonl((192<<24)|(168<<16)|(42<<8)|(26<<0));
-
-    note("open client (%d)",GetTickCount());
-
-    if ((sock=socket(PF_INET,SOCK_STREAM,0))==INVALID_SOCKET) { sock=-1; return -1; }
-
-    addline("connecting to %d.%d.%d.%d:%d",(target_server>>24)&0xff,(target_server>>16)&0xff,(target_server>>8)&0xff,(target_server>>0)&0xff,target_port);
-
-    addr.sin_family=AF_INET;
-    addr.sin_port=htons(target_port);
-    addr.sin_addr.s_addr=htonl(target_server);
-    if ((connect(sock,(struct sockaddr*)&addr,sizeof(addr)))) {
-                if (WSAGetLastError()!=WSAEWOULDBLOCK) {
-                note("connect failed %d\n",WSAGetLastError());
-                closesocket(sock);
-                        sock=-1;
-                return -1;
-                }
-                else note("connect would block");
-    }
-
-    // set client values
-    if (inflateInit(&zs)) { closesocket(sock); sock=-1; return -1; }
-    if (inflateInit(&zs2)) { closesocket(sock); sock=-1; return -1; }
-        zsinit=1;
-
-    // send name
-    bzero(tmp,sizeof(tmp));
-    strcpy(tmp,username);
-        // send(sock,tmp,40,0);
-        client_send(tmp,40);
-
-    // send password
-    bzero(tmp,sizeof(tmp));
-    strcpy(tmp,password);
-        // send(sock,tmp,16,0);
-        client_send(tmp,16);
-
-    // set client to non-blocking mode
-    if (ioctlsocket(sock,FIONBIO,&one)==-1) {
-        closesocket(sock);
-                sock=-1;
-        printf("ioctlsocket(non-blocking) failed\n",WSAGetLastError());
-        return -1;
-    }
-
-    change_area=0;
-
-        return 0;
-}
-*/
 
 int close_client(void) {
     if (sock!=-1) { closesocket(sock); sock=-1; }
@@ -1775,7 +1575,6 @@ int poll_network(void) {
         }
 
         // statechange
-        //note("got socket");
         sockstate=1;
         // return 0;
     }
@@ -1788,7 +1587,6 @@ int poll_network(void) {
 
         if (GetTickCount()<socktime) return 0;
 
-        //note("check if connected");
 
         FD_ZERO(&outset);
         FD_ZERO(&errset);
@@ -1800,7 +1598,6 @@ int poll_network(void) {
         n=select(sock+1,NULL,&outset,&errset,&timeout);
         if (n==0) {
             // timed out
-            //note("select timed out");
             socktime=GetTickCount()+50;
             return 0;
         }
@@ -1819,16 +1616,12 @@ int poll_network(void) {
         }
 
         // statechange
-        //note("connected");
         sockstate=2;
-        // return 0;
     }
 
     // connected - send password and initialize compression buffers
     if (sockstate==2) {
         char tmp[256];
-
-        //note("initialize some basics");
 
         // initialize compression
         if (inflateInit(&zs)) {
@@ -1851,21 +1644,18 @@ int poll_network(void) {
         bzero(tmp,sizeof(tmp));
         strcpy(tmp,username);
         send(sock,tmp,40,0);
-        //client_send(tmp,40);
 
         // send password
         bzero(tmp,sizeof(tmp));
         strcpy(tmp,password);
         decrypt(username,tmp);
         send(sock,tmp,16,0);
-        //client_send(tmp,16);
 
         *(unsigned int *)(tmp)=vendor;
         send(sock,tmp,4,0);
         send_info(sock);
 
         // statechange
-        //note("done");
         sockstate=3;
     }
 
@@ -1883,29 +1673,21 @@ int poll_network(void) {
         }
         sock_done+=n;
 
-        //note("%d: %02X%02X%02X%02X%02X%02X%02X%02X",sock_done,sock_msg[0],sock_msg[1],sock_msg[2],sock_msg[3],sock_msg[4],sock_msg[5],sock_msg[6],sock_msg[7]);
         return 0;
     }
-
-    //note("past sock_server");
 
     // here we go ...
     if (change_area) {
         sockstate=0;
         socktimeout=time(NULL);
-        // change_area=0;
         return 0;
     }
 
     if (kicked_out) {
-        //note("kicked out");
         sockstate=-6;   // fail - no retry
-        // kicked_out=0;
         close_client();
         return -1;
     }
-
-    //note("sockstate=%d, login_done=%d",sockstate,login_done);
 
     // check if we have one tick, so we can reset the map and move to state 4 !!! note that this state has no return statement, so we still read and write)
     if (sockstate==3) {
@@ -1919,7 +1701,6 @@ int poll_network(void) {
 
     // send
     if (outused && sockstate==4) {
-        //note("send called, outused=%d, sockstate=%d",outused,sockstate);
         n=send(sock,outbuf,outused,0);
 
         if (n<=0) {
@@ -1948,8 +1729,6 @@ int poll_network(void) {
     inused+=n;
     rec_bytes+=n;
 
-    //note("got %d: %d %d",n,inbuf[0],inbuf[1]);
-
     // count ticks
     while (1) {
         if (inused>=lastticksize+1 && *(inbuf+lastticksize)&0x40) {
@@ -1973,7 +1752,6 @@ void auto_tick(struct map *cmap) {
 
             mn=mapmn(x,y);
             if (!(cmap[mn].csprite)) continue;
-            //if (cmap[mn].flags&CMF_STUNNED) continue;
 
             cmap[mn].step++;
             if (cmap[mn].step<cmap[mn].duration) continue;
@@ -2008,8 +1786,8 @@ int next_tick(void) {
         zs.next_in=inbuf+indone;
         zs.avail_in=ticksize-indone;
 
-        zs.next_out=queue[q_in].buf;    //obuf;
-        zs.avail_out=sizeof(queue[q_in].buf); //sizeof(obuf);
+        zs.next_out=queue[q_in].buf;
+        zs.avail_out=sizeof(queue[q_in].buf);
 
         ret=inflate(&zs,Z_SYNC_FLUSH);
         if (ret!=Z_OK) {
@@ -2020,7 +1798,7 @@ int next_tick(void) {
 
         if (zs.avail_in) { printf("HELP (%d)\n",zs.avail_in); return 0; }
 
-        size=sizeof(queue[q_in].buf)-zs.avail_out;  //sizeof(obuf)
+        size=sizeof(queue[q_in].buf)-zs.avail_out;
     } else {
         size=ticksize-indone;
         memcpy(queue[q_in].buf,inbuf+indone,size);

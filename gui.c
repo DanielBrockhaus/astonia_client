@@ -1612,10 +1612,6 @@ static void display(void) {
     display_tutor();
     display_citem();
 
-/*#ifdef DOSOUND
-    if (display_vc) sound_display();
-#endif*/
-
     if (display_vc) {
         dd_drawtext_fmt(650,5,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);
         dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"skip=%3.0f%%",100.0*skip/tota);
@@ -1629,22 +1625,6 @@ static void display(void) {
     //if (display_vc) dd_drawtext_fmt(2,62,whitecolor,DD_SMALL|DD_LEFT|DD_FRAME,perf_text);
 
     tt_time+=GetTickCount()-start;
-
-
-#ifdef DEVELOPER
-    /*if (!start_time) start_time=GetTickCount();
-current_time=GetTickCount();
-
-if (start_time==current_time) trans=42;
-else trans=rec_bytes/(double)(current_time-start_time);
-
-    if (idle>skip) dd_drawtext_fmt(2,52,whitecolor,DD_SMALL|DD_LEFT|DD_FRAME,"idle=%2.0f%% trans=%.2fK/s vc=%2.2fms, vm=%.2fms, sm=%d/%.2fms",100.0*idle/tota,trans,vc_avg,vm_avg,sm_cnt,sc_avg);
-else dd_drawtext_fmt(2,52,whitecolor,DD_SMALL|DD_LEFT|DD_FRAME,"skip=%2.0f%% trans=%.2fK/s vc=%2.2fms, vm=%.2fms, sm=%d/%.2fms",100.0*skip/tota,trans,vc_avg,vm_avg,sm_cnt,sc_avg);
-
-    dd_drawtext_fmt(2,62,whitecolor,DD_SMALL|DD_LEFT|DD_FRAME,"vc=%3d/%.2fms, sb=%d, vm=%3d/%.2fms, sc=%3d sm=%.2fms, ap=%3d/%.2fms, np=%4d, tp=%4d/%.2fms, qs=%.2fms, bt=%.2fms, dg=%.2fms, ds=%.2fms, vi=%.2fms, im=%.2fms, tt=%.2fms, mis=%.2fms vc_miss=%d",vc_cnt,vc_avg,sc_blits,vm_cnt,vm_avg,sc_cnt,sc_avg,ap_cnt,ap_avg,np_cnt,tp_cnt,tp_avg,qs_avg,bt_avg,dg_avg,ds_avg,vi_avg,im_avg,tt_avg,mis_avg,vc_miss); //,pre_done,bltdone);
-
-    mis_time=tt_time-vc_time-vm_time-sc_time-ap_time-tp_time-qs_time-bless_time-dg_time-ds_time-vi_time;*/
-#endif
 
     sc_hit=sc_miss=sc_maxstep=vc_hit=vc_miss=vc_unique=sc_blits=sm_cnt=0;
     vc_cnt=sc_cnt=ap_cnt=np_cnt=tp_cnt=vm_cnt=0;

@@ -643,25 +643,6 @@ void set_map_sprites(struct map *cmap,int attick) {
         } else cmap[mn].ri.sprite=0;
         if (cmap[mn].csprite) trans_csprite(mn,cmap,attick);
     }
-
-#ifdef COLORPLAY
-    for (i=0; i<maxquick; i++) {
-
-        mn=quick[i].mn[4];
-
-        if (!cmap[mn].rlight) continue;
-
-        if (cmap[mn].isprite && cmap[mn].ri.sprite==50493) {
-            xrect_colorbalance(cmap,mn,0,0,3,6);
-        }
-        if (cmap[mn].isprite && cmap[mn].ri.sprite==50492) {
-            xrect_colorbalance(cmap,mn,0,3,0,6);
-        }
-        if (cmap[mn].isprite && cmap[mn].ri.sprite==50491) {
-            xrect_colorbalance(cmap,mn,3,0,0,6);
-        }
-    }
-#endif
 }
 
 static void set_map_cut_fill(int i,int panic,struct map *cmap) {
@@ -2274,10 +2255,6 @@ void display_game(void) {
         if (display_quest) do_display_questlog(display_quest);
     }
     display_pents();
-
-#ifdef DEVELOPER
-//        dd_drawtext_fmt(2,72,whitecolor,DD_SMALL|DD_FRAME,"sorts=%d used=%d",stat_dlsortcalls,stat_dlused);
-#endif
 }
 
 // make quick

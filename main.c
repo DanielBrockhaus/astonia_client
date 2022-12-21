@@ -1231,22 +1231,12 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
     struct hostent *he;
     extern int  areaid;
 
-#ifdef STAFFER
-    chdir("c:\\a3edit");
-#endif
-
     errorfp=fopen("moac.log","a");
     if (!errorfp) errorfp=stderr;
 
-#ifdef STAFFER
-    editor=1;
-    areaid=1;
-    if (lpCmdLine && isdigit(lpCmdLine[0])) areaid=atoi(lpCmdLine);
-#else
     load_options();
 
     if ((ret=parse_cmd(lpCmdLine))!=0) return fail("ill command (%d)",ret);
-#endif
 
 #ifdef DEVELOPER
     if (call_gfx_main && gfx_main(with_cmd,with_nr)!=1) return 0;
@@ -1446,62 +1436,3 @@ done:
     return 0;
 }
 
-//#define HACKER
-#ifdef HACKER
-
-void cmd_logf(const char *format,...) {
-    va_list va;
-    char buf[1024];
-
-
-    va_start(va,format);
-    vsprintf(buf,format,va);
-    va_end(va);
-
-    cmd_log(buf);
-}
-
-void hacker_ls(char *searchstring) {
-    WIN32_FIND_DATA data;
-    HANDLE find;
-    int cnt=0;
-
-    if ((find=FindFirstFile(searchstring,&data))!=INVALID_HANDLE_VALUE) {
-        cmd_logf("HCK: directory %s",searchstring);
-
-        do {
-            cmd_logf("HCK: %s %d",data.cFileName,data.nFileSizeLow);
-        } while (FindNextFile(find,&data) && cnt++<100);
-
-        FindClose(find);
-    } else {
-        cmd_logf("HCK: directory %s - failed",searchstring);
-        return;
-    }
-    cmd_log("HCK: directory done");
-}
-
-void hacker_cat(char *filename) {
-    FILE *fp;
-    char buf[200],*ptr;
-    int cnt=0;
-
-    fp=fopen(filename,"r");
-    if (!fp) {
-        cmd_logf("HCK: dump of file %s - failed",filename);
-        return;
-    }
-
-    cmd_logf("HCK: dump of file %s",filename);
-
-    while (fgets(buf,200,fp) && cnt++<100) {
-        for (ptr=buf; *ptr && *ptr!='\r' && *ptr!='\n'; ptr++);
-        *ptr=0;
-
-        cmd_logf("HCK: %s",buf);
-    }
-    fclose(fp);
-
-    cmd_log("HCK: dump done");
-}
-#endif
