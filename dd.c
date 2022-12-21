@@ -2338,6 +2338,27 @@ int dd_drawtext(int sx,int sy,unsigned short int color,int flags,const char *tex
     DDFONT *font;
 
     if (newtext) {
+        float tmp,*dim,tmp2;
+
+        if (sy<clipsy) return sx;
+        if (sy>=clipey) return sx;
+
+        if (flags&DD_SMALL) dim=fontdim_b;
+        else if (flags&DD_BIG) dim=fontdim_c;
+        else dim=fontdim_a;
+
+        if (flags&DD_CENTER) {
+        for (tmp2=0.0f,c=text; *c; c++) tmp2+=dim[*c];
+            tmp2=tmp2/2.0f;
+        } else if (flags&DD_RIGHT) {
+            for (tmp2=0.0f,c=text; *c; c++) x+=dim[*c];
+        } else tmp2=0.0f;
+
+        tmp=sx;
+        while (*text && *text!=DDT && tmp-tmp2+dim[*text]<clipsx) tmp+=dim[*text++];
+
+        sx=(int)(tmp+0.5f);
+
         texter_add(sx+x_offset,sy+y_offset,color,flags,text);
         return sx+dd_textlength(flags,text);
     }
