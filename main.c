@@ -576,6 +576,20 @@ int parse_cmd(char *s) {
                 developer_server=strtol(s+1,&end,10);
                 s=end;;
                 if (developer_server!=554433) developer_server=0;
+            } else if (tolower(*s)=='w') {    // -w vertical_resolution, currently supporting 600, 900, 1200 and 1800.
+                    int tmp;
+                    s++;
+                    tmp=strtol(s+1,&end,10);
+                    s=end;;
+
+                    if (tmp==900) opt_res=IDC_RES1200;
+                    else if (tmp==1200) opt_res=IDC_RES1600;
+                    else if (tmp==1800) opt_res=IDC_RES2400;
+                    else opt_res=IDC_RES800;
+            }
+            else if (tolower(*s)=='l') { //Large Text
+                    s++;
+                    largetext=1;
             }
 
 #ifdef EDITOR
