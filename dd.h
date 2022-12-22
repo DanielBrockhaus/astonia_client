@@ -24,6 +24,7 @@ extern float mouse_scale;   // mouse input needs to be scaled by this factor bec
 extern double gamma;            // set me to adjust gamma, call dd_reset() afterwards
 extern int dd_gamma;
 extern int dd_lighteffect;
+extern int largetext;
 
 extern int xres;                // pitch of the back surfache (ddbs)
 

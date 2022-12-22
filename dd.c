@@ -525,7 +525,7 @@ void dd_flip(void) {
             flags=texter[n].flags;
 
             if (flags&DD_SMALL) SelectObject(tmpdc,wfonts);
-            else if (flags&DD_LARGE) SelectObject(tmpdc,wfontb);
+            else if (flags&DD_BIG) SelectObject(tmpdc,wfontb);
             else SelectObject(tmpdc,wfontm);
 
 
@@ -2730,7 +2730,8 @@ int dd_drawtext_char(int sx,int sy,int c,unsigned short int color) {
     if (newtext) {
         char text[2]={0,0};
         text[0]=c;
-        texter_add(sx,sy,color,0,text);
+        if (largetext) texter_add(sx,sy,color,DD_BIG,text);
+        else texter_add(sx,sy,color,0,text);
         return fontdim[c];
     }
 
@@ -2847,7 +2848,6 @@ void dd_display_text(void) {
     int n,m,rn,x,y,pos;
     char buf[256],*bp;
     unsigned short lastcolor;
-    extern int largetext;
 
     for (n=textdisplayline,y=TEXTDISPLAY_Y; y<=TEXTDISPLAY_Y+TEXTDISPLAY_SY-TEXTDISPLAY_DY; n++,y+=TEXTDISPLAY_DY) {
         rn=n%MAXTEXTLINES;
