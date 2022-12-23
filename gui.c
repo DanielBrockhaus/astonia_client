@@ -8,9 +8,9 @@
 #include <math.h>
 #include <ctype.h>
 #include <time.h>
-#pragma hdrstop
 
 #define ISCLIENT
+#define WANTMAPMN
 #include "main.h"
 #include "dd.h"
 #include "client.h"
@@ -493,7 +493,7 @@ static void display_wear(void) {
 
 static void display_look(void) {
     int b,i,x,y; //,yt;
-    unsigned int sprite,tint;
+    unsigned int sprite;
     unsigned short c1,c2,c3,shine;
     unsigned char scale,cr,cg,cb,light,sat;
     DDFX fx;
@@ -583,7 +583,7 @@ static void display_inventory(void) {
     int b,i,x,y,yt;
     int c; // ,fkey[4];
     static char *fstr[4]={"F1","F2","F3","F4"};
-    unsigned int sprite,tint;
+    unsigned int sprite;
     unsigned short c1,c2,c3,shine;
     unsigned char scale,cr,cg,cb,light,sat;
     DDFX fx;
@@ -637,7 +637,7 @@ static void display_inventory(void) {
 static void display_container(void) {
     int b,i,x,y,yt;
     unsigned short int color;
-    unsigned int sprite,tint;
+    unsigned int sprite;
     unsigned short c1,c2,c3,shine;
     unsigned char scale,cr,cg,cb,light,sat;
     DDFX fx;
@@ -708,7 +708,7 @@ static void display_scrollbars(void) {
 
 static void display_citem(void) {
     int x,y;
-    unsigned int sprite,tint;
+    unsigned int sprite;
     unsigned short c1,c2,c3,shine;
     unsigned char scale,cr,cg,cb,light,sat;
     DDFX fx;
@@ -862,8 +862,8 @@ static void display_keys(void) {
         if (keytab[i].skill==-1) continue;
         if (!value[0][keytab[i].skill]) continue;
 
-        if (keytab[i].userdef) sprintf(buf,"%c/%c %s",keytab[i].keycode,keytab[i].userdef,keytab[i].name,keytab[i].usetime);
-        else sprintf(buf,"%c %s",keytab[i].keycode,keytab[i].name,keytab[i].usetime);
+        if (keytab[i].userdef) sprintf(buf,"%c/%c %s",keytab[i].keycode,keytab[i].userdef,keytab[i].name);
+        else sprintf(buf,"%c %s",keytab[i].keycode,keytab[i].name);
         dd_drawtext(x,427,col,DD_LEFT|DD_SMALL|DD_FRAME,buf);
         // dd_drawtext(5,50+u*10,col,DD_LEFT|DD_SMALL|DD_FRAME,buf);
     }
@@ -1258,7 +1258,7 @@ static void display_text(void) {
 }
 
 static void display_gold(void) {
-    int x,y,tg;
+    int x,y;
 
     x=but[BUT_GLD].x;
     y=but[BUT_GLD].y;
@@ -1331,7 +1331,6 @@ static void display_mouseover(void) {
 
 static void display_selfspells(void) {
     int n,nr,cn,step;
-    extern unsigned char ueffect[];
 
     cn=map[mapmn(MAPDX/2,MAPDY/2)].cn;
     if (!cn) return;
@@ -1545,22 +1544,18 @@ void display_game_special(void) {
     }
 }
 
-static int start_time=0;
 char perf_text[256];
 
 static void display(void) {
     extern int sc_hit,sc_miss,sc_maxstep,vc_hit,vc_miss,vc_unique,vc_unique24,sc_blits,sm_cnt;
-    extern int server_cycles,rec_bytes,sent_bytes;
-    extern int fsprite_cnt,f2sprite_cnt,gsprite_cnt,g2sprite_cnt,isprite_cnt,csprite_cnt,q_size,vc_cnt,sc_cnt,ap_cnt,np_cnt,tp_cnt,sc_time,vm_cnt,vm_time,qs_time,bless_time,dg_time,ds_time,vi_time,im_time;
-    extern int textdisplayline,textnextline;
-    int tt_time=0,mis_time;
-    double trans;
-    static int unique24=0,lastuni=0;
+    extern int fsprite_cnt,f2sprite_cnt,gsprite_cnt,g2sprite_cnt,isprite_cnt,csprite_cnt,vc_cnt,sc_cnt,ap_cnt,np_cnt,tp_cnt,sc_time,vm_cnt,vm_time,qs_time,bless_time,dg_time,ds_time,vi_time,im_time;
+    int tt_time=0,mis_time=0;
+    static int lastuni=0;
     extern int vc_time,ap_time,tp_time; //,ol_time,sb_time;
     static double vc_avg=0,ap_avg=0,tp_avg=0,sc_avg=0,tt_avg=0,vm_avg=0,qs_avg=0,bt_avg=0,mis_avg=0,dg_avg=0,ds_avg=0,vi_avg=0,im_avg;
     static int cnt=1;
     extern int socktimeout,kicked_out;
-    int current_time,t,start;
+    int t,start;
     extern int mirror;
     extern int memptrs[MAX_MEM];
     extern int memsize[MAX_MEM];
@@ -1671,7 +1666,7 @@ static void display(void) {
     if (im_time>20) note("im_time=%d",im_time);*/
 
     vm_time=vc_time=sc_time=ap_time=tp_time=tt_time=qs_time=bless_time=dg_time=ds_time=vi_time=im_time=0; //sb_time=ol_time=0;
-    if (tick/24!=lastuni/24) { unique24=vc_unique24; vc_unique24=0; lastuni=tick; }
+    if (tick/24!=lastuni/24) { vc_unique24=0; lastuni=tick; }
     fsprite_cnt=f2sprite_cnt=gsprite_cnt=g2sprite_cnt=isprite_cnt=csprite_cnt=0;
 
     display_mouseover();
@@ -1783,7 +1778,7 @@ void set_cmd_key_states(void) {
     extern int x_offset,y_offset;
 
     vk_shift=(GetAsyncKeyState(VK_SHIFT)&0x8000)|shift_override;
-    vk_control=GetAsyncKeyState(VK_CONTROL)&0x8000|control_override;
+    vk_control=(GetAsyncKeyState(VK_CONTROL)&0x8000)|control_override;
     vk_alt=GetAsyncKeyState(VK_MENU)&0x8000;
     //vk_lbut=GetAsyncKeyState(VK_LBUTTON)&0x8000;
     //vk_rbut=GetAsyncKeyState(VK_RBUTTON)&0x8000;
@@ -1891,7 +1886,6 @@ static int get_near_char(int x,int y) {
 static int get_near_button(int x,int y) {
     int b;
     int n=-1,ndist=1000000,dist;
-    int scrx,scry,mapx,mapy;
 
     if (x<0 || y<0 || x>=XRES || y>=YRES) return -1;
 
@@ -2086,7 +2080,7 @@ static void cmd_look_skill(int nr) {
 }
 
 static void set_cmd_states(void) {
-    int b,i,c;
+    int i,c;
     static int oldconcnt=0; // ;-)
     extern int display_help,display_quest;
     static char title[256];
@@ -2459,7 +2453,6 @@ static void exec_cmd(int cmd,int a) {
 #define GEN_SET_LIGHTEFFECT	5
 #define GEN_FORCE_DH            6 // a developer only
 
-#pragma argsused
 int exec_gen(int gen,int a,char *c) {
     switch (gen) {
         case GEN_SET_GAMMA:
@@ -2492,7 +2485,7 @@ int exec_gen(int gen,int a,char *c) {
 #define MAXHIST		20
 static char cmdline[MAXCMDLINE+1]={""};
 static char *history[MAXHIST];
-static int cmdcursor=0,cmddisplay=0,cmdlen=0,histpos=-1;
+static int cmdcursor=0,cmddisplay=0,histpos=-1;
 extern char user_keys[];
 
 void update_user_keys(void) {
@@ -2610,14 +2603,19 @@ void cmd_remember(char *ptr) {
     char *start=ptr,*dst;
     char tmp[256];
 
-    if (*ptr!='#' && *ptr!='/') return; ptr++;
-    if (*ptr!='t' && *ptr!='T') return; ptr++;
+    if (*ptr!='#' && *ptr!='/') return;
+    ptr++;
+    if (*ptr!='t' && *ptr!='T') return;
+    ptr++;
     if (*ptr==' ') goto do_remember;
-    if (*ptr!='e' && *ptr!='E') return; ptr++;
+    if (*ptr!='e' && *ptr!='E') return;
+    ptr++;
     if (*ptr==' ') goto do_remember;
-    if (*ptr!='l' && *ptr!='L') return; ptr++;
+    if (*ptr!='l' && *ptr!='L') return;
+    ptr++;
     if (*ptr==' ') goto do_remember;
-    if (*ptr!='l' && *ptr!='L') return; ptr++;
+    if (*ptr!='l' && *ptr!='L') return;
+    ptr++;
     if (*ptr==' ') goto do_remember;
     return;
 
@@ -2671,14 +2669,16 @@ void cmd_proc(int key) {
             else break;
             bzero(cmdline,sizeof(cmdline));
             strcpy(cmdline,history[histpos]);
-            for (cmdcursor=MAXCMDLINE-2; cmdcursor>=0; cmdcursor--) if (cmdline[cmdcursor]) break; cmdcursor++;
+            for (cmdcursor=MAXCMDLINE-2; cmdcursor>=0; cmdcursor--) if (cmdline[cmdcursor]) break;
+            cmdcursor++;
             break;
 
         case CMD_DOWN:	if (histpos>0) histpos--;
             else { bzero(cmdline,sizeof(cmdline)); cmdcursor=0; histpos=-1; break; }
             bzero(cmdline,sizeof(cmdline));
             strcpy(cmdline,history[histpos]);
-            for (cmdcursor=MAXCMDLINE-2; cmdcursor>=0; cmdcursor--) if (cmdline[cmdcursor]) break; cmdcursor++;
+            for (cmdcursor=MAXCMDLINE-2; cmdcursor>=0; cmdcursor--) if (cmdline[cmdcursor]) break;
+            cmdcursor++;
             break;
 
         case 13:	if (!client_cmd(cmdline) && cmdline[0]) cmd_text(cmdline);
@@ -2692,7 +2692,8 @@ void cmd_proc(int key) {
 
         case 9:		bzero(cmdline,sizeof(cmdline));
             cmd_fetch(cmdline);
-            for (cmdcursor=MAXCMDLINE-2; cmdcursor>=0; cmdcursor--) if (cmdline[cmdcursor]) break; cmdcursor++;
+            for (cmdcursor=MAXCMDLINE-2; cmdcursor>=0; cmdcursor--) if (cmdline[cmdcursor]) break;
+            cmdcursor++;
             break;
 
         default:	if (key<32 || key>127) { /* addline("%d",key); */ break; }
@@ -2871,10 +2872,8 @@ void gui_keyproc(int wparam) {
     }
 }
 
-LRESULT FAR PASCAL _export main_wnd_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
+__attribute__((stdcall)) long int main_wnd_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam)  {
     PAINTSTRUCT ps;
-    char buf[1024];
-    int i,m;
     extern int x_offset,y_offset;
     static int delta=0,mdown=0;
 
@@ -3203,7 +3202,7 @@ unsigned int nextframe;
 
 int main_loop(void) {
     MSG msg;
-    int tmp,timediff,flag,ltick=0;
+    int tmp,timediff,ltick=0;
     unsigned int utmp;
     extern int q_size;
 
@@ -3229,6 +3228,7 @@ int main_loop(void) {
             //if (ltick%(TICKS*5)==0) cmd_ping();
 
             if (ltick==TICKS*10) {
+                void dd_get_client_info(struct client_info *ci);
                 struct client_info ci;
 
                 dd_get_client_info(&ci);

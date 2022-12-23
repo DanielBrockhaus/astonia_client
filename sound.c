@@ -3,7 +3,6 @@
  */
 
 #include <stdio.h>
-#include <alloc.h>
 #include <fcntl.h>
 #include <io.h>
 #include <stdlib.h>
@@ -11,6 +10,7 @@
 #include <windowsx.h>
 #include <process.h>
 #include <errno.h>
+#include <ddraw.h>
 #include <dsound.h>
 #include <math.h>
 #include "main.h"
@@ -198,7 +198,7 @@ void make_sound_pak(void) {
     struct snd_pak *sp=NULL;
     unsigned char *data=NULL;
     unsigned char hdr[256];
-    int maxsp=0,handle,size=0,tmp,n,freq,len;
+    int maxsp=0,handle,size=0,n,freq,len;
 
     while (sfx_name[maxsp]) {
         sp=xrealloc(sp,sizeof(struct snd_pak)*(maxsp+1),MEM_TEMP);

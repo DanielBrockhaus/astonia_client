@@ -493,17 +493,14 @@ void addline(const char *format,...);
     #define MAX_INBUF	        0xFFFFF
     #define MAX_OUTBUF	        0xFFFFF
 
+#ifdef WANTMAPMN
 static int mapmn(int x,int y) {
     if (x<0 || y<0 || x>=MAPDX || y>=MAPDY) {
         return -1;
     }
     return (x+y*MAPDX);
 }
-
-static int onmap(int x,int y) {
-    if (x<0 || y<0 || x>=MAPDX || y>=MAPDY) return -1;       // field 0,0 is declared to be not not on the map !
-    return (x+y*MAPDX);
-}
+#endif
 
 int record_client(char *filename);
 int open_client(char *username,char *password);

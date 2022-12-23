@@ -4,6 +4,8 @@
 *.pak
 *.lnk
 *.dat
+*.o
 moac.*
+moac_gcc.*
 res/
 

@@ -10,7 +10,8 @@
 #include <stdio.h>
 #include <io.h>
 #include <fcntl.h>
-#pragma hdrstop
+#include <time.h>
+
 #include <dsound.h>
 #define ISCLIENT
 #include "main.h"
@@ -22,7 +23,7 @@
 
 // extern
 
-extern LRESULT FAR PASCAL _export main_wnd_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam);
+extern long main_wnd_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) __attribute__((stdcall));
 extern int main_init(void);
 extern void main_exit(void);
 extern int newtext;
@@ -122,7 +123,7 @@ void paranoia(const char *format,...) {
     exit(-1);
 }
 
-static _addlinesep=0;
+static int _addlinesep=0;
 
 void addlinesep(void) {
     _addlinesep=1;
@@ -130,8 +131,7 @@ void addlinesep(void) {
 
 void addline(const char *format,...) {
     va_list va;
-    char buf[1024],*run;
-    int num;
+    char buf[1024];
 
     if (_addlinesep) {
         _addlinesep=0;
@@ -367,7 +367,6 @@ char* xstrdup(const char *src,int ID) {
 
 void xfree(void *ptr) {
     struct memhead *mem;
-    unsigned char *head,*tail,*rptr;
 
     if (!ptr) return;
     if (xmemcheck(ptr)) return;
@@ -386,7 +385,6 @@ void xfree(void *ptr) {
 
 void xinfo(void *ptr) {
     struct memhead *mem;
-    unsigned char *head,*tail,*rptr;
 
     if (!ptr) { printf("NULL"); return; }
     if (xmemcheck(ptr)) { printf("ILL"); return; }
@@ -519,7 +517,7 @@ int rrand(int range) {
 int net_init(void) {
     WSADATA wsadata;
 
-    if (WSAStartup(0x00020002,&wsadata)) return -1;
+    if (WSAStartup(0x0002,&wsadata)) return -1;
     return 0;
 }
 
@@ -643,7 +641,7 @@ else if (tolower(*s)=='g') {  // -g <cmd> <nr> call gfx_main(nr)
 
 // windows
 
-LRESULT FAR PASCAL _export main_wnd_proc_safe(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
+int main_wnd_proc_safe(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
     switch (msg) {
         case WM_DESTROY:
             PostQuitMessage(0);
@@ -701,7 +699,6 @@ int win_init(char *title,int width,int height) {
 }
 
 int win_exit(void) {
-    MSG msg;
 
     if (mainwnd) {
         DestroyWindow(mainwnd);
@@ -816,7 +813,6 @@ int check_username(char *ptr) {
 }
 
 
-#pragma argsused
 BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
     char buf[80];
 
@@ -1018,7 +1014,6 @@ int check_file(struct file *f) {
 
 }
 
-#pragma argsused
 int show_progress(HWND hwnd,int files,int bytes,int fdone,int bdone,char *cmd,char *file,int start) {
     char buf[80];
     int percent,d,tmp;
@@ -1097,7 +1092,7 @@ int updater(void) {
 
     // set to nonblocking
     if (ioctlsocket(sock,FIONBIO,(void *)&one)==-1) {
-        printf("ioctlsocket(non-blocking) failed\n",WSAGetLastError());
+        printf("ioctlsocket(non-blocking) failed\n");
         closesocket(sock);
         DestroyWindow(hwnd);
         return -1;
@@ -1234,10 +1229,10 @@ int updater(void) {
 extern int gfx_main(char cmd,int nr);
 #endif
 
-#pragma argsused
 int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow) {
-    HWND hwnd;
+#ifndef DEVELOPER
     HANDLE mutex,mutex2;
+#endif
     int ret;
     int width,height;
     char buf[80];

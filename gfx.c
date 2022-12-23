@@ -9,7 +9,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <math.h>
-#pragma hdrstop;
+
 #include "../lib/zlib.h"
 #include "../lib/png.h"
 #include "main.h"
@@ -84,62 +84,10 @@ static char* binstr(char *dst,int dstlen,unsigned char *src,int srclen) {
 
 // palette
 
-/*
-static double pal_dist(unsigned short int rgb_a, unsigned short int rgb_b)
-{
-        double dr,dg,db;
-
-        // HAS TO return 0 on exact match !!!  (only - i dunno)
-
-        dr=(double)IGET_R(rgb_a)-(double)IGET_R(rgb_b);
-        dg=(double)IGET_G(rgb_a)-(double)IGET_G(rgb_b);
-        db=(double)IGET_B(rgb_a)-(double)IGET_B(rgb_b);
-
-        // return (dr*dr+dg*dg+db*db)/(31*31*3.0);
-        return (fabs(dr)+fabs(dg)+fabs(db))/(31*3.0);
-}
-*/
-
-static unsigned int pal_dist(unsigned short int rgb_a,unsigned short int rgb_b) {
-    int dr,dg,db;
-
-    // HAS TO return 0 on exact match !!!  (only - i dunno)
-
-    dr=IGET_R(rgb_a)-IGET_R(rgb_b);
-    dg=IGET_G(rgb_a)-IGET_G(rgb_b);
-    db=IGET_B(rgb_a)-IGET_B(rgb_b);
-
-    return dr*dr+dg*dg+db*db;
-}
-
-static int get_pal_entry(unsigned short int col,int pal_cnt,unsigned short int *pal) {
-    int i;
-
-    for (i=0; i<pal_cnt; i++) if (col==pal[i]) return i;
-    return -1;
-}
-
-#pragma argsused
 static int get_pal_match(unsigned short int rgb,int pal_cnt,unsigned short int *pal) {
     return inxsearch(IGET_R(rgb),IGET_G(rgb),IGET_B(rgb));
 }
 
-static int get_pal_match_old(unsigned short int rgb,int pal_cnt,unsigned short int *pal) {
-    int i,n;
-    unsigned int dist,ndist;
-
-    for (n=-1,ndist=0xFFFFFFFF,i=0; i<pal_cnt; i++) {
-        dist=pal_dist(rgb,pal[i]);
-        if (dist==0) return i;
-
-        if (dist<ndist) {
-            ndist=dist;
-            n=i;
-        }
-    }
-
-    return n;
-}
 
 // loading images
 
@@ -147,7 +95,6 @@ static int gfx_load_image_png(IMAGE *image,char *filename,int usealpha) {
     int x,y,xres,yres,tmp,r,g,b,a,sx,sy,ex,ey; //,framecnt=0,framemax=0,ffx,ffy;
     int format;
     unsigned char **row;
-    unsigned short *bmp;
     FILE *fp;
     png_structp png_ptr;
     png_infop info_ptr;
@@ -378,7 +325,7 @@ static int load_gfx_1(IMAGE *image,unsigned int srcsize,unsigned char *src) {
 }
 
 static int load_gfx_2(IMAGE *image,unsigned int srcsize,unsigned char *src,int pal_cnt,unsigned short int *pal) {
-    int x,y,a,r,g,b,p;
+    int x,y,a,p;
     unsigned char *end=src+srcsize;
     unsigned short int rgb;
     int hasalpha=0;
@@ -419,7 +366,7 @@ static int load_gfx_2(IMAGE *image,unsigned int srcsize,unsigned char *src,int p
 }
 
 static int load_gfx_3(IMAGE *image,unsigned int srcsize,unsigned char *src,int pal_cnt,unsigned short int *pal) {
-    int x,y,a,r,g,b,amask,p;
+    int x,y,a,amask,p;
     unsigned char *end=src+srcsize;
     unsigned short int rgb;
     int hasalpha=0;
@@ -672,7 +619,7 @@ void gfx_remove_dup(IMAGE *i2,int nr1);
 
 static int gfx_make_gfxdata(struct pakopts *pakopts,int sprite,struct gfxdata *gfxdata,IMAGE *image,int pal_cnt,unsigned short int *pal) {
     unsigned char *comp,*data,*ncomp=NULL;
-    unsigned int compsize,realsize,ncompsize,nrealsize;
+    unsigned int compsize,realsize,ncompsize=0,nrealsize;
     unsigned int n,i;
     char buf[32];
 
@@ -769,9 +716,6 @@ static int gfx_save_pak(char *filename,int dat_cnt,struct gfxdata *gfxdata,int p
 
     // write the gfxdata's
     for (i=0; i<dat_cnt; i++) {
-
-        char buf[32];
-
         // note("dat: sprite[%08d] offset=%d realsize=%d compsize=%d [%s]",gfxdata[i].dat_id,tell(fd),gfxdata[i].realsize,gfxdata[i].compsize,binstr(buf,sizeof(buf),gfxdata[i].data,gfxdata[i].compsize));
 
         // compression info and the compressed data
@@ -913,7 +857,6 @@ int gfx_load_image_pak(IMAGE *image,int sprite) {
     unsigned int totsize,compsize,realsize;
     unsigned char *dat,*buf;
     int ret;
-    char buff[32];
 
     pidx=gfx_load_pak(sprite);
     if (pidx==-1) return fail("pak for sprite %d not found",sprite);
@@ -963,7 +906,6 @@ int gfx_force_png=0;
 
 int _gfx_load_image(IMAGE *image,int sprite) {
     char filename[1024];
-    int fd;
 
     if (sprite>MAXSPRITE || sprite<0) {
         note("illegal sprite %d wanted",sprite);
@@ -1068,49 +1010,8 @@ struct xpal {
     int cc;
 };
 
-static unsigned int xpal_err(int c1,int c2,struct xpal *rgb_table) {
-    unsigned int dist1,dist2,P1,P2,P3,R1,G1,B1,R2,G2,B2,R3,G3,B3;
-    int r_dist,g_dist,b_dist;
+#define MAXSAMPLE	(1024*1024*3)
 
-    R1=rgb_table[c1].r;
-    G1=rgb_table[c1].g;
-    B1=rgb_table[c1].b;
-    P1=rgb_table[c1].pixel_count;
-
-    R2=rgb_table[c2].r;
-    G2=rgb_table[c2].g;
-    B2=rgb_table[c2].b;
-    P2=rgb_table[c2].pixel_count;
-
-    P3=P1+P2;
-    R3=(R1+R2+(P3>>1))/P3;
-    G3=(G1+G2+(P3>>1))/P3;
-    B3=(B1+B2+(P3>>1))/P3;
-
-    R1=(R1+(P1>>1))/P1;
-    G1=(G1+(P1>>1))/P1;
-    B1=(B1+(P1>>1))/P1;
-
-    R2=(R2+(P2>>1))/P2;
-    G2=(G2+(P2>>1))/P2;
-    B2=(B2+(P2>>1))/P2;
-
-    r_dist=R3-R1;
-    g_dist=G3-G1;
-    b_dist=B3-B1;
-    dist1=r_dist*r_dist+g_dist*g_dist+b_dist*b_dist;
-    dist1=(unsigned int)(sqrt(dist1)*P1);
-
-    r_dist=R2-R3;
-    g_dist=G2-G3;
-    b_dist=B2-B3;
-    dist2=r_dist*r_dist+g_dist*g_dist+b_dist*b_dist;
-    dist2=(unsigned int)(sqrt(dist2)*P2);
-
-    return (dist1+dist2);
-}
-
-    #define MAXSAMPLE	(1024*1024*3)
 static int gfx_build_pal(int image_cnt,IMAGE *image,int num_pal,unsigned short int *pal,int *sprite) {
     unsigned char *bigrgb;
     int n,i,x,y;
@@ -1167,189 +1068,6 @@ static int gfx_build_pal(int image_cnt,IMAGE *image,int num_pal,unsigned short i
     xfree(bigrgb);
 
     return num_pal;
-}
-
-static int gfx_build_pal_old(int image_cnt,IMAGE *image,int num_pal,unsigned short int *pal) {
-    int x,y,index;
-    struct xpal *rgb_table;
-    unsigned short int irgb;
-    int tot_colors;
-    int i,j,c1,c2,c3;
-    unsigned int err,cur_err,sum;
-    int r,g,b;
-
-    note("build pal init");
-    // init
-    rgb_table=xcalloc(32768*sizeof(struct xpal),MEM_TEMP9);
-
-    note("build pal build");
-    // build
-    for (i=0; i<image_cnt; i++) {
-        //note("i=%d/%d (%dx%d)",i,image_cnt,image[i].xres,image[i].yres);
-        for (y=0; y<image[i].yres; y++) {
-            for (x=0; x<image[i].xres; x++) {
-                irgb=image[i].rgb[x+y*image->xres];
-                if (irgb==rgbcolorkey) continue;
-
-                index=(((IGET_R(irgb)<<3)&248)<<7)+(((IGET_G(irgb)<<3)&248)<<2)+((IGET_B(irgb)<<3)>>3);
-                rgb_table[index].r+=IGET_R(irgb)<<3; // *rweight
-                rgb_table[index].g+=IGET_G(irgb)<<3; // *gweight
-                rgb_table[index].b+=IGET_B(irgb)<<3; // *bweight
-                rgb_table[index].pixel_count++;
-            }
-        }
-    }
-
-    note("build pal bring");
-    // bring together
-    tot_colors=0;
-    for (i=0; i<32768; i++) {
-        if (rgb_table[i].pixel_count) {
-            rgb_table[tot_colors++]=rgb_table[i];
-        }
-    }
-
-    note("build pal reduce");
-    // reduce
-    for (i=0; i<(tot_colors-1); i++) {
-
-        err=~0L;
-        for (j=i+1; j<tot_colors; j++) {
-            cur_err=xpal_err(i,j,rgb_table);
-            if (cur_err<err) {
-                err=cur_err;
-                c2=j;
-            }
-        }
-        rgb_table[i].err=err;
-        rgb_table[i].cc=c2;
-    }
-    rgb_table[i].err=~0L;
-    rgb_table[i].cc=tot_colors;
-
-    while (tot_colors>num_pal) {
-        err=~0L;
-        for (i=0; i<tot_colors; i++) {
-            if (rgb_table[i].err<err) {
-                err=rgb_table[i].err;
-                c1=i;
-            }
-        }
-        c2=rgb_table[c1].cc;
-        rgb_table[c2].r+=rgb_table[c1].r;
-        rgb_table[c2].g+=rgb_table[c1].g;
-        rgb_table[c2].b+=rgb_table[c1].b;
-        rgb_table[c2].pixel_count+=rgb_table[c1].pixel_count;
-        tot_colors--;
-
-        rgb_table[c1]=rgb_table[tot_colors];
-        rgb_table[tot_colors-1].err=~0L;
-        rgb_table[tot_colors-1].cc=tot_colors;
-
-        for (i=0; i<c1; i++) {
-            if (rgb_table[i].cc==tot_colors) rgb_table[i].cc=c1;
-        }
-
-        for (i=c1+1; i<tot_colors; i++) {
-            if (rgb_table[i].cc==tot_colors) {
-                err=~0L;
-                for (j=i+1; j<tot_colors; j++) {
-                    cur_err=xpal_err(i,j,rgb_table);
-                    if (cur_err<err) {
-                        err=cur_err;
-                        c3=j;
-                    }
-                }
-                rgb_table[i].err=err;
-                rgb_table[i].cc=c3;
-            }
-        }
-
-        err=~0L;
-        for (i=c1+1; i<tot_colors; i++) {
-            cur_err=xpal_err(i,c1,rgb_table);
-            if (cur_err<err) {
-                err=cur_err;
-                c3=i;
-            }
-        }
-        rgb_table[c1].err=err;
-        rgb_table[c1].cc=c3;
-
-        for (i=0; i<c1; i++) {
-            if (rgb_table[i].cc==c1) {
-                err=~0L;
-                for (j=i+1; j<tot_colors; j++) {
-                    cur_err=xpal_err(i,j,rgb_table);
-                    if (cur_err<err) {
-                        err=cur_err;
-                        c3=j;
-                    }
-                }
-                rgb_table[i].err=err;
-                rgb_table[i].cc=c3;
-            }
-        }
-
-        for (i=0; i<c1; i++) {
-            cur_err=xpal_err(i,c1,rgb_table);
-            if (cur_err<rgb_table[i].err) {
-                rgb_table[i].err=cur_err;
-                rgb_table[i].cc=c1;
-            }
-        }
-
-        if (c2!=tot_colors) {
-            err=~0L;
-            for (i=c2+1; i<tot_colors; i++) {
-                cur_err=xpal_err(c2,i,rgb_table);
-                if (cur_err<err) {
-                    err=cur_err;
-                    c3=i;
-                }
-            }
-            rgb_table[c2].err=err;
-            rgb_table[c2].cc=c3;
-            for (i=0; i<c2; i++) {
-                if (rgb_table[i].cc==c2) {
-                    err=~0L;
-                    for (j=i+1; j<tot_colors; j++) {
-                        cur_err=xpal_err(i,j,rgb_table);
-                        if (cur_err<err) {
-                            err=cur_err;
-                            c3=j;
-                        }
-                    }
-                    rgb_table[i].err=err;
-                    rgb_table[i].cc=c3;
-                }
-            }
-            for (i=0; i<c2; i++) {
-                cur_err=xpal_err(i,c2,rgb_table);
-                if (cur_err<rgb_table[i].err) {
-                    rgb_table[i].err=cur_err;
-                    rgb_table[i].cc=c2;
-                }
-            }
-        }
-    }
-
-
-    note("build pal fill");
-    // fill
-    for (i=0; i<tot_colors; i++) {
-        sum=rgb_table[i].pixel_count;
-
-        r=(rgb_table[i].r+(sum>>1))/sum;    // rgb_table[i].r/rweight
-        g=(rgb_table[i].g+(sum>>1))/sum;    // rgb_table[i].g/gweight
-        b=(rgb_table[i].b+(sum>>1))/sum;    // rgb_table[i].b/bweight
-
-        pal[i]=IRGB(r>>3,g>>3,b>>3);
-    }
-
-    xfree(rgb_table);
-
-    return tot_colors;
 }
 
 static int set_pakopts(struct pakopts *pakopts,int use,int num_pal,int scale,int shine) {
@@ -1538,7 +1256,7 @@ static void scale_image(IMAGE *image,int scale) {
             low_x=1-high_x;
             low_y=1-high_y;
 
-            irgb=image->rgb[floor(ix)+floor(iy)*image->xres];
+            irgb=image->rgb[(int)(floor(ix)+floor(iy)*image->xres)];
 
             if (irgb==rgbcolorkey) {
                 dbr=0;
@@ -1550,10 +1268,10 @@ static void scale_image(IMAGE *image,int scale) {
                 dbg=IGET_G(irgb)*low_x*low_y;
                 dbb=IGET_B(irgb)*low_x*low_y;
                 if (!image->a) dba=31*low_x*low_y;
-                else dba=image->a[floor(ix)+floor(iy)*image->xres]*low_x*low_y;
+                else dba=image->a[(int)(floor(ix)+floor(iy)*image->xres)]*low_x*low_y;
             }
 
-            irgb=image->rgb[ceil(ix)+floor(iy)*image->xres];
+            irgb=image->rgb[(int)(ceil(ix)+floor(iy)*image->xres)];
 
             if (irgb==rgbcolorkey) {
                 dbr+=0;
@@ -1565,10 +1283,10 @@ static void scale_image(IMAGE *image,int scale) {
                 dbg+=IGET_G(irgb)*high_x*low_y;
                 dbb+=IGET_B(irgb)*high_x*low_y;
                 if (!image->a) dba+=31*high_x*low_y;
-                else dba+=image->a[ceil(ix)+floor(iy)*image->xres]*high_x*low_y;
+                else dba+=image->a[(int)(ceil(ix)+floor(iy)*image->xres)]*high_x*low_y;
             }
 
-            irgb=image->rgb[floor(ix)+ceil(iy)*image->xres];
+            irgb=image->rgb[(int)(floor(ix)+ceil(iy)*image->xres)];
 
             if (irgb==rgbcolorkey) {
                 dbr+=0;
@@ -1580,10 +1298,10 @@ static void scale_image(IMAGE *image,int scale) {
                 dbg+=IGET_G(irgb)*low_x*high_y;
                 dbb+=IGET_B(irgb)*low_x*high_y;
                 if (!image->a) dba+=31*low_x*high_y;
-                else dba+=image->a[floor(ix)+ceil(iy)*image->xres]*low_x*high_y;
+                else dba+=image->a[(int)(floor(ix)+ceil(iy)*image->xres)]*low_x*high_y;
             }
 
-            irgb=image->rgb[ceil(ix)+ceil(iy)*image->xres];
+            irgb=image->rgb[(int)(ceil(ix)+ceil(iy)*image->xres)];
 
             if (irgb==rgbcolorkey) {
                 dbr+=0;
@@ -1596,7 +1314,7 @@ static void scale_image(IMAGE *image,int scale) {
                 dbb+=IGET_B(irgb)*high_x*high_y;
 
                 if (!image->a) dba+=31*high_x*high_y;
-                else dba+=image->a[ceil(ix)+ceil(iy)*image->xres]*high_x*high_y;
+                else dba+=image->a[(int)(ceil(ix)+ceil(iy)*image->xres)]*high_x*high_y;
             }
 
 

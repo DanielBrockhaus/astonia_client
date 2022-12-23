@@ -4,7 +4,6 @@
 
 #include <windows.h>
 #include <stdio.h>
-#pragma hdrstop
 #include "main.h"
 #include "edit.h"
 
@@ -274,9 +273,9 @@ void load_chr_file(CFILE *cfile) {
 }
 
 void load_map_file(MFILE *mfile) {
-    char *all,*run,*end;
+    char *all,*run;
     char name[1024],value[1024],sep;
-    int mn=0,x,y,i;
+    int mn=0,x,y=0,i;
     int ivalue;
 
     mfile->width=256;
@@ -528,7 +527,7 @@ void load_pre_file(PFILE *pfile) {
     char name[1024],value[1024],sep;
     ITYPE *nint=NULL;
     int ivalue;
-    int reset=0,spritecnt,probcnt,spritemax,i;
+    int reset=0,spritecnt=0,probcnt=0,spritemax=0,i;
 
     run=all=load_ascii_file(pfile->filename,MEM_EDIT);
     if (!all) {

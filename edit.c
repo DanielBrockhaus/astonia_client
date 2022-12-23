@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <math.h>
-#pragma hdrstop
 
 #include "main.h"
 #include "dd.h"
@@ -51,7 +50,7 @@ extern void make_quick(int game);
 extern void set_cmd_key_states(void);
 extern void set_map_values(struct map *cmap,int attick);
 extern void set_mapadd(int addx,int addy);
-extern display_game_map(struct map *cmap);
+extern int display_game_map(struct map *cmap);
 
 // globals
 
@@ -213,7 +212,6 @@ void set_ebut(int bidx,int dx,int dy,int id,int val,int flags) {
 
 static void scan_editor_files(void) {
     char searchpath[1024];
-    int i;
 
     sprintf(searchpath,"%s%d/",zonepath,areaid);
     find_itm_files(searchpath);
@@ -286,7 +284,7 @@ void dx_metal_frame(int x1,int y1,int x2,int y2,int style) {
 }
 
 void dx_ciframe(int x1,int y1,int x2,int y2,int ci,int greenci) {
-    unsigned short int c1,c2;
+    unsigned short int c1=0,c2=0;
 
     if (ci==1) { c2=darkgraycolor; c1=whitecolor; } else if (ci==2) { c1=darkgraycolor; c2=whitecolor; }
 
@@ -412,8 +410,6 @@ static void editor_display_browse_int(int offx,int offy,ITYPE *itype,int light) 
 static void editor_display_browse(void) {
     int x,y,scrx,scry,dx,dy,sprite,pnum,xx,yy;
     int selx,sely;
-    POINT p;
-    int newx,newy;
     char txta[256],txtb[256],*fname;
     int ww,hh;
     // PRESET *preset;
@@ -519,7 +515,7 @@ static void editor_display_browse(void) {
 }
 
 static void editor_start_sprite_browse(int target) {
-    int x,y,sprite;
+    int x=0,y,sprite=0;
 
     spritebrowse=target;
 
@@ -636,7 +632,6 @@ static void editor_end_sprite_browse(int ok) {
 // display
 
 static void editor_display_overview(void) {
-    int i;
     int x,y,mapx,mapy,scrx,scry,aux;
     MFIELD *field;
     unsigned short int *ptr;
@@ -712,18 +707,49 @@ static void editor_display_current_sprite(int b,MFIELD *field,char *emode) {
     int mode,dmode;
 
     switch (b) {
-        case EBUT_CGS1: dmode=cur_dmode[EMODE_SPRITE+0]; mode=emode[EMODE_SPRITE+0]; name="GS1"; sprite=field->sprite[0]; text=spritetxt; if (sprite || b==EBUT_CGS1) sprintf(spritetxt,"%d",sprite);
-            else strcpy(spritetxt,"none"); break;
-        case EBUT_CGS2: dmode=cur_dmode[EMODE_SPRITE+1]; mode=emode[EMODE_SPRITE+1]; name="GS2"; sprite=field->sprite[1]; text=spritetxt; if (sprite) sprintf(spritetxt,"%d",sprite);
-            else strcpy(spritetxt,"none"); break;
-        case EBUT_CFS1: dmode=cur_dmode[EMODE_SPRITE+2]; mode=emode[EMODE_SPRITE+2]; name="FS1"; sprite=field->sprite[2]; text=spritetxt; if (sprite) sprintf(spritetxt,"%d",sprite);
-            else strcpy(spritetxt,"none"); break;
-        case EBUT_CFS2: dmode=cur_dmode[EMODE_SPRITE+3]; mode=emode[EMODE_SPRITE+3]; name="FS2"; sprite=field->sprite[3]; text=spritetxt; if (sprite) sprintf(spritetxt,"%d",sprite);
-            else strcpy(spritetxt,"none"); break;
-        case EBUT_CITM: dmode=cur_dmode[EMODE_ITM]; mode=emode[EMODE_ITM]; name="ITM"; if (field->itm) { sprite=field->itm->sprite; text=field->itm->uni; } else { sprite=0; text="no itm"; }
-            break;
-        case EBUT_CCHR: dmode=cur_dmode[EMODE_CHR]; mode=emode[EMODE_CHR]; name="CHR"; if (field->chr) { sprite=get_player_sprite(field->chr->sprite,2,0,0,0); text=field->chr->uni; } else { sprite=0; text="no chr"; }
-            break;
+        case EBUT_CGS1: dmode=cur_dmode[EMODE_SPRITE+0];
+                        mode=emode[EMODE_SPRITE+0];
+                        name="GS1"; sprite=field->sprite[0];
+                        text=spritetxt;
+                        if (sprite || b==EBUT_CGS1) sprintf(spritetxt,"%d",sprite);
+                        else strcpy(spritetxt,"none");
+                        break;
+        case EBUT_CGS2: dmode=cur_dmode[EMODE_SPRITE+1];
+                        mode=emode[EMODE_SPRITE+1];
+                        name="GS2";
+                        sprite=field->sprite[1];
+                        text=spritetxt;
+                        if (sprite) sprintf(spritetxt,"%d",sprite);
+                        else strcpy(spritetxt,"none");
+                        break;
+        case EBUT_CFS1: dmode=cur_dmode[EMODE_SPRITE+2];
+                        mode=emode[EMODE_SPRITE+2];
+                        name="FS1";
+                        sprite=field->sprite[2];
+                        text=spritetxt;
+                        if (sprite) sprintf(spritetxt,"%d",sprite);
+                        else strcpy(spritetxt,"none");
+                        break;
+        case EBUT_CFS2: dmode=cur_dmode[EMODE_SPRITE+3];
+                        mode=emode[EMODE_SPRITE+3];
+                        name="FS2";
+                        sprite=field->sprite[3];
+                        text=spritetxt;
+                        if (sprite) sprintf(spritetxt,"%d",sprite);
+                        else strcpy(spritetxt,"none");
+                        break;
+        case EBUT_CITM: dmode=cur_dmode[EMODE_ITM];
+                        mode=emode[EMODE_ITM];
+                        name="ITM";
+                        if (field->itm) { sprite=field->itm->sprite; text=field->itm->uni; }
+                        else { sprite=0; text="no itm"; }
+                        break;
+        case EBUT_CCHR: dmode=cur_dmode[EMODE_CHR];
+                        mode=emode[EMODE_CHR];
+                        name="CHR";
+                        if (field->chr) { sprite=get_player_sprite(field->chr->sprite,2,0,0,0); text=field->chr->uni; }
+                        else { sprite=0; text="no chr"; }
+                        break;
         default: paranoia("...display_current: ill b=%d",b); return;
     }
 
@@ -773,9 +799,8 @@ static void editor_display_current_sprite(int b,MFIELD *field,char *emode) {
 }
 
 static void editor_display_current_flag(int b,MFIELD *field,char *emode) {
-    int sx,sy,ex,ey,cx,addy;
+    int sx,sy,ex,ey,cx;
     int f;
-    unsigned short int color,ci;
 
     f=ebut[b].val;
 
@@ -884,7 +909,7 @@ static void editor_display_icons(void) {
 static void editor_do_getintfield(void);
 
 static void editor_display_i(void) {
-    int b,sx,sy,ex,ey,tmp_iaffect;
+    int b,sx,sy,ex,ey;
     ITYPE *tmp_itype;
 
     b=EBUT_IMODE;
@@ -980,7 +1005,7 @@ static int get_section(int x,int y,unsigned short *pl) {
 //--------
 
 static void editor_display(void) {
-    int rx,ry,i,green,deep,b;
+    int rx,ry,b;
 
     if (spritebrowse) {
         editor_display_browse();
@@ -1424,7 +1449,6 @@ static void editor_set_curdmode(int b,int to) { // -1 0 1
 }
 
 static void editor_set_curiaffect(int b) {
-    int i;
     if (b==EBUT_CGS1) cur_iaffect=0;
     if (b==EBUT_CGS2) cur_iaffect=1;
     if (b==EBUT_CFS1) cur_iaffect=2;
@@ -1665,7 +1689,7 @@ static void editor_exec_cmd(int cmd) {
 }
 
 static void editor_set_cmd_states(void) {
-    int mapx,mapy,i,up;
+    int mapx,mapy,i;
 
     if (resize_editor) {
         int b,sx,sy,ex,flag;
@@ -1987,7 +2011,8 @@ void editor_keyproc(int wparam) {
         case VK_F9:             draw_underwater^=1; return;
         case VK_F11:            list_mem(); return;
         case VK_F12:            if (spritebrowse) editor_end_sprite_browse(0);
-            else quit=1; return;
+                                else quit=1;
+                                return;
 
         case '1':               if (vk_control) editor_set_icontool(2); return;
         case '2':               if (vk_control) editor_set_icontool(3); return;
@@ -2047,9 +2072,8 @@ void editor_keyproc(int wparam) {
 
 int docharview=0,dochar=30;
 
-    #pragma argsused
 void editor_tinproc(int t,char *buf) {
-    int sprite,num;
+    int num;
 
     if (!strncmp(buf,"gs1",3)) { num=atoi(buf+3); if (num<0xFFFF) cur_field.sprite[0]=num; } else if (!strncmp(buf,"gs2",3)) { num=atoi(buf+3); if (num<0xFFFF) cur_field.sprite[1]=num; } else if (!strncmp(buf,"fs1",3)) { num=atoi(buf+3); if (num<0xFFFF) cur_field.sprite[2]=num; } else if (!strncmp(buf,"fs2",3)) { num=atoi(buf+3); if (num<0xFFFF) cur_field.sprite[3]=num; } else if (!strncmp(buf,"v",1)) { num=atoi(buf+1); docharview=num; dochar=num+10; } else if (!strncmp(buf,"a",1)) { num=atoi(buf+1); dochar=num; } else {
         num=atoi(buf);
@@ -2146,14 +2170,6 @@ static int is_close_los_right(int xc,int yc,int v) {
     return 0;
 }
 
-static int check_los(int x,int y) {
-    x=x+lxoff;
-    y=y+lyoff;
-    if (x<0 || x>=SIZE || y<0 || y>=SIZE) return 0;
-
-    return lostab[x][y];
-}
-
 static void build_los(int xc,int yc,int maxdist) {
     int x,y,dist,found;
 
@@ -2238,12 +2254,10 @@ static void charview(int mn) {
 // server
 static void charview(int mn);
 static void editor_server(void) {
-    int i,x,y,mn,mapx,mapy,t;
+    int i,mn,mapx,mapy;
     int emn;
-    static int oldtick=0;
     MFIELD *field;
     int did;
-    int brightmn;
 
     if (!emf) return;
 
@@ -2370,8 +2384,6 @@ static void editor_server(void) {
             charview(emn);
         }
     }
-
-    oldtick=tick;
 
     if (emf->uend && emf->mundo[emf->uend-1].uid==did) mfile_use_undo(emf);
 }

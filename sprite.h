@@ -63,7 +63,7 @@ int trans_asprite(int mn,int sprite,int attick,
                   unsigned short *pc2,
                   unsigned short *pc3,
                   unsigned short *pshine);
-void trans_csprite(int mn,struct map *cmap,int attick);
+
 int trans_charno(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,int *psat,int *pc1,int *pc2,int *pc3,int *pshine);
 int additional_sprite(int sprite,int attick);
 int no_alpha_sprite(int sprite);

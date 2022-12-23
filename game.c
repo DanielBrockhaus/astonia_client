@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <math.h>
 #define ISCLIENT
+#define WANTMAPMN
 #include "main.h"
 #include "dd.h"
 #include "client.h"
@@ -358,7 +359,7 @@ void draw_pixel(int x,int y,int color) {
 }
 
 void dl_play(void) {
-    int d,wasgrid,start;
+    int d,start;
 
     start=GetTickCount();
     stat_dlsortcalls=0;
@@ -411,7 +412,7 @@ void dl_play(void) {
 void pre_add(int attick,int sprite,signed char sink,unsigned char freeze,unsigned char grid,unsigned char scale,char cr,char cg,char cb,char light,char sat,int c1,int c2,int c3,int shine,char ml,char ll,char rl,char ul,char dl);
 
 void dl_prefetch(int attick) {
-    int d,wasgrid;
+    int d;
 
     // qsort(dlsort,dlused,sizeof(DL *),dl_qcmp);
 
@@ -612,7 +613,7 @@ void show_bubbles(void) {
 
 }
 
-
+void trans_csprite(int mn,struct map *cmap,int attick);
 void set_map_sprites(struct map *cmap,int attick) {
     int i,mn;
 
@@ -645,72 +646,8 @@ void set_map_sprites(struct map *cmap,int attick) {
     }
 }
 
-static void set_map_cut_fill(int i,int panic,struct map *cmap) {
-    int mn;
-
-    if (panic>2*MAPDX*+2*MAPDY+1) { if (!panic_reached++) note("panic(%d) reached in _mmf_sameindoor_rec()",panic); quit=1; return; }
-
-    mn=quick[i].mn[4];
-    if (!mn) return;
-
-    if (cmap[mn].mmf&MMF_CUT) return;
-
-    if (!cmap[mn].rlight) return;
-    if (!(cmap[mn].mmf&(MMF_SIGHTBLOCK|MMF_DOOR)) && is_cut_sprite(cmap[mn].rf.sprite)==(int)cmap[mn].rf.sprite &&
-        is_cut_sprite(cmap[mn].rf2.sprite)==(int)cmap[mn].rf2.sprite) return;
-
-    if (panic==0 && !cmap[quick[i].mn[0]].rlight) return;
-
-    cmap[mn].mmf|=MMF_CUT;
-
-    set_map_cut_fill(quick[i].qi[7],panic+1,cmap);
-    set_map_cut_fill(quick[i].qi[5],panic+1,cmap);
-}
-
-static int cut_negative(struct map *cmap,int qi) {       // __AA__
-    if ((cmap[quick[qi].mn[3]].mmf&MMF_SIGHTBLOCK) && !(cmap[quick[qi].mn[3]].mmf&MMF_CUT)) return 0;
-    if ((cmap[quick[qi].mn[1]].mmf&MMF_SIGHTBLOCK) && !(cmap[quick[qi].mn[1]].mmf&MMF_CUT)) return 0;
-    if ((cmap[quick[qi].mn[0]].mmf&MMF_SIGHTBLOCK) && !(cmap[quick[qi].mn[0]].mmf&MMF_CUT)) return 0;
-    return 1;
-}
-
-static void set_map_cut_old_old(struct map *cmap) {
-    int i;
-
-    if (nocut) return;
-
-    // set flags
-    for (i=0; i<maxquick; i++) set_map_cut_fill(i,0,cmap);
-
-    // change sprites
-    for (i=0; i<maxquick; i++) {
-        if (cmap[quick[i].mn[4]].mmf&MMF_CUT) {
-            int tmp;
-            /* __AA__
-            cmap[quick[i].mn[4]].rfsprite=is_cut_sprite(cmap[quick[i].mn[4]].rfsprite);
-            cmap[quick[i].mn[4]].rfsprite2=is_cut_sprite(cmap[quick[i].mn[4]].rfsprite2);   // __AA__ ??? richtig ?
-            cmap[quick[i].mn[4]].risprite=is_cut_sprite(cmap[quick[i].mn[4]].risprite);
-            */
-
-            // __AA__ new version
-            tmp=is_cut_sprite(cmap[quick[i].mn[4]].rf.sprite);
-            if (tmp>=0) cmap[quick[i].mn[4]].rf.sprite=tmp;
-            else if (cut_negative(cmap,i)) cmap[quick[i].mn[4]].rf.sprite=-tmp;
-
-            tmp=is_cut_sprite(cmap[quick[i].mn[4]].rf2.sprite);
-            if (tmp>=0) cmap[quick[i].mn[4]].rf2.sprite=tmp;
-            else if (cut_negative(cmap,i)) cmap[quick[i].mn[4]].rf2.sprite=-tmp;
-
-            tmp=is_cut_sprite(cmap[quick[i].mn[4]].ri.sprite);
-            if (tmp>=0) cmap[quick[i].mn[4]].ri.sprite=tmp;
-            else if (cut_negative(cmap,i)) cmap[quick[i].mn[4]].ri.sprite=-tmp;
-        }
-    }
-
-}
-
 static void set_map_cut_old(struct map *cmap) {
-    int i,mn,mn2,i2;
+    int i;
     unsigned int tmp;
 
     for (i=0; i<maxquick; i++) {
@@ -749,7 +686,7 @@ static void set_map_cut(struct map *cmap) {
             (!mn2 || !cmap[mn2].rlight ||
              ((unsigned)abs(is_cut_sprite(cmap[mn2].rf.sprite))!=cmap[mn2].rf.sprite && is_cut_sprite(cmap[mn2].rf.sprite)>0) ||
              ((unsigned)abs(is_cut_sprite(cmap[mn2].rf2.sprite))!=cmap[mn2].rf.sprite && is_cut_sprite(cmap[mn2].rf2.sprite)>0) ||
-             ((unsigned)abs(is_cut_sprite(cmap[mn2].ri.sprite))!=cmap[mn2].ri.sprite) && is_cut_sprite(cmap[mn2].ri.sprite)>0)) continue;
+             ((unsigned)abs(is_cut_sprite(cmap[mn2].ri.sprite))!=cmap[mn2].ri.sprite && is_cut_sprite(cmap[mn2].ri.sprite)>0) )) continue;
 
         cmap[quick[i].mn[4]].mmf|=MMF_CUT;
     }
@@ -804,30 +741,6 @@ void set_map_values(struct map *cmap,int attick) {
     set_map_sprites(cmap,attick);
     set_map_cut(cmap);
     set_map_straight(cmap);
-}
-
-static int trans_x_off(int x,int y) {
-    int xoff,yoff;
-
-    xoff=x%1024-512;
-    yoff=y%1024-512;
-
-    xoff=xoff*20/512;
-    yoff=-yoff*20/512;
-
-    return (xoff/2)+(yoff/2);
-}
-
-static int trans_y_off(int x,int y) {
-    int xoff,yoff;
-
-    xoff=x%1024-512;
-    yoff=y%1024-512;
-
-    xoff=xoff*20/512;
-    yoff=-yoff*20/512;
-
-    return (xoff/4)-(yoff/4);
 }
 
 static int trans_x(int frx,int fry,int tox,int toy,int step,int start) {
@@ -1298,8 +1211,6 @@ static void display_game_names(void) {
 
 static void display_game_act(void) {
     int mn,scrx,scry,mapx,mapy;
-    DL *dl;
-    DDFX *ddfx;
     char *actstr;
     int acttyp;
 
@@ -1373,9 +1284,8 @@ int get_sink(int mn,struct map *cmap) {
 }
 
 void display_game_map(struct map *cmap) {
-    int i,e,fn,nr,mapx,mapy,mn,scrx,scry,light,x,y,x1,y1,x2,y2,mna,sprite,n,sink,xoff,yoff,start;
+    int i,nr,mapx,mapy,mn,scrx,scry,light,mna,sprite,sink,xoff,yoff,start;
     DL *dl;
-    DDFX *ddfx;
     int heightadd;
 
     start=GetTickCount();
@@ -2226,6 +2136,7 @@ void display_pents(void) {
     }
 }
 
+int do_display_questlog(int nr);
 void display_game(void) {
     extern int dd_tick;
     extern int x_offset;
@@ -2286,7 +2197,6 @@ void display_quick(int q) {
 int quick_qcmp(const void *va,const void *vb) {
     const QUICK *a;
     const QUICK *b;
-    int cmp;
 
     a=(QUICK *)va;
     b=(QUICK *)vb;
@@ -2299,9 +2209,7 @@ int quick_qcmp(const void *va,const void *vb) {
 
 void make_quick(int game) {
     int t,cnt;
-    int x,y,xs,xe,ys,ye,i,ii,iii;
-    int scrx,scry;
-    FILE *file;
+    int x,y,xs,xe,i,ii;
     int dist=DIST;
 
     if (game) {

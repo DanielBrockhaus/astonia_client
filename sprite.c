@@ -3,6 +3,7 @@
  */
 
 #define ISCLIENT
+#define WANTMAPMN
 #include "main.h"
 #include "client.h"
 #include "sprite.h"
@@ -1319,7 +1320,8 @@ int trans_asprite(int mn,int sprite,int attick,
         case 51632:	light=-20; shine=5; cr=10; break; // shrike stone
 
         case 56002:	help=(attick/2)%8; if (help>3) sprite=56002+7-help;
-            else sprite=56002+help; break; // pulsing ring
+            else sprite=56002+help;
+                                       break; // pulsing ring
 
 // !! -------------------- !! pseudo sprites start here !! --------------------- !!
         case 59000:	sprite=14205; c2=IRGB(16,12,0); break; // edemon book orange
@@ -2416,7 +2418,6 @@ int get_player_sprite(int nr,int zdir,int action,int step,int duration) {
     return base;
 }
 
-#pragma argsused
 void trans_csprite(int mn,struct map *cmap,int attick) {
     int dirxadd[8]={+1,0,-1,-2,-1,0,+1,+2};
     int diryadd[8]={+1,+2,+1,0,-1,-2,-1,0};

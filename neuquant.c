@@ -120,7 +120,7 @@ void unbiasnet() {
 #define IRGB(r,g,b) (((r)<<10)|((g)<<5)|((b)<<0))
 
 void writecolourmap(unsigned short int *pal) {
-    int i,j;
+    int j;
 
     for (j=0; j<netsize; j++) pal[j]=IRGB(network[j][0],network[j][1],network[j][2]);
 }

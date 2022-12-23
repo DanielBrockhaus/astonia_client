@@ -4,6 +4,8 @@
 
 #include <stdlib.h>
 
+#define max(a,b)    ((a)>(b)?(a):(b))
+
 #define ISCLIENT
 #include "main.h"
 #include "client.h"

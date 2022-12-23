@@ -8,7 +8,7 @@
 #include <ddraw.h>
 #include <math.h>
 #include <stdio.h>
-#pragma hdrstop
+
 #include "main.h"
 #include "dd.h"
 #include "client.h"
@@ -159,7 +159,7 @@ static const char* dd_errstr(int err) {
         case DDERR_UNSUPPORTED:                         return "DDERR_UNSUPPORTED";
     }
 
-    sprintf(buf,"DDERR_UNKNOWN(%d,%X,%X)",err,err,DDERR_EXCEPTION);
+    sprintf(buf,"DDERR_UNKNOWN(%d,%X,%lX)",err,err,DDERR_EXCEPTION);
     return buf;
 }
 
@@ -168,17 +168,6 @@ static int dd_error(const char *txt,int err) {
     if (err==DDERR_SURFACELOST) note("%s",dderr);
     else fail("%s",dderr);
     return -1;
-}
-
-static char* binstr(char *buf,unsigned int val,int num) {
-    int i;
-    char *run=buf;
-
-    for (i=num-1; i>=0; i--) if ((1<<i)&val) *run++='1';
-        else *run++='0';
-    *run=0;
-
-    return buf;
 }
 
 static char* ddsdstr(char *buf,DDSURFACEDESC *ddsd) {
@@ -190,38 +179,23 @@ static char* ddsdstr(char *buf,DDSURFACEDESC *ddsd) {
     else if (ddsd->ddsCaps.dwCaps&DDSCAPS_SYSTEMMEMORY) memstr="systemmemory";
     else memstr="funnymemory";
 
-    bpp=ddsd->ddpfPixelFormat.u1.dwRGBBitCount;
-    if (bpp) pitch=ddsd->u1.lPitch/(bpp/8);
+    bpp=ddsd->ddpfPixelFormat.dwRGBBitCount;
+    if (bpp) pitch=ddsd->lPitch/(bpp/8);
     else pitch=-1;
 
-    sprintf(buf,"%dx%dx%d %s (pitch=%d) (%08X,%08X,%08X)",
+    sprintf(buf,"%ldx%ldx%d %s (pitch=%d) (%08lX,%08lX,%08lX)",
             ddsd->dwWidth,ddsd->dwHeight,bpp,
             memstr,
             pitch,
-            ddsd->ddpfPixelFormat.u2.dwRBitMask, // binstr(rbuf,ddsd->ddpfPixelFormat.u2.dwRBitMask,bpp),
-            ddsd->ddpfPixelFormat.u3.dwGBitMask, // binstr(gbuf,ddsd->ddpfPixelFormat.u3.dwGBitMask,bpp),
-            ddsd->ddpfPixelFormat.u4.dwBBitMask  // binstr(bbuf,ddsd->ddpfPixelFormat.u4.dwBBitMask,bpp)
+            ddsd->ddpfPixelFormat.dwRBitMask, // binstr(rbuf,ddsd->ddpfPixelFormat.u2.dwRBitMask,bpp),
+            ddsd->ddpfPixelFormat.dwGBitMask, // binstr(gbuf,ddsd->ddpfPixelFormat.u3.dwGBitMask,bpp),
+            ddsd->ddpfPixelFormat.dwBBitMask  // binstr(bbuf,ddsd->ddpfPixelFormat.u4.dwBBitMask,bpp)
            );
 
     return buf;
 }
 
-static int dd_vidmembytes(LPDIRECTDRAWSURFACE sur) {
-    DDSURFACEDESC ddsd;
-    int err;
-
-    bzero(&ddsd,sizeof(ddsd));
-    ddsd.dwSize=sizeof(ddsd);
-    ddsd.dwFlags=DDSD_ALL;
-    if ((err=sur->lpVtbl->GetSurfaceDesc(sur,&ddsd))!=DD_OK) return dd_error("GetSurfaceDesc(ddcs[s])",err);
-
-    if (ddsd.ddsCaps.dwCaps&DDSCAPS_SYSTEMMEMORY) return 0; // if it's not there, it has to be in video memory - works for funnymemory as well
-
-    return ddsd.dwHeight*ddsd.u1.lPitch;
-}
-
 void dd_get_client_info(struct client_info *ci) {
-    int n;
     DDCAPS caps;
     static MEMORYSTATUS memstat;
 
@@ -241,21 +215,15 @@ void dd_get_client_info(struct client_info *ci) {
 }
 
 int dd_set_color_key(void) {
-    DDCOLORKEY key;
-    int err;
-    int s;
 
     note("colorkey=0x%X/0x%X - 0x%X - 0x%X",rgbcolorkey,scrcolorkey,scr2rgb[scrcolorkey],R_MASK|B_MASK);
-
-    key.dwColorSpaceLowValue=scrcolorkey;
-    key.dwColorSpaceHighValue=scrcolorkey;
 
     return 0;
 }
 
 int dd_init(int width,int height) {
     DDSURFACEDESC ddsd;
-    int err,s,r,flags,freevidmem;
+    int err;
     char buf[1024];
 
     // create dd
@@ -283,13 +251,13 @@ int dd_init(int width,int height) {
     ddsd.dwHeight=YRES;
     ddsd.ddpfPixelFormat.dwSize=sizeof(ddsd.ddpfPixelFormat);
     ddsd.ddpfPixelFormat.dwFlags=DDPF_RGB;
-    ddsd.ddpfPixelFormat.u1.dwRGBBitCount=16;
+    ddsd.ddpfPixelFormat.dwRGBBitCount=16;
 
     // RGBM_R5G6B5
-    ddsd.ddpfPixelFormat.u2.dwRBitMask=0xF800;
-    ddsd.ddpfPixelFormat.u3.dwGBitMask=0x07E0;
-    ddsd.ddpfPixelFormat.u4.dwBBitMask=0x001F;
-    ddsd.ddpfPixelFormat.u5.dwRGBAlphaBitMask=0;
+    ddsd.ddpfPixelFormat.dwRBitMask=0xF800;
+    ddsd.ddpfPixelFormat.dwGBitMask=0x07E0;
+    ddsd.ddpfPixelFormat.dwBBitMask=0x001F;
+    ddsd.ddpfPixelFormat.dwRGBAlphaBitMask=0;
 
     if ((err=dd->lpVtbl->CreateSurface(dd,&ddsd,&ddbs,NULL))!=DD_OK) return dd_error("CreateSurface(ddbs)",err);    // create Backsurface
 
@@ -303,13 +271,13 @@ int dd_init(int width,int height) {
     ddsd.dwFlags=DDSD_ALL;
     if ((err=ddbs->lpVtbl->GetSurfaceDesc(ddbs,&ddsd))!=DD_OK) return dd_error("GetSurfaceDesc(ddbs)",err);
     note("ddbs is %s",ddsdstr(buf,&ddsd));
-    xres=ddsd.u1.lPitch/2;
+    xres=ddsd.lPitch/2;
     yres=ddsd.dwHeight;
 
     if (!(ddsd.ddpfPixelFormat.dwFlags&DDPF_RGB)) return dd_error("CANNOT HANDLE PIXEL FORMAT",-1);
-    R_MASK=ddsd.ddpfPixelFormat.u2.dwRBitMask;
-    G_MASK=ddsd.ddpfPixelFormat.u3.dwGBitMask;
-    B_MASK=ddsd.ddpfPixelFormat.u4.dwBBitMask;
+    R_MASK=ddsd.ddpfPixelFormat.dwRBitMask;
+    G_MASK=ddsd.ddpfPixelFormat.dwGBitMask;
+    B_MASK=ddsd.ddpfPixelFormat.dwBBitMask;
 
     if (R_MASK==0xF800 && G_MASK==0x07E0 && B_MASK==0x001F) { rgbm=RGBM_R5G6B5; }
     else if (R_MASK==0x7C00 && G_MASK==0x03E0 && B_MASK==0x001F) { rgbm=RGBM_X1R5G5B5; }
@@ -341,32 +309,27 @@ int dd_init(int width,int height) {
 }
 
 int dd_exit(void) {
-    int s,left;
 
     // removed - slow!
     //gfx_exit();
     //dd_exit_cache();
 
     if (ddbs) {
-        left=ddbs->lpVtbl->Release(ddbs);
+        ddbs->lpVtbl->Release(ddbs);
         ddbs=NULL;
-        // note("released ddbs. %d references left",left);
     }
 
     if (ddcl) {
-        left=ddcl->lpVtbl->Release(ddcl);
+        ddcl->lpVtbl->Release(ddcl);
         ddcl=NULL;
-        // note("released ddcl. %d references left",left);
     }
 
     if (dd) {
         dd->lpVtbl->RestoreDisplayMode(dd);
-        left=dd->lpVtbl->Release(dd);
+        dd->lpVtbl->Release(dd);
         dd=NULL;
-        // note("released dd. %d references left",left);
     }
 
-    if (left==12345678) return left; // grrr
 
     return 0;
 }
@@ -450,7 +413,7 @@ void dd_flip(void) {
     HDC srcdc;
     HDC tgtdc;
     HDC tmpdc;
-    HBITMAP bm;
+    HBITMAP bm=NULL;
     RECT r;
     int xs,ys;
 
@@ -557,7 +520,6 @@ void dd_flip(void) {
 }
 
 int dd_islost(void) {
-    int s;
 
     if (ddbs->lpVtbl->IsLost(ddbs)!=DD_OK) return 1; // ddbs->lpVtbl->Restore(ddbs); else ok++;
 
@@ -565,7 +527,6 @@ int dd_islost(void) {
 }
 
 int dd_restore(void) {
-    int s;
     static int cacheflag=0;
 
     if (ddbs->lpVtbl->IsLost(ddbs)!=DD_OK) if (ddbs->lpVtbl->Restore(ddbs)!=DD_OK) return -1;
@@ -686,8 +647,7 @@ int sc_miss=0,sc_hit=0,sc_maxstep=0;
 int vc_miss=0,vc_hit=0,vc_unique=0,vc_unique24=0,sc_blits=0;
 
 int dd_init_cache(void) {
-    int scr,rgb,r,g,b,s,i,v,x,y;
-    int tr,tg,tb;
+    int scr,rgb,r,g,b,i;
 
     // imagecache
     max_imagecache=1024;
@@ -811,7 +771,7 @@ int dd_init_cache(void) {
 }
 
 void dd_exit_cache(void) {
-    int i,s;
+    int i;
 
     // tables
     xfree(rgb2scr);
@@ -861,8 +821,7 @@ void dd_exit_cache(void) {
 }
 
 int dd_reset_cache(int reset_image,int reset_system,int reset_video) {
-    int i,iidx,sidx,vidx;
-    int vmax,v;
+    int i,iidx,sidx;
 
     note("reset%s%s%s",reset_image?" image_cache":"",reset_system?" system_cache":"",reset_video?" video_cache":"");
 
@@ -1066,8 +1025,7 @@ static void sc_blit_apix(int sidx,int scrx,int scry,int grid,int freeze) {
 
 static int ic_load(int sprite) {
     int iidx,start;
-    int amax,nidx,pidx,v;
-    IMAGE *image;
+    int nidx,pidx;
 
     start=GetTickCount();
 
@@ -1253,7 +1211,7 @@ static unsigned short shine_pix(unsigned short irgb,unsigned short shine) {
 #define BLUECOL		(0.70)
 
 static int colorize_pix(unsigned short irgb,unsigned short c1v,unsigned short c2v,unsigned short c3v) {
-    double rf,gf,bf,m,str,rm,gm,bm,rv,gv,bv;
+    double rf,gf,bf,m,rm,gm,bm;
     double c1=0,c2=0,c3=0;
     double shine=0;
     int r,g,b;
@@ -1327,57 +1285,6 @@ static int colorize_pix(unsigned short irgb,unsigned short c1v,unsigned short c2
     else return irgb;
 }
 
-static IMAGE* ic_merge(IMAGE *a,IMAGE *b) {
-    IMAGE *c;
-    int x,y;
-    int x1,x2,y1,y2;
-    int a1,rgb1;
-    int a2,rgb2;
-
-    c=xmalloc(sizeof(IMAGE),MEM_IC);
-    c->xres=max(a->xres,b->xres);
-    c->yres=max(a->yres,b->yres);
-    c->xoff=min(a->xoff,b->xoff);
-    c->yoff=min(a->yoff,b->yoff);
-
-    x1=c->xoff-a->xoff;
-    x2=c->xoff-b->xoff;
-    y1=c->yoff-a->yoff;
-    y2=c->yoff-b->yoff;
-
-    //note("cxres=%d, cyres=%d, axres=%d, ayres=%d, bxres=%d, byres=%d, x1=%d, x2=%d, y1=%d, y2=%d",c->xres,c->yres,a->xres,a->yres,b->xres,b->yres,x1,x2,y1,y2);
-
-    c->a=xmalloc(c->xres*c->yres*sizeof(unsigned char),MEM_IC);
-    c->rgb=xmalloc(c->xres*c->yres*sizeof(unsigned short),MEM_IC);
-
-    for (y=0; y<c->yres; y++) {
-        for (x=0; x<c->xres; x++) {
-            if (x+x1<0 || x+x1>=a->xres || y+y1<0 || y+y1>=a->yres) {
-                a1=rgb1=0;
-            } else {
-                a1=a->a[(x+x1)+(y+y1)*a->xres];
-                rgb1=a->rgb[(x+x1)+(y+y1)*a->xres];
-            }
-
-            if (x+x2<0 || x+x2>=b->xres || y+y2<0 || y+y2>=b->yres) {
-                a2=rgb2=0;
-            } else {
-                a2=b->a[(x+x2)+(y+y2)*b->xres];
-                rgb2=b->rgb[(x+x2)+(y+y2)*b->xres];
-            }
-
-            c->a[x+y*c->xres]=max(a1,a2);
-
-            if (IGET_R(rgb2)>1 ||
-                IGET_G(rgb2)>1 ||
-                IGET_B(rgb2)>1) c->rgb[x+y*c->xres]=rgb2;
-            else c->rgb[x+y*c->xres]=rgb1;
-        }
-    }
-
-    return c;
-}
-
 static unsigned short colorbalance(unsigned short irgb,char cr,char cg,char cb,char light,char sat) {
     int r,g,b,grey;
 
@@ -1426,11 +1333,11 @@ static unsigned short colorbalance(unsigned short irgb,char cr,char cg,char cb,c
 }
 
 static void sc_make_slow(SYSTEMCACHE *sc,IMAGE *image,signed char sink,unsigned char freeze,unsigned char grid,unsigned char scale,char cr,char cg,char cb,char light,char sat,unsigned short c1v,unsigned short c2v,unsigned short c3v,unsigned short shine,char ml,char ll,char rl,char ul,char dl) {
-    int x,y,amax,xm;
+    int x,y,amax;
     double ix,iy,low_x,low_y,high_x,high_y,dbr,dbg,dbb,dba;
     unsigned short int irgb,*sptr;
     unsigned char a;
-    int a_r,a_g,a_b,b_r,b_g,b_b,r,g,b,da,db;
+    int r,g,b;
 
     if (image->xres==0 || image->yres==0) scale=100;    // !!! needs better handling !!!
 
@@ -1468,7 +1375,7 @@ static void sc_make_slow(SYSTEMCACHE *sc,IMAGE *image,signed char sink,unsigned 
                 low_x=1-high_x;
                 low_y=1-high_y;
 
-                irgb=image->rgb[floor(ix)+floor(iy)*image->xres];
+                irgb=image->rgb[(int)(floor(ix)+floor(iy)*image->xres)];
 
                 if (irgb==rgbcolorkey) {
                     dbr=0;
@@ -1481,10 +1388,10 @@ static void sc_make_slow(SYSTEMCACHE *sc,IMAGE *image,signed char sink,unsigned 
                     dbg=IGET_G(irgb)*low_x*low_y;
                     dbb=IGET_B(irgb)*low_x*low_y;
                     if (!image->a) dba=31*low_x*low_y;
-                    else dba=image->a[floor(ix)+floor(iy)*image->xres]*low_x*low_y;
+                    else dba=image->a[(int)(floor(ix)+floor(iy)*image->xres)]*low_x*low_y;
                 }
 
-                irgb=image->rgb[ceil(ix)+floor(iy)*image->xres];
+                irgb=image->rgb[(int)(ceil(ix)+floor(iy)*image->xres)];
 
                 if (irgb==rgbcolorkey) {
                     dbr+=0;
@@ -1497,10 +1404,10 @@ static void sc_make_slow(SYSTEMCACHE *sc,IMAGE *image,signed char sink,unsigned 
                     dbg+=IGET_G(irgb)*high_x*low_y;
                     dbb+=IGET_B(irgb)*high_x*low_y;
                     if (!image->a) dba+=31*high_x*low_y;
-                    else dba+=image->a[ceil(ix)+floor(iy)*image->xres]*high_x*low_y;
+                    else dba+=image->a[(int)(ceil(ix)+floor(iy)*image->xres)]*high_x*low_y;
                 }
 
-                irgb=image->rgb[floor(ix)+ceil(iy)*image->xres];
+                irgb=image->rgb[(int)(floor(ix)+ceil(iy)*image->xres)];
 
                 if (irgb==rgbcolorkey) {
                     dbr+=0;
@@ -1513,10 +1420,10 @@ static void sc_make_slow(SYSTEMCACHE *sc,IMAGE *image,signed char sink,unsigned 
                     dbg+=IGET_G(irgb)*low_x*high_y;
                     dbb+=IGET_B(irgb)*low_x*high_y;
                     if (!image->a) dba+=31*low_x*high_y;
-                    else dba+=image->a[floor(ix)+ceil(iy)*image->xres]*low_x*high_y;
+                    else dba+=image->a[(int)(floor(ix)+ceil(iy)*image->xres)]*low_x*high_y;
                 }
 
-                irgb=image->rgb[ceil(ix)+ceil(iy)*image->xres];
+                irgb=image->rgb[(int)(ceil(ix)+ceil(iy)*image->xres)];
 
                 if (irgb==rgbcolorkey) {
                     dbr+=0;
@@ -1530,7 +1437,7 @@ static void sc_make_slow(SYSTEMCACHE *sc,IMAGE *image,signed char sink,unsigned 
                     dbb+=IGET_B(irgb)*high_x*high_y;
 
                     if (!image->a) dba+=31*high_x*high_y;
-                    else dba+=image->a[ceil(ix)+ceil(iy)*image->xres]*high_x*high_y;
+                    else dba+=image->a[(int)(ceil(ix)+ceil(iy)*image->xres)]*high_x*high_y;
                 }
 
 
@@ -1556,10 +1463,10 @@ static void sc_make_slow(SYSTEMCACHE *sc,IMAGE *image,signed char sink,unsigned 
             sptr=&sc->rgb[x+y*sc->xres];
 
             if (ll!=ml || rl!=ml || ul!=ml || dl!=ml) {
-                int r1,r2,r3,r4,r5;
-                int g1,g2,g3,g4,g5;
-                int b1,b2,b3,b4,b5;
-                int v1,v2,v3,v4,v5;
+                int r1=0,r2=0,r3=0,r4=0,r5=0;
+                int g1=0,g2=0,g3=0,g4=0,g5=0;
+                int b1=0,b2=0,b3=0,b4=0,b5=0;
+                int v1,v2,v3,v4,v5=0;
                 int div;
 
                 if (y<10+(20-abs(20-x))/2) {
@@ -1664,9 +1571,8 @@ static void sc_make_slow(SYSTEMCACHE *sc,IMAGE *image,signed char sink,unsigned 
     sc->apix=xrealloc(sc->apix,sc->acnt*sizeof(APIX),MEM_SC);
 }
 
-#pragma argsused
 static void sc_make_fast(SYSTEMCACHE *sc,IMAGE *image,signed char sink,unsigned char freeze,unsigned char grid,unsigned char scale,char cr,char cg,char cb,char light,char sat,unsigned short c1v,unsigned short c2v,unsigned short c3v,unsigned short shine,char ml,char ll,char rl,char ul,char dl) {
-    int x,y,amax,xm,pos;
+    int x,y,amax,pos;
     unsigned short int irgb;
     unsigned char a;
     int need_colorize=0;
@@ -1760,7 +1666,7 @@ int sys_hash_key(int sidx) {
 
 
 static int sc_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,int cb,int light,int sat,int c1,int c2,int c3,int shine,int ml,int ll,int rl,int ul,int dl,int checkonly,int isprefetch) {
-    int sidx,iidx,v,vmax,step,pidx,nidx;
+    int sidx,iidx,step,pidx,nidx;
 
     if (sprite>MAXSPRITE || sprite<0) {
         note("illegal sprite %d wanted in sc_load",sprite);
@@ -2029,7 +1935,7 @@ void dd_rect(int sx,int sy,int ex,int ey,unsigned short int color) {
     if ((ex-sx)*(ey-sy)>100) {  // large rect? use hardware then
         bzero(&bltfx,sizeof(bltfx));
         bltfx.dwSize=sizeof(bltfx);
-        bltfx.u5.dwFillColor=color;
+        bltfx.dwFillColor=color;
 
         rc.left=sx+x_offset;
         rc.top=sy+y_offset;
@@ -2069,7 +1975,7 @@ void dd_black(void) {
 
     bzero(&bltfx,sizeof(bltfx));
     bltfx.dwSize=sizeof(bltfx);
-    bltfx.u5.dwFillColor=0;
+    bltfx.dwFillColor=0;
 
     rc.left=0;
     rc.top=0;
@@ -2121,7 +2027,7 @@ void dd_shaded_rect(int sx,int sy,int ex,int ey) {
 }
 
 void dd_line(int fx,int fy,int tx,int ty,unsigned short col) {
-    unsigned short *ptr,val;
+    unsigned short *ptr;
     int dx,dy,x,y,rx,ry;
 
     if (fx<clipsx) fx=clipsx;
@@ -2167,7 +2073,6 @@ void dd_line(int fx,int fy,int tx,int ty,unsigned short col) {
 }
 
 void dd_line2(int fx,int fy,int tx,int ty,unsigned short col,unsigned short *ptr) {
-    unsigned short val;
     int dx,dy,x,y,rx,ry;
 
     if (fx<clipsx) fx=clipsx;
@@ -2616,7 +2521,6 @@ void dd_draw_potion(int x,int y,int ticker,int strength,int front) {
 
 void dd_draw_rain(int x,int y,int ticker,int strength,int front) {
     int step;
-    double light;
     unsigned short *ptr;
 
     if ((ptr=dd_lock_surface(ddbs))==NULL) return;
@@ -2672,7 +2576,7 @@ char* dd_create_rawrun(char letter[16][16]) {
 
 void create_shade_font(DDFONT *src,DDFONT *dst) {
     char letter[16][16];
-    int x,y,c;
+    int c;
 
     for (c=0; c<128; c++) {
         bzero(letter,sizeof(letter));
@@ -2686,7 +2590,7 @@ void create_shade_font(DDFONT *src,DDFONT *dst) {
 
 void create_frame_font(DDFONT *src,DDFONT *dst) {
     char letter[16][16];
-    int x,y,c;
+    int c;
 
     for (c=0; c<128; c++) {
         bzero(letter,sizeof(letter));
@@ -2723,7 +2627,7 @@ int textdisplay_dy=10;
 int dd_drawtext_char(int sx,int sy,int c,unsigned short int color) {
     unsigned short *ptr,*dst;
     unsigned char *rawrun;
-    int x,y,start;
+    int x,y;
 
     if (c>127 || c<0) return 0;
 
@@ -2833,8 +2737,6 @@ void dd_init_text(void) {
 }
 
 void dd_set_textfont(int nr) {
-    extern int namesize;
-    int n;
 
     switch (nr) {
         case 0:	textfont=fonta; textdisplay_dy=10; fontdim=fontdim_a; break;
@@ -2847,7 +2749,7 @@ void dd_set_textfont(int nr) {
 void dd_display_text(void) {
     int n,m,rn,x,y,pos;
     char buf[256],*bp;
-    unsigned short lastcolor;
+    unsigned short lastcolor=-1;
 
     for (n=textdisplayline,y=TEXTDISPLAY_Y; y<=TEXTDISPLAY_Y+TEXTDISPLAY_SY-TEXTDISPLAY_DY; n++,y+=TEXTDISPLAY_DY) {
         rn=n%MAXTEXTLINES;
@@ -3112,8 +3014,6 @@ void sc_blit4(SYSTEMCACHE *sc,int scrx,int scry,int sx,int sy,int dx,int dy) {
 // blit a systemcache entry to the screen
 static int sc_blit2(DDFX *ddfx,int sidx,int scrx,int scry) {
     SYSTEMCACHE *sc;
-    int v,tx,ty,use,size;
-    struct vid_cache *vcl,*vc;
 
     PARANOIA(if (sidx==SIDX_NONE) paranoia("sc_blit: sidx==SIDX_NONE"); )
     PARANOIA(if (sidx>=max_systemcache) paranoia("sc_blit: sidx>=max_systemcache (%d>=%d)",sidx,max_systemcache); )

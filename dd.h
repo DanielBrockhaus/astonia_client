@@ -21,7 +21,7 @@ extern float mouse_scale;   // mouse input needs to be scaled by this factor bec
 #define DD_VIDMEM       1
 #define DD_LOCMEM       2
 
-extern double gamma;            // set me to adjust gamma, call dd_reset() afterwards
+extern double _gamma;            // set me to adjust gamma, call dd_reset() afterwards
 extern int dd_gamma;
 extern int dd_lighteffect;
 extern int largetext;
@@ -214,6 +214,5 @@ extern unsigned int B_MASK;
 
 int dd_init_cache(void);
 void dd_exit_cache(void);
-void dd_get_client_info(struct client_info *ci);
 
 #define MAXSPRITE 250000

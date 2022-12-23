@@ -17,9 +17,9 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <math.h>
-#pragma hdrstop
 
 #define ISCLIENT
+#define WANTMAPMN
 #include "../lib/zlib.h"
 #include "main.h"
 #include "client.h"
@@ -411,14 +411,11 @@ void sv_fightmode(unsigned char *buf) {
 }
 
 void sv_setcitem(unsigned char *buf) {
-    int n;
-
     csprite=*(unsigned int *)(buf+1);
     cflags=*(unsigned int *)(buf+5);
 }
 
 void sv_act(unsigned char *buf) {
-    int n;
     extern int teleporter;
 
     act=*(unsigned short int *)(buf+1);
@@ -1499,7 +1496,7 @@ void send_info(int sock) {
 }
 
 int poll_network(void) {
-    int n,nn;
+    int n;
     extern int vendor;
 
     // something fatal failed (sockstate will somewhen tell you what)
