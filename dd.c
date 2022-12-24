@@ -602,8 +602,8 @@ struct systemcache {
     // primary
     unsigned short xres;            // x resolution in pixels
     unsigned short yres;            // y resolution in pixels
-    unsigned char tdx;              // x-resolution in tiles
-    unsigned char tdy;              // y-resolution in tiles
+    //unsigned char tdx;              // x-resolution in tiles
+    //unsigned char tdy;              // y-resolution in tiles
     short xoff;                     // offset to blit position
     short yoff;                     // offset to blit position
     short int size;
@@ -613,9 +613,9 @@ struct systemcache {
     APIX *apix;                     // alpha pixel
 
     // vc access
-    unsigned int used;
+    /*unsigned int used;
     unsigned int lost;
-    unsigned int tick;
+    unsigned int tick;*/
 };
 
 typedef struct systemcache SYSTEMCACHE;
@@ -1788,10 +1788,10 @@ static int sc_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int 
 
     sys_hash[sys_hash_key(sidx)]=sidx;
 
-    systemcache[sidx].tdx=(systemcache[sidx].xres+TILESIZEDX-1)/TILESIZEDX;
-    systemcache[sidx].tdy=(systemcache[sidx].yres+TILESIZEDY-1)/TILESIZEDY;
+    //systemcache[sidx].tdx=(systemcache[sidx].xres+TILESIZEDX-1)/TILESIZEDX;
+    //systemcache[sidx].tdy=(systemcache[sidx].yres+TILESIZEDY-1)/TILESIZEDY;
 
-    systemcache[sidx].lost=1;
+    //systemcache[sidx].lost=1;
 
     sc_best(sidx);
 
@@ -1801,12 +1801,33 @@ static int sc_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int 
 static int sc_blit2(DDFX *ddfx,int sidx,int scrx,int scry);
 int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry) {
     int sidx;
+    int stx;
 
     PARANOIA(if (!ddfx) paranoia("dd_copysprite_fx: ddfx=NULL"); )
     PARANOIA(if (ddfx->light<0 || ddfx->light>16) paranoia("dd_copysprite_fx: ddfx->light=%d",ddfx->light); )
     PARANOIA(if (ddfx->freeze<0 || ddfx->freeze>=DDFX_MAX_FREEZE) paranoia("dd_copysprite_fx: ddfx->freeze=%d",ddfx->freeze); )
 
     sidx=sc_load(ddfx->sprite,
+                 ddfx->sink,
+                 ddfx->freeze,
+                 ddfx->grid,
+                 ddfx->scale,
+                 ddfx->cr,
+                 ddfx->cg,
+                 ddfx->cb,
+                 ddfx->clight,
+                 ddfx->sat,
+                 ddfx->c1,
+                 ddfx->c2,
+                 ddfx->c3,
+                 ddfx->shine,
+                 ddfx->ml,
+                 ddfx->ll,
+                 ddfx->rl,
+                 ddfx->ul,
+                 ddfx->dl,0,0);
+
+    stx=sdl_tx_load(ddfx->sprite,
                  ddfx->sink,
                  ddfx->freeze,
                  ddfx->grid,
@@ -1848,7 +1869,7 @@ int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry) {
 
     // blit it
     sc_blit2(ddfx,sidx,scrx,scry);
-    if (ddfx->clipsx!=ddfx->clipex || ddfx->clipsy!=ddfx->clipey) sdl_blit(ddfx->sprite,scrx,scry);
+    sdl_blit(stx,scrx,scry);
 
     // remove additional cliprect
     if (ddfx->clipsx!=ddfx->clipex || ddfx->clipsy!=ddfx->clipey) dd_pop_clip();
@@ -3030,8 +3051,8 @@ static int sc_blit2(DDFX *ddfx,int sidx,int scrx,int scry) {
     // draw the alpha pixels
     if (sc->acnt) sc_blit_apix(sidx,scrx,scry,ddfx->grid,ddfx->freeze);
 
-    sc->tick=dd_tick;
-    sc->used++;
+    //sc->tick=dd_tick;
+    //sc->used++;
 
     sc_cnt++;
 

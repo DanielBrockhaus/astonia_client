@@ -13,7 +13,7 @@ OBJS	=	gui.o client.o skill.o dd.o font.o gfx.o main.o sprite.o game.o neuquant.
 moac.exe:       Makefile $(OBJS)
 		$(CC) $(LDFLAGS) -o moac.exe $(OBJS)  $(LIBS)
 
-dd.o:		dd.c main.h dd.h
+dd.o:		dd.c main.h dd.h sdl.h
 gfx.o:		gfx.c main.h dd.h neuquant.h
 sprite.o:	sprite.c main.h sprite.h client.h
 gui.o:		gui.c gui.h main.h dd.h client.h skill.h sprite.h resource.h

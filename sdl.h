@@ -1,3 +1,6 @@
+/*
+ * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ */
 
 #define GFXPATH "../gfx/"
 
@@ -8,5 +11,5 @@ int sdl_clear(void);
 int sdl_render(void);
 
 int sdl_ic_load(int sprite);
-void sdl_blit(int sprite,int scrx,int scry);
-
+void sdl_blit(int stx,int scrx,int scry);
+int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,int cb,int light,int sat,int c1,int c2,int c3,int shine,int ml,int ll,int rl,int ul,int dl,int checkonly,int isprefetch);

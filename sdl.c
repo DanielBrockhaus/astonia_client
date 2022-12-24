@@ -1,3 +1,7 @@
+/*
+ * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ */
+
 #include <stdint.h>
 #include <windows.h>
 #include <SDL2/SDL.h>
@@ -11,18 +15,59 @@ SDL_Renderer *sdlren;
 
 extern int gfx_force_png;
 
+#define MAX_TEXCACHE    100000
+#define STX_NONE        (-1)
+
+#define SF_USED         (1<<0)
+
+struct sdl_texture {
+    SDL_Texture *tex;
+
+    int prev,next;
+    int hprev,hnext;
+
+    uint16_t flags;
+
+    // fx
+    int32_t sprite;
+    int8_t sink;
+    uint8_t scale;
+    int16_t cr,cg,cb,light,sat;
+    uint16_t c1,c2,c3,shine;
+
+    uint8_t freeze;
+    uint8_t grid;
+
+    // light
+    int8_t ml,ll,rl,ul,dl;      // light in middle, left, right, up, down
+
+    // primary
+    uint16_t xres;              // x resolution in pixels
+    uint16_t yres;              // y resolution in pixels
+    int16_t xoff;               // offset to blit position
+    int16_t yoff;               // offset to blit position
+    uint16_t size;              // size in pixels (xres*yres) - TODO: needed?
+};
+
+struct sdl_texture *sdlt=NULL;
+int sdlt_best,sdlt_last;
+
 struct sdl_image {
-    int flags;
-    int xres,yres;
-    int xoff,yoff;
+    int stx;
     uint32_t *pixel;
+
+    uint16_t flags;
+    int16_t xres,yres;
+    int16_t xoff,yoff;
 };
 
 struct sdl_image *sdli=NULL;
 
+long mem_png=0,mem_tex=0;
+
 
 int sdl_init(int width,int height,char *title) {
-    int len;
+    int len,i;
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0){
         printf("SDL_Init Error: %s",SDL_GetError());
@@ -48,16 +93,32 @@ int sdl_init(int width,int height,char *title) {
 
     len=sizeof(struct sdl_image)*MAXSPRITE;
     note("SDL Image cache needs %.2fM for image cache index",len/(1024.0*1024.0));
-    sdli=malloc(len);
+    sdli=calloc(len,1);
     if (!sdli) return fail("Out of memory in sdl_init");
-    bzero(sdli,len);
+
+    for (i=0; i<MAXSPRITE; i++)
+        sdli[i].stx=STX_NONE;
+
+    sdlt=calloc(MAX_TEXCACHE,sizeof(struct sdl_texture));
+    for (i=0; i<MAX_TEXCACHE; i++) {
+        sdlt[i].flags=0;
+        sdlt[i].prev=i-1;
+        sdlt[i].next=i+1;
+        sdlt[i].hnext=STX_NONE;
+        sdlt[i].hprev=STX_NONE;
+    }
+    sdlt[0].prev=STX_NONE;
+    sdlt[MAX_TEXCACHE-1].next=STX_NONE;
+    sdlt_best=0;
+    sdlt_last=MAX_TEXCACHE-1;
 
     return 1;
 }
 
 int sdl_clear(void) {
-    SDL_SetRenderDrawColor(sdlren,0,0,0,255);
+    SDL_SetRenderDrawColor(sdlren,0,255,0,255);
     SDL_RenderClear(sdlren);
+    //printf("mem: %.2fM PNG, %.2fM Tex\n",mem_png/(1024.0*1024.0),mem_tex/(1024.0*1024.0)); fflush(stdout);
     return 1;
 }
 
@@ -134,6 +195,7 @@ int sdl_load_image_png(struct sdl_image *si,char *filename) {
     si->yoff=-(yres/2)+sy;
 
     si->pixel=malloc(si->xres*si->yres*sizeof(uint32_t));
+    mem_png+=si->xres*si->yres*sizeof(uint32_t);
 
     if (format==4) {
         for (y=0; y<si->yres; y++) {
@@ -205,22 +267,167 @@ int sdl_ic_load(int sprite) {
     return sprite;
 }
 
-void sdl_blit(int sprite,int scrx,int scry) {
-    struct sdl_image *si;
+static void sdl_tx_best(int stx) {
+    PARANOIA(if (stx==STX_NONE) paranoia("sdl_tx_best(): sidx=SIDX_NONE"); )
+    PARANOIA(if (stx>=MAX_TEXCACHE) paranoia("sdl_tx_best(): sidx>max_systemcache (%d>=%d)",stx,MAX_TEXCACHE); )
+
+    if (sdlt[stx].prev==STX_NONE) {
+
+        PARANOIA(if (stx!=sdlt_best) paranoia("sdl_tx_best(): stx should be best"); )
+
+        return;
+    } else if (sdlt[stx].next==STX_NONE) {
+
+        PARANOIA(if (stx!=sdlt_last) paranoia("sdl_tx_best(): sidx should be last"); )
+
+        sdlt_last=sdlt[stx].prev;
+        sdlt[sdlt_last].next=STX_NONE;
+        sdlt[sdlt_best].prev=stx;
+        sdlt[stx].prev=STX_NONE;
+        sdlt[stx].next=sdlt_best;
+        sdlt_best=stx;
+
+        return;
+    } else {
+        sdlt[sdlt[stx].prev].next=sdlt[stx].next;
+        sdlt[sdlt[stx].next].prev=sdlt[stx].prev;
+        sdlt[stx].prev=STX_NONE;
+        sdlt[stx].next=sdlt_best;
+        sdlt[sdlt_best].prev=stx;
+        sdlt_best=stx;
+        return;
+    }
+}
+
+int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,int cb,int light,int sat,int c1,int c2,int c3,int shine,int ml,int ll,int rl,int ul,int dl,int checkonly,int isprefetch) {
+    int stx,ptx,ntx;
+
+    if (sprite>=MAXSPRITE || sprite<0) {
+        note("illegal sprite %d wanted in sdl_tx_load",sprite);
+        return -1;
+    }
+
+    for (stx=sdli[sprite].stx; stx!=STX_NONE; stx=sdlt[stx].hnext) {
+        if (sdlt[stx].sink!=sink) continue;
+        if (sdlt[stx].freeze!=freeze) continue;
+        if (sdlt[stx].grid!=grid) continue;
+        if (sdlt[stx].scale!=scale) continue;
+        if (sdlt[stx].cr!=cr) continue;
+        if (sdlt[stx].cg!=cg) continue;
+        if (sdlt[stx].cb!=cb) continue;
+        if (sdlt[stx].light!=light) continue;
+        if (sdlt[stx].sat!=sat) continue;
+        if (sdlt[stx].c1!=c1) continue;
+        if (sdlt[stx].c2!=c2) continue;
+        if (sdlt[stx].c3!=c3) continue;
+        if (sdlt[stx].shine!=shine) continue;
+        if (sdlt[stx].ml!=ml) continue;
+        if (sdlt[stx].ll!=ll) continue;
+        if (sdlt[stx].rl!=rl) continue;
+        if (sdlt[stx].ul!=ul) continue;
+        if (sdlt[stx].dl!=dl) continue;
+
+        sdl_tx_best(stx);
+
+        // remove from old pos
+        ntx=sdlt[stx].hnext;
+        ptx=sdlt[stx].hprev;
+
+        if (ptx==STX_NONE) sdli[sprite].stx=ntx;
+        else sdlt[ptx].hnext=sdlt[stx].hnext;
+
+        if (ntx!=STX_NONE) sdlt[ntx].hprev=sdlt[stx].hprev;
+
+        // add to top pos
+        ntx=sdli[sprite].stx;
+
+        if (ntx!=STX_NONE) sdlt[ntx].hprev=stx;
+
+        sdlt[stx].hprev=STX_NONE;
+        sdlt[stx].hnext=ntx;
+
+        sdli[sprite].stx=stx;
+
+        return stx;
+    }
+
+    stx=sdlt_last;
+
+    // delete
+    if (sdlt[stx].flags) {
+
+        printf("PAAAAANIC! in sdl_tx_load\n");  //TODO: Is this really an error?
+
+        ntx=sdlt[stx].hnext;
+        ptx=sdlt[stx].hprev;
+
+        if (ptx==STX_NONE) sdli[sprite].stx=ntx;
+        else sdlt[ptx].hnext=sdlt[stx].hnext;
+
+        if (ntx!=STX_NONE) sdlt[ntx].hprev=sdlt[stx].hprev;
+
+        sdlt[stx].flags=0;
+    }
+
+    // build
+    sdl_ic_load(sprite);
+
+
+    //sc_make(&systemcache[sidx],&imagecache[iidx].image,sink,freeze,grid,scale,cr,cg,cb,light,sat,c1,c2,c3,shine,ml,ll,rl,ul,dl);
+
+    SDL_Texture *texture = SDL_CreateTexture(sdlren, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, sdli[sprite].xres,sdli[sprite].yres);
+    if (!texture) printf("SDL_texture Error: %s",SDL_GetError());
+    SDL_UpdateTexture(texture,NULL,sdli[sprite].pixel,sdli[sprite].xres*sizeof(uint32_t));
+    SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
+
+    mem_tex+=sdli[sprite].xres*sdli[sprite].yres*sizeof(uint32_t);
+    sdlt[stx].tex=texture;
+    sdlt[stx].xres=sdli[sprite].xres;
+    sdlt[stx].yres=sdli[sprite].yres;
+
+    // init
+    sdlt[stx].flags=SF_USED;
+    sdlt[stx].sprite=sprite;
+    sdlt[stx].sink=sink;
+    sdlt[stx].freeze=freeze;
+    sdlt[stx].grid=grid;
+    sdlt[stx].scale=scale;
+    sdlt[stx].cr=cr;
+    sdlt[stx].cg=cg;
+    sdlt[stx].cb=cb;
+    sdlt[stx].light=light;
+    sdlt[stx].sat=sat;
+    sdlt[stx].c1=c1;
+    sdlt[stx].c2=c2;
+    sdlt[stx].c3=c3;
+    sdlt[stx].shine=shine;
+    sdlt[stx].ml=ml;
+    sdlt[stx].ll=ll;
+    sdlt[stx].rl=rl;
+    sdlt[stx].ul=ul;
+    sdlt[stx].dl=dl;
+
+    ntx=sdli[sprite].stx;
+
+    if (ntx!=STX_NONE) sdlt[ntx].hprev=stx;
+
+    sdlt[stx].hprev=-1;
+    sdlt[stx].hnext=ntx;
+
+    sdli[sprite].stx=stx;
+
+    sdl_tx_best(stx);
+
+    return stx;
+}
+
+
+void sdl_blit(int stx,int scrx,int scry) {
     SDL_Rect r;
 
-    si=sdli+sprite;
+    r.x=scrx; r.w=sdlt[stx].xres;
+    r.y=scry; r.h=sdlt[stx].yres;
 
-    SDL_Texture *texture = SDL_CreateTexture(sdlren, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, si->xres,si->yres);
-    if (!texture) printf("SDL_texture Error: %s",SDL_GetError());
-    SDL_UpdateTexture(texture,NULL,si->pixel,si->xres*sizeof(uint32_t));
-
-    r.x=scrx; r.w=si->xres;
-    r.y=scry; r.h=si->yres;
-
-    SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
-    SDL_RenderCopy(sdlren, texture, NULL, &r);
-
-    SDL_DestroyTexture(texture);
+    SDL_RenderCopy(sdlren,sdlt[stx].tex,NULL,&r);
 }
 
