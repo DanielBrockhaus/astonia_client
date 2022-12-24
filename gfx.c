@@ -88,7 +88,7 @@ static int get_pal_match(unsigned short int rgb,int pal_cnt,unsigned short int *
 
 // loading images
 
-static int gfx_load_image_png(IMAGE *image,char *filename,int usealpha) {
+static int gfx_load_image_png(IMAGE *image,char *filename) {
     int x,y,xres,yres,tmp,r,g,b,a,sx,sy,ex,ey; //,framecnt=0,framemax=0,ffx,ffy;
     int format;
     unsigned char **row;
@@ -169,20 +169,17 @@ static int gfx_load_image_png(IMAGE *image,char *filename,int usealpha) {
 
                 a=row[(sy+y)][(sx+x)*4+3];
 
-                if (a) {
+                if (a) {    // premultiply alpha
                     r=min(255,row[(sy+y)][(sx+x)*4+0]*255/a);
                     g=min(255,row[(sy+y)][(sx+x)*4+1]*255/a);
                     b=min(255,row[(sy+y)][(sx+x)*4+2]*255/a);
-                } else {
+                } else {    // transparent gets colorkey
                     r=255;
                     g=0;
                     b=255;
                 }
 
-                a>>=3;  // !!!
-
-                if (a<=usealpha/2) a=0;
-                else if (a>=31-usealpha/2) a=31;
+                a>>=3;  // shift alpha from 0...255 to 0...31
 
                 if (a==0 || (r==255 && g==0 && b==255)) {
                     a=0;
@@ -911,7 +908,7 @@ int _gfx_load_image(IMAGE *image,int sprite) {
 
     if (gfx_force_png) {
         sprintf(filename,"%s%08d/%08d.png",GFXPATH,(sprite/1000)*1000,sprite);
-        if (gfx_load_image_png(image,filename,1)==0) return 0;
+        if (gfx_load_image_png(image,filename)==0) return 0;
         note("%s not found",filename);
     }
 
@@ -922,7 +919,7 @@ int _gfx_load_image(IMAGE *image,int sprite) {
 #ifdef DEVELOPER
     // check if we can load it in a XXXXXXXX path
     sprintf(filename,"%s%08d/%08d.png",GFXPATH,(sprite/1000)*1000,sprite);
-    if (gfx_load_image_png(image,filename,1)==0) return 0;
+    if (gfx_load_image_png(image,filename)==0) return 0;
 #endif
 
     note("missing sprite %d!",sprite);
@@ -934,7 +931,7 @@ int _gfx_load_image(IMAGE *image,int sprite) {
 #ifdef DEVELOPER
     // then load the missing sprite image from png
     sprintf(filename,"%s00000000/00000002.png",GFXPATH);
-    if (gfx_load_image_png(image,filename,1)==0) return 0;
+    if (gfx_load_image_png(image,filename)==0) return 0;
 #endif
 
     paranoia("can't even find the missing image as png file - i'll quit");
@@ -1444,7 +1441,7 @@ static int gfx_make_pak(int paknr) {
     // load images
     for (i=0; i<image_used; i++) {
         sprintf(filename,"%s%08d.png",filepath,sprite[i]);
-        if (gfx_load_image_png(&image[i],filename,1)==-1) return fail("failed to load image '%s'",filename);
+        if (gfx_load_image_png(&image[i],filename)==-1) return fail("failed to load image '%s'",filename);
         if (no_alpha_sprite(sprite[i])) remove_alpha(image+i,no_alpha_sprite(sprite[i]));
         if (pakopts.scale!=100) scale_image(image+i,pakopts.scale);
         if (pakopts.shine) shine_image(image+i,pakopts.shine);
