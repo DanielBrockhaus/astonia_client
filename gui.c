@@ -2926,8 +2926,8 @@ __attribute__((stdcall)) long int main_wnd_proc(HWND wnd,UINT msg,WPARAM wparam,
             return 0;
 
         case WM_MOUSEMOVE:
-            mousex=(signed short int)LOWORD(lparam)/mouse_scale;
-            mousey=(signed short int)HIWORD(lparam)/mouse_scale;
+            mousex=(signed short int)LOWORD(lparam);
+            mousey=(signed short int)HIWORD(lparam);
 #ifdef EDITOR
             if (editor) return editor_mouseproc(msg);
 #endif
@@ -2943,6 +2943,9 @@ __attribute__((stdcall)) long int main_wnd_proc(HWND wnd,UINT msg,WPARAM wparam,
                     SetCursorPos(p.x,p.y);
                 }
             }
+
+            mousex/=mouse_scale;
+            mousey/=mouse_scale;
 
             if (butsel!=-1 && vk_lbut && (but[butsel].flags&BUTF_MOVEEXEC)) exec_cmd(lcmd,0);
 
