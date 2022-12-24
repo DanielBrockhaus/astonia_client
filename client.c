@@ -17,10 +17,10 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <math.h>
+#include <zlib.h>
 
 #define ISCLIENT
 #define WANTMAPMN
-#include "../lib/zlib.h"
 #include "main.h"
 #include "client.h"
 #include "sound.h"

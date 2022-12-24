@@ -11,8 +11,8 @@
 #include <io.h>
 #include <fcntl.h>
 #include <time.h>
-
 #include <dsound.h>
+
 #define ISCLIENT
 #include "main.h"
 #include "client.h"
@@ -20,6 +20,7 @@
 #include "resource.h"
 #include "sound.h"
 #include "gui.h"
+#include "sdl.h"
 
 // extern
 
@@ -1392,6 +1393,17 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
         net_exit();
         return -1;
     }
+
+    sprintf(buf,"Astonia 3 v%d.%d.%d",(VERSION>>16)&255,(VERSION>>8)&255,(VERSION)&255);
+    if (!sdl_init(800,600,buf)) {
+        dd_exit();
+        win_exit();
+        net_exit();
+        return -1;
+    }
+
+    SetFocus(mainwnd);
+
 #ifdef DOSOUND
     init_sound(mainwnd);
 #endif

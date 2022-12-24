@@ -9,16 +9,13 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <math.h>
+#include <zlib.h>
+#include <png.h>
 
-#include "../lib/zlib.h"
-#include "../lib/png.h"
 #include "main.h"
 #include "dd.h"
 #include "neuquant.h"
 #include "sprite.h"
-
-
-int read_JPEG_file(IMAGE *image,char *filename,int usealpha);
 
 // helpers - might move to main
 

@@ -5,10 +5,13 @@ BCCPATH=c:\borland\bcc55
 CC=gcc
 CFLAGS=-O -g -Wall -Wno-pointer-sign -Wno-char-subscripts -m32
 LDFLAGS=-O -g -m32
-LIBS = -lgdi32 -lwsock32 -lws2_32 -lz -lpng -lddraw -ldsound -lcomctl32
+LIBS = -lgdi32 -lwsock32 -lws2_32 -lz -lpng -lddraw -ldsound -lcomctl32 -lsdl2
 
-moac.exe:       Makefile gui.o client.o skill.o dd.o font.o gfx.o main.o sprite.o game.o neuquant.o resource.res edit.o edit_tool.o sound.o questlog.o resource.o
-		$(CC) $(LDFLAGS) -o moac.exe gui.o client.o skill.o dd.o neuquant.o font.o gfx.o main.o sprite.o game.o edit.o edit_tool.o sound.o questlog.o resource.o $(LIBS)
+OBJS	=	gui.o client.o skill.o dd.o font.o gfx.o main.o sprite.o game.o neuquant.o\
+		edit.o edit_tool.o sound.o questlog.o resource.o sdl.o
+
+moac.exe:       Makefile $(OBJS)
+		$(CC) $(LDFLAGS) -o moac.exe $(OBJS)  $(LIBS)
 
 dd.o:		dd.c main.h dd.h
 gfx.o:		gfx.c main.h dd.h neuquant.h
@@ -24,6 +27,7 @@ edit_tool.o:  	edit_tool.c main.h edit.h
 sound.o:      	sound.c main.h
 questlog.o:	questlog.c main.h
 neuquant.o:   	neuquant.c neuquant.h
+sdl.o:		sdl.c sdl.h
 
 resource.o:	resource.res
 		windres -F pe-i386 resource.res resource.o
