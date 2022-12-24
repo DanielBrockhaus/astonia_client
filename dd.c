@@ -1845,7 +1845,7 @@ int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry) {
                  ddfx->ll,
                  ddfx->rl,
                  ddfx->ul,
-                 ddfx->dl,0,0);
+                 ddfx->dl);
 
     if (sidx==SIDX_NONE) return 0;
 

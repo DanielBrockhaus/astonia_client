@@ -15,7 +15,8 @@ SDL_Renderer *sdlren;
 
 extern int gfx_force_png;
 
-#define MAX_TEXCACHE    100000
+#define MAX_TEXCACHE    2500
+#define MAX_TEXHASH     2500
 #define STX_NONE        (-1)
 
 #define SF_USED         (1<<0)
@@ -51,9 +52,9 @@ struct sdl_texture {
 
 struct sdl_texture *sdlt=NULL;
 int sdlt_best,sdlt_last;
+int *sdlt_cache;
 
 struct sdl_image {
-    int stx;
     uint32_t *pixel;
 
     uint16_t flags;
@@ -64,7 +65,7 @@ struct sdl_image {
 struct sdl_image *sdli=NULL;
 
 long mem_png=0,mem_tex=0;
-
+long texc_hit=0,texc_miss=0;
 
 int sdl_init(int width,int height,char *title) {
     int len,i;
@@ -96,10 +97,15 @@ int sdl_init(int width,int height,char *title) {
     sdli=calloc(len,1);
     if (!sdli) return fail("Out of memory in sdl_init");
 
-    for (i=0; i<MAXSPRITE; i++)
-        sdli[i].stx=STX_NONE;
+    sdlt_cache=calloc(MAX_TEXHASH,sizeof(int));
+    if (!sdlt_cache) return fail("Out of memory in sdl_init");
+
+    for (i=0; i<MAX_TEXHASH; i++)
+        sdlt_cache[i]=STX_NONE;
 
     sdlt=calloc(MAX_TEXCACHE,sizeof(struct sdl_texture));
+    if (!sdlt) return fail("Out of memory in sdl_init");
+
     for (i=0; i<MAX_TEXCACHE; i++) {
         sdlt[i].flags=0;
         sdlt[i].prev=i-1;
@@ -112,13 +118,17 @@ int sdl_init(int width,int height,char *title) {
     sdlt_best=0;
     sdlt_last=MAX_TEXCACHE-1;
 
+
+
     return 1;
 }
 
+int maxpanic=0;
 int sdl_clear(void) {
     SDL_SetRenderDrawColor(sdlren,0,255,0,255);
     SDL_RenderClear(sdlren);
-    //printf("mem: %.2fM PNG, %.2fM Tex\n",mem_png/(1024.0*1024.0),mem_tex/(1024.0*1024.0)); fflush(stdout);
+    printf("mem: %.2fM PNG, %.2fM Tex, Hit: %ld, Miss: %ld, Max: %d\n",mem_png/(1024.0*1024.0),mem_tex/(1024.0*1024.0),texc_hit,texc_miss,maxpanic); fflush(stdout);
+    maxpanic=0;
     return 1;
 }
 
@@ -299,15 +309,35 @@ static void sdl_tx_best(int stx) {
     }
 }
 
-int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,int cb,int light,int sat,int c1,int c2,int c3,int shine,int ml,int ll,int rl,int ul,int dl,int checkonly,int isprefetch) {
-    int stx,ptx,ntx;
+static inline int hashfunc(int sprite,int ml,int ll,int rl,int ul,int dl) {
+    int hash;
+
+    hash=sprite^(ml<<2)^(ll<<4)^(ll<<6)^(rl<<8)^(ul<<10)^(dl<<12);
+
+    return hash%MAX_TEXHASH;
+}
+
+int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,int cb,int light,int sat,int c1,int c2,int c3,int shine,int ml,int ll,int rl,int ul,int dl) {
+    int stx,ptx,ntx,panic=0;
+    int hash=hashfunc(sprite,ml,ll,rl,ul,dl);
 
     if (sprite>=MAXSPRITE || sprite<0) {
         note("illegal sprite %d wanted in sdl_tx_load",sprite);
         return -1;
     }
 
-    for (stx=sdli[sprite].stx; stx!=STX_NONE; stx=sdlt[stx].hnext) {
+    for (stx=sdlt_cache[hash]; stx!=STX_NONE; stx=sdlt[stx].hnext,panic++) {
+
+        if (panic>999) {
+            printf("%04d: stx=%d, hprev=%d, hnext=%d sprite=%d (%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d), PANIC\n",panic,stx,sdlt[stx].hprev,sdlt[stx].hnext,sprite,
+                   sdlt[stx].sink,sdlt[stx].freeze,sdlt[stx].grid,sdlt[stx].scale,
+                   sdlt[stx].cr,sdlt[stx].cg,sdlt[stx].cb,sdlt[stx].light,
+                   sdlt[stx].sat,sdlt[stx].c1,sdlt[stx].c2,sdlt[stx].c3,
+                   sdlt[stx].shine,sdlt[stx].ml,sdlt[stx].ll,sdlt[stx].rl,
+                   sdlt[stx].ul,sdlt[stx].dl);
+            fflush(stdout);
+            if (panic>1099) exit(42);
+        }
         if (sdlt[stx].sink!=sink) continue;
         if (sdlt[stx].freeze!=freeze) continue;
         if (sdlt[stx].grid!=grid) continue;
@@ -327,26 +357,30 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
         if (sdlt[stx].ul!=ul) continue;
         if (sdlt[stx].dl!=dl) continue;
 
+        if (panic>maxpanic) maxpanic=panic;
+
         sdl_tx_best(stx);
 
         // remove from old pos
         ntx=sdlt[stx].hnext;
         ptx=sdlt[stx].hprev;
 
-        if (ptx==STX_NONE) sdli[sprite].stx=ntx;
+        if (ptx==STX_NONE) sdlt_cache[hash]=ntx;
         else sdlt[ptx].hnext=sdlt[stx].hnext;
 
         if (ntx!=STX_NONE) sdlt[ntx].hprev=sdlt[stx].hprev;
 
         // add to top pos
-        ntx=sdli[sprite].stx;
+        ntx=sdlt_cache[hash];
 
         if (ntx!=STX_NONE) sdlt[ntx].hprev=stx;
 
         sdlt[stx].hprev=STX_NONE;
         sdlt[stx].hnext=ntx;
 
-        sdli[sprite].stx=stx;
+        sdlt_cache[hash]=stx;
+
+        texc_hit++;
 
         return stx;
     }
@@ -355,23 +389,32 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
 
     // delete
     if (sdlt[stx].flags) {
-
-        printf("PAAAAANIC! in sdl_tx_load\n");  //TODO: Is this really an error?
+        int hash2=hashfunc(sdlt[stx].sprite,sdlt[stx].ml,sdlt[stx].ll,sdlt[stx].rl,sdlt[stx].ul,sdlt[stx].dl);
 
         ntx=sdlt[stx].hnext;
         ptx=sdlt[stx].hprev;
 
-        if (ptx==STX_NONE) sdli[sprite].stx=ntx;
-        else sdlt[ptx].hnext=sdlt[stx].hnext;
+        if (ptx==STX_NONE) {
+            if (sdlt_cache[hash2]!=stx) {
+                printf("sdli[sprite].stx!=stx\n");
+                exit(42);
+            }
+            sdlt_cache[hash2]=ntx;
+        } else {
+            sdlt[ptx].hnext=sdlt[stx].hnext;
+        }
 
-        if (ntx!=STX_NONE) sdlt[ntx].hprev=sdlt[stx].hprev;
+        if (ntx!=STX_NONE) {
+            sdlt[ntx].hprev=sdlt[stx].hprev;
+        }
 
+        mem_tex-=sdlt[stx].xres*sdlt[stx].yres*sizeof(uint32_t);
+        SDL_DestroyTexture(sdlt[stx].tex);
         sdlt[stx].flags=0;
     }
 
     // build
     sdl_ic_load(sprite);
-
 
     //sc_make(&systemcache[sidx],&imagecache[iidx].image,sink,freeze,grid,scale,cr,cg,cb,light,sat,c1,c2,c3,shine,ml,ll,rl,ul,dl);
 
@@ -407,16 +450,18 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
     sdlt[stx].ul=ul;
     sdlt[stx].dl=dl;
 
-    ntx=sdli[sprite].stx;
+    ntx=sdlt_cache[hash];
 
     if (ntx!=STX_NONE) sdlt[ntx].hprev=stx;
 
-    sdlt[stx].hprev=-1;
+    sdlt[stx].hprev=STX_NONE;
     sdlt[stx].hnext=ntx;
 
-    sdli[sprite].stx=stx;
+    sdlt_cache[hash]=stx;
 
     sdl_tx_best(stx);
+
+    texc_miss++;
 
     return stx;
 }

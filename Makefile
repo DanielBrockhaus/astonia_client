@@ -3,8 +3,8 @@ all: moac.exe
 BCCPATH=c:\borland\bcc55
 
 CC=gcc
-CFLAGS=-O -g -Wall -Wno-pointer-sign -Wno-char-subscripts -m32
-LDFLAGS=-O -g -m32
+CFLAGS=-O -ggdb -Wall -Wno-pointer-sign -Wno-char-subscripts -m32
+LDFLAGS=-O -ggdb -m32
 LIBS = -lgdi32 -lwsock32 -lws2_32 -lz -lpng -lddraw -ldsound -lcomctl32 -lsdl2
 
 OBJS	=	gui.o client.o skill.o dd.o font.o gfx.o main.o sprite.o game.o neuquant.o\
