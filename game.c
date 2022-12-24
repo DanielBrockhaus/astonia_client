@@ -534,25 +534,6 @@ void sprites_colorbalance(struct map *cmap,int mn,int r,int g,int b) {
     cmap[mn].rc.cb=min(120,cmap[mn].rc.cb+b);
 }
 
-void xrect_colorbalance(struct map *cmap,int mn,int r,int g,int b,int dist) {
-    static unsigned char seen[MAPDX*MAPDY];
-
-    if (dist==6) bzero(seen,sizeof(seen));
-
-    if (seen[mn]>=dist) return;
-    if (seen[mn]) sprites_colorbalance(cmap,mn,-r*seen[mn],-g*seen[mn],-b*seen[mn]);
-    sprites_colorbalance(cmap,mn,r*dist,g*dist,b*dist);
-    seen[mn]=dist;
-
-    if ((cmap[mn].flags&CMF_LIGHT)==15) return;
-    if (dist<1) return;
-
-    xrect_colorbalance(cmap,mn+1,r,g,b,dist-1);
-    xrect_colorbalance(cmap,mn-1,r,g,b,dist-1);
-    xrect_colorbalance(cmap,mn+MAPDX,r,g,b,dist-1);
-    xrect_colorbalance(cmap,mn-MAPDX,r,g,b,dist-1);
-}
-
 #define RANDOM(a)	(rand()%(a))
 #define MAXBUB		100
 struct bubble {

@@ -4,7 +4,7 @@
 
 #define GFXPATH "../gfx/"
 
-#define MAX_SPRITE      200000  // use this if you need more (up to 1048576=20 bit, but that shure blows everything ;)
+#define MAXSPRITE 250000
 
 #define GROUNDLIGHT
 
@@ -215,4 +215,4 @@ extern unsigned int B_MASK;
 int dd_init_cache(void);
 void dd_exit_cache(void);
 
-#define MAXSPRITE 250000
+

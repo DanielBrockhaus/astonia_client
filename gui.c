@@ -20,6 +20,7 @@
 #include "resource.h"
 #include "spell.h"
 #include "sound.h"
+#include "sdl.h"
 
 // extern
 
@@ -3264,6 +3265,7 @@ int main_loop(void) {
 
                 set_cmd_states();
 
+                sdl_clear();
                 display();
 
                 timediff=nextframe-GetTickCount();
@@ -3273,6 +3275,7 @@ int main_loop(void) {
                 frames++;
 
                 flip_at(nextframe);
+                sdl_render();
             } else {
                 skip-=timediff;
 

@@ -12,6 +12,7 @@
 #include "main.h"
 #include "dd.h"
 #include "client.h"
+#include "sdl.h"
 
 DDFONT *fonta_shaded=NULL;
 DDFONT *fonta_framed=NULL;
@@ -1750,6 +1751,7 @@ static int sc_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int 
 
     // build
     iidx=ic_load(sprite);
+    sdl_ic_load(sprite);
     if (iidx==IIDX_NONE) { sc_last(sidx); return SIDX_NONE; }
 
     systemcache[sidx].sprite=sprite;    // dup
@@ -1846,6 +1848,7 @@ int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry) {
 
     // blit it
     sc_blit2(ddfx,sidx,scrx,scry);
+    if (ddfx->clipsx!=ddfx->clipex || ddfx->clipsy!=ddfx->clipey) sdl_blit(ddfx->sprite,scrx,scry);
 
     // remove additional cliprect
     if (ddfx->clipsx!=ddfx->clipex || ddfx->clipsy!=ddfx->clipey) dd_pop_clip();
