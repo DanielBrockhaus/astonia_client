@@ -125,7 +125,7 @@ int sdl_init(int width,int height,char *title) {
 
 int maxpanic=0;
 int sdl_clear(void) {
-    SDL_SetRenderDrawColor(sdlren,0,255,0,255);
+    SDL_SetRenderDrawColor(sdlren,31,63,127,255);
     SDL_RenderClear(sdlren);
     printf("mem: %.2fM PNG, %.2fM Tex, Hit: %ld, Miss: %ld, Max: %d\n",mem_png/(1024.0*1024.0),mem_tex/(1024.0*1024.0),texc_hit,texc_miss,maxpanic); fflush(stdout);
     maxpanic=0;
@@ -277,6 +277,396 @@ int sdl_ic_load(int sprite) {
     return sprite;
 }
 
+#define DDFX_LEFTGRID           1       // NOGRID(?) has to be zero, so bzero on the structures default NOGRID(?)
+#define DDFX_RIGHTGRID          2
+
+#define DDFX_MAX_FREEZE         8
+
+#define IGET_A(c)       ((((uint32_t)(c))>>24)&0xFF)
+#define IGET_R(c)       ((((uint32_t)(c))>>0)&0xFF)
+#define IGET_G(c)       ((((uint32_t)(c))>>8)&0xFF)
+#define IGET_B(c)       ((((uint32_t)(c))>>16)&0xFF)
+#define IRGB(r,g,b)     (((r)<<0)|((g)<<8)|((b)<<16))
+#define IRGBA(r,g,b,a)  (((a)<<24)|((r)<<0)|((g)<<8)|((b)<<16))
+
+static inline uint32_t sdl_light(int light,uint32_t irgb) {
+    int r,g,b,a;
+
+    r=IGET_R(irgb);
+    g=IGET_G(irgb);
+    b=IGET_B(irgb);
+    a=IGET_A(irgb);
+
+    if (light==0) {
+        r=min(255,r*2+4);
+        g=min(255,g*2+4);
+        b=min(255,b*2+4);
+    } else {
+        r=r*light/15;
+        g=g*light/15;
+        b=b*light/15;
+    }
+
+    return IRGBA(r,g,b,a);
+}
+
+static inline uint32_t sdl_freeze(int freeze,uint32_t irgb) {
+    int r,g,b,a;
+
+    r=IGET_R(irgb);
+    g=IGET_G(irgb);
+    b=IGET_B(irgb);
+    a=IGET_A(irgb);
+
+    r=min(255,r+255*freeze/(3*DDFX_MAX_FREEZE-1));
+    g=min(255,g+255*freeze/(3*DDFX_MAX_FREEZE-1));
+    b=min(255,b+255*3*freeze/(3*DDFX_MAX_FREEZE-1));
+
+    return IRGBA(r,g,b,a);
+}
+
+
+#define REDCOL		(0.40)
+#define GREENCOL	(0.70)
+#define BLUECOL		(0.70)
+
+#define OGET_R(c) ((((unsigned short int)(c))>>10)&0x1F)
+#define OGET_G(c) ((((unsigned short int)(c))>>5)&0x1F)
+#define OGET_B(c) ((((unsigned short int)(c))>>0)&0x1F)
+
+
+static uint32_t sdl_shine_pix(uint32_t irgb,unsigned short shine) {
+    int a;
+    double r,g,b;
+
+    r=IGET_R(irgb)/127.5;
+    g=IGET_G(irgb)/127.5;
+    b=IGET_B(irgb)/127.5;
+    a=IGET_A(irgb);
+
+    printf("r=%.2f -> ",r);
+
+    r=((r*r*r*r)*shine+r*(100.0-shine))/200.0;
+    g=((g*g*g*g)*shine+g*(100.0-shine))/200.0;
+    b=((b*b*b*b)*shine+b*(100.0-shine))/200.0;
+
+    printf("%.2f\n",r); fflush(stdout);
+
+    if (r>1.0) r=1.0;
+    if (g>1.0) g=1.0;
+    if (b>1.0) b=1.0;
+
+    irgb=IRGBA((int)(r*255.0),(int)(g*255.0),(int)(b*255.0),a);
+
+    return irgb;
+}
+
+static uint32_t sdl_colorize_pix(uint32_t irgb,unsigned short c1v,unsigned short c2v,unsigned short c3v) {
+    double rf,gf,bf,m,rm,gm,bm;
+    double c1=0,c2=0,c3=0;
+    double shine=0;
+    int r,g,b,a;
+
+    rf=IGET_R(irgb)/255.0;
+    gf=IGET_G(irgb)/255.0;
+    bf=IGET_B(irgb)/255.0;
+
+    m=max(max(rf,gf),bf)+0.000001;
+    rm=rf/m; gm=gf/m; bm=bf/m;
+
+    // channel 1: green max
+    if (c1v && gm>0.99 && rm<GREENCOL && bm<GREENCOL) {
+        c1=gf-max(bf,rf);
+        if (c1v&0x8000) shine+=gm-max(rm,bm);
+
+        gf-=c1;
+    }
+
+    m=max(max(rf,gf),bf)+0.000001;
+    rm=rf/m; gm=gf/m; bm=bf/m;
+
+    // channel 2: blue max
+    if (c2v && bm>0.99 && rm<BLUECOL && gm<BLUECOL) {
+        c2=bf-max(rf,gf);
+        if (c2v&0x8000) shine+=bm-max(rm,gm);
+
+        bf-=c2;
+    }
+
+    m=max(max(rf,gf),bf)+0.000001;
+    rm=rf/m; gm=gf/m; bm=bf/m;
+
+    // channel 3: red max
+    if (c3v && rm>0.99 && gm<REDCOL && bm<REDCOL) {
+        c3=rf-max(gf,bf);
+        if (c3v&0x8000) shine+=rm-max(gm,bm);
+
+        rf-=c3;
+    }
+
+    // sanity
+    rf=max(0,rf);
+    gf=max(0,gf);
+    bf=max(0,bf);
+
+    // collect
+    r=min(255,
+          8*2*c1*OGET_R(c1v)+
+          8*2*c2*OGET_R(c2v)+
+          8*2*c3*OGET_R(c3v)+
+          8*rf*31);
+    g=min(255,
+          8*2*c1*OGET_G(c1v)+
+          8*2*c2*OGET_G(c2v)+
+          8*2*c3*OGET_G(c3v)+
+          8*gf*31);
+    b=min(255,
+          8*2*c1*OGET_B(c1v)+
+          8*2*c2*OGET_B(c2v)+
+          8*2*c3*OGET_B(c3v)+
+          8*bf*31);
+
+    a=IGET_A(irgb);
+
+    irgb=IRGBA(r,g,b,a);
+
+    if (shine>0.1) irgb=sdl_shine_pix(irgb,(int)(shine*50));
+
+    return irgb;
+}
+
+static uint32_t sdl_colorbalance(uint32_t irgb,char cr,char cg,char cb,char light,char sat) {
+    int r,g,b,a,grey;
+
+    r=IGET_R(irgb);
+    g=IGET_G(irgb);
+    b=IGET_B(irgb);
+    a=IGET_A(irgb);
+
+    // lightness
+    if (light) {
+        r+=light; g+=light; b+=light;
+    }
+
+    // saturation
+    if (sat) {
+        grey=(r+g+b)/3;
+        r=((r*(20-sat))+(grey*sat))/20;
+        g=((g*(20-sat))+(grey*sat))/20;
+        b=((b*(20-sat))+(grey*sat))/20;
+    }
+
+    // color balancing
+    cr*=0.75; cg*=0.75; cg*=0.75;
+
+    r+=cr; g-=cr/2; b-=cr/2;
+    r-=cg/2; g+=cg; b-=cg/2;
+    r-=cb/2; g-=cb/2; b+=cb;
+
+    if (r<0) r=0;
+    if (g<0) g=0;
+    if (b<0) b=0;
+
+    if (r>255) { g+=(r-255)/2; b+=(r-255)/2; r=255; }
+    if (g>255) { r+=(g-255)/2; b+=(g-255)/2; g=255; }
+    if (b>255) { r+=(b-255)/2; g+=(b-255)/2; b=255; }
+
+    if (r>255) r=255;
+    if (g>255) g=255;
+    if (b>255) b=255;
+
+    irgb=IRGBA(r,g,b,a);
+
+    return irgb;
+}
+
+static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
+                     signed char sink,unsigned char freeze,unsigned char grid,
+                     unsigned char scale,char cr,char cg,char cb,
+                     char light,char sat,
+                     unsigned short c1v,unsigned short c2v,unsigned short c3v,
+                     unsigned short shine,
+                     char ml,char ll,char rl,char ul,char dl) {
+    int x,y;
+    double ix,iy,low_x,low_y,high_x,high_y,dbr,dbg,dbb,dba;
+    uint32_t irgb,*sptr;
+    uint32_t *pixel;
+
+    if (si->xres==0 || si->yres==0) scale=100;    // !!! needs better handling !!!
+
+    if (scale!=100) {
+        st->xres=ceil((double)(si->xres-1)*scale/100.0);
+        st->yres=ceil((double)(si->yres-1)*scale/100.0);
+        st->size=st->xres*st->yres;
+
+        st->xoff=floor(si->xoff*scale/100.0+0.5);
+        st->yoff=floor(si->yoff*scale/100.0+0.5);
+    } else {
+        st->xres=si->xres;
+        st->yres=si->yres;
+        st->size=st->xres*st->yres;
+        st->xoff=si->xoff;
+        st->yoff=si->yoff;
+    }
+
+    if (sink) sink=min(sink,max(0,st->yres-4));
+
+    pixel=calloc(st->xres*st->yres,sizeof(uint32_t));
+
+    for (y=0; y<st->yres; y++) {
+        for (x=0; x<st->xres; x++) {
+
+            if (scale!=100) {
+                ix=x*100.0/scale;
+                iy=y*100.0/scale;
+
+                high_x=ix-floor(ix);
+                high_y=iy-floor(iy);
+                low_x=1-high_x;
+                low_y=1-high_y;
+
+                irgb=si->pixel[(int)(floor(ix)+floor(iy)*si->xres)];
+
+                if (c1v || c2v || c3v) irgb=sdl_colorize_pix(irgb,c1v,c2v,c3v);
+                dba=IGET_A(irgb)*low_x*low_y;
+                dbr=IGET_R(irgb)*low_x*low_y;
+                dbg=IGET_G(irgb)*low_x*low_y;
+                dbb=IGET_B(irgb)*low_x*low_y;
+
+                irgb=si->pixel[(int)(ceil(ix)+floor(iy)*si->xres)];
+
+                if (c1v || c2v || c3v) irgb=sdl_colorize_pix(irgb,c1v,c2v,c3v);
+                dba+=IGET_A(irgb)*high_x*low_y;
+                dbr+=IGET_R(irgb)*high_x*low_y;
+                dbg+=IGET_G(irgb)*high_x*low_y;
+                dbb+=IGET_B(irgb)*high_x*low_y;
+
+                irgb=si->pixel[(int)(floor(ix)+ceil(iy)*si->xres)];
+
+                if (c1v || c2v || c3v) irgb=sdl_colorize_pix(irgb,c1v,c2v,c3v);
+                dba+=IGET_A(irgb)*low_x*high_y;
+                dbr+=IGET_R(irgb)*low_x*high_y;
+                dbg+=IGET_G(irgb)*low_x*high_y;
+                dbb+=IGET_B(irgb)*low_x*high_y;
+
+                irgb=si->pixel[(int)(ceil(ix)+ceil(iy)*si->xres)];
+
+                if (c1v || c2v || c3v) irgb=sdl_colorize_pix(irgb,c1v,c2v,c3v);
+                dba+=IGET_A(irgb)*high_x*high_y;
+                dbr+=IGET_R(irgb)*high_x*high_y;
+                dbg+=IGET_G(irgb)*high_x*high_y;
+                dbb+=IGET_B(irgb)*high_x*high_y;
+
+                irgb=IRGBA(((int)dbr),((int)dbg),((int)dbb),((int)dba));
+
+            } else {
+                irgb=si->pixel[x+y*si->xres];
+                if (c1v || c2v || c3v) irgb=sdl_colorize_pix(irgb,c1v,c2v,c3v);
+            }
+
+            if (cr || cg || cb || light || sat) irgb=sdl_colorbalance(irgb,cr,cg,cb,light,sat);
+            if (shine) irgb=sdl_shine_pix(irgb,shine);
+
+            sptr=&pixel[x+y*st->xres];
+
+            if (ll!=ml || rl!=ml || ul!=ml || dl!=ml) {
+                int r,g,b,a;
+                int r1=0,r2=0,r3=0,r4=0,r5=0;
+                int g1=0,g2=0,g3=0,g4=0,g5=0;
+                int b1=0,b2=0,b3=0,b4=0,b5=0;
+                int v1,v2,v3,v4,v5=0;
+                int div;
+
+                // TODO: Tilesizes are hardcoded, with 10px being 1/4th, 20px 1/2.
+                if (y<10+(20-abs(20-x))/2) {
+                    if (x/2<20-y) {
+                        v2=-(x/2-(20-y))+1;
+                        r2=IGET_R(sdl_light(ll,irgb));
+                        g2=IGET_G(sdl_light(ll,irgb));
+                        b2=IGET_B(sdl_light(ll,irgb));
+                    } else v2=0;
+                    if (x/2>20-y) {
+                        v3=(x/2-(20-y))+1;
+                        r3=IGET_R(sdl_light(rl,irgb));
+                        g3=IGET_G(sdl_light(rl,irgb));
+                        b3=IGET_B(sdl_light(rl,irgb));
+                    } else v3=0;
+                    if (x/2>y) {
+                        v4=(x/2-y)+1;
+                        r4=IGET_R(sdl_light(ul,irgb));
+                        g4=IGET_G(sdl_light(ul,irgb));
+                        b4=IGET_B(sdl_light(ul,irgb));
+                    } else v4=0;
+                    if (x/2<y) {
+                        v5=-(x/2-y)+1;
+                        r5=IGET_R(sdl_light(dl,irgb));
+                        g5=IGET_G(sdl_light(dl,irgb));
+                        b5=IGET_B(sdl_light(dl,irgb));
+                    } else v5=0;
+                } else {
+                    if (x<10) {
+                        v2=(10-x)*2-2;
+                        r2=IGET_R(sdl_light(ll,irgb));
+                        g2=IGET_G(sdl_light(ll,irgb));
+                        b2=IGET_B(sdl_light(ll,irgb));
+                    } else v2=0;
+                    if (x>10 && x<20) {
+                        v3=(x-10)*2-2;
+                        r3=IGET_R(sdl_light(rl,irgb));
+                        g3=IGET_G(sdl_light(rl,irgb));
+                        b3=IGET_B(sdl_light(rl,irgb));
+                    } else v3=0;
+                    if (x>20 && x<30) {
+                        v5=(10-(x-20))*2-2;
+                        r5=IGET_R(sdl_light(dl,irgb));
+                        g5=IGET_G(sdl_light(dl,irgb));
+                        b5=IGET_B(sdl_light(dl,irgb));
+                    } else v5=0;
+                    if (x>30 && x<40) {
+                        v4=(x-30)*2-2;
+                        r4=IGET_R(sdl_light(ul,irgb));
+                        g4=IGET_G(sdl_light(ul,irgb));
+                        b4=IGET_B(sdl_light(ul,irgb));
+                    } else v4=0;
+                }
+
+                v1=20-(v2+v3+v4+v5)/2;
+                r1=IGET_R(sdl_light(ml,irgb));
+                g1=IGET_G(sdl_light(ml,irgb));
+                b1=IGET_B(sdl_light(ml,irgb));
+
+                div=v1+v2+v3+v4+v5;
+
+                a=IGET_A(irgb);
+                r=(r1*v1+r2*v2+r3*v3+r4*v4+r5*v5)/div;
+                g=(g1*v1+g2*v2+g3*v3+g4*v4+g5*v5)/div;
+                b=(b1*v1+b2*v2+b3*v3+b4*v4+b5*v5)/div;
+
+                irgb=IRGBA(r,g,b,a);
+
+            } else irgb=sdl_light(ml,irgb);
+
+            if (sink) {
+                if (st->yres-sink<y) irgb&=0xffffff;    // zero alpha to make it transparent
+            }
+
+            if (freeze) irgb=sdl_freeze(freeze,irgb);
+
+            if (grid==DDFX_LEFTGRID) { if ((st->xoff+x+st->yoff+y)&1) irgb&=0xffffff; }
+            if (grid==DDFX_RIGHTGRID) {  if ((st->xoff+x+st->yoff+y+1)&1) irgb&=0xffffff; }
+
+            *sptr=irgb;
+        }
+    }
+    SDL_Texture *texture = SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_STATIC,st->xres,st->yres);
+    if (!texture) printf("SDL_texture Error: %s",SDL_GetError());
+    SDL_UpdateTexture(texture,NULL,pixel,st->xres*sizeof(uint32_t));
+    SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
+
+    mem_tex+=st->xres*st->yres*sizeof(uint32_t);
+    st->tex=texture;
+}
+
 static void sdl_tx_best(int stx) {
     PARANOIA(if (stx==STX_NONE) paranoia("sdl_tx_best(): sidx=SIDX_NONE"); )
     PARANOIA(if (stx>=MAX_TEXCACHE) paranoia("sdl_tx_best(): sidx>max_systemcache (%d>=%d)",stx,MAX_TEXCACHE); )
@@ -338,6 +728,7 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
             fflush(stdout);
             if (panic>1099) exit(42);
         }
+        if (sdlt[stx].sprite!=sprite) continue;
         if (sdlt[stx].sink!=sink) continue;
         if (sdlt[stx].freeze!=freeze) continue;
         if (sdlt[stx].grid!=grid) continue;
@@ -416,17 +807,7 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
     // build
     sdl_ic_load(sprite);
 
-    //sc_make(&systemcache[sidx],&imagecache[iidx].image,sink,freeze,grid,scale,cr,cg,cb,light,sat,c1,c2,c3,shine,ml,ll,rl,ul,dl);
-
-    SDL_Texture *texture = SDL_CreateTexture(sdlren, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, sdli[sprite].xres,sdli[sprite].yres);
-    if (!texture) printf("SDL_texture Error: %s",SDL_GetError());
-    SDL_UpdateTexture(texture,NULL,sdli[sprite].pixel,sdli[sprite].xres*sizeof(uint32_t));
-    SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
-
-    mem_tex+=sdli[sprite].xres*sdli[sprite].yres*sizeof(uint32_t);
-    sdlt[stx].tex=texture;
-    sdlt[stx].xres=sdli[sprite].xres;
-    sdlt[stx].yres=sdli[sprite].yres;
+    sdl_make(sdlt+stx,sdli+sprite,sink,freeze,grid,scale,cr,cg,cb,light,sat,c1,c2,c3,shine,ml,ll,rl,ul,dl);
 
     // init
     sdlt[stx].flags=SF_USED;
