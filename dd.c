@@ -1869,7 +1869,7 @@ int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry) {
 
     // blit it
     sc_blit2(ddfx,sidx,scrx,scry);
-    sdl_blit(stx,scrx,scry);
+    sdl_blit(stx,scrx,scry,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 
     // remove additional cliprect
     if (ddfx->clipsx!=ddfx->clipex || ddfx->clipsy!=ddfx->clipey) dd_pop_clip();

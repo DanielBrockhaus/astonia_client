@@ -848,12 +848,23 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
 }
 
 
-void sdl_blit(int stx,int scrx,int scry) {
-    SDL_Rect r;
+void sdl_blit(int stx,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
+    int addx=0,addy=0,dx,dy;
+    SDL_Rect dr,sr;
 
-    r.x=scrx; r.w=sdlt[stx].xres;
-    r.y=scry; r.h=sdlt[stx].yres;
+    dx=sdlt[stx].xres; dy=sdlt[stx].yres;
 
-    SDL_RenderCopy(sdlren,sdlt[stx].tex,NULL,&r);
+    if (sx<clipsx) { addx=clipsx-sx; dx-=addx; sx=clipsx; }
+    if (sy<clipsy) { addy=clipsy-sy; dy-=addy; sy=clipsy; }
+    if (sx+dx>=clipex) dx=clipex-sx;
+    if (sy+dy>=clipey) dy=clipey-sy;
+
+    dr.x=sx+x_offset; dr.w=dx;
+    dr.y=sy+y_offset; dr.h=dy;
+
+    sr.x=addx; sr.w=dx;
+    sr.y=addy; sr.h=dy;
+
+    SDL_RenderCopy(sdlren,sdlt[stx].tex,&sr,&dr);
 }
 
