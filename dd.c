@@ -552,8 +552,8 @@ void dd_flip(void) {
         SelectObject(tmpdc,NULL);
         DeleteObject(bm);
         DeleteDC(tmpdc);
-        ReleaseDC(mainwnd,tgtdc);
     }
+    ReleaseDC(mainwnd,tgtdc);
 }
 
 int dd_islost(void) {
