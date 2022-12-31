@@ -640,8 +640,6 @@ struct systemcache {
     // primary
     unsigned short xres;            // x resolution in pixels
     unsigned short yres;            // y resolution in pixels
-    unsigned char tdx;              // x-resolution in tiles
-    unsigned char tdy;              // y-resolution in tiles
     short xoff;                     // offset to blit position
     short yoff;                     // offset to blit position
     short int size;
@@ -649,11 +647,6 @@ struct systemcache {
     unsigned short *rgb;            // colors in internal screen format
     short acnt;                     // number of alpha pixel
     APIX *apix;                     // alpha pixel
-
-    // vc access
-    unsigned int used;
-    unsigned int lost;
-    unsigned int tick;
 };
 
 typedef struct systemcache SYSTEMCACHE;
@@ -1880,11 +1873,6 @@ static int sc_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int 
 
     sys_hash[sys_hash_key(sidx)]=sidx;
 
-    systemcache[sidx].tdx=(systemcache[sidx].xres+TILESIZEDX-1)/TILESIZEDX;
-    systemcache[sidx].tdy=(systemcache[sidx].yres+TILESIZEDY-1)/TILESIZEDY;
-
-    systemcache[sidx].lost=1;
-
     sc_best(sidx);
 
     return sidx;
@@ -1981,35 +1969,6 @@ void dd_copysprite(int sprite,int scrx,int scry,int light,int align) {
     ddfx.cr=ddfx.cg=ddfx.cb=ddfx.clight=ddfx.sat=0;
     ddfx.c1=ddfx.c2=ddfx.c3=ddfx.shine=0;
 
-    dd_copysprite_fx(&ddfx,scrx,scry);
-}
-
-void dd_copysprite_callfx_old(int sprite,int scrx,int scry,int fx,int align) {
-    DDFX ddfx;
-    int light;
-
-    bzero(&ddfx,sizeof(DDFX));
-
-    ddfx.sprite=sprite;
-
-    light=fx%16;
-    if (light==FX_BRIGHT) ddfx.light=0;
-    else ddfx.light=15-light;
-
-    ddfx.ml=ddfx.ll=ddfx.rl=ddfx.ul=ddfx.dl=ddfx.light;
-    ddfx.sink=0;
-    ddfx.scale=100;
-    ddfx.cr=ddfx.cg=ddfx.cb=ddfx.clight=ddfx.sat=0;
-    ddfx.c1=ddfx.c2=ddfx.c3=ddfx.shine=0;
-
-    switch (fx/STARTSLICE) {
-        case 3: ddfx.grid=DDFX_LEFTGRID; break;
-        case 2: ddfx.grid=DDFX_RIGHTGRID; break;
-        case 1: addline("aha"); break;
-        default: ddfx.grid=0; break;
-    }
-    // ddfx.grid=0;
-    ddfx.align=align;
     dd_copysprite_fx(&ddfx,scrx,scry);
 }
 
@@ -3126,9 +3085,6 @@ static int sc_blit2(DDFX *ddfx,int sidx,int scrx,int scry) {
 
     // draw the alpha pixels
     if (sc->acnt) sc_blit_apix(sidx,scrx,scry,ddfx->grid,ddfx->freeze);
-
-    sc->tick=dd_tick;
-    sc->used++;
 
     sc_cnt++;
 

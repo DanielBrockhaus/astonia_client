@@ -1,9 +1,11 @@
 *.obj
+*.o
 *.res
 *.rws
 *.pak
 *.lnk
 *.dat
 moac.*
+moac_gcc.*
 res/
 

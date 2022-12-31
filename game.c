@@ -2230,6 +2230,7 @@ void display_game(void) {
     extern int dd_tick;
     extern int x_offset;
     extern int display_help,display_quest;
+    int do_display_questlog(int nr);
 
     dd_tick++;
 
