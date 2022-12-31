@@ -1977,6 +1977,8 @@ void dd_shaded_rect(int sx,int sy,int ex,int ey) {
     int x,y,r,g,b;
     unsigned short *ptr,col;
 
+    sdl_shaded_rect(sx,sy,ex,ey,0xffe0,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
+
     if (sx<clipsx) sx=clipsx;
     if (sy<clipsy) sy=clipsy;
     if (ex>clipex) ex=clipex;
@@ -2629,6 +2631,8 @@ int dd_drawtext_char(int sx,int sy,int c,unsigned short int color) {
         else texter_add(sx,sy,color,0,text);
         return fontdim[c];
     }
+
+    sdl_drawtext(sx,sy,color,0,(char*)&c,textfont,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 
     if ((vidptr=ptr=dd_lock_surface(ddbs))==NULL) return 0;
 

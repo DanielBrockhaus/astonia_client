@@ -986,6 +986,30 @@ void sdl_rect(int sx,int sy,int ex,int ey,unsigned short int color,int clipsx,in
     SDL_RenderFillRect(sdlren,&rc);
 }
 
+void sdl_shaded_rect(int sx,int sy,int ex,int ey,unsigned short int color,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
+    int r,g,b,a;
+    SDL_Rect rc;
+
+    r=(int)((((color>>11)&31)/31.0f)*255.0f);
+    g=(int)((((color>>5) &63)/63.0f)*255.0f);
+    b=(int)((((color)    &31)/31.0f)*255.0f);
+    a=95;
+
+    if (sx<clipsx) sx=clipsx;
+    if (sy<clipsy) sy=clipsy;
+    if (ex>clipex) ex=clipex;
+    if (ey>clipey) ey=clipey;
+
+    if (sx>ex || sy>ey) return;
+
+    rc.x=sx+x_offset; rc.w=ex-sx;
+    rc.y=sy+y_offset; rc.h=ey-sy;
+
+    SDL_SetRenderDrawColor(sdlren,r,g,b,a);
+    SDL_SetRenderDrawBlendMode(sdlren,SDL_BLENDMODE_BLEND);
+    SDL_RenderFillRect(sdlren,&rc);
+}
+
 
 void sdl_pixel(int x,int y,unsigned short color,int x_offset,int y_offset) {
     int r,g,b,a;
