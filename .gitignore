@@ -1,4 +1,5 @@
 *.obj
+*.o
 *.res
 *.rws
 *.pak

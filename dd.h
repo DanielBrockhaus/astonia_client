@@ -4,24 +4,13 @@
 
 #define GFXPATH "../gfx/"
 
-#define MAXSPRITE 250000
-
-#define GROUNDLIGHT
-
-#define FULLTILE        40
-#define HALFTILE        20
-#define QUATTILE        10
+#define MAXSPRITE       250000
 
 extern int XRES;        // set to indicate the maximal size of the offscreen surface - respective the display mode to set
 extern int YRES;        // set to indicate the maximal size of the offscreen surface - respective the display mode to set
 
 extern float mouse_scale;   // mouse input needs to be scaled by this factor because the display window is stretched
 
-#define DD_SYSMEM       0
-#define DD_VIDMEM       1
-#define DD_LOCMEM       2
-
-extern double _gamma;            // set me to adjust gamma, call dd_reset() afterwards
 extern int dd_gamma;
 extern int dd_lighteffect;
 extern int largetext;
@@ -78,11 +67,6 @@ void dd_set_textfont(int nr);
 #define DDFX_NLIGHT             15
 #define DDFX_BRIGHT             0
 
-#define DDFX_LDARK              (1<<0)
-#define DDFX_RDARK              (1<<1)
-#define DDFX_RLDARK             (1<<2)
-#define DDFX_LRDARK             (1<<3)
-
 #define DDFX_MAX_FREEZE         8
 
 struct ddfx {
@@ -126,28 +110,14 @@ extern unsigned short scrcolorkey;
 extern unsigned short *rgb2scr;
 extern unsigned short *scr2rgb;
 extern unsigned short **rgbfx_light;
+
 #define IGET_R(c) ((((unsigned short int)(c))>>10)&0x1F)
 #define IGET_G(c) ((((unsigned short int)(c))>>5)&0x1F)
 #define IGET_B(c) ((((unsigned short int)(c))>>0)&0x1F)
 #define IRGB(r,g,b) (((r)<<10)|((g)<<5)|((b)<<0))
-// unsigned short int irgb_blend(unsigned short int a, unsigned short int b, int alpha);
+
 #define irgb_blend(a,b,alpha)  IRGB( (IGET_R((unsigned short int)(a))*(int)(alpha)+IGET_R((unsigned short int)(b))*(31-(int)(alpha)))/31 , (IGET_G((unsigned short int)(a))*(int)(alpha)+IGET_G((unsigned short int)(b))*(31-(int)(alpha)))/31, (IGET_B((unsigned short int)(a))*(int)(alpha)+IGET_B((unsigned short int)(b))*(31-(int)(alpha)))/31)
 
-
-// old old old
-
-#define STARTSLICE      16      // start of the sliced tiles
-#define FX_LEFTGRID     (2*STARTSLICE)
-#define FX_RIGHTGRID    (3*STARTSLICE)
-#define FX_BRIGHT       15
-#define dd_copysprite_offset(sprite,scrx,scry,fx) dd_copysprite_callfx_old(sprite,scrx,scry,fx,DD_OFFSET)
-#define dd_copysprite_center(sprite,scrx,scry,fx) dd_copysprite_callfx_old(sprite,scrx,scry,fx,DD_CENTER)
-#define dd_copysprite_normal(sprite,scrx,scry,fx) dd_copysprite_callfx_old(sprite,scrx,scry,fx,DD_NORMAL)
-void dd_copysprite_callfx_old(int sprite,int scrx,int scry,int fx,int align);
-
-// old old old
-
-extern DDFX usefx;
 int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry);
 void dd_copysprite(int sprite,int scrx,int scry,int light,int align);
 void dd_copysprite_callfx(int sprite,int scrx,int scry,int light,int mli,int grid,int align);
@@ -171,6 +141,7 @@ void dd_rect(int sx,int sy,int ex,int ey,unsigned short int color);
 #define DD__FRAMEFONT	256
 
 #define DDT             '°' // draw text terminator - (zero stays one, too)
+
 int dd_textlength(int flags,const char *text);
 int dd_textlen(int flags,const char *text,int n);
 int dd_drawtext(int sx,int sy,unsigned short int color,int flags,const char *text);
@@ -207,10 +178,6 @@ extern int yres;
 extern unsigned int R_MASK;
 extern unsigned int G_MASK;
 extern unsigned int B_MASK;
-
-//-----------
-#define TILESIZEDX	48
-#define TILESIZEDY	48
 
 int dd_init_cache(void);
 void dd_exit_cache(void);
