@@ -2015,6 +2015,8 @@ void dd_line(int fx,int fy,int tx,int ty,unsigned short col) {
     unsigned short *ptr;
     int dx,dy,x,y,rx,ry;
 
+    sdl_line(fx,fy,tx,ty,col,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
+
     if (fx<clipsx) fx=clipsx;
     if (fy<clipsy) fy=clipsy;
     if (fx>=clipex) fx=clipex-1;
@@ -2375,6 +2377,8 @@ static void dd_pixel_fast(int x,int y,unsigned short col,unsigned short *ptr) {
         note("PANIC 5b - %d,%d %d,%d %X",x,y,x_offset,y_offset,col);
         return;
     }
+
+    sdl_pixel(x,y,col,x_offset,y_offset);
 
     ptr[(x+x_offset)+(y+y_offset)*xres]=col;
     np_cnt++;

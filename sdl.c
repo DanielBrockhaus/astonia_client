@@ -986,3 +986,43 @@ void sdl_rect(int sx,int sy,int ex,int ey,unsigned short int color,int clipsx,in
     SDL_RenderFillRect(sdlren,&rc);
 }
 
+
+void sdl_pixel(int x,int y,unsigned short color,int x_offset,int y_offset) {
+    int r,g,b,a;
+
+    r=(int)((((color>>11)&31)/31.0f)*255.0f);
+    g=(int)((((color>>5) &63)/63.0f)*255.0f);
+    b=(int)((((color)    &31)/31.0f)*255.0f);
+    a=255;
+
+    SDL_SetRenderDrawColor(sdlren,r,g,b,a);
+    SDL_RenderDrawPoint(sdlren,x+x_offset,y+y_offset);
+}
+
+
+void sdl_line(int fx,int fy,int tx,int ty,unsigned short color,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
+    int r,g,b,a;
+
+    r=(int)((((color>>11)&31)/31.0f)*255.0f);
+    g=(int)((((color>>5) &63)/63.0f)*255.0f);
+    b=(int)((((color)    &31)/31.0f)*255.0f);
+    a=255;
+
+    if (fx<clipsx) fx=clipsx;
+    if (fy<clipsy) fy=clipsy;
+    if (fx>=clipex) fx=clipex-1;
+    if (fy>=clipey) fy=clipey-1;
+
+    if (tx<clipsx) tx=clipsx;
+    if (ty<clipsy) ty=clipsy;
+    if (tx>=clipex) tx=clipex-1;
+    if (ty>=clipey) ty=clipey-1;
+
+    fx+=x_offset; tx+=x_offset;
+    fy+=y_offset; ty+=y_offset;
+
+    SDL_SetRenderDrawColor(sdlren,r,g,b,a);
+    SDL_RenderDrawLine(sdlren,fx,fy,tx,ty);
+}
+
+
