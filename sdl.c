@@ -847,12 +847,11 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
     return stx;
 }
 
-
-void sdl_blit(int stx,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
+static void sdl_blit_tex(SDL_Texture *tex,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
     int addx=0,addy=0,dx,dy;
     SDL_Rect dr,sr;
 
-    dx=sdlt[stx].xres; dy=sdlt[stx].yres;
+    SDL_QueryTexture(tex, NULL, NULL, &dx, &dy);
 
     if (sx<clipsx) { addx=clipsx-sx; dx-=addx; sx=clipsx; }
     if (sy<clipsy) { addy=clipsy-sy; dy-=addy; sy=clipsy; }
@@ -865,7 +864,12 @@ void sdl_blit(int stx,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,
     sr.x=addx; sr.w=dx;
     sr.y=addy; sr.h=dy;
 
-    SDL_RenderCopy(sdlren,sdlt[stx].tex,&sr,&dr);
+    SDL_RenderCopy(sdlren,tex,&sr,&dr);
+}
+
+
+void sdl_blit(int stx,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
+    sdl_blit_tex(sdlt[stx].tex,sx,sy,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 }
 
 #define MAXFONTHEIGHT   36
@@ -873,12 +877,12 @@ void sdl_blit(int stx,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,
 SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,int flags) {
     uint32_t *pixel,*dst;
     unsigned char *rawrun;
-    int x,y=0,size,sx=0;
+    int x,y=0,sizex,sizey=0,sx=0;
     const char *c;
 
-    for (size=0,c=text; *c; c++) size+=font[*c].dim;
+    for (sizex=0,c=text; *c; c++) sizex+=font[*c].dim;
 
-    pixel=calloc(size*MAXFONTHEIGHT,sizeof(uint32_t));
+    pixel=calloc(sizex*MAXFONTHEIGHT,sizeof(uint32_t));
     if (pixel==NULL) return NULL;
 
     while (*text && *text!=DDT) {
@@ -890,7 +894,7 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
         x=sx;
         y=0;
 
-        dst=pixel+x+y*size;
+        dst=pixel+x+y*sizex;
 
         while (*rawrun!=255) {
 
@@ -898,7 +902,8 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
                 y++;
                 x=sx;
                 rawrun++;
-                dst=pixel+x+y*size;
+                dst=pixel+x+y*sizex;
+                if (y>sizey) sizey=y;
                 continue;
             }
 
@@ -911,13 +916,12 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
         sx+=font[*text++].dim;
     }
 
-    if (size<1 || y<1) return NULL;
+    if (sizex<1 || sizey<1) return NULL;
 
-    y++;
-    //printf("creating texture for text: %dx%d\n",size,y);
-    SDL_Texture *texture = SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_STATIC,size,y);
+    sizey++;
+    SDL_Texture *texture = SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_STATIC,sizex,sizey);
     if (!texture) printf("SDL_texture Error: %s",SDL_GetError());
-    SDL_UpdateTexture(texture,NULL,pixel,size*sizeof(uint32_t));
+    SDL_UpdateTexture(texture,NULL,pixel,sizex*sizeof(uint32_t));
     SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
 
     return texture;
@@ -936,8 +940,7 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
 #define DD__FRAMEFONT	256
 
 int sdl_drawtext(int sx,int sy,unsigned short int color,int flags,const char *text,struct ddfont *font,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
-    int addx=0,addy=0,dx,dy;
-    SDL_Rect dr,sr;
+    int dx,dy;
     SDL_Texture *tex;
     int r,g,b,a;
 
@@ -953,22 +956,33 @@ int sdl_drawtext(int sx,int sy,unsigned short int color,int flags,const char *te
     if (flags&DD_CENTER) sx-=dx/2;
     else if (flags&DD_RIGHT) sx-=dx;
 
-    if (sx<clipsx) { addx=clipsx-sx; dx-=addx; sx=clipsx; }
-    if (sy<clipsy) { addy=clipsy-sy; dy-=addy; sy=clipsy; }
-    if (sx+dx>=clipex) dx=clipex-sx;
-    if (sy+dy>=clipey) dy=clipey-sy;
-
-    dr.x=sx+x_offset; dr.w=dx;
-    dr.y=sy+y_offset; dr.h=dy;
-
-    sr.x=addx; sr.w=dx;
-    sr.y=addy; sr.h=dy;
-
-    SDL_RenderCopy(sdlren,tex,&sr,&dr);
+    sdl_blit_tex(tex,sx,sy,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 
     SDL_DestroyTexture(tex);
 
     return 1;
 }
 
+void sdl_rect(int sx,int sy,int ex,int ey,unsigned short int color,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
+    int r,g,b,a;
+    SDL_Rect rc;
+
+    r=(int)((((color>>11)&31)/31.0f)*255.0f);
+    g=(int)((((color>>5) &63)/63.0f)*255.0f);
+    b=(int)((((color)    &31)/31.0f)*255.0f);
+    a=255;
+
+    if (sx<clipsx) sx=clipsx;
+    if (sy<clipsy) sy=clipsy;
+    if (ex>clipex) ex=clipex;
+    if (ey>clipey) ey=clipey;
+
+    if (sx>ex || sy>ey) return;
+
+    rc.x=sx+x_offset; rc.w=ex-sx;
+    rc.y=sy+y_offset; rc.h=ey-sy;
+
+    SDL_SetRenderDrawColor(sdlren,r,g,b,a);
+    SDL_RenderFillRect(sdlren,&rc);
+}
 

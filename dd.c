@@ -1908,6 +1908,8 @@ void dd_rect(int sx,int sy,int ex,int ey,unsigned short int color) {
     RECT rc;
     DDBLTFX bltfx;
 
+    sdl_rect(sx,sy,ex,ey,color,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
+
     if (sx<clipsx) sx=clipsx;
     if (sy<clipsy) sy=clipsy;
     if (ex>clipex) ex=clipex;

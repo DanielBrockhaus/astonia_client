@@ -307,47 +307,6 @@ void dx_ciframe(int x1,int y1,int x2,int y2,int ci,int greenci) {
     }
 }
 
-/*
-void dx_copysprite_icon(int icon, int scrx, int scry, int ci, int greenci)
-{
-        DDFX ddfx;
-
-        bzero(&ddfx,sizeof(ddfx));
-        ddfx.sprite=41;
-        ddfx.align=DD_CENTER;
-        ddfx.ml=ddfx.ll=ddfx.rl=ddfx.ul=ddfx.dl=DDFX_NLIGHT;
-
-        ddfx.clipsx=icon*22+1;
-        ddfx.clipex=ddfx.clipsx+21-2;
-        ddfx.clipsy=-10;
-        ddfx.clipey=ddfx.clipsy+21-2;
-
-        dd_copysprite_fx(&ddfx,scrx-ddfx.clipsx+1+0,scry+11+0);
-        // if (ci==0) dd_copysprite_fx(&ddfx,scrx-ddfx.clipsx+1+0,scry+11+0);
-        // else if (ci==1) dd_copysprite_fx(&ddfx,scrx-ddfx.clipsx+1-1,scry+11-1);
-        // else if (ci==2) dd_copysprite_fx(&ddfx,scrx-ddfx.clipsx+1+1,scry+11+1);
-
-        ddfx.clipsx=ci*22;
-        ddfx.clipex=ddfx.clipsx+21;
-        ddfx.clipsy=-11;
-        ddfx.clipey=ddfx.clipsy+21;
-        dd_copysprite_fx(&ddfx,scrx-ddfx.clipsx,scry+11+0);
-
-        if (greenci) {
-                int x1,y1,x2,y2;
-
-                x1=scrx-1;
-                y1=scry-1;
-                x2=x1+23;
-                y2=y1+23;
-
-                if (greenci==1) dd_rect(x1,y1,x2,y1+1,lightgreencolor);
-                dd_rect(x1,y1+1,x1+1,y2,lightgreencolor);
-                dd_rect(x2-1,y1+1,x2,y2,lightgreencolor);
-                dd_rect(x1,y2-1,x2,y2,lightgreencolor);
-        }
-}
-*/
 void dx_copysprite_icon(int icon,int scrx,int scry) {
     DDFX ddfx;
 
