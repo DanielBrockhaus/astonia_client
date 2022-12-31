@@ -150,11 +150,13 @@ int dd_drawtext_fmt(int sx,int sy,unsigned short int color,int flags,const char 
 void dd_line2(int fx,int fy,int tx,int ty,unsigned short col,unsigned short *ptr);
 void dd_display_strike(int fx,int fy,int tx,int ty);
 
+#ifndef HAVE_DDFONT
+#define HAVE_DDFONT
 struct ddfont {
     int dim;
     unsigned char *raw;
 };
-
+#endif
 struct ddfont; typedef struct ddfont DDFONT;
 
 extern DDFONT fonta[];

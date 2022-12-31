@@ -2268,6 +2268,8 @@ int dd_drawtext(int sx,int sy,unsigned short int color,int flags,const char *tex
     }
     if (!font) return 42;
 
+    sdl_drawtext(sx,sy,color,flags,text,font,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
+
     if (flags&DD_CENTER) {
         for (x=0,c=text; *c; c++) x+=font[*c].dim;
         sx-=x/2;
