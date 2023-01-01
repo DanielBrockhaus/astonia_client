@@ -459,7 +459,7 @@ int maxquick;
 
 static void safepix(unsigned short int *ptr,int x,int y,unsigned short int irgb) {
     if (x<0 || y<0 || x>=XRES || y>=YRES) return;
-    ptr[x+y*xres]=rgb2scr[irgb];
+    ptr[x+y*xres]=irgb;
 }
 
 void set_map_lights(struct map *cmap) {
@@ -1100,41 +1100,41 @@ static void display_game_names(void) {
     char *sign;
     unsigned short clancolor[33];
 
-    clancolor[1]=rgb2scr[IRGB(31,0,0)];
-    clancolor[2]=rgb2scr[IRGB(0,31,0)];
-    clancolor[3]=rgb2scr[IRGB(0,0,31)];
-    clancolor[4]=rgb2scr[IRGB(31,31,0)];
-    clancolor[5]=rgb2scr[IRGB(31,0,31)];
-    clancolor[6]=rgb2scr[IRGB(0,31,31)];
-    clancolor[7]=rgb2scr[IRGB(31,16,16)];
-    clancolor[8]=rgb2scr[IRGB(16,16,31)];
+    clancolor[1]=IRGB(31,0,0);
+    clancolor[2]=IRGB(0,31,0);
+    clancolor[3]=IRGB(0,0,31);
+    clancolor[4]=IRGB(31,31,0);
+    clancolor[5]=IRGB(31,0,31);
+    clancolor[6]=IRGB(0,31,31);
+    clancolor[7]=IRGB(31,16,16);
+    clancolor[8]=IRGB(16,16,31);
 
-    clancolor[9]=rgb2scr[IRGB(24,8,8)];
-    clancolor[10]=rgb2scr[IRGB(8,24,8)];
-    clancolor[11]=rgb2scr[IRGB(8,8,24)];
-    clancolor[12]=rgb2scr[IRGB(24,24,8)];
-    clancolor[13]=rgb2scr[IRGB(24,8,24)];
-    clancolor[14]=rgb2scr[IRGB(8,24,24)];
-    clancolor[15]=rgb2scr[IRGB(24,24,24)];
-    clancolor[16]=rgb2scr[IRGB(16,16,16)];
+    clancolor[9]=IRGB(24,8,8);
+    clancolor[10]=IRGB(8,24,8);
+    clancolor[11]=IRGB(8,8,24);
+    clancolor[12]=IRGB(24,24,8);
+    clancolor[13]=IRGB(24,8,24);
+    clancolor[14]=IRGB(8,24,24);
+    clancolor[15]=IRGB(24,24,24);
+    clancolor[16]=IRGB(16,16,16);
 
-    clancolor[17]=rgb2scr[IRGB(31,24,24)];
-    clancolor[18]=rgb2scr[IRGB(24,31,24)];
-    clancolor[19]=rgb2scr[IRGB(24,24,31)];
-    clancolor[20]=rgb2scr[IRGB(31,31,24)];
-    clancolor[21]=rgb2scr[IRGB(31,24,31)];
-    clancolor[22]=rgb2scr[IRGB(24,31,31)];
-    clancolor[23]=rgb2scr[IRGB(31,8,8)];
-    clancolor[24]=rgb2scr[IRGB(8,8,31)];
+    clancolor[17]=IRGB(31,24,24);
+    clancolor[18]=IRGB(24,31,24);
+    clancolor[19]=IRGB(24,24,31);
+    clancolor[20]=IRGB(31,31,24);
+    clancolor[21]=IRGB(31,24,31);
+    clancolor[22]=IRGB(24,31,31);
+    clancolor[23]=IRGB(31,8,8);
+    clancolor[24]=IRGB(8,8,31);
 
-    clancolor[25]=rgb2scr[IRGB(16,8,8)];
-    clancolor[26]=rgb2scr[IRGB(8,16,8)];
-    clancolor[27]=rgb2scr[IRGB(8,8,16)];
-    clancolor[28]=rgb2scr[IRGB(16,16,8)];
-    clancolor[29]=rgb2scr[IRGB(16,8,16)];
-    clancolor[30]=rgb2scr[IRGB(8,16,16)];
-    clancolor[31]=rgb2scr[IRGB(8,31,8)];
-    clancolor[32]=rgb2scr[IRGB(31,8,31)];
+    clancolor[25]=IRGB(16,8,8);
+    clancolor[26]=IRGB(8,16,8);
+    clancolor[27]=IRGB(8,8,16);
+    clancolor[28]=IRGB(16,16,8);
+    clancolor[29]=IRGB(16,8,16);
+    clancolor[30]=IRGB(8,16,16);
+    clancolor[31]=IRGB(8,31,8);
+    clancolor[32]=IRGB(31,8,31);
 
     for (i=0; i<maxquick; i++) {
 

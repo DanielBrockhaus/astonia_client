@@ -215,13 +215,6 @@ void dd_get_client_info(struct client_info *ci) {
     ci->systemfree=memstat.dwAvailPhys;
 }
 
-int dd_set_color_key(void) {
-
-    note("colorkey=0x%X/0x%X - 0x%X - 0x%X",rgbcolorkey,scrcolorkey,scr2rgb[scrcolorkey],R_MASK|B_MASK);
-
-    return 0;
-}
-
 int dd_init(int width,int height) {
     DDSURFACEDESC ddsd;
     int err;
@@ -255,8 +248,8 @@ int dd_init(int width,int height) {
     ddsd.ddpfPixelFormat.dwRGBBitCount=16;
 
     // RGBM_R5G6B5
-    ddsd.ddpfPixelFormat.dwRBitMask=0xF800;
-    ddsd.ddpfPixelFormat.dwGBitMask=0x07E0;
+    ddsd.ddpfPixelFormat.dwRBitMask=0x7C00;
+    ddsd.ddpfPixelFormat.dwGBitMask=0x03E0;
     ddsd.ddpfPixelFormat.dwBBitMask=0x001F;
     ddsd.ddpfPixelFormat.dwRGBAlphaBitMask=0;
 
@@ -287,9 +280,6 @@ int dd_init(int width,int height) {
 
     // initialize cache (will initialize color tables, too)
     if (dd_init_cache()==-1) return -1;
-
-    // set the color key of all cache surfaces
-    dd_set_color_key();
 
     // set the clipping to the maximum possible
     clippos=0;
@@ -625,8 +615,8 @@ int iidx_best,iidx_last;
 unsigned short rgbcolorkey=IRGB(31,0,31);
 unsigned short rgbcolorkey2=IRGB(16,0,16);
 unsigned short scrcolorkey;
-unsigned short *rgb2scr=NULL;
-unsigned short *scr2rgb=NULL;
+//unsigned short *rgb2scr=NULL;
+//unsigned short *scr2rgb=NULL;
 #define MAX_RGBFX_LIGHT                 16
 unsigned short **rgbfx_light;           // 16 light values (0-14=light 15=bright)
 unsigned short **rgbfx_freeze;          // DDFX_MAX_FREEZE light values (0 is empty, no freeze - take care empty=NULL)
@@ -641,7 +631,7 @@ int sc_miss=0,sc_hit=0,sc_maxstep=0;
 int vc_miss=0,vc_hit=0,vc_unique=0,vc_unique24=0,sc_blits=0;
 
 int dd_init_cache(void) {
-    int scr,rgb,r,g,b,i;
+    int rgb,r,g,b,i;
 
     // imagecache
     max_imagecache=1024;
@@ -679,37 +669,10 @@ int dd_init_cache(void) {
     sys_hash=xmalloc(SYS_HASH_SIZE*sizeof(int),MEM_GLOB);
     for (i=0; i<SYS_HASH_SIZE; i++) sys_hash[i]=-1;
 
-
-    // tables
-    rgb2scr=xmalloc(65536*sizeof(unsigned short),MEM_GLOB);
-    scr2rgb=xmalloc(65536*sizeof(unsigned short),MEM_GLOB);
-
-    for (scr=0; scr<65536; scr++) {
-
-        if (rgbm==RGBM_R5G6B5) {
-            // rrrrrggggggbbbbb
-            r=(scr>>11)&0x1F;
-            g=(scr>>6)&0x1F;
-            b=(scr>>0)&0x1F;
-        } else if (rgbm==RGBM_X1R5G5B5) {
-            // xrrrrrgggggbbbbb
-            r=(scr>>10)&0x1F;
-            g=(scr>>5)&0x1F;
-            b=(scr>>0)&0x1F;
-        } else if (rgbm==RGBM_B5G6R5) {
-            // bbbbbggggggrrrrr
-            r=(scr>>0)&0x1F;
-            g=(scr>>6)&0x1F;
-            b=(scr>>11)&0x1F;
-        } else return -1;
-
-        scr2rgb[scr]=IRGB(r,g,b);
-        rgb2scr[IRGB(r,g,b)]=scr;
-    }
+    rgbm=RGBM_X1R5G5B5;
 
     scrcolorkey=R_MASK|B_MASK;
-    scr2rgb[scrcolorkey]=IRGB(31,31,0);
-    rgb2scr[rgbcolorkey]=scrcolorkey;
+    rgbcolorkey=scrcolorkey;
 
     // light
     rgbfx_light=xcalloc(MAX_RGBFX_LIGHT*sizeof(unsigned short int *),MEM_GLOB);
@@ -766,12 +729,6 @@ int dd_init_cache(void) {
 
 void dd_exit_cache(void) {
     int i;
-
-    // tables
-    xfree(rgb2scr);
-    rgb2scr=NULL;
-    xfree(scr2rgb);
-    scr2rgb=NULL;
 
     // freeze
     if (rgbfx_freeze) {
@@ -997,7 +954,7 @@ static void sc_blit_apix(int sidx,int scrx,int scry,int grid,int freeze) {
 
         m=(x+x_offset)+(y+y_offset)*xres;
 
-        dst=scr2rgb[ptr[m]];
+        dst=ptr[m];
 
         r=(a*IGET_R(src)+(31-a)*IGET_R(dst))/31;
         g=(a*IGET_G(src)+(31-a)*IGET_G(dst))/31;
@@ -1008,7 +965,7 @@ static void sc_blit_apix(int sidx,int scrx,int scry,int grid,int freeze) {
             continue;
         }
 
-        ptr[m]=rgb2scr[IRGB(r,g,b)];
+        ptr[m]=IRGB(r,g,b);
     }
 
     dd_unlock_surface(ddbs);
@@ -1541,7 +1498,7 @@ static void sc_make_slow(SYSTEMCACHE *sc,IMAGE *image,signed char sink,unsigned 
             if (grid==DDFX_RIGHTGRID) {  if ((sc->xoff+x+sc->yoff+y+1)&1) a=0; }
 
             if (a==31) {
-                *sptr=rgb2scr[irgb];
+                *sptr=irgb;
             } else if (a==0) {
                 *sptr=scrcolorkey;  //rgbcolorkey;
             } else {
@@ -1607,7 +1564,7 @@ static void sc_make_fast(SYSTEMCACHE *sc,IMAGE *image,signed char sink,unsigned 
             }
 
             if (a==31) {
-                sc->rgb[pos]=rgb2scr[irgb];
+                sc->rgb[pos]=irgb;
             } else if (a==0) {
                 sc->rgb[pos]=scrcolorkey;   //rgbcolorkey;
             } else {
@@ -1995,7 +1952,7 @@ void dd_shaded_rect(int sx,int sy,int ex,int ey) {
                 ptr=vidptr;
             }
             col=*ptr;
-            col=scr2rgb[col];
+            col=col;
 
             r=IGET_R(col);
             g=IGET_G(col);
@@ -2004,7 +1961,7 @@ void dd_shaded_rect(int sx,int sy,int ex,int ey) {
             g=min(31,g+16);
 
             col=IRGB(r,g,b);
-            col=rgb2scr[col];
+            col=col;
 
             *ptr=col;
         }
@@ -2116,14 +2073,14 @@ void dd_display_strike(int fx,int fy,int tx,int ty) {
     if (dx>=dy) {
         for (d=-4; d<5; d++) {
             l=(4-abs(d))*4;
-            col=rgb2scr[IRGB(l,l,31)];
+            col=IRGB(l,l,31);
             dd_line(fx,fy,mx,my+d,col);
             dd_line(mx,my+d,tx,ty,col);
         }
     } else {
         for (d=-4; d<5; d++) {
             l=(4-abs(d))*4;
-            col=rgb2scr[IRGB(l,l,31)];
+            col=IRGB(l,l,31);
             dd_line(fx,fy,mx+d,my,col);
             dd_line(mx+d,my,tx,ty,col);
         }
@@ -2136,7 +2093,7 @@ void dd_draw_curve(int cx,int cy,int nr,int size,unsigned short col) {
     unsigned short *ptr;
     int n,x,y;
 
-    col=rgb2scr[col];
+    col=col;
 
     if ((vidptr=ptr=dd_lock_surface(ddbs))==NULL) return;
 
@@ -2177,14 +2134,14 @@ void dd_display_pulseback(int fx,int fy,int tx,int ty) {
     if (dx>=dy) {
         for (d=-4; d<5; d++) {
             l=(4-abs(d))*4;
-            col=rgb2scr[IRGB(l,31,l)];
+            col=IRGB(l,31,l);
             dd_line(fx,fy,mx,my+d,col);
             dd_line(mx,my+d,tx,ty,col);
         }
     } else {
         for (d=-4; d<5; d++) {
             l=(4-abs(d))*4;
-            col=rgb2scr[IRGB(l,31,l)];
+            col=IRGB(l,31,l);
             dd_line(fx,fy,mx+d,my,col);
             dd_line(mx+d,my,tx,ty,col);
         }
@@ -2285,9 +2242,9 @@ int dd_drawtext(int sx,int sy,unsigned short int color,int flags,const char *tex
     }
 
     if (flags&DD_SHADE) {
-        dd_drawtext(sx-1,sy-1,rgb2scr[IRGB(0,0,0)],DT_LEFT|(flags&(DD_SMALL|DD_BIG))|DD__SHADEFONT,text);
+        dd_drawtext(sx-1,sy-1,IRGB(0,0,0),DT_LEFT|(flags&(DD_SMALL|DD_BIG))|DD__SHADEFONT,text);
     } else if (flags&DD_FRAME) {
-        dd_drawtext(sx-1,sy-1,rgb2scr[IRGB(0,0,0)],DT_LEFT|(flags&(DD_SMALL|DD_BIG))|DD__FRAMEFONT,text);
+        dd_drawtext(sx-1,sy-1,IRGB(0,0,0),DT_LEFT|(flags&(DD_SMALL|DD_BIG))|DD__FRAMEFONT,text);
     }
 
     if (sy>=clipey) return sx;
@@ -2469,11 +2426,11 @@ void dd_draw_bless(int x,int y,int ticker,int strength,int front) {
     else light=(ticker)/62.0;
 
     for (step=0; step<strength*10; step+=17) {
-        dd_draw_bless_pix(x,y,ticker+step+0,rgb2scr[IRGB(((int)(24*light)),((int)(24*light)),((int)(31*light)))],front,ptr);
-        dd_draw_bless_pix(x,y,ticker+step+1,rgb2scr[IRGB(((int)(20*light)),((int)(20*light)),((int)(28*light)))],front,ptr);
-        dd_draw_bless_pix(x,y,ticker+step+2,rgb2scr[IRGB(((int)(16*light)),((int)(16*light)),((int)(24*light)))],front,ptr);
-        dd_draw_bless_pix(x,y,ticker+step+3,rgb2scr[IRGB(((int)(12*light)),((int)(12*light)),((int)(20*light)))],front,ptr);
-        dd_draw_bless_pix(x,y,ticker+step+4,rgb2scr[IRGB(((int)(8*light)),((int)(8*light)),((int)(16*light)))],front,ptr);
+        dd_draw_bless_pix(x,y,ticker+step+0,IRGB(((int)(24*light)),((int)(24*light)),((int)(31*light))),front,ptr);
+        dd_draw_bless_pix(x,y,ticker+step+1,IRGB(((int)(20*light)),((int)(20*light)),((int)(28*light))),front,ptr);
+        dd_draw_bless_pix(x,y,ticker+step+2,IRGB(((int)(16*light)),((int)(16*light)),((int)(24*light))),front,ptr);
+        dd_draw_bless_pix(x,y,ticker+step+3,IRGB(((int)(12*light)),((int)(12*light)),((int)(20*light))),front,ptr);
+        dd_draw_bless_pix(x,y,ticker+step+4,IRGB(((int)(8*light)),((int)(8*light)),((int)(16*light))),front,ptr);
     }
     dd_unlock_surface(ddbs);
 
@@ -2502,11 +2459,11 @@ void dd_draw_potion(int x,int y,int ticker,int strength,int front) {
     else light=(ticker)/62.0;
 
     for (step=0; step<strength*10; step+=17) {
-        dd_draw_bless_pix(x,y,ticker+step+0,rgb2scr[IRGB(((int)(31*light)),((int)(24*light)),((int)(24*light)))],front,ptr);
-        dd_draw_bless_pix(x,y,ticker+step+1,rgb2scr[IRGB(((int)(28*light)),((int)(20*light)),((int)(20*light)))],front,ptr);
-        dd_draw_bless_pix(x,y,ticker+step+2,rgb2scr[IRGB(((int)(24*light)),((int)(16*light)),((int)(16*light)))],front,ptr);
-        dd_draw_bless_pix(x,y,ticker+step+3,rgb2scr[IRGB(((int)(20*light)),((int)(12*light)),((int)(12*light)))],front,ptr);
-        dd_draw_bless_pix(x,y,ticker+step+4,rgb2scr[IRGB(((int)(16*light)),((int)(8*light)),((int)(8*light)))],front,ptr);
+        dd_draw_bless_pix(x,y,ticker+step+0,IRGB(((int)(31*light)),((int)(24*light)),((int)(24*light))),front,ptr);
+        dd_draw_bless_pix(x,y,ticker+step+1,IRGB(((int)(28*light)),((int)(20*light)),((int)(20*light))),front,ptr);
+        dd_draw_bless_pix(x,y,ticker+step+2,IRGB(((int)(24*light)),((int)(16*light)),((int)(16*light))),front,ptr);
+        dd_draw_bless_pix(x,y,ticker+step+3,IRGB(((int)(20*light)),((int)(12*light)),((int)(12*light))),front,ptr);
+        dd_draw_bless_pix(x,y,ticker+step+4,IRGB(((int)(16*light)),((int)(8*light)),((int)(8*light))),front,ptr);
     }
 
     dd_unlock_surface(ddbs);
@@ -2519,9 +2476,9 @@ void dd_draw_rain(int x,int y,int ticker,int strength,int front) {
     if ((ptr=dd_lock_surface(ddbs))==NULL) return;
 
     for (step=-(strength*100); step<0; step+=237) {
-        dd_draw_rain_pix(x,y,-ticker+step+0,rgb2scr[IRGB(31,24,16)],front,ptr);
-        dd_draw_rain_pix(x,y,-ticker+step+1,rgb2scr[IRGB(24,16,8)],front,ptr);
-        dd_draw_rain_pix(x,y,-ticker+step+2,rgb2scr[IRGB(16,8,0)],front,ptr);
+        dd_draw_rain_pix(x,y,-ticker+step+0,IRGB(31,24,16),front,ptr);
+        dd_draw_rain_pix(x,y,-ticker+step+1,IRGB(24,16,8),front,ptr);
+        dd_draw_rain_pix(x,y,-ticker+step+2,IRGB(16,8,0),front,ptr);
     }
 
     dd_unlock_surface(ddbs);
@@ -2618,54 +2575,10 @@ DDFONT *textfont=fonta;
 int textdisplay_dy=10;
 
 int dd_drawtext_char(int sx,int sy,int c,unsigned short int color) {
-    unsigned short *ptr,*dst;
-    unsigned char *rawrun;
-    int x,y;
 
     if (c>127 || c<0) return 0;
 
-    if (newtext) {
-        char text[2]={0,0};
-        text[0]=c;
-        if (largetext) texter_add(sx,sy,color,DD_BIG,text);
-        else texter_add(sx,sy,color,0,text);
-        return fontdim[c];
-    }
-
-    sdl_drawtext(sx,sy,color,0,(char*)&c,textfont,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
-
-    if ((vidptr=ptr=dd_lock_surface(ddbs))==NULL) return 0;
-
-    rawrun=textfont[c].raw;
-
-    x=sx;
-    y=sy;
-
-    dst=ptr+(x+x_offset)+(y+y_offset)*xres;
-
-    while (*rawrun!=255) {
-        if (*rawrun==254) {
-            y++;
-            x=sx;
-            rawrun++;
-            dst=ptr+(x+x_offset)+(y+y_offset)*xres;
-            continue;
-        }
-
-        dst+=*rawrun;
-        rawrun++;
-
-        if (dst-vidptr>xres*yres || dst<vidptr) {
-            note("PANIC #5");
-            dst=vidptr;
-        }
-        *dst=color;
-        tp_cnt++;
-    }
-
-    dd_unlock_surface(ddbs);
-
-    return textfont[c].dim;
+    return sdl_drawtext(sx,sy,color,0,(char*)&c,textfont,clipsx,clipsy,clipex,clipey,x_offset,y_offset)-sx;
 }
 
 int dd_text_len(const char *text) {
@@ -2682,6 +2595,8 @@ int dd_char_len(char c) {
 }
 
 
+
+// ---------------------> Chat Window <-----------------------------
 #define MAXTEXTLINES		256
 #define MAXTEXTLETTERS		256
 
@@ -2709,26 +2624,26 @@ unsigned short palette[256];
 
 void dd_init_text(void) {
     text=xcalloc(sizeof(struct letter)*MAXTEXTLINES*MAXTEXTLETTERS,MEM_GLOB);
-    palette[0]=rgb2scr[IRGB(31,31,31)];    // normal white text (talk, game messages)
-    palette[1]=rgb2scr[IRGB(16,16,16)];    // dark gray text (now entering ...)
-    palette[2]=rgb2scr[IRGB(16,31,16)];    // light green (normal chat)
-    palette[3]=rgb2scr[IRGB(31,16,16)];    // light red (announce)
-    palette[4]=rgb2scr[IRGB(16,16,31)];    // light blue (text links)
-    palette[5]=rgb2scr[IRGB(24,24,31)];    // orange (item desc headings)
-    palette[6]=rgb2scr[IRGB(31,31,16)];    // yellow (tells)
-    palette[7]=rgb2scr[IRGB(16,24,31)];    // violet (staff chat)
-    palette[8]=rgb2scr[IRGB(24,24,31)];    // light violet (god chat)
+    palette[0]=IRGB(31,31,31);    // normal white text (talk, game messages)
+    palette[1]=IRGB(16,16,16);    // dark gray text (now entering ...)
+    palette[2]=IRGB(16,31,16);    // light green (normal chat)
+    palette[3]=IRGB(31,16,16);    // light red (announce)
+    palette[4]=IRGB(16,16,31);    // light blue (text links)
+    palette[5]=IRGB(24,24,31);    // orange (item desc headings)
+    palette[6]=IRGB(31,31,16);    // yellow (tells)
+    palette[7]=IRGB(16,24,31);    // violet (staff chat)
+    palette[8]=IRGB(24,24,31);    // light violet (god chat)
 
-    palette[9]=rgb2scr[IRGB(24,24,16)];    // chat - auction
-    palette[10]=rgb2scr[IRGB(24,16,24)];    // chat - grats
-    palette[11]=rgb2scr[IRGB(16,24,24)];    // chat	- mirror
-    palette[12]=rgb2scr[IRGB(31,24,16)];    // chat - info
-    palette[13]=rgb2scr[IRGB(31,16,24)];    // chat - area
-    palette[14]=rgb2scr[IRGB(16,31,24)];    // chat - v2, games
-    palette[15]=rgb2scr[IRGB(24,31,16)];    // chat - public clan
-    palette[16]=rgb2scr[IRGB(24,16,31)];    // chat	- internal clan
+    palette[9]=IRGB(24,24,16);    // chat - auction
+    palette[10]=IRGB(24,16,24);    // chat - grats
+    palette[11]=IRGB(16,24,24);    // chat	- mirror
+    palette[12]=IRGB(31,24,16);    // chat - info
+    palette[13]=IRGB(31,16,24);    // chat - area
+    palette[14]=IRGB(16,31,24);    // chat - v2, games
+    palette[15]=IRGB(24,31,16);    // chat - public clan
+    palette[16]=IRGB(24,16,31);    // chat	- internal clan
 
-    palette[17]=rgb2scr[IRGB(31,31,31)];    // fake white text (hidden links)
+    palette[17]=IRGB(31,31,31);    // fake white text (hidden links)
 }
 
 void dd_set_textfont(int nr) {
@@ -2935,6 +2850,8 @@ void dd_text_pagedown(void) {
     }
 }
 
+
+// ---------------------> Blits, remove <-----------------------------
 // blit a systemcache entry to backsurface without touching the video cache
 void sc_blit3(SYSTEMCACHE *sc,int sx,int sy) {
     int x,y,addx=0,addy=0,sstep,dstep,dx,dy;

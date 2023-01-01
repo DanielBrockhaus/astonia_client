@@ -1049,11 +1049,11 @@ void display_tutor(void) {
 
     if (!show_tutor) return;
 
-    dd_rect(220,350,630,426,rgb2scr[IRGB(24,22,16)]);
-    dd_line(220,350,630,350,rgb2scr[IRGB(12,10,4)]);
-    dd_line(630,350,630,426,rgb2scr[IRGB(12,10,4)]);
-    dd_line(220,426,360,426,rgb2scr[IRGB(12,10,4)]);
-    dd_line(220,350,220,426,rgb2scr[IRGB(12,10,4)]);
+    dd_rect(220,350,630,426,IRGB(24,22,16));
+    dd_line(220,350,630,350,IRGB(12,10,4));
+    dd_line(630,350,630,426,IRGB(12,10,4));
+    dd_line(220,426,360,426,IRGB(12,10,4));
+    dd_line(220,350,220,426,IRGB(12,10,4));
 
     x=224; y=354; ptr=tutor_text;
     while (*ptr) {
@@ -1073,7 +1073,7 @@ void display_tutor(void) {
             y+=10;
             if (y>=my) break;
         }
-        x=dd_drawtext(x,y,rgb2scr[IRGB(12,10,4)],DD_LEFT|DD_LARGE,buf)+3;
+        x=dd_drawtext(x,y,IRGB(12,10,4),DD_LEFT|DD_LARGE,buf)+3;
     }
 
 }
@@ -2725,7 +2725,7 @@ void display_cmd(void) {
     }
 
     for (x=0,n=cmddisplay; n<MAXCMDLINE; n++) {
-        tmp=dd_drawtext_char(230+x,587,cmdline[n],rgb2scr[IRGB(31,31,31)]);
+        tmp=dd_drawtext_char(230+x,587,cmdline[n],IRGB(31,31,31));
         if (n==cmdcursor) {
             if (cmdline[n]) dd_shaded_rect(230+x-1,587,230+x+tmp+1,587+9);
             else dd_shaded_rect(230+x,587,230+x+4,587+9);
@@ -3066,34 +3066,34 @@ int main_init(void) {
     c_junk=LoadCursor(instance,MAKEINTRESOURCE(IDCU_JUNK));
     c_get=LoadCursor(instance,MAKEINTRESOURCE(IDCU_GET));
 
-    whitecolor=rgb2scr[IRGB(31,31,31)];
-    lightgraycolor=rgb2scr[IRGB(28,28,28)];
-    graycolor=rgb2scr[IRGB(22,22,22)];
-    darkgraycolor=rgb2scr[IRGB(15,15,15)];
-    blackcolor=rgb2scr[IRGB(0,0,0)];
+    whitecolor=IRGB(31,31,31);
+    lightgraycolor=IRGB(28,28,28);
+    graycolor=IRGB(22,22,22);
+    darkgraycolor=IRGB(15,15,15);
+    blackcolor=IRGB(0,0,0);
 
-    lightredcolor=rgb2scr[IRGB(31,0,0)];
-    redcolor=rgb2scr[IRGB(22,0,0)];
-    darkredcolor=rgb2scr[IRGB(15,0,0)];
+    lightredcolor=IRGB(31,0,0);
+    redcolor=IRGB(22,0,0);
+    darkredcolor=IRGB(15,0,0);
 
-    lightgreencolor=rgb2scr[IRGB(0,31,0)];
-    greencolor=rgb2scr[IRGB(0,22,0)];
-    darkgreencolor=rgb2scr[IRGB(0,15,0)];
+    lightgreencolor=IRGB(0,31,0);
+    greencolor=IRGB(0,22,0);
+    darkgreencolor=IRGB(0,15,0);
 
-    lightbluecolor=rgb2scr[IRGB(5,15,31)];
-    bluecolor=rgb2scr[IRGB(3,10,22)];
-    darkbluecolor=rgb2scr[IRGB(1,5,15)];
+    lightbluecolor=IRGB(5,15,31);
+    bluecolor=IRGB(3,10,22);
+    darkbluecolor=IRGB(1,5,15);
 
-    lightorangecolor=rgb2scr[IRGB(31,20,16)];
-    orangecolor=rgb2scr[IRGB(31,16,8)];
-    darkorangecolor=rgb2scr[IRGB(15,8,4)];
+    lightorangecolor=IRGB(31,20,16);
+    orangecolor=IRGB(31,16,8);
+    darkorangecolor=IRGB(15,8,4);
 
-    textcolor=rgb2scr[IRGB(27,22,22)];
+    textcolor=IRGB(27,22,22);
 
-    healthcolor=lightredcolor; //rgb2scr[IRGB(31,5,0)];
-    manacolor=lightbluecolor; //rgb2scr[IRGB(10,10,31)];
-    endurancecolor=rgb2scr[IRGB(31,31,5)];
-    shieldcolor=rgb2scr[IRGB(31,15,5)];
+    healthcolor=lightredcolor;
+    manacolor=lightbluecolor;
+    endurancecolor=IRGB(31,31,5);
+    shieldcolor=IRGB(31,15,5);
 
     // dots
     dot=xmalloc(MAX_DOT*sizeof(DOT),MEM_GUI);

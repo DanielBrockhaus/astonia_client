@@ -16,7 +16,7 @@ SDL_Renderer *sdlren;
 extern int gfx_force_png;
 
 #define MAX_TEXCACHE    2500
-#define MAX_TEXHASH     2500
+#define MAX_TEXHASH     2000
 #define STX_NONE        (-1)
 
 #define SF_USED         (1<<0)
@@ -117,8 +117,6 @@ int sdl_init(int width,int height,char *title) {
     sdlt[MAX_TEXCACHE-1].next=STX_NONE;
     sdlt_best=0;
     sdlt_last=MAX_TEXCACHE-1;
-
-
 
     return 1;
 }
@@ -939,14 +937,18 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
 #define DD__SHADEFONT	128
 #define DD__FRAMEFONT	256
 
+#define R16TO32(color)  (int)((((color>>10)&31)/31.0f)*255.0f)
+#define G16TO32(color)  (int)((((color>>5) &31)/31.0f)*255.0f)
+#define B16TO32(color)  (int)((((color)    &31)/31.0f)*255.0f)
+
 int sdl_drawtext(int sx,int sy,unsigned short int color,int flags,const char *text,struct ddfont *font,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
     int dx,dy;
     SDL_Texture *tex;
     int r,g,b,a;
 
-    r=(int)((((color>>11)&31)/31.0f)*255.0f);
-    g=(int)((((color>>5) &63)/63.0f)*255.0f);
-    b=(int)((((color)    &31)/31.0f)*255.0f);
+    r=R16TO32(color);
+    g=G16TO32(color);
+    b=B16TO32(color);
     a=255;
 
     tex=sdl_maketext(text,font,IRGBA(r,g,b,a),flags);
@@ -960,16 +962,16 @@ int sdl_drawtext(int sx,int sy,unsigned short int color,int flags,const char *te
 
     SDL_DestroyTexture(tex);
 
-    return 1;
+    return sx+dx;
 }
 
 void sdl_rect(int sx,int sy,int ex,int ey,unsigned short int color,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
     int r,g,b,a;
     SDL_Rect rc;
 
-    r=(int)((((color>>11)&31)/31.0f)*255.0f);
-    g=(int)((((color>>5) &63)/63.0f)*255.0f);
-    b=(int)((((color)    &31)/31.0f)*255.0f);
+    r=R16TO32(color);
+    g=G16TO32(color);
+    b=B16TO32(color);
     a=255;
 
     if (sx<clipsx) sx=clipsx;
@@ -990,9 +992,9 @@ void sdl_shaded_rect(int sx,int sy,int ex,int ey,unsigned short int color,int cl
     int r,g,b,a;
     SDL_Rect rc;
 
-    r=(int)((((color>>11)&31)/31.0f)*255.0f);
-    g=(int)((((color>>5) &63)/63.0f)*255.0f);
-    b=(int)((((color)    &31)/31.0f)*255.0f);
+    r=R16TO32(color);
+    g=G16TO32(color);
+    b=B16TO32(color);
     a=95;
 
     if (sx<clipsx) sx=clipsx;
@@ -1014,9 +1016,9 @@ void sdl_shaded_rect(int sx,int sy,int ex,int ey,unsigned short int color,int cl
 void sdl_pixel(int x,int y,unsigned short color,int x_offset,int y_offset) {
     int r,g,b,a;
 
-    r=(int)((((color>>11)&31)/31.0f)*255.0f);
-    g=(int)((((color>>5) &63)/63.0f)*255.0f);
-    b=(int)((((color)    &31)/31.0f)*255.0f);
+    r=R16TO32(color);
+    g=G16TO32(color);
+    b=B16TO32(color);
     a=255;
 
     SDL_SetRenderDrawColor(sdlren,r,g,b,a);
@@ -1027,9 +1029,9 @@ void sdl_pixel(int x,int y,unsigned short color,int x_offset,int y_offset) {
 void sdl_line(int fx,int fy,int tx,int ty,unsigned short color,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
     int r,g,b,a;
 
-    r=(int)((((color>>11)&31)/31.0f)*255.0f);
-    g=(int)((((color>>5) &63)/63.0f)*255.0f);
-    b=(int)((((color)    &31)/31.0f)*255.0f);
+    r=R16TO32(color);
+    g=G16TO32(color);
+    b=B16TO32(color);
     a=255;
 
     if (fx<clipsx) fx=clipsx;

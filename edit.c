@@ -620,8 +620,6 @@ static void editor_display_overview(void) {
             else if (field->sprite[0] || field->sprite[1]) color=IRGB(aux,16-aux,aux);
             else color=IRGB(0,0,0);
 
-            color=rgb2scr[color];
-
             ptr[scrx+scry*xres]=color;
             if (++scrx>=winxres) continue;
             ptr[scrx+scry*xres]=color;
