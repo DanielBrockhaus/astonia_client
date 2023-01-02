@@ -2779,7 +2779,7 @@ void gui_keyproc(int wparam) {
             else { display_help=0; display_quest=1; }
             return;
 
-        case VK_F10:		display_vc^=1; return;
+        case VK_F10:		display_vc^=1; list_mem(); return;
 
         case VK_F11:            if (display_help) display_help=0;
             else { display_quest=0; display_help=1; }
@@ -3186,6 +3186,7 @@ void flip_at(unsigned int t) {
     unsigned int tnow;
 
     do {
+        sdl_loop();
         while (PeekMessage(&msg,NULL,0,0,PM_REMOVE)) {
             TranslateMessage(&msg);
             DispatchMessage(&msg);

@@ -24,7 +24,7 @@ static void* xcompress(void *src,unsigned int srcsize,unsigned int *dstsize,int 
     unsigned int dstlen;
 
     dstlen=12+srcsize*2;
-    dst=xmalloc(dstlen,MEM_TEMP1);
+    dst=xmalloc(dstlen,MEM_TEMP);
 
     compress2(dst,(uLongf *)&dstlen,src,srcsize,9);
 
@@ -478,7 +478,7 @@ static void* make_gfx_1(struct pakopts *pakopts,IMAGE *image,unsigned int *size)
 
     if (!(pakopts->use&(1<<(1-1)))) return NULL;
 
-    dst=xmalloc(image->xres*image->yres*4,MEM_TEMP2);
+    dst=xmalloc(image->xres*image->yres*4,MEM_TEMP);
 
     for (used=y=0; y<image->yres; y++) {
         for (x=0; x<image->xres; x++) {
@@ -498,7 +498,7 @@ static void* make_gfx_1(struct pakopts *pakopts,IMAGE *image,unsigned int *size)
         }
     }
 
-    dst=xrealloc(dst,used,MEM_TEMP2);
+    dst=xrealloc(dst,used,MEM_TEMP);
     *size=used;
 
     return dst;
@@ -510,7 +510,7 @@ static void* make_gfx_2(struct pakopts *pakopts,IMAGE *image,unsigned int *size,
 
     if (!(pakopts->use&(1<<(2-1)))) return NULL;
 
-    dst=xmalloc(image->xres*image->yres*4,MEM_TEMP3);
+    dst=xmalloc(image->xres*image->yres*4,MEM_TEMP);
 
     for (used=y=0; y<image->yres; y++) {
         for (x=0; x<image->xres; x++) {
@@ -530,7 +530,7 @@ static void* make_gfx_2(struct pakopts *pakopts,IMAGE *image,unsigned int *size,
 
     note("[2] used %d",used);
 
-    dst=xrealloc(dst,used,MEM_TEMP3);
+    dst=xrealloc(dst,used,MEM_TEMP);
     *size=used;
 
     return dst;
@@ -558,7 +558,7 @@ static void* make_gfx_3(struct pakopts *pakopts,IMAGE *image,unsigned int *size,
     else if (pal_cnt<=128)  amask=128;              // alpha 1:7 palette bits
     else amask=0xf8;
 
-    dst=xmalloc(image->xres*image->yres*4,MEM_TEMP4);
+    dst=xmalloc(image->xres*image->yres*4,MEM_TEMP);
 
     if (pal_cnt<=128) {
         for (used=y=0; y<image->yres; y++) {
@@ -603,7 +603,7 @@ static void* make_gfx_3(struct pakopts *pakopts,IMAGE *image,unsigned int *size,
         }
     }
 
-    dst=xrealloc(dst,used,MEM_TEMP4);
+    dst=xrealloc(dst,used,MEM_TEMP);
     *size=used;
 
     return dst;
@@ -634,7 +634,7 @@ static int gfx_make_gfxdata(struct pakopts *pakopts,int sprite,struct gfxdata *g
         if (!data) continue;
         if (!realsize) continue; // paranoia ?
 
-        comp=xcompress(data,realsize,&compsize,MEM_TEMP5);
+        comp=xcompress(data,realsize,&compsize,MEM_TEMP);
 
         xfree(data);
 
@@ -865,14 +865,14 @@ int gfx_load_image_pak(IMAGE *image,int sprite) {
     lseek(pak_cache[pidx].fd,pak_cache[pidx].dat[i].offset,SEEK_SET);
 
     totsize=pak_cache[pidx].dat[i].totsize;
-    dat=xmalloc(totsize,MEM_TEMP6);
+    dat=xmalloc(totsize,MEM_TEMP);
     read(pak_cache[pidx].fd,dat,totsize);
 
     // look at gfx_save_pak to understand me ;-)
     compsize=*(unsigned int *)(dat);
     realsize=*(unsigned int *)(dat+4);
 
-    buf=xuncompress(dat+8,compsize,realsize,MEM_TEMP7);
+    buf=xuncompress(dat+8,compsize,realsize,MEM_TEMP);
     if (!buf) { xfree(dat); return fail("uncompressing sprite %d failed",sprite); }
 
     image->xres=*(unsigned short int *)(dat+8+compsize+0);
@@ -1018,7 +1018,7 @@ static int gfx_build_pal(int image_cnt,IMAGE *image,int num_pal,unsigned short i
 
     netsize=num_pal;
 
-    bigrgb=xmalloc(MAXSAMPLE,MEM_TEMP8);
+    bigrgb=xmalloc(MAXSAMPLE,MEM_TEMP);
     for (n=x=y=i=0; n<MAXSAMPLE; n+=3) {
 
     again:
@@ -1237,8 +1237,8 @@ static void scale_image(IMAGE *image,int scale) {
     xoff=floor(image->xoff*scale/100.0+0.5);
     yoff=floor(image->yoff*scale/100.0+0.5);
 
-    rgb=xcalloc(xres*yres*sizeof(short int),MEM_TEMP10);
-    a=xcalloc(xres*yres*sizeof(char),MEM_TEMP10);
+    rgb=xcalloc(xres*yres*sizeof(short int),MEM_TEMP);
+    a=xcalloc(xres*yres*sizeof(char),MEM_TEMP);
 
     for (y=0; y<yres; y++) {
         for (x=0; x<xres; x++) {

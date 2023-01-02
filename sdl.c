@@ -94,16 +94,16 @@ int sdl_init(int width,int height,char *title) {
 
     len=sizeof(struct sdl_image)*MAXSPRITE;
     note("SDL Image cache needs %.2fM for image cache index",len/(1024.0*1024.0));
-    sdli=calloc(len,1);
+    sdli=xcalloc(len*1,MEM_SDL_BASE);
     if (!sdli) return fail("Out of memory in sdl_init");
 
-    sdlt_cache=calloc(MAX_TEXHASH,sizeof(int));
+    sdlt_cache=xcalloc(MAX_TEXHASH*sizeof(int),MEM_SDL_BASE);
     if (!sdlt_cache) return fail("Out of memory in sdl_init");
 
     for (i=0; i<MAX_TEXHASH; i++)
         sdlt_cache[i]=STX_NONE;
 
-    sdlt=calloc(MAX_TEXCACHE,sizeof(struct sdl_texture));
+    sdlt=xcalloc(MAX_TEXCACHE*sizeof(struct sdl_texture),MEM_SDL_BASE);
     if (!sdlt) return fail("Out of memory in sdl_init");
 
     for (i=0; i<MAX_TEXCACHE; i++) {
@@ -125,7 +125,7 @@ int maxpanic=0;
 int sdl_clear(void) {
     SDL_SetRenderDrawColor(sdlren,31,63,127,255);
     SDL_RenderClear(sdlren);
-    printf("mem: %.2fM PNG, %.2fM Tex, Hit: %ld, Miss: %ld, Max: %d\n",mem_png/(1024.0*1024.0),mem_tex/(1024.0*1024.0),texc_hit,texc_miss,maxpanic); fflush(stdout);
+    //printf("mem: %.2fM PNG, %.2fM Tex, Hit: %ld, Miss: %ld, Max: %d\n",mem_png/(1024.0*1024.0),mem_tex/(1024.0*1024.0),texc_hit,texc_miss,maxpanic); fflush(stdout);
     maxpanic=0;
     return 1;
 }
@@ -202,7 +202,7 @@ int sdl_load_image_png(struct sdl_image *si,char *filename) {
     si->xoff=-(xres/2)+sx;
     si->yoff=-(yres/2)+sy;
 
-    si->pixel=malloc(si->xres*si->yres*sizeof(uint32_t));
+    si->pixel=xmalloc(si->xres*si->yres*sizeof(uint32_t),MEM_SDL_PNG);
     mem_png+=si->xres*si->yres*sizeof(uint32_t);
 
     if (format==4) {
@@ -487,7 +487,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
                      char ml,char ll,char rl,char ul,char dl) {
     int x,y;
     double ix,iy,low_x,low_y,high_x,high_y,dbr,dbg,dbb,dba;
-    uint32_t irgb,*sptr;
+    uint32_t irgb;
     uint32_t *pixel;
 
     if (si->xres==0 || si->yres==0) scale=100;    // !!! needs better handling !!!
@@ -509,7 +509,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
 
     if (sink) sink=min(sink,max(0,st->yres-4));
 
-    pixel=calloc(st->xres*st->yres,sizeof(uint32_t));
+    pixel=xcalloc(st->xres*st->yres*sizeof(uint32_t),MEM_SDL_PIXEL);
 
     for (y=0; y<st->yres; y++) {
         for (x=0; x<st->xres; x++) {
@@ -564,8 +564,6 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
 
             if (cr || cg || cb || light || sat) irgb=sdl_colorbalance(irgb,cr,cg,cb,light,sat);
             if (shine) irgb=sdl_shine_pix(irgb,shine);
-
-            sptr=&pixel[x+y*st->xres];
 
             if (ll!=ml || rl!=ml || ul!=ml || dl!=ml) {
                 int r,g,b,a;
@@ -653,13 +651,14 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
             if (grid==DDFX_LEFTGRID) { if ((st->xoff+x+st->yoff+y)&1) irgb&=0xffffff; }
             if (grid==DDFX_RIGHTGRID) {  if ((st->xoff+x+st->yoff+y+1)&1) irgb&=0xffffff; }
 
-            *sptr=irgb;
+            pixel[x+y*st->xres]=irgb;
         }
     }
     SDL_Texture *texture = SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_STATIC,st->xres,st->yres);
     if (!texture) printf("SDL_texture Error: %s",SDL_GetError());
     SDL_UpdateTexture(texture,NULL,pixel,st->xres*sizeof(uint32_t));
     SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
+    xfree(pixel);
 
     mem_tex+=st->xres*st->yres*sizeof(uint32_t);
     st->tex=texture;
@@ -880,7 +879,7 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
 
     for (sizex=0,c=text; *c; c++) sizex+=font[*c].dim;
 
-    pixel=calloc(sizex*MAXFONTHEIGHT,sizeof(uint32_t));
+    pixel=xcalloc(sizex*MAXFONTHEIGHT*sizeof(uint32_t),MEM_SDL_PIXEL);
     if (pixel==NULL) return NULL;
 
     while (*text && *text!=DDT) {
@@ -921,6 +920,8 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
     if (!texture) printf("SDL_texture Error: %s",SDL_GetError());
     SDL_UpdateTexture(texture,NULL,pixel,sizex*sizeof(uint32_t));
     SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
+
+    xfree(pixel);
 
     return texture;
 }
@@ -1049,6 +1050,21 @@ void sdl_line(int fx,int fy,int tx,int ty,unsigned short color,int clipsx,int cl
 
     SDL_SetRenderDrawColor(sdlren,r,g,b,a);
     SDL_RenderDrawLine(sdlren,fx,fy,tx,ty);
+}
+
+void sdl_loop(void) {
+    SDL_Event event;
+
+    while (SDL_PollEvent(&event)) {
+        switch(event.type) {
+            case SDL_KEYDOWN:
+                printf("event: %d (%d)\n",event.type,event.key.keysym.sym); fflush(stdout);
+                switch (event.key.keysym.sym) {
+                    case SDLK_F12:      quit=1; break;
+                }
+                break;
+        }
+    }
 }
 
 

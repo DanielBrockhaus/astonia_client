@@ -46,9 +46,9 @@ char* load_ascii_file(char *filename,int ID);
 #define MEM_VPC         12
 #define MEM_VSC         13
 #define MEM_VLC         14
-#define MEM_TEMP1       15
-#define MEM_TEMP2       16
-#define MEM_TEMP3       17
+#define MEM_SDL_BASE    15
+#define MEM_SDL_PIXEL   16
+#define MEM_SDL_PNG     17
 #define MEM_TEMP4       18
 #define MEM_TEMP5       19
 #define MEM_TEMP6       20
