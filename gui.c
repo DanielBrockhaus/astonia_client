@@ -8,6 +8,7 @@
 #include <math.h>
 #include <ctype.h>
 #include <time.h>
+#include <SDL2/SDL.h>
 
 #define ISCLIENT
 #define WANTMAPMN
@@ -2682,6 +2683,7 @@ void cmd_proc(int key) {
             cmdcursor++;
             break;
 
+        case CMD_RETURN:    // TODO: why is there a 13 here?
         case 13:	if (!client_cmd(cmdline) && cmdline[0]) cmd_text(cmdline);
             cmd_remember(cmdline);
             if (history[MAXHIST-1]) xfree(history[MAXHIST-1]);
@@ -2870,6 +2872,126 @@ void gui_keyproc(int wparam) {
 
         case VK_PRIOR:  dd_text_pageup(); break;
         case VK_NEXT:   dd_text_pagedown(); break;
+    }
+}
+
+void gui_sdl_keyproc(int wparam) {
+    int i;
+    extern int display_gfx;
+
+    switch (wparam) {
+
+        case SDLK_ESCAPE:       cmd_stop(); show_look=0; display_gfx=0; teleporter=0; show_tutor=0; display_help=0; display_quest=0; show_color=0; return;
+        case SDLK_F1:            	if (fkeyitem[0]) exec_cmd(CMD_USE_FKEYITEM,0); return;
+        case SDLK_F2:            	if (fkeyitem[1]) exec_cmd(CMD_USE_FKEYITEM,1); return;
+        case SDLK_F3:            	if (fkeyitem[2]) exec_cmd(CMD_USE_FKEYITEM,2); return;
+        case SDLK_F4:            	if (fkeyitem[3]) exec_cmd(CMD_USE_FKEYITEM,3); return;
+
+        case SDLK_F5:		cmd_speed(1); return;
+        case SDLK_F6:             cmd_speed(0); return;
+        case SDLK_F7:             cmd_speed(2); return;
+
+        case SDLK_F8:		nocut^=1; return;
+
+        case SDLK_F9:		if (display_quest) display_quest=0;
+            else { display_help=0; display_quest=1; }
+            return;
+
+        case SDLK_F10:		display_vc^=1; list_mem(); return;
+
+        case SDLK_F11:            if (display_help) display_help=0;
+            else { display_quest=0; display_help=1; }
+            return;
+        case SDLK_F12:            quit=1; return;
+
+        case SDLK_RETURN:
+        case SDLK_RETURN2:        cmd_proc(CMD_RETURN); return;
+        case SDLK_DELETE:         cmd_proc(CMD_DELETE); return;
+        case SDLK_BACKSPACE:      cmd_proc(CMD_BACK); return;
+        case SDLK_LEFT:           cmd_proc(CMD_LEFT); return;
+        case SDLK_RIGHT:          cmd_proc(CMD_RIGHT); return;
+        case SDLK_HOME:           cmd_proc(CMD_HOME); return;
+        case SDLK_END:            cmd_proc(CMD_END); return;
+        case SDLK_UP:             cmd_proc(CMD_UP); return;
+        case SDLK_DOWN:           cmd_proc(CMD_DOWN); return;
+
+        case SDLK_INSERT:		insert_text(); return;
+
+        case SDLK_KP_0:
+        case SDLK_KP_1:
+        case SDLK_KP_2:
+        case SDLK_KP_3:
+        case SDLK_KP_4:
+        case SDLK_KP_5:
+        case SDLK_KP_6:
+        case SDLK_KP_7:
+        case SDLK_KP_8:
+        case SDLK_KP_9:
+            wparam=wparam-96+'0';
+
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+            // TODO: these should probably be lower case for SDL
+            // but since I intend to re-write the GUI anyway
+            // I won't put any effort into these.
+        case 'A':
+        case 'B':
+        case 'C':
+        case 'D':
+        case 'E':
+        case 'F':
+        case 'G':
+        case 'H':
+        case 'I':
+        case 'J':
+        case 'K':
+        case 'L':
+        case 'M':
+        case 'N':
+        case 'O':
+        case 'P':
+        case 'Q':
+        case 'R':
+        case 'S':
+        case 'T':
+        case 'U':
+        case 'V':
+        case 'W':
+        case 'X':
+        case 'Y':
+        case 'Z':
+            if (!vk_item && !vk_char && !vk_spell) return;
+
+            for (i=0; i<max_keytab; i++) {
+
+                if (keytab[i].keycode!=wparam && keytab[i].userdef!=wparam) continue;
+
+                if ((keytab[i].vk_item  && !vk_item) || (!keytab[i].vk_item  && vk_item)) continue;
+                if ((keytab[i].vk_char  && !vk_char) || (!keytab[i].vk_char  && vk_char)) continue;
+                if ((keytab[i].vk_spell && !vk_spell) || (!keytab[i].vk_spell && vk_spell)) continue;
+
+                if (keytab[i].cl_spell) {
+                    if (keytab[i].tgt==TGT_MAP) exec_cmd(CMD_MAP_CAST_K,keytab[i].cl_spell);
+                    else if (keytab[i].tgt==TGT_CHR) exec_cmd(CMD_CHR_CAST_K,keytab[i].cl_spell);
+                    else if (keytab[i].tgt==TGT_SLF) exec_cmd(CMD_SLF_CAST_K,keytab[i].cl_spell);
+                    else return;     // hu ?
+                    keytab[i].usetime=now;
+                    return;
+                }
+                return;
+            }
+            return;
+
+        case SDLK_PAGEUP:   dd_text_pageup(); break;
+        case SDLK_PAGEDOWN: dd_text_pagedown(); break;
     }
 }
 
@@ -3192,9 +3314,9 @@ void flip_at(unsigned int t) {
             DispatchMessage(&msg);
         }
         tnow=GetTickCount();
-        if (GetActiveWindow()!=mainwnd) {
+        /*if (GetActiveWindow()!=mainwnd) { // TODO: re-active this once we have the SDL window as only window?
             Sleep(100);
-        } else Sleep(1);
+        } else */ Sleep(1);
 #ifdef DOSOUND
         sound_mood();
 #endif

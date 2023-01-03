@@ -118,6 +118,12 @@ int sdl_init(int width,int height,char *title) {
     sdlt_best=0;
     sdlt_last=MAX_TEXCACHE-1;
 
+    // We want SDL to translate scan codes to ASCII / Unicode
+    // but we don't really want the SDL line editing stuff.
+    // I hope just keeping it enabled all the time doesn't break
+    // anything.
+    SDL_StartTextInput();
+
     return 1;
 }
 
@@ -699,7 +705,7 @@ static void sdl_tx_best(int stx) {
 static inline int hashfunc(int sprite,int ml,int ll,int rl,int ul,int dl) {
     int hash;
 
-    hash=sprite^(ml<<2)^(ll<<4)^(ll<<6)^(rl<<8)^(ul<<10)^(dl<<12);
+    hash=sprite^(ml<<2)^(ll<<4)^(rl<<6)^(ul<<8)^(dl<<10);
 
     return hash%MAX_TEXHASH;
 }
@@ -1052,17 +1058,23 @@ void sdl_line(int fx,int fy,int tx,int ty,unsigned short color,int clipsx,int cl
     SDL_RenderDrawLine(sdlren,fx,fy,tx,ty);
 }
 
+void gui_sdl_keyproc(int wparam);
+void cmd_proc(int key);
+
 void sdl_loop(void) {
     SDL_Event event;
 
     while (SDL_PollEvent(&event)) {
         switch(event.type) {
             case SDL_KEYDOWN:
-                printf("event: %d (%d)\n",event.type,event.key.keysym.sym); fflush(stdout);
-                switch (event.key.keysym.sym) {
-                    case SDLK_F12:      quit=1; break;
-                }
+                //printf("event: %d (%d)\n",event.type,event.key.keysym.sym); fflush(stdout);
+                gui_sdl_keyproc(event.key.keysym.sym);
                 break;
+            case SDL_TEXTINPUT:
+                //printf("event: %c (%d)\n",event.text.text[0],event.text.text[0]); fflush(stdout);
+                cmd_proc(event.text.text[0]);
+                break;
+
         }
     }
 }
