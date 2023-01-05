@@ -1402,8 +1402,6 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
         return -1;
     }
 
-    SetFocus(mainwnd);
-
 #ifdef DOSOUND
     init_sound(mainwnd);
 #endif

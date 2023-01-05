@@ -75,7 +75,7 @@ int sdl_init(int width,int height,char *title) {
 	    return 0;
     }
 
-    sdlwnd = SDL_CreateWindow(title, 2560-width-100, 100, width, height, SDL_WINDOW_SHOWN);
+    sdlwnd = SDL_CreateWindow(title, 2560/2-width/2, 1400/2-height/2, width, height, SDL_WINDOW_SHOWN);
     if (!sdlwnd) {
         printf("SDL_Init Error: %s",SDL_GetError());
         SDL_Quit();
@@ -117,6 +117,8 @@ int sdl_init(int width,int height,char *title) {
     sdlt[MAX_TEXCACHE-1].next=STX_NONE;
     sdlt_best=0;
     sdlt_last=MAX_TEXCACHE-1;
+
+    SDL_RaiseWindow(sdlwnd);
 
     // We want SDL to translate scan codes to ASCII / Unicode
     // but we don't really want the SDL line editing stuff.
@@ -1032,7 +1034,6 @@ void sdl_pixel(int x,int y,unsigned short color,int x_offset,int y_offset) {
     SDL_RenderDrawPoint(sdlren,x+x_offset,y+y_offset);
 }
 
-
 void sdl_line(int fx,int fy,int tx,int ty,unsigned short color,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
     int r,g,b,a;
 
@@ -1059,7 +1060,16 @@ void sdl_line(int fx,int fy,int tx,int ty,unsigned short color,int clipsx,int cl
 }
 
 void gui_sdl_keyproc(int wparam);
+void gui_sdl_mouseproc(int x,int y,int but);
 void cmd_proc(int key);
+
+#define SDL_MOUM_NONE       0
+#define SDL_MOUM_LUP        1
+#define SDL_MOUM_LDOWN      2
+#define SDL_MOUM_RUP        3
+#define SDL_MOUM_RDOWN      4
+#define SDL_MOUM_MUP        5
+#define SDL_MOUM_MDOWN      6
 
 void sdl_loop(void) {
     SDL_Event event;
@@ -1067,16 +1077,52 @@ void sdl_loop(void) {
     while (SDL_PollEvent(&event)) {
         switch(event.type) {
             case SDL_KEYDOWN:
-                //printf("event: %d (%d)\n",event.type,event.key.keysym.sym); fflush(stdout);
                 gui_sdl_keyproc(event.key.keysym.sym);
                 break;
             case SDL_TEXTINPUT:
-                //printf("event: %c (%d)\n",event.text.text[0],event.text.text[0]); fflush(stdout);
                 cmd_proc(event.text.text[0]);
+                break;
+            case SDL_MOUSEMOTION:
+                gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_NONE);
+                break;
+            case SDL_MOUSEBUTTONDOWN:
+                if (event.button.button==SDL_BUTTON_LEFT) gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_LDOWN);
+                if (event.button.button==SDL_BUTTON_MIDDLE) gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_MDOWN);
+                if (event.button.button==SDL_BUTTON_RIGHT) gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_RDOWN);
+                break;
+            case SDL_MOUSEBUTTONUP:
+                if (event.button.button==SDL_BUTTON_LEFT) gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_LUP);
+                if (event.button.button==SDL_BUTTON_MIDDLE) gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_MUP);
+                if (event.button.button==SDL_BUTTON_RIGHT) gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_RUP);
                 break;
 
         }
     }
 }
 
+
+int sdl_keymode(void) {
+    SDL_Keymod km;
+    int ret=0;
+
+    km=SDL_GetModState();
+
+    if (km&KMOD_ALT) ret|=SDL_KEYM_ALT;
+    if (km&KMOD_CTRL) ret|=SDL_KEYM_CTRL;
+    if (km&KMOD_SHIFT) ret|=SDL_KEYM_SHIFT;
+
+    return ret;
+}
+
+void sdl_set_cursor_pos(int x,int y) {
+    SDL_WarpMouseInWindow(sdlwnd,x,y);
+}
+
+void sdl_show_cursor(int flag) {
+    SDL_ShowCursor(flag ? SDL_ENABLE : SDL_DISABLE);
+}
+
+void sdl_capture_mouse(int flag) {
+    SDL_CaptureMouse(flag);
+}
 

@@ -16,7 +16,7 @@ moac.exe:       Makefile $(OBJS)
 dd.o:		dd.c main.h dd.h sdl.h
 gfx.o:		gfx.c main.h dd.h neuquant.h
 sprite.o:	sprite.c main.h sprite.h client.h
-gui.o:		gui.c gui.h main.h dd.h client.h skill.h sprite.h resource.h
+gui.o:		gui.c gui.h main.h dd.h client.h skill.h sprite.h resource.h sdl.h
 main.o:		main.c main.h dd.h client.h resource.h
 font.o:		font.c dd.h
 client.o:	client.c main.h client.h

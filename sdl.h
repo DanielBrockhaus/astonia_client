@@ -31,3 +31,14 @@ void sdl_shaded_rect(int sx,int sy,int ex,int ey,unsigned short int color,int cl
 void sdl_pixel(int x,int y,unsigned short color,int x_offset,int y_offset);
 void sdl_line(int fx,int fy,int tx,int ty,unsigned short color,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset);
 
+#define SDL_KEYM_SHIFT  1
+#define SDL_KEYM_CTRL   2
+#define SDL_KEYM_ALT    4
+
+int sdl_keymode(void);
+void sdl_set_cursor_pos(int x,int y);
+void sdl_show_cursor(int flag);
+void sdl_capture_mouse(int flag);
+
+
+

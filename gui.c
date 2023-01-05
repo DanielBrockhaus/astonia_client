@@ -85,8 +85,6 @@ int mousex,mousey,vk_shift,vk_control,vk_alt,vk_rbut,vk_lbut,shift_override=0,co
 int mousedx,mousedy;
 int vk_item,vk_char,vk_spell;
 
-int vk_special=0,vk_special_time=0;
-
 DOT *dot=NULL;
 BUT *but=NULL;
 
@@ -185,27 +183,6 @@ struct special_tab {
     int spell,target;
     int req;
 };
-
-struct special_tab special_tab[]={
-    {"Walk",0,0,0,0,0},
-    {"Use/Take",1,0,0,0,0},
-    {"Attack/Give",0,1,0,0,0},
-    {"Warcry",0,0,CL_WARCRY,TGT_SLF,V_WARCRY},
-    {"Pulse",0,0,CL_PULSE,TGT_SLF,V_PULSE},
-    {"Fireball-CHAR",0,1,CL_FIREBALL,TGT_CHR,V_FIREBALL},
-    {"Fireball-MAP",0,0,CL_FIREBALL,TGT_MAP,V_FIREBALL},
-    {"Firering",0,0,CL_FIREBALL,TGT_SLF,V_FIREBALL},
-    {"LBall-CHAR",0,1,CL_BALL,TGT_CHR,V_FLASH},
-    {"LBall-MAP",0,0,CL_BALL,TGT_MAP,V_FLASH},
-    {"Flash",0,0,CL_FLASH,TGT_SLF,V_FLASH},
-    {"Freeze",0,0,CL_FREEZE,TGT_SLF,V_FREEZE},
-    {"Shield",0,0,CL_MAGICSHIELD,TGT_SLF,V_MAGICSHIELD},
-    {"Bless-SELF",0,0,CL_BLESS,TGT_SLF,V_BLESS},
-    {"Bless-CHAR",0,1,CL_BLESS,TGT_CHR,V_BLESS},
-    {"Heal-SELF",0,0,CL_HEAL,TGT_SLF,V_HEAL},
-    {"Heal-CHAR",0,1,CL_HEAL,TGT_CHR,V_HEAL}
-};
-int max_special=sizeof(special_tab)/sizeof(special_tab[0]);
 
 int fkeyitem[4];
 
@@ -822,30 +799,6 @@ static void display_skill(void) {
     }
 }
 
-static int vk_special_dec(void) {
-    int n,panic=99;
-
-    for (n=(vk_special+max_special-1)%max_special; panic--; n=(n+max_special-1)%max_special) {
-        if (!special_tab[n].req || value[0][special_tab[n].req]) {
-            vk_special=n;
-            return 1;
-        }
-    }
-    return 0;
-}
-
-static int vk_special_inc(void) {
-    int n,panic=99;
-
-    for (n=(vk_special+1)%max_special; panic--; n=(n+1)%max_special) {
-        if (!special_tab[n].req || value[0][special_tab[n].req]) {
-            vk_special=n;
-            return 1;
-        }
-    }
-    return 0;
-}
-
 static void display_keys(void) {
     int i,x,u;
     char buf[256];
@@ -869,29 +822,6 @@ static void display_keys(void) {
         dd_drawtext(x,427,col,DD_LEFT|DD_SMALL|DD_FRAME,buf);
         // dd_drawtext(5,50+u*10,col,DD_LEFT|DD_SMALL|DD_FRAME,buf);
     }
-
-    dd_push_clip();
-    dd_more_clip(0,0,800,600);
-
-    if (now-vk_special_time<2000) {
-        int n,panic=99;
-
-        for (n=(vk_special+1)%max_special,i=-1; panic-- && i>-3; n=(n+1)%max_special) {
-            if (!special_tab[n].req || value[0][special_tab[n].req]) {
-                dd_drawtext(mousex+9,mousey-3+i*10,graycolor,DD_LEFT|DD_FRAME,special_tab[n].name);
-                i--;
-            }
-        }
-        dd_drawtext(mousex+9,mousey-3,whitecolor,DD_LEFT|DD_FRAME,special_tab[vk_special].name);
-
-        for (n=(vk_special+max_special-1)%max_special,i=1; panic-- && i<3; n=(n+max_special-1)%max_special) {
-            if (!special_tab[n].req || value[0][special_tab[n].req]) {
-                dd_drawtext(mousex+9,mousey-3+i*10,graycolor,DD_LEFT|DD_FRAME,special_tab[n].name);
-                i++;
-            }
-        }
-    }
-    dd_pop_clip();
 }
 
 #define TELE_X	100
@@ -1776,23 +1706,17 @@ static void set_cmd_cursor(int cmd) {
 }
 
 void set_cmd_key_states(void) {
-    POINT p;
-    extern int x_offset,y_offset;
+    int km;
 
-    vk_shift=(GetAsyncKeyState(VK_SHIFT)&0x8000)|shift_override;
-    vk_control=(GetAsyncKeyState(VK_CONTROL)&0x8000)|control_override;
-    vk_alt=GetAsyncKeyState(VK_MENU)&0x8000;
-    //vk_lbut=GetAsyncKeyState(VK_LBUTTON)&0x8000;
-    //vk_rbut=GetAsyncKeyState(VK_RBUTTON)&0x8000;
+    km=sdl_keymode();
+
+    vk_shift=(km&SDL_KEYM_SHIFT) || shift_override;
+    vk_control=(km&SDL_KEYM_CTRL) || control_override;
+    vk_alt=(km&SDL_KEYM_ALT)!=0;
 
     vk_char=vk_control;
     vk_item=vk_shift;
     vk_spell=vk_alt;
-
-    GetCursorPos(&p);
-    ScreenToClient(mainwnd,&p);
-    mousex=(p.x-x_offset)/mouse_scale;
-    mousey=(p.y-y_offset)/mouse_scale;
 }
 
 static int get_near_ground(int x,int y) {
@@ -2927,7 +2851,7 @@ void gui_sdl_keyproc(int wparam) {
         case SDLK_KP_7:
         case SDLK_KP_8:
         case SDLK_KP_9:
-            wparam=wparam-96+'0';
+            wparam=wparam-SDLK_KP_0+'0';
 
         case '0':
         case '1':
@@ -2997,8 +2921,6 @@ void gui_sdl_keyproc(int wparam) {
 
 __attribute__((stdcall)) long int main_wnd_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam)  {
     PAINTSTRUCT ps;
-    extern int x_offset,y_offset;
-    static int delta=0,mdown=0;
 
     if (quit) {
         if (msg==WM_DESTROY) PostQuitMessage(0);
@@ -3047,120 +2969,78 @@ __attribute__((stdcall)) long int main_wnd_proc(HWND wnd,UINT msg,WPARAM wparam,
             PostQuitMessage(0);
             return 0;
 
-        case WM_MOUSEMOVE:
-            mousex=(signed short int)LOWORD(lparam);
-            mousey=(signed short int)HIWORD(lparam);
-#ifdef EDITOR
-            if (editor) return editor_mouseproc(msg);
-#endif
-
-            if (capbut!=-1) {
-                if (mousex!=XRES/2 || mousey!=YRES/2) {
-                    POINT p;
-                    mousedx+=mousex-(XRES/2);
-                    mousedy+=mousey-(YRES/2);
-                    p.x=XRES/2;
-                    p.y=YRES/2;
-                    ClientToScreen(wnd,&p);
-                    SetCursorPos(p.x,p.y);
-                }
-            }
-
-            mousex/=mouse_scale;
-            mousey/=mouse_scale;
-
-            if (butsel!=-1 && vk_lbut && (but[butsel].flags&BUTF_MOVEEXEC)) exec_cmd(lcmd,0);
-
-            return 0;
-
-        case WM_LBUTTONDOWN:
-            vk_lbut=1;
-#ifdef EDITOR
-            if (editor) return editor_mouseproc(msg);
-#endif
-            if (butsel!=-1 && capbut==-1 && (but[butsel].flags&BUTF_CAPTURE)) {
-                POINT p;
-                ShowCursor(0);
-                SetCapture(wnd);
-                mousedx=0;
-                mousedy=0;
-                p.x=XRES/2;
-                p.y=YRES/2;
-                ClientToScreen(wnd,&p);
-                SetCursorPos(p.x,p.y);
-                capbut=butsel;
-            }
-            return 0;
-
-        case WM_RBUTTONUP:
-            vk_rbut=0;
-#ifdef EDITOR
-            if (editor) return editor_mouseproc(msg);
-#endif
-            exec_cmd(rcmd,0);
-            return 0;
-
-
-        case WM_MBUTTONUP:
-            shift_override=0;
-            control_override=0;
-            mdown=0;
-            if (special_tab[vk_special].spell) {
-                if (special_tab[vk_special].target==TGT_MAP) exec_cmd(CMD_MAP_CAST_K,special_tab[vk_special].spell);
-                else if (special_tab[vk_special].target==TGT_CHR) exec_cmd(CMD_CHR_CAST_K,special_tab[vk_special].spell);
-                else if (special_tab[vk_special].target==TGT_SLF) exec_cmd(CMD_SLF_CAST_K,special_tab[vk_special].spell);
-                return 0;
-            }
-            // fall through intended
-        case WM_LBUTTONUP:
-            vk_lbut=0;
-#ifdef EDITOR
-            if (editor) return editor_mouseproc(msg);
-#endif
-            if (capbut!=-1) {
-                POINT p;
-                // ClipCursor(NULL);
-                p.x=but[capbut].x*mouse_scale+x_offset; p.y=but[capbut].y*mouse_scale+y_offset; ClientToScreen(wnd,&p);
-                SetCursorPos(p.x,p.y);
-                ReleaseCapture();
-                ShowCursor(1);
-                // ShowCursor(1);
-                if (!(but[capbut].flags&BUTF_MOVEEXEC)) exec_cmd(lcmd,0);
-                capbut=-1;
-            } else exec_cmd(lcmd,0);
-            return 0;
-
-        case WM_RBUTTONDOWN:
-            vk_rbut=1;
-#ifdef EDITOR
-            if (editor) return editor_mouseproc(msg);
-#endif
-            return 0;
-
-        case WM_MOUSEWHEEL:
-            if (!(short)(HIWORD(wparam))) return 0;
-
-            delta+=(short)(HIWORD(wparam));
-
-            while (delta>=120) {vk_special_inc(); delta-=120; }
-            while (delta<=-120) {vk_special_dec(); delta+=120; }
-            vk_special_time=now;
-
-            if (mdown) {
-                shift_override=special_tab[vk_special].shift_over;
-                control_override=special_tab[vk_special].control_over;
-            }
-
-            return 0;
-
-        case WM_MBUTTONDOWN:
-            shift_override=special_tab[vk_special].shift_over;
-            control_override=special_tab[vk_special].control_over;
-            mdown=1;
-            return 0;
-
     }
     return DefWindowProc(wnd,msg,wparam,lparam);
+}
+
+#define SDL_MOUM_NONE       0
+#define SDL_MOUM_LUP        1
+#define SDL_MOUM_LDOWN      2
+#define SDL_MOUM_RUP        3
+#define SDL_MOUM_RDOWN      4
+#define SDL_MOUM_MUP        5
+#define SDL_MOUM_MDOWN      6
+
+void gui_sdl_mouseproc(int x,int y,int what) {
+    extern int x_offset,y_offset;
+    switch (what) {
+        case SDL_MOUM_NONE:
+                mousex=x;
+                mousey=y;
+
+                if (capbut!=-1) {
+                    if (mousex!=XRES/2 || mousey!=YRES/2) {
+                        mousedx+=mousex-(XRES/2);
+                        mousedy+=mousey-(YRES/2);
+                        sdl_set_cursor_pos(XRES/2,YRES/2);
+                    }
+                }
+
+                mousex/=mouse_scale;
+                mousey/=mouse_scale;
+
+                if (butsel!=-1 && vk_lbut && (but[butsel].flags&BUTF_MOVEEXEC)) exec_cmd(lcmd,0);
+                break;
+
+            case SDL_MOUM_LDOWN:
+                vk_lbut=1;
+
+                if (butsel!=-1 && capbut==-1 && (but[butsel].flags&BUTF_CAPTURE)) {
+                    sdl_show_cursor(0);
+                    sdl_capture_mouse(1);
+                    mousedx=0;
+                    mousedy=0;
+                    sdl_set_cursor_pos(XRES/2,YRES/2);
+                    capbut=butsel;
+                }
+                break;
+
+
+            case SDL_MOUM_LUP:
+                vk_lbut=0;
+                if (capbut!=-1) {
+                    sdl_set_cursor_pos(but[capbut].x*mouse_scale+x_offset,but[capbut].y*mouse_scale+y_offset);
+                    sdl_capture_mouse(0);
+                    sdl_show_cursor(1);
+                    if (!(but[capbut].flags&BUTF_MOVEEXEC)) exec_cmd(lcmd,0);
+                    capbut=-1;
+                } else
+                exec_cmd(lcmd,0);
+                break;
+
+            case SDL_MOUM_RDOWN:
+                vk_rbut=1;
+                break;
+
+            case SDL_MOUM_RUP:
+                vk_rbut=0;
+                exec_cmd(rcmd,0);
+                break;
+
+//          TODO: change mousewheel to scroll windows instead of the command list
+//          TODO: check if removing the middle mouse button causes any problems; remove related variables
+
+    }
 }
 
 int main_init(void) {
