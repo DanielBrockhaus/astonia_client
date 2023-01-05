@@ -4,6 +4,8 @@
 
 #include <stdint.h>
 #include <windows.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <SDL2/SDL.h>
 #include <png.h>
 
@@ -67,6 +69,75 @@ struct sdl_image *sdli=NULL;
 long mem_png=0,mem_tex=0;
 long texc_hit=0,texc_miss=0;
 
+/* This function is a hack. It can only load one specific type of
+   Windows cursor file: 32x32 pixels with 1 bit depth. */
+
+SDL_Cursor *sdl_create_cursor(char *filename) {
+    int handle;
+    unsigned char mask[128],data[128],buf[326];
+
+    handle=open(filename,O_RDONLY|O_BINARY);
+    if (handle==-1) {
+        printf("SDL Error: Could not open cursor file %s.\n",filename);
+        return NULL;
+    }
+
+    if (read(handle,buf,326)!=326) {
+        printf("SDL Error: Read cursor file failed.\n");
+        return NULL;
+    }
+    close(handle);
+
+    for (int i=0; i<32; i++) {
+        for (int j=0; j<4; j++) {
+            data[i*4+j]=0;
+            mask[i*4+j]=0;
+
+            for (int k=1; k<256; k<<=1) {
+
+                if (buf[194-i*4+j]&k) {
+                    if (buf[322-i*4+j]&k) { mask[i*4+j]|=k; }
+                    else { mask[i*4+j]|=k; }
+                } else {
+                    if (buf[322-i*4+j]&k) ;
+                    else data[i*4+j]|=k;
+                }
+            }
+        }
+    }
+    return SDL_CreateCursor(data,mask,32,32,8,8);
+}
+
+SDL_Cursor *curs[20];
+
+int sdl_create_cursors(void) {
+    curs[SDL_CUR_c_only]=sdl_create_cursor("res/c_only.cur");
+    curs[SDL_CUR_c_take]=sdl_create_cursor("res/c_take.cur");
+    curs[SDL_CUR_c_drop]=sdl_create_cursor("res/c_drop.cur");
+    curs[SDL_CUR_c_attack]=sdl_create_cursor("res/c_atta.cur");
+    curs[SDL_CUR_c_raise]=sdl_create_cursor("res/c_rais.cur");
+    curs[SDL_CUR_c_give]=sdl_create_cursor("res/c_give.cur");
+    curs[SDL_CUR_c_use]=sdl_create_cursor("res/c_use.cur");
+    curs[SDL_CUR_c_usewith]=sdl_create_cursor("res/c_usew.cur");
+    curs[SDL_CUR_c_swap]=sdl_create_cursor("res/c_swap.cur");
+    curs[SDL_CUR_c_sell]=sdl_create_cursor("res/c_sell.cur");
+    curs[SDL_CUR_c_buy]=sdl_create_cursor("res/c_buy.cur");
+    curs[SDL_CUR_c_look]=sdl_create_cursor("res/c_look.cur");
+    curs[SDL_CUR_c_set]=sdl_create_cursor("res/c_set.cur");
+    curs[SDL_CUR_c_spell]=sdl_create_cursor("res/c_spell.cur");
+    curs[SDL_CUR_c_pix]=sdl_create_cursor("res/c_pix.cur");
+    curs[SDL_CUR_c_say]=sdl_create_cursor("res/c_say.cur");
+    curs[SDL_CUR_c_junk]=sdl_create_cursor("res/c_junk.cur");
+    curs[SDL_CUR_c_get]=sdl_create_cursor("res/c_get.cur");
+
+    return 1;
+}
+
+void sdl_set_cursor(int cursor) {
+    if (cursor<SDL_CUR_c_only || cursor>SDL_CUR_c_get) return;
+    SDL_SetCursor(curs[cursor]);
+}
+
 int sdl_init(int width,int height,char *title) {
     int len,i;
 
@@ -125,6 +196,8 @@ int sdl_init(int width,int height,char *title) {
     // I hope just keeping it enabled all the time doesn't break
     // anything.
     SDL_StartTextInput();
+
+    sdl_create_cursors();
 
     return 1;
 }

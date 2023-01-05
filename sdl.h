@@ -40,5 +40,26 @@ void sdl_set_cursor_pos(int x,int y);
 void sdl_show_cursor(int flag);
 void sdl_capture_mouse(int flag);
 
+#define SDL_CUR_c_only      1
+#define SDL_CUR_c_take      2
+#define SDL_CUR_c_drop      3
+#define SDL_CUR_c_attack    4
+#define SDL_CUR_c_raise     5
+#define SDL_CUR_c_give      6
+#define SDL_CUR_c_use       7
+#define SDL_CUR_c_usewith   8
+#define SDL_CUR_c_swap      9
+#define SDL_CUR_c_sell      10
+#define SDL_CUR_c_buy       11
+#define SDL_CUR_c_look      12
+#define SDL_CUR_c_set       13
+#define SDL_CUR_c_spell     14
+#define SDL_CUR_c_pix       15
+#define SDL_CUR_c_say       16
+#define SDL_CUR_c_junk      17
+#define SDL_CUR_c_get       18
+
+void sdl_set_cursor(int cursor);
+
 
 

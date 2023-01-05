@@ -79,8 +79,7 @@ unsigned short int lightorangecolor,orangecolor,darkorangecolor;
 
 unsigned int now;
 
-HCURSOR c_only,c_take,c_drop,c_attack,c_raise,c_give,c_use,c_usewith,c_swap,c_sell,c_buy,c_look,c_set,c_spell,c_pix,c_say,c_junk,c_get;
-HCURSOR cur_cursor=NULL;
+int cur_cursor=0;
 int mousex,mousey,vk_shift,vk_control,vk_alt,vk_rbut,vk_lbut,shift_override=0,control_override=0;
 int mousedx,mousedy;
 int vk_item,vk_char,vk_spell;
@@ -1607,68 +1606,68 @@ static void display(void) {
 // cmd
 
 static void set_cmd_cursor(int cmd) {
-    HCURSOR cursor;
+    int cursor;
 
     // cursor
     switch (cmd) {
-        case CMD_MAP_MOVE:      cursor=c_only; break;
-        case CMD_MAP_DROP:      cursor=c_drop; break;
+        case CMD_MAP_MOVE:      cursor=SDL_CUR_c_only; break;
+        case CMD_MAP_DROP:      cursor=SDL_CUR_c_drop; break;
 
-        case CMD_ITM_TAKE:      cursor=c_take; break;
-        case CMD_ITM_USE:       cursor=c_use; break;
-        case CMD_ITM_USE_WITH:  cursor=c_usewith; break;
+        case CMD_ITM_TAKE:      cursor=SDL_CUR_c_take; break;
+        case CMD_ITM_USE:       cursor=SDL_CUR_c_use; break;
+        case CMD_ITM_USE_WITH:  cursor=SDL_CUR_c_usewith; break;
 
-        case CMD_CHR_ATTACK:    cursor=c_attack; break;
-        case CMD_CHR_GIVE:      cursor=c_give; break;
+        case CMD_CHR_ATTACK:    cursor=SDL_CUR_c_attack; break;
+        case CMD_CHR_GIVE:      cursor=SDL_CUR_c_give; break;
 
-        case CMD_INV_USE:       cursor=c_use; break;
-        case CMD_INV_USE_WITH:  cursor=c_usewith; break;
-        case CMD_INV_TAKE:      cursor=c_take; break;
-        case CMD_INV_SWAP:      cursor=c_swap; break;
-        case CMD_INV_DROP:      cursor=c_drop; break;
+        case CMD_INV_USE:       cursor=SDL_CUR_c_use; break;
+        case CMD_INV_USE_WITH:  cursor=SDL_CUR_c_usewith; break;
+        case CMD_INV_TAKE:      cursor=SDL_CUR_c_take; break;
+        case CMD_INV_SWAP:      cursor=SDL_CUR_c_swap; break;
+        case CMD_INV_DROP:      cursor=SDL_CUR_c_drop; break;
 
-        case CMD_WEA_USE:       cursor=c_use; break;
-        case CMD_WEA_USE_WITH:  cursor=c_usewith; break;
-        case CMD_WEA_TAKE:      cursor=c_take; break;
-        case CMD_WEA_SWAP:      cursor=c_swap; break;
-        case CMD_WEA_DROP:      cursor=c_drop; break;
+        case CMD_WEA_USE:       cursor=SDL_CUR_c_use; break;
+        case CMD_WEA_USE_WITH:  cursor=SDL_CUR_c_usewith; break;
+        case CMD_WEA_TAKE:      cursor=SDL_CUR_c_take; break;
+        case CMD_WEA_SWAP:      cursor=SDL_CUR_c_swap; break;
+        case CMD_WEA_DROP:      cursor=SDL_CUR_c_drop; break;
 
-        case CMD_CON_TAKE:      cursor=c_take; break;
-        case CMD_CON_FASTTAKE:	cursor=c_take; break;   // needs different cursor!!!
+        case CMD_CON_TAKE:      cursor=SDL_CUR_c_take; break;
+        case CMD_CON_FASTTAKE:	cursor=SDL_CUR_c_take; break;   // needs different cursor!!!
 
-        case CMD_CON_BUY:       cursor=c_buy; break;
-        case CMD_CON_FASTBUY:   cursor=c_buy; break;    // needs different cursor!!!
+        case CMD_CON_BUY:       cursor=SDL_CUR_c_buy; break;
+        case CMD_CON_FASTBUY:   cursor=SDL_CUR_c_buy; break;    // needs different cursor!!!
 
-        case CMD_CON_SWAP:      cursor=c_swap; break;
-        case CMD_CON_DROP:      cursor=c_drop; break;
-        case CMD_CON_SELL:      cursor=c_sell; break;
-        case CMD_CON_FASTSELL:  cursor=c_sell; break;   // needs different cursor!!!
-        case CMD_CON_FASTDROP:  cursor=c_drop; break;   // needs different cursor!!!
+        case CMD_CON_SWAP:      cursor=SDL_CUR_c_swap; break;
+        case CMD_CON_DROP:      cursor=SDL_CUR_c_drop; break;
+        case CMD_CON_SELL:      cursor=SDL_CUR_c_sell; break;
+        case CMD_CON_FASTSELL:  cursor=SDL_CUR_c_sell; break;   // needs different cursor!!!
+        case CMD_CON_FASTDROP:  cursor=SDL_CUR_c_drop; break;   // needs different cursor!!!
 
-        case CMD_MAP_LOOK:      cursor=c_look; break;
-        case CMD_ITM_LOOK:      cursor=c_look; break;
-        case CMD_CHR_LOOK:      cursor=c_look; break;
-        case CMD_INV_LOOK:      cursor=c_look; break;
-        case CMD_WEA_LOOK:      cursor=c_look; break;
-        case CMD_CON_LOOK:      cursor=c_look; break;
+        case CMD_MAP_LOOK:      cursor=SDL_CUR_c_look; break;
+        case CMD_ITM_LOOK:      cursor=SDL_CUR_c_look; break;
+        case CMD_CHR_LOOK:      cursor=SDL_CUR_c_look; break;
+        case CMD_INV_LOOK:      cursor=SDL_CUR_c_look; break;
+        case CMD_WEA_LOOK:      cursor=SDL_CUR_c_look; break;
+        case CMD_CON_LOOK:      cursor=SDL_CUR_c_look; break;
 
-        case CMD_MAP_CAST_L:    cursor=c_spell; break;
-        case CMD_ITM_CAST_L:    cursor=c_spell; break;
-        case CMD_CHR_CAST_L:    cursor=c_spell; break;
-        case CMD_MAP_CAST_R:    cursor=c_spell; break;
-        case CMD_ITM_CAST_R:    cursor=c_spell; break;
-        case CMD_CHR_CAST_R:    cursor=c_spell; break;
-        case CMD_SPL_SET_L:     cursor=c_set; break;
-        case CMD_SPL_SET_R:     cursor=c_set; break;
+        case CMD_MAP_CAST_L:    cursor=SDL_CUR_c_spell; break;
+        case CMD_ITM_CAST_L:    cursor=SDL_CUR_c_spell; break;
+        case CMD_CHR_CAST_L:    cursor=SDL_CUR_c_spell; break;
+        case CMD_MAP_CAST_R:    cursor=SDL_CUR_c_spell; break;
+        case CMD_ITM_CAST_R:    cursor=SDL_CUR_c_spell; break;
+        case CMD_CHR_CAST_R:    cursor=SDL_CUR_c_spell; break;
+        case CMD_SPL_SET_L:     cursor=SDL_CUR_c_set; break;
+        case CMD_SPL_SET_R:     cursor=SDL_CUR_c_set; break;
 
-        case CMD_SKL_RAISE:     cursor=c_raise; break;
+        case CMD_SKL_RAISE:     cursor=SDL_CUR_c_raise; break;
 
-        case CMD_SAY_HITSEL:    cursor=c_say; break;
+        case CMD_SAY_HITSEL:    cursor=SDL_CUR_c_say; break;
 
-        case CMD_DROP_GOLD:     cursor=c_drop; break;
-        case CMD_TAKE_GOLD:     cursor=c_take; break;
+        case CMD_DROP_GOLD:     cursor=SDL_CUR_c_drop; break;
+        case CMD_TAKE_GOLD:     cursor=SDL_CUR_c_take; break;
 
-        case CMD_JUNK_ITEM:     cursor=c_junk; break;
+        case CMD_JUNK_ITEM:     cursor=SDL_CUR_c_junk; break;
 
 
         case CMD_SPEED0:
@@ -1676,31 +1675,31 @@ static void set_cmd_cursor(int cmd) {
         case CMD_SPEED2:
         case CMD_COMBAT0:
         case CMD_COMBAT1:
-        case CMD_COMBAT2:       cursor=c_set; break;
+        case CMD_COMBAT2:       cursor=SDL_CUR_c_set; break;
 
-        case CMD_TELEPORT:	cursor=c_take; break;
+        case CMD_TELEPORT:	    cursor=SDL_CUR_c_take; break;
 
         case CMD_HELP_NEXT:
         case CMD_HELP_PREV:
-        case CMD_HELP_CLOSE:	cursor=c_use; break;
+        case CMD_HELP_CLOSE:	cursor=SDL_CUR_c_use; break;
 
-        case CMD_HELP_MISC:	if (helpsel!=-1) cursor=c_use;
-            else if (questsel!=-1) cursor=c_use;
-            else cursor=c_only;
-            break;
+        case CMD_HELP_MISC:	    if (helpsel!=-1) cursor=SDL_CUR_c_use;
+                                else if (questsel!=-1) cursor=SDL_CUR_c_use;
+                                else cursor=SDL_CUR_c_only;
+                                break;
 
-        case CMD_HELP:		cursor=c_use; break;
-        case CMD_QUEST:		cursor=c_use; break;
-        case CMD_EXIT:		cursor=c_use; break;
-        case CMD_NOLOOK:	cursor=c_use; break;
+        case CMD_HELP:		    cursor=SDL_CUR_c_use; break;
+        case CMD_QUEST:		    cursor=SDL_CUR_c_use; break;
+        case CMD_EXIT:		    cursor=SDL_CUR_c_use; break;
+        case CMD_NOLOOK:	    cursor=SDL_CUR_c_use; break;
 
-        case CMD_COLOR:		cursor=c_use; break;
+        case CMD_COLOR:		    cursor=SDL_CUR_c_use; break;
 
-        default:                cursor=c_only; break;
+        default:                cursor=SDL_CUR_c_only; break;
     }
 
     if (cur_cursor!=cursor) {
-        SetCursor(cursor);
+        sdl_set_cursor(cursor);
         cur_cursor=cursor;
     }
 }
@@ -2947,10 +2946,6 @@ __attribute__((stdcall)) long int main_wnd_proc(HWND wnd,UINT msg,WPARAM wparam,
             EndPaint(wnd,&ps);
             return 0;
 
-        case WM_SETCURSOR:
-            SetCursor(cur_cursor);
-            break;
-
         case WM_CREATE:
             mainwnd=wnd;
             return 0;
@@ -2983,6 +2978,7 @@ __attribute__((stdcall)) long int main_wnd_proc(HWND wnd,UINT msg,WPARAM wparam,
 
 void gui_sdl_mouseproc(int x,int y,int what) {
     extern int x_offset,y_offset;
+
     switch (what) {
         case SDL_MOUM_NONE:
                 mousex=x;
@@ -3048,25 +3044,6 @@ int main_init(void) {
 
     // set_mapoff(400,270);
     // set_mapadd(0,0);
-
-    c_only=LoadCursor(instance,MAKEINTRESOURCE(IDCU_ONLY));
-    c_take=LoadCursor(instance,MAKEINTRESOURCE(IDCU_TAKE));
-    c_drop=LoadCursor(instance,MAKEINTRESOURCE(IDCU_DROP));
-    c_attack=LoadCursor(instance,MAKEINTRESOURCE(IDCU_ATTACK));
-    c_raise=LoadCursor(instance,MAKEINTRESOURCE(IDCU_RAISE));
-    c_give=LoadCursor(instance,MAKEINTRESOURCE(IDCU_GIVE));
-    c_use=LoadCursor(instance,MAKEINTRESOURCE(IDCU_USE));
-    c_usewith=LoadCursor(instance,MAKEINTRESOURCE(IDCU_USEWITH));
-    c_swap=LoadCursor(instance,MAKEINTRESOURCE(IDCU_SWAP));
-    c_sell=LoadCursor(instance,MAKEINTRESOURCE(IDCU_SELL));
-    c_buy=LoadCursor(instance,MAKEINTRESOURCE(IDCU_BUY));
-    c_look=LoadCursor(instance,MAKEINTRESOURCE(IDCU_LOOK));
-    c_set=LoadCursor(instance,MAKEINTRESOURCE(IDCU_SET));
-    c_spell=LoadCursor(instance,MAKEINTRESOURCE(IDCU_SPELL));
-    c_pix=LoadCursor(instance,MAKEINTRESOURCE(IDCU_PIX));
-    c_say=LoadCursor(instance,MAKEINTRESOURCE(IDCU_SAY));
-    c_junk=LoadCursor(instance,MAKEINTRESOURCE(IDCU_JUNK));
-    c_get=LoadCursor(instance,MAKEINTRESOURCE(IDCU_GET));
 
     whitecolor=IRGB(31,31,31);
     lightgraycolor=IRGB(28,28,28);

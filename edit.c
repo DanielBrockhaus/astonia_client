@@ -28,8 +28,7 @@ extern int quit;
 extern HINSTANCE instance;
 extern HWND mainwnd;
 
-extern HCURSOR c_only,c_take,c_drop,c_attack,c_raise,c_give,c_use,c_usewith,c_swap,c_sell,c_buy,c_look,c_set,c_spell,c_pix,c_say,c_junk,c_get;
-HCURSOR ce_pen,ce_rect,ce_darrow,ce_darrow_0101,ce_pip,ce_sizeall,ce_uarrow,ce_uarrowp,ce_uarrowm;
+HCURSOR ce_pen,ce_rect,ce_darrow,ce_darrow_0101,ce_pip,ce_sizeall,ce_uarrow,ce_uarrowp,ce_uarrowm,ce_only;
 extern HCURSOR cur_cursor;
 extern int mousex,mousey,vk_shift,vk_control,vk_alt,vk_rbut,vk_lbut;
 extern int mousedx,mousedy;
@@ -1584,12 +1583,12 @@ static void editor_set_cmd_cursor(int cmd) {
 
     switch (cmd) {
         case ECMD_GETCURFIELD:          cursor=ce_pip; break;
-        case ECMD_SETCURFIELD:          cursor=c_only; break;
+        case ECMD_SETCURFIELD:          cursor=ce_only; break;
         case ECMD_SETCURRECT:           cursor=ce_rect; break;
         case ECMD_DRAGMAP:              cursor=ce_sizeall; break;
         case ECMD_DRAG_BROWSE:          cursor=ce_sizeall; break;
         case ECMD_PASTE:                cursor=ce_uarrow; break;
-        case ECMD_SETINTFIELD:          cursor=c_only; break;
+        case ECMD_SETINTFIELD:          cursor=ce_only; break;
         case ECMD_SETINTRECT:           cursor=ce_rect; break;
         case ECMD_GETINTFIELD:          cursor=ce_pip; break;
         default:                        cursor=ce_darrow; break;
@@ -2353,6 +2352,7 @@ int init_editor(void) {
     note("init_editor");
 
     // cursors
+    ce_only=LoadCursor(instance,MAKEINTRESOURCE(IDCU_ONLY));
     ce_pen=LoadCursor(instance,MAKEINTRESOURCE(IDCU_E_PEN));
     ce_rect=LoadCursor(instance,MAKEINTRESOURCE(IDCU_E_RECT));
     ce_darrow=LoadCursor(instance,MAKEINTRESOURCE(IDCU_E_DARROW));
