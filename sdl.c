@@ -90,22 +90,11 @@ SDL_Cursor *sdl_create_cursor(char *filename) {
 
     for (int i=0; i<32; i++) {
         for (int j=0; j<4; j++) {
-            data[i*4+j]=0;
-            mask[i*4+j]=0;
-
-            for (int k=1; k<256; k<<=1) {
-
-                if (buf[194-i*4+j]&k) {
-                    if (buf[322-i*4+j]&k) { mask[i*4+j]|=k; }
-                    else { mask[i*4+j]|=k; }
-                } else {
-                    if (buf[322-i*4+j]&k) ;
-                    else data[i*4+j]|=k;
-                }
-            }
+            data[i*4+j]=(~buf[322-i*4+j])&(~buf[194-i*4+j]);
+            mask[i*4+j]=buf[194-i*4+j];
         }
     }
-    return SDL_CreateCursor(data,mask,32,32,8,8);
+    return SDL_CreateCursor(data,mask,32,32,6,6);
 }
 
 SDL_Cursor *curs[20];
