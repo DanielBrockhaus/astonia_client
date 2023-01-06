@@ -780,7 +780,7 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
 
     if (sprite>=MAXSPRITE || sprite<0) {
         note("illegal sprite %d wanted in sdl_tx_load",sprite);
-        return -1;
+        return STX_NONE;
     }
 
     for (stx=sdlt_cache[hash]; stx!=STX_NONE; stx=sdlt[stx].hnext,panic++) {
@@ -1186,5 +1186,18 @@ void sdl_show_cursor(int flag) {
 
 void sdl_capture_mouse(int flag) {
     SDL_CaptureMouse(flag);
+}
+
+int sdlt_xoff(int stx) {
+    return sdlt[stx].xoff;
+}
+int sdlt_yoff(int stx) {
+    return sdlt[stx].yoff;
+}
+int sdlt_xres(int stx) {
+    return sdlt[stx].xres;
+}
+int sdlt_yres(int stx) {
+    return sdlt[stx].yres;
 }
 

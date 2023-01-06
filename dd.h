@@ -34,9 +34,6 @@ int pre_do(int curtick);
 
 void dd_flip(void);
 
-void* dd_lock_ptr(void);                // gives access to the back surface
-int dd_unlock_ptr(void);
-
 void dd_pixel(int x,int y,unsigned short col);
 void dd_draw_bless(int x,int y,int ticker,int strength,int front);
 void dd_draw_potion(int x,int y,int ticker,int strength,int front);

@@ -61,5 +61,10 @@ void sdl_capture_mouse(int flag);
 
 void sdl_set_cursor(int cursor);
 
+int sdlt_xoff(int stx);
+int sdlt_yoff(int stx);
+int sdlt_xres(int stx);
+int sdlt_yres(int stx);
+
 
 

@@ -457,11 +457,6 @@ int maxquick;
 #define MMF_STRAIGHT_L  (1<<7)  // (set_map_straight)
 #define MMF_STRAIGHT_R  (1<<8)  // (set_map_straight)
 
-static void safepix(unsigned short int *ptr,int x,int y,unsigned short int irgb) {
-    if (x<0 || y<0 || x>=XRES || y>=YRES) return;
-    ptr[x+y*xres]=irgb;
-}
-
 void set_map_lights(struct map *cmap) {
     int i,mn;
 
@@ -2151,31 +2146,6 @@ void display_game(void) {
 }
 
 // make quick
-
-void display_quick(int q) {
-    int i,ii,r,g,b,sx=XRES/2,sy=YRES/2;
-    unsigned short int *ptr;
-
-    ptr=dd_lock_ptr();
-    if (!ptr) return;
-
-    for (i=0; i<maxquick+1; i++) {
-
-        r=i*31/maxquick;
-        g=15;
-        b=r;
-
-        safepix(ptr,sx+quick[i].mapx,sy+quick[i].mapy,IRGB(r,g,b));
-    }
-
-    for (ii=0; ii<9; ii++) {
-        safepix(ptr,sx+quick[quick[q].qi[ii]].mapx,sy+quick[quick[q].qi[ii]].mapy,IRGB(31,31,31));
-    }
-
-
-    dd_unlock_ptr();
-}
-
 int quick_qcmp(const void *va,const void *vb) {
     const QUICK *a;
     const QUICK *b;

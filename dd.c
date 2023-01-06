@@ -364,15 +364,6 @@ int dd_release_dc(LPDIRECTDRAWSURFACE surface,HDC dc) {
     return 0;
 }
 
-void* dd_lock_ptr(void) {
-    return dd_lock_surface(ddbs);
-}
-
-int dd_unlock_ptr(void) {
-    return dd_unlock_surface(ddbs);
-}
-
-
 #define MAXTEXTER   1024
 struct texter {
     int x,y;
@@ -926,55 +917,6 @@ static void sc_last(int sidx) {
         systemcache[sidx_last].next=sidx;
         sidx_last=sidx;
     }
-}
-
-static void sc_blit_apix(int sidx,int scrx,int scry,int grid,int freeze) {
-    int i,start;
-    unsigned short int src,dst,r,g,b,a;
-    unsigned short int *ptr;
-    APIX *apix;
-    int acnt,xoff,yoff,x,y,m;
-
-    apix=systemcache[sidx].apix;
-    acnt=systemcache[sidx].acnt;
-    xoff=systemcache[sidx].xoff;
-    yoff=systemcache[sidx].yoff;
-
-    start=GetTickCount();
-
-    if ((vidptr=ptr=dd_lock_surface(ddbs))==NULL) return;
-
-    for (i=0; i<acnt; i++,apix++) {
-        if (grid==DDFX_LEFTGRID) { if ((xoff+apix->x+yoff+apix->y)&1) continue; } else if (grid==DDFX_RIGHTGRID) {  if ((xoff+apix->x+yoff+apix->y+1)&1) continue; }
-
-        x=scrx+apix->x;
-        y=scry+apix->y;
-        if (x<clipsx || y<clipsy || x>=clipex || y>=clipey) continue;
-
-        a=apix->a;
-        src=apix->rgb;
-        if (freeze) src=rgbfx_freeze[freeze][src];
-
-        m=(x+x_offset)+(y+y_offset)*xres;
-
-        dst=ptr[m];
-
-        r=(a*IGET_R(src)+(31-a)*IGET_R(dst))/31;
-        g=(a*IGET_G(src)+(31-a)*IGET_G(dst))/31;
-        b=(a*IGET_B(src)+(31-a)*IGET_B(dst))/31;
-
-        if (x+y*xres>=xres*yres || x+y*xres<0) {
-            note("PANIC #2");
-            continue;
-        }
-
-        ptr[m]=IRGB(r,g,b);
-    }
-
-    dd_unlock_surface(ddbs);
-
-    ap_time+=GetTickCount()-start;
-    ap_cnt+=acnt;
 }
 
 static int ic_load(int sprite) {
@@ -1746,34 +1688,12 @@ static int sc_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int 
     return sidx;
 }
 
-static int sc_blit2(DDFX *ddfx,int sidx,int scrx,int scry);
 int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry) {
-    int sidx;
     int stx;
 
     PARANOIA(if (!ddfx) paranoia("dd_copysprite_fx: ddfx=NULL"); )
     PARANOIA(if (ddfx->light<0 || ddfx->light>16) paranoia("dd_copysprite_fx: ddfx->light=%d",ddfx->light); )
     PARANOIA(if (ddfx->freeze<0 || ddfx->freeze>=DDFX_MAX_FREEZE) paranoia("dd_copysprite_fx: ddfx->freeze=%d",ddfx->freeze); )
-
-    sidx=sc_load(ddfx->sprite,
-                 ddfx->sink,
-                 ddfx->freeze,
-                 ddfx->grid,
-                 ddfx->scale,
-                 ddfx->cr,
-                 ddfx->cg,
-                 ddfx->cb,
-                 ddfx->clight,
-                 ddfx->sat,
-                 ddfx->c1,
-                 ddfx->c2,
-                 ddfx->c3,
-                 ddfx->shine,
-                 ddfx->ml,
-                 ddfx->ll,
-                 ddfx->rl,
-                 ddfx->ul,
-                 ddfx->dl,0,0);
 
     stx=sdl_tx_load(ddfx->sprite,
                  ddfx->sink,
@@ -1795,28 +1715,25 @@ int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry) {
                  ddfx->ul,
                  ddfx->dl);
 
-    if (sidx==SIDX_NONE) return 0;
-
-    // note("sprite=%d xoff=%d yoff=%d",imagecache[iidx].sprite,imagecache[iidx].image.xoff,imagecache[iidx].image.yoff);
+    if (stx==-1) return 0;
 
     // shift position according to align
     if (ddfx->align==DD_OFFSET) {
-        scrx+=systemcache[sidx].xoff;
-        scry+=systemcache[sidx].yoff;
+        scrx+=sdlt_xoff(stx);
+        scry+=sdlt_yoff(stx);
     } else if (ddfx->align==DD_CENTER) {
-        scrx-=systemcache[sidx].xres/2;
-        scry-=systemcache[sidx].yres/2;
+        scrx-=sdlt_xres(stx)/2;
+        scry-=sdlt_yres(stx)/2;
     }
 
     // add the additional cliprect
     if (ddfx->clipsx!=ddfx->clipex || ddfx->clipsy!=ddfx->clipey) {
         dd_push_clip();
-        if (ddfx->clipsx!=ddfx->clipex) dd_more_clip(scrx-systemcache[sidx].xoff+ddfx->clipsx,clipsy,scrx-systemcache[sidx].xoff+ddfx->clipex,clipey);
-        if (ddfx->clipsy!=ddfx->clipey) dd_more_clip(clipsx,scry-systemcache[sidx].yoff+ddfx->clipsy,clipex,scry-systemcache[sidx].yoff+ddfx->clipey);
+        if (ddfx->clipsx!=ddfx->clipex) dd_more_clip(scrx-sdlt_xoff(stx)+ddfx->clipsx,clipsy,scrx-sdlt_xoff(stx)+ddfx->clipex,clipey);
+        if (ddfx->clipsy!=ddfx->clipey) dd_more_clip(clipsx,scry-sdlt_yoff(stx)+ddfx->clipsy,clipex,scry-sdlt_yoff(stx)+ddfx->clipey);
     }
 
     // blit it
-    sc_blit2(ddfx,sidx,scrx,scry);
     sdl_blit(stx,scrx,scry,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 
     // remove additional cliprect
@@ -2185,39 +2102,7 @@ int dd_textlen(int flags,const char *text,int n) {
 }
 
 int dd_drawtext(int sx,int sy,unsigned short int color,int flags,const char *text) {
-    unsigned short *ptr,*dst;
-    unsigned char *rawrun;
-    int x,y,start;
-    const char *c;
     DDFONT *font;
-
-    if (newtext) {
-        float tmp,*dim,tmp2;
-
-        if (sy<clipsy) return sx;
-        if (sy>=clipey) return sx;
-
-        if (flags&DD_SMALL) dim=fontdim_b;
-        else if (flags&DD_BIG) dim=fontdim_c;
-        else dim=fontdim_a;
-
-        if (flags&DD_CENTER) {
-        for (tmp2=0.0f,c=text; *c; c++) tmp2+=dim[*c];
-            tmp2=tmp2/2.0f;
-        } else if (flags&DD_RIGHT) {
-            for (tmp2=0.0f,c=text; *c; c++) x+=dim[*c];
-        } else tmp2=0.0f;
-
-        tmp=sx;
-        while (*text && *text!=DDT && tmp-tmp2+dim[*text]<clipsx) tmp+=dim[*text++];
-
-        sx=(int)(tmp+0.5f);
-
-        texter_add(sx+x_offset,sy+y_offset,color,flags,text);
-        return sx+dd_textlength(flags,text);
-    }
-
-    start=GetTickCount();
 
     if (flags&DD__SHADEFONT) {
         if (flags&DD_SMALL) font=fontb_shaded;
@@ -2234,77 +2119,13 @@ int dd_drawtext(int sx,int sy,unsigned short int color,int flags,const char *tex
     }
     if (!font) return 42;
 
-    sdl_drawtext(sx,sy,color,flags,text,font,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
-
-    if (flags&DD_CENTER) {
-        for (x=0,c=text; *c; c++) x+=font[*c].dim;
-        sx-=x/2;
-    } else if (flags&DD_RIGHT) {
-        for (x=0,c=text; *c; c++) x+=font[*c].dim;
-        sx-=x;
-    }
-
     if (flags&DD_SHADE) {
-        dd_drawtext(sx-1,sy-1,IRGB(0,0,0),DT_LEFT|(flags&(DD_SMALL|DD_BIG))|DD__SHADEFONT,text);
+        dd_drawtext(sx-1,sy-1,IRGB(0,0,0),DT_LEFT|(flags&(DD_SMALL|DD_BIG|DD_CENTER|DD_RIGHT))|DD__SHADEFONT,text);
     } else if (flags&DD_FRAME) {
-        dd_drawtext(sx-1,sy-1,IRGB(0,0,0),DT_LEFT|(flags&(DD_SMALL|DD_BIG))|DD__FRAMEFONT,text);
+        dd_drawtext(sx-1,sy-1,IRGB(0,0,0),DT_LEFT|(flags&(DD_SMALL|DD_BIG|DD_CENTER|DD_RIGHT))|DD__FRAMEFONT,text);
     }
 
-    if (sy>=clipey) return sx;
-
-    if ((vidptr=ptr=dd_lock_surface(ddbs))==NULL) return sx;
-
-    while (*text && *text!=DDT && sx+font[*text].dim<clipsx) sx+=font[*text++].dim;
-
-    while (*text && *text!=DDT) {
-
-        if (*text<0) { note("PANIC: char over limit"); text++; continue; }
-
-        rawrun=font[*text].raw;
-
-        x=sx;
-        y=sy;
-
-        dst=ptr+(x+x_offset)+(y+y_offset)*xres;
-
-        while (*rawrun!=255) {
-
-            if (*rawrun==254) {
-                y++;
-                x=sx;
-                rawrun++;
-                if (y>=clipey) break;
-                dst=ptr+(x+x_offset)+(y+y_offset)*xres;
-                continue;
-            }
-
-            dst+=*rawrun;
-            x+=*rawrun;
-
-            if (x>=clipex) {
-                while (*rawrun!=255 && *rawrun!=254) rawrun++;
-                continue;
-            }
-
-            rawrun++;
-            if (x>=clipsx && y>=clipsy) {
-                if (dst-vidptr>xres*yres || dst<vidptr) {
-                    note("PANIC #5");
-                    dst=vidptr;
-                }
-                *dst=color;
-                tp_cnt++;
-            }
-        }
-
-        if (x>=clipex) break;
-
-        sx+=font[*text++].dim;
-    }
-
-    dd_unlock_surface(ddbs);
-
-    tp_time+=GetTickCount()-start;
+    sx=sdl_drawtext(sx,sy,color,flags,text,font,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 
     return sx;
 }
@@ -2333,27 +2154,8 @@ int dd_drawtext_break(int x,int y,int breakx,unsigned short color,int flags,cons
 }
 
 
-static void dd_pixel_fast(int x,int y,unsigned short col,unsigned short *ptr) {
-    if (x<0 || y<0 || x>=800 || y>=600) return; // !!!! xres yres ???
-    if ((x+x_offset)>=xres || (y+y_offset)>=yres) {
-        note("PANIC 5b - %d,%d %d,%d %X",x,y,x_offset,y_offset,col);
-        return;
-    }
-
-    sdl_pixel(x,y,col,x_offset,y_offset);
-
-    ptr[(x+x_offset)+(y+y_offset)*xres]=col;
-    np_cnt++;
-}
-
 void dd_pixel(int x,int y,unsigned short col) {
-    unsigned short *ptr;
-
-    if ((ptr=dd_lock_surface(ddbs))==NULL) return;
-
-    dd_pixel_fast(x,y,col,ptr);
-
-    dd_unlock_surface(ddbs);
+    sdl_pixel(x,y,col,x_offset,y_offset);
 }
 
 int dd_drawtext_fmt(int sx,int sy,unsigned short int color,int flags,const char *format,...) {
@@ -2373,7 +2175,7 @@ static int bless_sin[36];
 static int bless_cos[36];
 static int bless_hight[200];
 
-void dd_draw_bless_pix(int x,int y,int nr,int color,int front,unsigned short *ptr) {
+void dd_draw_bless_pix(int x,int y,int nr,int color,int front) {
     int sy;
 
     sy=bless_sin[nr%36];
@@ -2385,10 +2187,10 @@ void dd_draw_bless_pix(int x,int y,int nr,int color,int front,unsigned short *pt
 
     if (x<clipsx || x>=clipex || y<clipsy || y>=clipey) return;
 
-    dd_pixel_fast(x,y,color,ptr);
+    sdl_pixel(x,y,color,x_offset,y_offset);
 }
 
-void dd_draw_rain_pix(int x,int y,int nr,int color,int front,unsigned short *ptr) {
+void dd_draw_rain_pix(int x,int y,int nr,int color,int front) {
     int sy;
 
     x+=((nr/30)%30)+15;
@@ -2400,17 +2202,12 @@ void dd_draw_rain_pix(int x,int y,int nr,int color,int front,unsigned short *ptr
 
     if (x<clipsx || x>=clipex || y<clipsy || y>=clipey) return;
 
-    dd_pixel_fast(x,y,color,ptr);
+    sdl_pixel(x,y,color,x_offset,y_offset);
 }
 
 void dd_draw_bless(int x,int y,int ticker,int strength,int front) {
     int step,nr;
     double light;
-    unsigned short *ptr;
-    int start;
-    //static int bless_time=0,bless_cnt=0;
-
-    start=GetTickCount();
 
     if (!bless_init) {
         for (nr=0; nr<36; nr++) {
@@ -2423,27 +2220,21 @@ void dd_draw_bless(int x,int y,int ticker,int strength,int front) {
         bless_init=1;
     }
 
-    if ((ptr=dd_lock_surface(ddbs))==NULL) return;
-
     if (ticker>62) light=1.0;
     else light=(ticker)/62.0;
 
     for (step=0; step<strength*10; step+=17) {
-        dd_draw_bless_pix(x,y,ticker+step+0,IRGB(((int)(24*light)),((int)(24*light)),((int)(31*light))),front,ptr);
-        dd_draw_bless_pix(x,y,ticker+step+1,IRGB(((int)(20*light)),((int)(20*light)),((int)(28*light))),front,ptr);
-        dd_draw_bless_pix(x,y,ticker+step+2,IRGB(((int)(16*light)),((int)(16*light)),((int)(24*light))),front,ptr);
-        dd_draw_bless_pix(x,y,ticker+step+3,IRGB(((int)(12*light)),((int)(12*light)),((int)(20*light))),front,ptr);
-        dd_draw_bless_pix(x,y,ticker+step+4,IRGB(((int)(8*light)),((int)(8*light)),((int)(16*light))),front,ptr);
+        dd_draw_bless_pix(x,y,ticker+step+0,IRGB(((int)(24*light)),((int)(24*light)),((int)(31*light))),front);
+        dd_draw_bless_pix(x,y,ticker+step+1,IRGB(((int)(20*light)),((int)(20*light)),((int)(28*light))),front);
+        dd_draw_bless_pix(x,y,ticker+step+2,IRGB(((int)(16*light)),((int)(16*light)),((int)(24*light))),front);
+        dd_draw_bless_pix(x,y,ticker+step+3,IRGB(((int)(12*light)),((int)(12*light)),((int)(20*light))),front);
+        dd_draw_bless_pix(x,y,ticker+step+4,IRGB(((int)(8*light)),((int)(8*light)),((int)(16*light))),front);
     }
-    dd_unlock_surface(ddbs);
-
-    bless_time+=GetTickCount()-start;
 }
 
 void dd_draw_potion(int x,int y,int ticker,int strength,int front) {
     int step,nr;
     double light;
-    unsigned short *ptr;
 
     if (!bless_init) {
         for (nr=0; nr<36; nr++) {
@@ -2456,35 +2247,27 @@ void dd_draw_potion(int x,int y,int ticker,int strength,int front) {
         bless_init=1;
     }
 
-    if ((ptr=dd_lock_surface(ddbs))==NULL) return;
 
     if (ticker>62) light=1.0;
     else light=(ticker)/62.0;
 
     for (step=0; step<strength*10; step+=17) {
-        dd_draw_bless_pix(x,y,ticker+step+0,IRGB(((int)(31*light)),((int)(24*light)),((int)(24*light))),front,ptr);
-        dd_draw_bless_pix(x,y,ticker+step+1,IRGB(((int)(28*light)),((int)(20*light)),((int)(20*light))),front,ptr);
-        dd_draw_bless_pix(x,y,ticker+step+2,IRGB(((int)(24*light)),((int)(16*light)),((int)(16*light))),front,ptr);
-        dd_draw_bless_pix(x,y,ticker+step+3,IRGB(((int)(20*light)),((int)(12*light)),((int)(12*light))),front,ptr);
-        dd_draw_bless_pix(x,y,ticker+step+4,IRGB(((int)(16*light)),((int)(8*light)),((int)(8*light))),front,ptr);
+        dd_draw_bless_pix(x,y,ticker+step+0,IRGB(((int)(31*light)),((int)(24*light)),((int)(24*light))),front);
+        dd_draw_bless_pix(x,y,ticker+step+1,IRGB(((int)(28*light)),((int)(20*light)),((int)(20*light))),front);
+        dd_draw_bless_pix(x,y,ticker+step+2,IRGB(((int)(24*light)),((int)(16*light)),((int)(16*light))),front);
+        dd_draw_bless_pix(x,y,ticker+step+3,IRGB(((int)(20*light)),((int)(12*light)),((int)(12*light))),front);
+        dd_draw_bless_pix(x,y,ticker+step+4,IRGB(((int)(16*light)),((int)(8*light)),((int)(8*light))),front);
     }
-
-    dd_unlock_surface(ddbs);
 }
 
 void dd_draw_rain(int x,int y,int ticker,int strength,int front) {
     int step;
-    unsigned short *ptr;
-
-    if ((ptr=dd_lock_surface(ddbs))==NULL) return;
 
     for (step=-(strength*100); step<0; step+=237) {
-        dd_draw_rain_pix(x,y,-ticker+step+0,IRGB(31,24,16),front,ptr);
-        dd_draw_rain_pix(x,y,-ticker+step+1,IRGB(24,16,8),front,ptr);
-        dd_draw_rain_pix(x,y,-ticker+step+2,IRGB(16,8,0),front,ptr);
+        dd_draw_rain_pix(x,y,-ticker+step+0,IRGB(31,24,16),front);
+        dd_draw_rain_pix(x,y,-ticker+step+1,IRGB(24,16,8),front);
+        dd_draw_rain_pix(x,y,-ticker+step+2,IRGB(16,8,0),front);
     }
-
-    dd_unlock_surface(ddbs);
 }
 
 void dd_create_letter(unsigned char *rawrun,int sx,int sy,int val,char letter[16][16]) {
@@ -2890,61 +2673,4 @@ void sc_blit3(SYSTEMCACHE *sc,int sx,int sy) {
 
     dd_unlock_surface(ddbs);
 }
-
-// blit a systemcache entry to backsurface without touching the video cache
-void sc_blit4(SYSTEMCACHE *sc,int scrx,int scry,int sx,int sy,int dx,int dy) {
-    int x,y,addx=0,addy=0,sstep,dstep;
-    unsigned short *ptr,col,*dst,*src;
-
-    if (sx+scrx<clipsx) { addx=clipsx-(sx+scrx); dx-=addx; sx+=addx; }
-    if (sy+scry<clipsy) { addy=clipsy-(sy+scry); dy-=addy; sy+=addy; }
-    if (sx+scrx+dx>=clipex) dx=clipex-(sx+scrx);
-    if (sy+scry+dy>=clipey) dy=clipey-(sy+scry);
-
-    if (dy<=0 || dx<=0) return;
-
-    if ((ptr=dd_lock_surface(ddbs))==NULL) return;
-
-    src=sc->rgb+addx+sx+(addy+sy)*sc->xres;
-    sstep=sc->xres-dx;
-    dst=ptr+(sx+x_offset+scrx)+(sy+y_offset+scry)*xres;
-    dstep=xres-dx;
-
-    for (y=0; y<dy; y++) {
-        for (x=0; x<dx; x++) {
-
-            col=*src++;
-
-            if (col==scrcolorkey) { dst++; continue; }
-
-            *dst++=col;
-        }
-        src+=sstep;
-        dst+=dstep;
-    }
-
-    dd_unlock_surface(ddbs);
-}
-
-// blit a systemcache entry to the screen
-static int sc_blit2(DDFX *ddfx,int sidx,int scrx,int scry) {
-    SYSTEMCACHE *sc;
-
-    PARANOIA(if (sidx==SIDX_NONE) paranoia("sc_blit: sidx==SIDX_NONE"); )
-    PARANOIA(if (sidx>=max_systemcache) paranoia("sc_blit: sidx>=max_systemcache (%d>=%d)",sidx,max_systemcache); )
-
-    // easy use of sc
-    sc=&systemcache[sidx];
-
-    sc_blit3(sc,scrx,scry);
-    sc_blits++;
-
-    // draw the alpha pixels
-    if (sc->acnt) sc_blit_apix(sidx,scrx,scry,ddfx->grid,ddfx->freeze);
-
-    sc_cnt++;
-
-    return 0;
-};
-
 
