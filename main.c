@@ -806,9 +806,6 @@ int win_start(void) {
 // main
 
 int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow) {
-#ifndef DEVELOPER
-    HANDLE mutex,mutex2;
-#endif
     int ret;
     int width,height;
     char buf[80];
@@ -828,28 +825,11 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
     // set instance
     instance=hInstance;
 
-    // check if already running
-#ifndef DEVELOPER
-    mutex=CreateMutex(NULL,0,"MOAB");
-
-    if (mutex==NULL || GetLastError()==ERROR_ALREADY_EXISTS) {
-        MessageBox(NULL,"Another instance of Astonia is already running.","Error",MB_APPLMODAL|MB_OK|MB_ICONSTOP);
-        return -1;
-    }
-#endif
-
     // next init (only once)
     if (net_init()==-1) {
         MessageBox(NULL,"Can't Initialize Windows Networking Libraries.","Error",MB_APPLMODAL|MB_OK|MB_ICONSTOP);
         return -1;
     }
-
-#ifndef DEVELOPER
-    mutex2=CreateMutex(NULL,0,"fecjduexxx");
-    if (mutex2==NULL || GetLastError()==ERROR_ALREADY_EXISTS) {
-        return -1;
-    }
-#endif
 
     if (!quickstart && win_start()) goto done;
 

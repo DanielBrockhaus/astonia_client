@@ -2307,9 +2307,7 @@ static void exec_cmd(int cmd,int a) {
 }
 
 #define GEN_SET_GAMMA           2 // a
-#define GEN_FORCE_PNG           3 // a developer only
 #define GEN_SET_LIGHTEFFECT	5
-#define GEN_FORCE_DH            6 // a developer only
 
 int exec_gen(int gen,int a,char *c) {
     switch (gen) {
