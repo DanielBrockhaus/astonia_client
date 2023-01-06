@@ -688,7 +688,10 @@ int win_init(char *title,int width,int height) {
     ShowWindow(wnd,SW_SHOW);
     UpdateWindow(wnd);
 
-    if (!editor) {
+#ifdef EDITOR
+    if (!editor)
+#endif
+    {
         GetClientRect(wnd,&r);
         x=r.right-r.left;
         y=r.bottom-r.top;
@@ -1239,7 +1242,9 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
     char buf[80];
     extern int x_offset,y_offset,x_max,y_max;
     struct hostent *he;
+#ifdef EDITOR
     extern int  areaid;
+#endif
 
     errorfp=fopen("moac.log","a");
     if (!errorfp) errorfp=stderr;

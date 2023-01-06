@@ -224,10 +224,13 @@ int dd_init(int width,int height) {
     if ((err=DirectDrawCreate(NULL,&dd,NULL))!=DD_OK) return dd_error("DirectDrawCreate()",err);
 
     // you can force any screen (and offscreen) size
+#ifdef EDITOR
     if (editor) {
         XRES=width;
         YRES=height;
-    } else {
+    } else
+#endif
+    {
         XRES=800;
         YRES=600;
     }

@@ -6,7 +6,7 @@
 #define DEVELOPER               // this one will compile the developer version - comment me out for the final release
 
 #ifdef DEVELOPER
-    #define EDITOR
+//    #define EDITOR
     #define NO_UPDATE
 #endif
 
