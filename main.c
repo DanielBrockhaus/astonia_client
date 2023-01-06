@@ -1254,7 +1254,6 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
     if ((ret=parse_cmd(lpCmdLine))!=0) return fail("ill command (%d)",ret);
 
 #ifdef DEVELOPER
-    if (call_gfx_main && gfx_main(with_cmd,with_nr)!=1) return 0;
     if (call_sfx) { make_sound_pak(); return 0; }
 #endif
 

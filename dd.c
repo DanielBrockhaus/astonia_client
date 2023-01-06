@@ -512,18 +512,9 @@ int dd_restore(void) {
 
 // cache ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int vget(int tx,int ty,int tdx,int tdy) {
-    int val;
 
-    val=tx+ty*tdx;
-    PARANOIA(if (val<0 || val>tdx*tdy) paranoia("vget: val(%d) to large (tx=%d ty=%d tdx=%d tdy=%d",tx,ty,tdx,tdy); )
-
-    return val;
-}
-
-
-unsigned short rgbcolorkey=IRGB(31,0,31);
-unsigned short rgbcolorkey2=IRGB(16,0,16);
+//unsigned short rgbcolorkey=IRGB(31,0,31);
+//unsigned short rgbcolorkey2=IRGB(16,0,16);
 
 int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry) {
     int stx;

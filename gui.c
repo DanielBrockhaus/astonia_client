@@ -2326,17 +2326,11 @@ int exec_gen(int gen,int a,char *c) {
             if (a>31) return -1;
             dd_gamma=a;
             return dd_gamma;
-        case GEN_FORCE_PNG:
-            gfx_force_png=a;
-            return gfx_force_png;
         case GEN_SET_LIGHTEFFECT:
             if (a<1) return -1;
             if (a>31) return -1;
             dd_lighteffect=a;
             return dd_lighteffect;
-        case GEN_FORCE_DH:
-            gfx_force_dh=a;
-            return gfx_force_dh;
     }
     return 0;
 }
@@ -2392,16 +2386,6 @@ int client_cmd(char *buf) {
     if (!strncmp(buf,"#light ",7)) {
         exec_gen(GEN_SET_LIGHTEFFECT,atoi(&buf[7]),NULL);
         addline("using light %d",dd_lighteffect);
-        return 1;
-    }
-    if (!strncmp(buf,"#png",4)) {
-        exec_gen(GEN_FORCE_PNG,gfx_force_png^1,NULL);
-        addline("png=%d",gfx_force_png);
-        return 1;
-    }
-    if (!strncmp(buf,"#dh",3)) {
-        exec_gen(GEN_FORCE_DH,gfx_force_dh^1,NULL);
-        addline("dh=%d",gfx_force_dh);
         return 1;
     }
     if (!strncmp(buf,"#col1",5) || !strncmp(buf,"#col2",5) || !strncmp(buf,"#col3",5) ||

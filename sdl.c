@@ -150,8 +150,6 @@ int sdl_init(int width,int height,char *title) {
         return 0;
     }
 
-    gfx_force_png=1;    // TODO: remove me, for now SDL only works with PNGs, not with PAKs
-
     len=sizeof(struct sdl_image)*MAXSPRITE;
     note("SDL Image cache needs %.2fM for image cache index",len/(1024.0*1024.0));
     sdli=xcalloc(len*1,MEM_SDL_BASE);
