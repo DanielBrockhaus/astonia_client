@@ -30,38 +30,18 @@ float *fontdim=fontdim_a;
 void dd_create_font(void);
 void dd_init_text(void);
 
-// helpers
-
-#ifndef irgb_blend
-unsigned short int irgb_blend(unsigned short int a,unsigned short int b,int alpha) {
-    return IRGB((IGET_R(a)*alpha+IGET_R(b)*(31-alpha))/31,(IGET_G(a)*alpha+IGET_G(b)*(31-alpha))/31,(IGET_B(a)*alpha+IGET_B(b)*(31-alpha))/31);
-}
-#endif
 
 // direct x basics //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// TODO: these should get used again for light calculations!
 int dd_gamma=8;
 int dd_lighteffect=16;
 int newlight=0;
 
-int XRES;               // set to indicate the maximal size of the offscreen surface - respective the display mode to set
-int YRES;               // set to indicate the maximal size of the offscreen surface - respective the display mode to set
-
 float mouse_scale=1.0f;      // mouse input needs to be scaled by this factor because the display window is stretched
-
-unsigned int R_MASK;
-unsigned int G_MASK;
-unsigned int B_MASK;
-
 
 int x_offset,y_offset;
 int x_max,y_max;
-
-int xres;
-int yres;
-
-int dd_tick=0;
-
 
 int clipsx,clipsy,clipex,clipey;
 int clipstore[32][4],clippos=0;
@@ -115,23 +95,12 @@ void dd_get_client_info(struct client_info *ci) {
 }
 
 int dd_init(int width,int height) {
-
-    XRES=800;
-    YRES=600;
-
-    xres=XRES;
-    yres=YRES;
-
-    R_MASK=0x7C00;
-    G_MASK=0x03E0;
-    B_MASK=0x001F;
-
     // set the clipping to the maximum possible
     clippos=0;
     clipsx=0;
     clipsy=0;
-    clipex=XRES;
-    clipey=YRES;
+    clipex=800;
+    clipey=600;
 
     // initialize the gfx loading stuff - TODO: call this in dd_init_cache();
     dd_create_font();

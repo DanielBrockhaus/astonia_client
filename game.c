@@ -2060,12 +2060,9 @@ void display_pents(void) {
 
 int do_display_questlog(int nr);
 void display_game(void) {
-    extern int dd_tick;
     extern int x_offset;
     extern int display_help,display_quest;
     int do_display_questlog(int nr);
-
-    dd_tick++;
 
     if (display_help || display_quest) {
         dd_push_clip();

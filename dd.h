@@ -4,10 +4,10 @@
 
 #define GFXPATH "../gfx/"
 
-#define MAXSPRITE       250000
+#define MAXSPRITE 250000
 
-extern int XRES;        // set to indicate the maximal size of the offscreen surface - respective the display mode to set
-extern int YRES;        // set to indicate the maximal size of the offscreen surface - respective the display mode to set
+#define XRES    800
+#define YRES    600
 
 extern float mouse_scale;   // mouse input needs to be scaled by this factor because the display window is stretched
 
@@ -104,8 +104,6 @@ extern unsigned short **rgbfx_light;
 #define IGET_B(c) ((((unsigned short int)(c))>>0)&0x1F)
 #define IRGB(r,g,b) (((r)<<10)|((g)<<5)|((b)<<0))
 
-#define irgb_blend(a,b,alpha)  IRGB( (IGET_R((unsigned short int)(a))*(int)(alpha)+IGET_R((unsigned short int)(b))*(31-(int)(alpha)))/31 , (IGET_G((unsigned short int)(a))*(int)(alpha)+IGET_G((unsigned short int)(b))*(31-(int)(alpha)))/31, (IGET_B((unsigned short int)(a))*(int)(alpha)+IGET_B((unsigned short int)(b))*(31-(int)(alpha)))/31)
-
 int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry);
 void dd_copysprite(int sprite,int scrx,int scry,int light,int align);
 void dd_copysprite_callfx(int sprite,int scrx,int scry,int light,int mli,int grid,int align);
@@ -160,13 +158,6 @@ extern DDFONT fontc[];
 
 extern DDFONT *fontc_shaded;
 extern DDFONT *fontc_framed;
-
-extern int xres;
-extern int yres;
-
-extern unsigned int R_MASK;
-extern unsigned int G_MASK;
-extern unsigned int B_MASK;
 
 
 

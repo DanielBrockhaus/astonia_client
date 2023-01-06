@@ -6,6 +6,9 @@
 
 #define MAXSPRITE 250000
 
+#define XRES    800
+#define YRES    600
+
 #ifndef HAVE_DDFONT
 #define HAVE_DDFONT
 struct ddfont {

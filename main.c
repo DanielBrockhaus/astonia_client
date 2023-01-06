@@ -190,6 +190,7 @@ struct memhead {
     int ID;
 };
 
+// TODO: removed unused memory areas
 static char *memname[MAX_MEM]={
     "MEM_TOTA", //0
     "MEM_GLOB",
@@ -894,7 +895,7 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
     }
 
     sprintf(buf,"Astonia 3 v%d.%d.%d",(VERSION>>16)&255,(VERSION>>8)&255,(VERSION)&255);
-    if (!sdl_init(800,600,buf)) {
+    if (!sdl_init(width,height,buf)) {
         dd_exit();
         net_exit();
         return -1;

@@ -127,7 +127,10 @@ void sdl_set_cursor(int cursor) {
     SDL_SetCursor(curs[cursor]);
 }
 
+SDL_Texture *sdltgt;
+
 int sdl_init(int width,int height,char *title) {
+    extern float mouse_scale;
     int len,i;
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0){
@@ -141,6 +144,9 @@ int sdl_init(int width,int height,char *title) {
         SDL_Quit();
 	    return 0;
     }
+
+    //SDL_SetWindowFullscreen(sdlwnd,SDL_WINDOW_FULLSCREEN);  // true full screen
+    //SDL_SetWindowFullscreen(sdlwnd,SDL_WINDOW_FULLSCREEN_DESKTOP); // borderless windowed
 
     sdlren=SDL_CreateRenderer(sdlwnd, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!sdlren){
@@ -186,10 +192,17 @@ int sdl_init(int width,int height,char *title) {
 
     sdl_create_cursors();
 
+    if (width!=XRES) {
+        sdltgt = SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_TARGET,XRES,YRES);
+        SDL_SetRenderTarget(sdlren,sdltgt);
+        mouse_scale=width/(float)XRES;
+    }
+
     return 1;
 }
 
 int maxpanic=0;
+
 int sdl_clear(void) {
     SDL_SetRenderDrawColor(sdlren,31,63,127,255);
     SDL_RenderClear(sdlren);
@@ -199,6 +212,18 @@ int sdl_clear(void) {
 }
 
 int sdl_render(void) {
+    extern float mouse_scale;
+    SDL_Rect s,d;
+
+    if (mouse_scale!=1.0f) {
+        SDL_SetRenderTarget(sdlren,NULL);
+        s.x=0; s.y=0;
+        s.w=XRES; s.h=YRES;
+        d.x=0; d.y=0;
+        d.w=s.w*mouse_scale; d.h=s.h*mouse_scale;
+        SDL_RenderCopy(sdlren,sdltgt,&s,&d);
+        SDL_SetRenderTarget(sdlren,sdltgt);
+    }
     SDL_RenderPresent(sdlren);
     return 1;
 }
