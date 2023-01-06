@@ -30,7 +30,6 @@ float *fontdim=fontdim_a;
 
 void dd_create_font(void);
 void dd_init_text(void);
-void dd_black(void);
 
 // extern ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -86,8 +85,6 @@ LPDIRECTDRAWSURFACE ddbs=NULL;
 
 int clipsx,clipsy,clipex,clipey;
 int clipstore[32][4],clippos=0;
-
-static unsigned short *vidptr=NULL;     // for checking only - remove in final release
 
 void dd_push_clip(void) {
     if (clippos>=32) return;
@@ -193,19 +190,14 @@ static char* ddsdstr(char *buf,DDSURFACEDESC *ddsd) {
 }
 
 void dd_get_client_info(struct client_info *ci) {
-    DDCAPS caps;
     static MEMORYSTATUS memstat;
-
-    bzero(&caps,sizeof(caps));
-    caps.dwSize=sizeof(caps);
-    dd->lpVtbl->GetCaps(dd,&caps,NULL);
 
     bzero(&memstat,sizeof(memstat));
     memstat.dwLength=sizeof(memstat);
     GlobalMemoryStatus(&memstat);
 
-    ci->vidmemtotal=caps.dwVidMemTotal;
-    ci->vidmemfree=caps.dwVidMemFree;
+    ci->vidmemtotal=0;
+    ci->vidmemfree=0;
 
     ci->systemtotal=memstat.dwTotalPhys;
     ci->systemfree=memstat.dwAvailPhys;
@@ -288,8 +280,6 @@ int dd_init(int width,int height) {
     dd_create_font();
     dd_init_text();
 
-    dd_black();
-
     return 0;
 }
 
@@ -315,25 +305,6 @@ int dd_exit(void) {
         dd=NULL;
     }
 
-
-    return 0;
-}
-
-void* dd_lock_surface(LPDIRECTDRAWSURFACE surface) {
-    DDSURFACEDESC ddsd;
-    int err;
-
-    bzero(&ddsd,sizeof(ddsd));
-    ddsd.dwSize=sizeof(ddsd);
-    if ((err=surface->lpVtbl->Lock(surface,NULL,&ddsd,DDLOCK_SURFACEMEMORYPTR|DDLOCK_WAIT,NULL))!=DD_OK) { dd_error("Lock()",err); return NULL; }
-
-    return ddsd.lpSurface;
-}
-
-int dd_unlock_surface(LPDIRECTDRAWSURFACE surface) {
-    int err;
-
-    if ((err=surface->lpVtbl->Unlock(surface,NULL))!=DD_OK) return dd_error("Unlock()",err);
 
     return 0;
 }
@@ -505,8 +476,6 @@ int dd_islost(void) {
 int dd_restore(void) {
     if (ddbs->lpVtbl->IsLost(ddbs)!=DD_OK) if (ddbs->lpVtbl->Restore(ddbs)!=DD_OK) return -1;
 
-    dd_black();
-
     return 0;
 }
 
@@ -608,203 +577,15 @@ void dd_copysprite(int sprite,int scrx,int scry,int light,int align) {
 }
 
 void dd_rect(int sx,int sy,int ex,int ey,unsigned short int color) {
-    int x,y,err;
-    unsigned short *ptr;
-    RECT rc;
-    DDBLTFX bltfx;
-
     sdl_rect(sx,sy,ex,ey,color,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
-
-    if (sx<clipsx) sx=clipsx;
-    if (sy<clipsy) sy=clipsy;
-    if (ex>clipex) ex=clipex;
-    if (ey>clipey) ey=clipey;
-
-    if (sx>ex || sy>ey) return;
-
-    if ((ex-sx)*(ey-sy)>100) {  // large rect? use hardware then
-        bzero(&bltfx,sizeof(bltfx));
-        bltfx.dwSize=sizeof(bltfx);
-        bltfx.dwFillColor=color;
-
-        rc.left=sx+x_offset;
-        rc.top=sy+y_offset;
-        rc.right=ex+x_offset;
-        rc.bottom=ey+y_offset;
-
-        if ((err=ddbs->lpVtbl->Blt(ddbs,&rc,NULL,NULL,DDBLT_COLORFILL|DDBLT_WAIT,&bltfx))!=DD_OK) {
-            char buf[80];
-            sprintf(buf,"dd_rect(): %d,%d -> %d,%d (%d,%d)",sx,sy,ex,ey,xres,yres);
-            dd_error(buf,err);
-        }
-    } else {
-        if ((vidptr=ptr=dd_lock_surface(ddbs))==NULL) return;
-
-        ptr+=(sx+x_offset)+(sy+y_offset)*xres;
-
-        for (y=sy; y<ey; y++,ptr+=xres-(ex-sx)) {
-            for (x=sx; x<ex; x++,ptr++) {
-                if (ptr-vidptr>=xres*yres || ptr<vidptr) {
-                    note("PANIC #3");
-                    ptr=vidptr;
-                }
-                *ptr=color;
-            }
-        }
-
-        dd_unlock_surface(ddbs);
-    }
-}
-
-void dd_black(void) {
-    int err;
-    RECT rc;
-    DDBLTFX bltfx;
-    char buf[256];
-
-
-    bzero(&bltfx,sizeof(bltfx));
-    bltfx.dwSize=sizeof(bltfx);
-    bltfx.dwFillColor=0;
-
-    rc.left=0;
-    rc.top=0;
-    rc.right=XRES;  //xres;
-    rc.bottom=YRES; //yres;
-
-    if ((err=ddbs->lpVtbl->Blt(ddbs,&rc,NULL,NULL,DDBLT_COLORFILL|DDBLT_WAIT,&bltfx))!=DD_OK) {
-        //sprintf(buf,"dd_black(ddbs,%d,%d):",xres,yres);
-        dd_error(buf,err);
-    }
 }
 
 void dd_shaded_rect(int sx,int sy,int ex,int ey) {
-    int x,y,r,g,b;
-    unsigned short *ptr,col;
-
     sdl_shaded_rect(sx,sy,ex,ey,0xffe0,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
-
-    if (sx<clipsx) sx=clipsx;
-    if (sy<clipsy) sy=clipsy;
-    if (ex>clipex) ex=clipex;
-    if (ey>clipey) ey=clipey;
-
-    if ((vidptr=ptr=dd_lock_surface(ddbs))==NULL) return;
-
-    ptr+=(sx+x_offset)+(sy+y_offset)*xres;
-
-    for (y=sy; y<ey; y++,ptr+=xres-(ex-sx)) {
-        for (x=sx; x<ex; x++,ptr++) {
-            if (ptr-vidptr>=xres*yres || ptr<vidptr) {
-                note("PANIC #3");
-                ptr=vidptr;
-            }
-            col=*ptr;
-            col=col;
-
-            r=IGET_R(col);
-            g=IGET_G(col);
-            b=IGET_B(col);
-            r=min(31,r+16);
-            g=min(31,g+16);
-
-            col=IRGB(r,g,b);
-            col=col;
-
-            *ptr=col;
-        }
-    }
-
-    dd_unlock_surface(ddbs);
 }
 
 void dd_line(int fx,int fy,int tx,int ty,unsigned short col) {
-    unsigned short *ptr;
-    int dx,dy,x,y,rx,ry;
-
     sdl_line(fx,fy,tx,ty,col,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
-
-    if (fx<clipsx) fx=clipsx;
-    if (fy<clipsy) fy=clipsy;
-    if (fx>=clipex) fx=clipex-1;
-    if (fy>=clipey) fy=clipey-1;
-
-    if (tx<clipsx) tx=clipsx;
-    if (ty<clipsy) ty=clipsy;
-    if (tx>=clipex) tx=clipex-1;
-    if (ty>=clipey) ty=clipey-1;
-
-    fx+=x_offset; tx+=x_offset;
-    fy+=y_offset; ty+=y_offset;
-
-    dx=(tx-fx);
-    dy=(ty-fy);
-
-    if (dx==0 && dy==0) return;
-
-    if (abs(dx)>abs(dy)) { dy=dy*1024/abs(dx); dx=dx*1024/abs(dx); } else { dx=dx*1024/abs(dy); dy=dy*1024/abs(dy); }
-
-    x=fx*1024+512;
-    y=fy*1024+512;
-
-    if ((vidptr=ptr=dd_lock_surface(ddbs))==NULL) return;
-
-    rx=x/1024; ry=y/1024;
-    while (1) {
-        if (rx+ry*xres>=xres*yres || rx+ry*xres<0) {
-            note("PANIC #4B");
-            break;
-        }
-        ptr[rx+ry*xres]=col;
-
-        x+=dx;
-        y+=dy;
-        rx=x/1024; ry=y/1024;
-        if (rx==tx && ry==ty) break;
-    }
-
-    dd_unlock_surface(ddbs);
-}
-
-void dd_line2(int fx,int fy,int tx,int ty,unsigned short col,unsigned short *ptr) {
-    int dx,dy,x,y,rx,ry;
-
-    if (fx<clipsx) fx=clipsx;
-    if (fy<clipsy) fy=clipsy;
-    if (fx>=clipex) fx=clipex-1;
-    if (fy>=clipey) fy=clipey-1;
-
-    if (tx<clipsx) tx=clipsx;
-    if (ty<clipsy) ty=clipsy;
-    if (tx>=clipex) tx=clipex-1;
-    if (ty>=clipey) ty=clipey-1;
-
-    fx+=x_offset; tx+=x_offset;
-    fy+=y_offset; ty+=y_offset;
-
-    dx=(tx-fx);
-    dy=(ty-fy);
-
-    if (dx==0 && dy==0) return;
-
-    if (abs(dx)>abs(dy)) { dy=dy*1024/abs(dx); dx=dx*1024/abs(dx); } else { dx=dx*1024/abs(dy); dy=dy*1024/abs(dy); }
-
-    x=fx*1024+512;
-    y=fy*1024+512;
-
-    rx=x/1024; ry=y/1024;
-    while (1) {
-        if (rx+ry*xres>=xres*yres || rx+ry*xres<0) {
-            note("PANIC #4B");
-            break;
-        }
-        ptr[rx+ry*xres]=col;
-
-        x+=dx;
-        y+=dy;
-        rx=x/1024; ry=y/1024;
-        if (rx==tx && ry==ty) break;
-    }
 }
 
 void dd_display_strike(int fx,int fy,int tx,int ty) {
@@ -835,15 +616,8 @@ void dd_display_strike(int fx,int fy,int tx,int ty) {
     }
 }
 
-
-
 void dd_draw_curve(int cx,int cy,int nr,int size,unsigned short col) {
-    unsigned short *ptr;
     int n,x,y;
-
-    col=col;
-
-    if ((vidptr=ptr=dd_lock_surface(ddbs))==NULL) return;
 
     for (n=nr*90; n<nr*90+90; n+=4) {
         x=sin(n/360.0*M_PI*2)*size+cx;
@@ -854,18 +628,10 @@ void dd_draw_curve(int cx,int cy,int nr,int size,unsigned short col) {
         if (x>=clipex) continue;
         if (y+10>=clipey) continue;
 
-        x+=x_offset; y+=y_offset;
-
-        ptr[x+y*xres]=col;
-
-        ptr[x+y*xres]=col;
-        ptr[x+y*xres+xres*5]=col;
-        //ptr[x+y*xres-xres*5]=col;
-        ptr[x+y*xres+xres*10]=col;
-        //ptr[x+y*xres-xres*10]=col;
+        sdl_pixel(x,y,col,x_offset,y_offset);
+        sdl_pixel(x,y+5,col,x_offset,y_offset);
+        sdl_pixel(x,y+10,col,x_offset,y_offset);
     }
-
-    dd_unlock_surface(ddbs);
 }
 
 void dd_display_pulseback(int fx,int fy,int tx,int ty) {

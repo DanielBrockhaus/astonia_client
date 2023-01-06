@@ -142,7 +142,6 @@ int dd_textlen(int flags,const char *text,int n);
 int dd_drawtext(int sx,int sy,unsigned short int color,int flags,const char *text);
 int dd_drawtext_fmt(int sx,int sy,unsigned short int color,int flags,const char *format,...);
 
-void dd_line2(int fx,int fy,int tx,int ty,unsigned short col,unsigned short *ptr);
 void dd_display_strike(int fx,int fy,int tx,int ty);
 
 #ifndef HAVE_DDFONT
