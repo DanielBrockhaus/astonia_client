@@ -42,15 +42,12 @@ int quit=0;
 int quickstart=0;
 int panic_reached=0;
 int xmemcheck_failed=0;
-HWND mainwnd=NULL;
 HINSTANCE instance=NULL;
 int opt_res=800;
 int largetext=0;
 int vendor=1;
 extern int newlight;
 char user_keys[10]={'Q','W','E','A','S','D','Z','X','C','V'};
-
-HWND lastwnd=NULL;
 
 char memcheck_failed_str[]={"TODO: memcheck failed"};  // TODO
 char panic_reached_str[]={"TODO: panic failure"}; // TODO
@@ -531,8 +528,6 @@ int net_exit(void) {
 #ifdef EDITOR
 int editor;
 #endif
-int call_gfx_main;
-int call_sfx;
 
 char with_cmd;
 int with_nr;
@@ -600,18 +595,9 @@ else if (tolower(*s)=='e') {  // -e start the editor (not implemented so far, bu
                 s=end;
             }
 #endif
-else if (tolower(*s)=='g') {  // -g <cmd> <nr> call gfx_main(nr)
-                s++;
-                call_gfx_main=1;
-                if (*s) with_cmd=*s++;
-                else return -3;
-                if (*s && !isspace(with_cmd)) with_nr=strtol(s+1,&s,10);
-            } else if (tolower(*s)=='x') {
+            else if (tolower(*s)=='x') {
                 s++;
                 no_exec=1;
-            } else if (tolower(*s)=='f') {
-                s++;
-                call_sfx=1;
             } else if (tolower(*s)=='y') {
                 extern unsigned int sock_server;
                 s++;
@@ -653,63 +639,6 @@ int main_wnd_proc_safe(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
 
     }
     return DefWindowProc(wnd,msg,wparam,lparam);
-}
-
-int win_init(char *title,int width,int height) {
-    WNDCLASS wc;
-    HWND wnd;
-    RECT r;
-    int x,y;
-
-    lastwnd=GetForegroundWindow();
-
-    wc.style=CS_HREDRAW|CS_VREDRAW;
-    wc.lpfnWndProc=main_wnd_proc;
-    wc.cbClsExtra=0;
-    wc.cbWndExtra=0;
-    wc.hInstance=instance;
-    wc.hIcon=LoadIcon(instance,MAKEINTRESOURCE(1));
-    wc.hCursor=NULL;
-    wc.hbrBackground=NULL;
-    wc.lpszMenuName=NULL;
-    wc.lpszClassName="MAINWNDMOAC";
-
-    RegisterClass(&wc);
-#ifdef EDITOR
-    if (editor) wnd=CreateWindowEx(0,"MAINWNDMOAC",title,WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_MAXIMIZEBOX|WS_MINIMIZEBOX,CW_USEDEFAULT,CW_USEDEFAULT,width+8,height+27,NULL,NULL,instance,NULL);
-    else
-#endif
-        wnd=CreateWindowEx(0,"MAINWNDMOAC",title,WS_POPUP|WS_CAPTION|WS_SYSMENU|WS_MAXIMIZEBOX|WS_MINIMIZEBOX,CW_USEDEFAULT,CW_USEDEFAULT,width,height,NULL,NULL,instance,NULL);
-
-    mainwnd=wnd;
-
-    SetFocus(wnd);
-    ShowWindow(wnd,SW_SHOW);
-    UpdateWindow(wnd);
-
-#ifdef EDITOR
-    if (!editor)
-#endif
-    {
-        GetClientRect(wnd,&r);
-        x=r.right-r.left;
-        y=r.bottom-r.top;
-
-        SetWindowPos(wnd,HWND_TOP,0,0,width+width-x,height+height-y,0);
-    }
-
-    return 0;
-}
-
-int win_exit(void) {
-
-    if (mainwnd) {
-        DestroyWindow(mainwnd);
-    }
-
-    UnregisterClass("MAINWNDMOAC",instance);
-
-    return 0;
 }
 
 // startup
@@ -1252,10 +1181,6 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 
     if ((ret=parse_cmd(lpCmdLine))!=0) return fail("ill command (%d)",ret);
 
-#ifdef DEVELOPER
-    if (call_sfx) { make_sound_pak(); return 0; }
-#endif
-
     // set some stuff
     if (!*username || !*password) quickstart=0;
 #ifdef EDITOR
@@ -1379,20 +1304,13 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
     rrandomize();
 
     sprintf(buf,"Astonia 3 v%d.%d.%d",(VERSION>>16)&255,(VERSION>>8)&255,(VERSION)&255);
-    if (win_init(buf,width,height)==-1) {
-        win_exit();
-        MessageBox(NULL,"Can't Create a Window.","Error",MB_APPLMODAL|MB_OK|MB_ICONSTOP);
-        return -1;
-    }
-
     if (dd_init(width,height)==-1) {
         char buf[512];
         dd_exit();
 
         sprintf(buf,"Can't Initialize SDL\nPlease make sure you have DirectX and the latest drivers\nfor your graphics card installed.");
-        MessageBox(mainwnd,buf,"Error",MB_APPLMODAL|MB_OK|MB_ICONSTOP);
+        MessageBox(NULL,buf,"Error",MB_APPLMODAL|MB_OK|MB_ICONSTOP);
 
-        win_exit();
         net_exit();
         return -1;
     }
@@ -1400,13 +1318,12 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
     sprintf(buf,"Astonia 3 v%d.%d.%d",(VERSION>>16)&255,(VERSION>>8)&255,(VERSION)&255);
     if (!sdl_init(800,600,buf)) {
         dd_exit();
-        win_exit();
         net_exit();
         return -1;
     }
 
 #ifdef DOSOUND
-    init_sound(mainwnd);
+    init_sound();
 #endif
 
     if (largetext) {
@@ -1418,7 +1335,6 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 
     if (main_init()==-1) {
         dd_exit();
-        win_exit();
         net_exit();
         MessageBox(NULL,"Can't Initialize Program","Error",MB_APPLMODAL|MB_OK|MB_ICONSTOP);
         return -1;
@@ -1433,7 +1349,6 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 
     main_exit();
     dd_exit();
-    win_exit();
 
     list_mem();
 

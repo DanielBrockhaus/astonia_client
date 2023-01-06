@@ -368,10 +368,6 @@ void dl_play(void) {
     qs_time+=GetTickCount()-start;
 
     for (d=0; d<dlused && !quit; d++) {
-#ifdef DOSOUND
-        sound_mood();
-#endif
-
         if (dlsort[d]->call==0) {
             dd_copysprite_fx(&dlsort[d]->ddfx,dlsort[d]->x,dlsort[d]->y-dlsort[d]->h);
         } else {

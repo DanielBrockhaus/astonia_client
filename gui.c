@@ -61,6 +61,7 @@ int winxres,winyres;
 // globals display
 
 int display_vc=0;
+int display_help=0,display_quest=0;
 
 int playersprite_override=0;
 int nocut=0;
@@ -1979,7 +1980,7 @@ static void set_cmd_states(void) {
             (target_server>>0)&255,
             target_port);
     if (strcmp(title,buf)) {
-        SetWindowText(mainwnd,buf);
+        // TODO: figure out how SDL would set the window title and do it
         strcpy(title,buf);
     }
 
@@ -2573,147 +2574,10 @@ void display_cmd(void) {
     }
 }
 
-void insert_text(void) {
-    HANDLE h;
-    char *ptr;
-
-    if (!vk_shift) return;
-
-    OpenClipboard(mainwnd);
-    h=GetClipboardData(CF_TEXT);
-    if (h && (ptr=GlobalLock(h))!=NULL) {
-        while (*ptr) {
-            if (*ptr>=32) cmd_proc(*ptr);
-            ptr++;
-        }
-        GlobalUnlock(h);
-    } else MessageBeep(-1);
-    CloseClipboard();
-}
-
-
-// key and char proc
-int display_help=0;
-int display_quest=0;
-void gui_keyproc(int wparam) {
-    int i;
-    extern int display_gfx;
-
-    switch (wparam) {
-
-        case VK_ESCAPE:         cmd_stop(); show_look=0; display_gfx=0; teleporter=0; show_tutor=0; display_help=0; display_quest=0; show_color=0; return;
-        case VK_F1:            	if (fkeyitem[0]) exec_cmd(CMD_USE_FKEYITEM,0); return;
-        case VK_F2:            	if (fkeyitem[1]) exec_cmd(CMD_USE_FKEYITEM,1); return;
-        case VK_F3:            	if (fkeyitem[2]) exec_cmd(CMD_USE_FKEYITEM,2); return;
-        case VK_F4:            	if (fkeyitem[3]) exec_cmd(CMD_USE_FKEYITEM,3); return;
-
-        case VK_F5:		cmd_speed(1); return;
-        case VK_F6:             cmd_speed(0); return;
-        case VK_F7:             cmd_speed(2); return;
-
-        case VK_F8:		nocut^=1; return;
-
-        case VK_F9:		if (display_quest) display_quest=0;
-            else { display_help=0; display_quest=1; }
-            return;
-
-        case VK_F10:		display_vc^=1; list_mem(); return;
-
-        case VK_F11:            if (display_help) display_help=0;
-            else { display_quest=0; display_help=1; }
-            return;
-        case VK_F12:            quit=1; return;
-
-        case VK_RETURN:         cmd_proc(CMD_RETURN); return;
-        case VK_DELETE:         cmd_proc(CMD_DELETE); return;
-        case VK_BACK:           cmd_proc(CMD_BACK); return;
-        case VK_LEFT:           cmd_proc(CMD_LEFT); return;
-        case VK_RIGHT:          cmd_proc(CMD_RIGHT); return;
-        case VK_HOME:           cmd_proc(CMD_HOME); return;
-        case VK_END:            cmd_proc(CMD_END); return;
-        case VK_UP:             cmd_proc(CMD_UP); return;
-        case VK_DOWN:           cmd_proc(CMD_DOWN); return;
-
-        case VK_INSERT:		insert_text(); return;
-
-        case VK_NUMPAD0:
-        case VK_NUMPAD1:
-        case VK_NUMPAD2:
-        case VK_NUMPAD3:
-        case VK_NUMPAD4:
-        case VK_NUMPAD5:
-        case VK_NUMPAD6:
-        case VK_NUMPAD7:
-        case VK_NUMPAD8:
-        case VK_NUMPAD9:
-            wparam=wparam-96+'0';
-
-        case '0':
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9':
-        case 'A':
-        case 'B':
-        case 'C':
-        case 'D':
-        case 'E':
-        case 'F':
-        case 'G':
-        case 'H':
-        case 'I':
-        case 'J':
-        case 'K':
-        case 'L':
-        case 'M':
-        case 'N':
-        case 'O':
-        case 'P':
-        case 'Q':
-        case 'R':
-        case 'S':
-        case 'T':
-        case 'U':
-        case 'V':
-        case 'W':
-        case 'X':
-        case 'Y':
-        case 'Z':
-            if (!vk_item && !vk_char && !vk_spell) return;
-
-            for (i=0; i<max_keytab; i++) {
-
-                if (keytab[i].keycode!=wparam && keytab[i].userdef!=wparam) continue;
-
-                if ((keytab[i].vk_item  && !vk_item) || (!keytab[i].vk_item  && vk_item)) continue;
-                if ((keytab[i].vk_char  && !vk_char) || (!keytab[i].vk_char  && vk_char)) continue;
-                if ((keytab[i].vk_spell && !vk_spell) || (!keytab[i].vk_spell && vk_spell)) continue;
-
-                if (keytab[i].cl_spell) {
-                    if (keytab[i].tgt==TGT_MAP) exec_cmd(CMD_MAP_CAST_K,keytab[i].cl_spell);
-                    else if (keytab[i].tgt==TGT_CHR) exec_cmd(CMD_CHR_CAST_K,keytab[i].cl_spell);
-                    else if (keytab[i].tgt==TGT_SLF) exec_cmd(CMD_SLF_CAST_K,keytab[i].cl_spell);
-                    else return;     // hu ?
-                    keytab[i].usetime=now;
-                    return;
-                }
-                return;
-            }
-            return;
-
-        case VK_PRIOR:  dd_text_pageup(); break;
-        case VK_NEXT:   dd_text_pagedown(); break;
-    }
-}
-
 void gui_sdl_keyproc(int wparam) {
     int i;
     extern int display_gfx;
+    extern int display_help,display_quest;
 
     switch (wparam) {
 
@@ -2750,8 +2614,6 @@ void gui_sdl_keyproc(int wparam) {
         case SDLK_END:            cmd_proc(CMD_END); return;
         case SDLK_UP:             cmd_proc(CMD_UP); return;
         case SDLK_DOWN:           cmd_proc(CMD_DOWN); return;
-
-        case SDLK_INSERT:		insert_text(); return;
 
         case SDLK_KP_0:
         case SDLK_KP_1:
@@ -2829,56 +2691,6 @@ void gui_sdl_keyproc(int wparam) {
         case SDLK_PAGEUP:   dd_text_pageup(); break;
         case SDLK_PAGEDOWN: dd_text_pagedown(); break;
     }
-}
-
-__attribute__((stdcall)) long int main_wnd_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam)  {
-    PAINTSTRUCT ps;
-
-    if (quit) {
-        if (msg==WM_DESTROY) PostQuitMessage(0);
-        return DefWindowProc(wnd,msg,wparam,lparam);
-    }
-
-    switch (msg) {
-        case    WM_SYSKEYDOWN:
-        case 	WM_KEYDOWN:
-#ifdef EDITOR
-            if (editor) editor_keyproc(wparam);
-            else
-#endif
-                gui_keyproc(wparam);
-            return 0;
-
-        case WM_CHAR:
-            if (!(lparam&(1u<<30)))     // only process VM_CHAR if it is not the result of ALT-num
-                cmd_proc(wparam);
-            return 0;
-
-        case WM_PAINT:
-            BeginPaint(wnd,&ps);
-            EndPaint(wnd,&ps);
-            return 0;
-
-        case WM_CREATE:
-            mainwnd=wnd;
-            return 0;
-
-        case WM_SIZE:
-            winxres=LOWORD(lparam);
-            winyres=HIWORD(lparam);
-#ifdef EDITOR
-            if (editor) editor_sizeproc();
-#endif
-            return 0;
-
-        case WM_DESTROY:
-            mainwnd=NULL;
-            quit=1;
-            PostQuitMessage(0);
-            return 0;
-
-    }
-    return DefWindowProc(wnd,msg,wparam,lparam);
 }
 
 #define SDL_MOUM_NONE       0
@@ -3087,9 +2899,6 @@ void flip_at(unsigned int t) {
         /*if (GetActiveWindow()!=mainwnd) { // TODO: re-active this once we have the SDL window as only window?
             Sleep(100);
         } else */ Sleep(1);
-#ifdef DOSOUND
-        sound_mood();
-#endif
     } while (t>tnow);
 
     sdl_render();
@@ -3109,10 +2918,6 @@ int main_loop(void) {
         now=GetTickCount();
 
         poll_network();
-
-#ifdef DOSOUND
-        sound_gc();
-#endif
 
         // check if we can go on
         if (sockstate>2) {
