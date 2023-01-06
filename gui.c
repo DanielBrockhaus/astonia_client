@@ -1478,22 +1478,14 @@ void display_game_special(void) {
 char perf_text[256];
 
 static void display(void) {
-    extern int sc_hit,sc_miss,sc_maxstep,vc_hit,vc_miss,vc_unique,vc_unique24,sc_blits,sm_cnt;
-    extern int fsprite_cnt,f2sprite_cnt,gsprite_cnt,g2sprite_cnt,isprite_cnt,csprite_cnt,vc_cnt,sc_cnt,ap_cnt,np_cnt,tp_cnt,sc_time,vm_cnt,vm_time,qs_time,bless_time,dg_time,ds_time,vi_time,im_time;
-    int tt_time=0,mis_time=0;
-    static int lastuni=0;
-    extern int vc_time,ap_time,tp_time; //,ol_time,sb_time;
-    static double vc_avg=0,ap_avg=0,tp_avg=0,sc_avg=0,tt_avg=0,vm_avg=0,qs_avg=0,bt_avg=0,mis_avg=0,dg_avg=0,ds_avg=0,vi_avg=0,im_avg;
-    static int cnt=1;
     extern int socktimeout,kicked_out;
-    int t,start;
     extern int mirror;
     extern int memptrs[MAX_MEM];
     extern int memsize[MAX_MEM];
     extern int memused;
     extern int memptrused;
+    int t;
 
-    start=GetTickCount();
     if (sockstate<4 && ((t=time(NULL)-socktimeout)>10 || !originx)) {
         dd_rect(0,0,800,600,blackcolor);
         display_screen();
@@ -1544,61 +1536,10 @@ static void display(void) {
         dd_drawtext_fmt(650,25,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"idle=%3.0f%%",100.0*idle/tota);
     } else dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);
 
-    //sprintf(perf_text,"idle=%03d%%, skip=%03d%%, vc=%3d/%.2fms, sb=%d, vm=%3d/%.2fms, sc=%3d sm=%.2fms, ap=%3d/%.2fms, np=%4d, tp=%4d/%.2fms, qs=%.2fms, bt=%.2fms, dg=%.2fms, ds=%.2fms, vi=%.2fms, im=%.2fms, tt=%.2fms",100*idle/tota,100*skip/tota,vc_cnt,vc_avg,sc_blits,vm_cnt,vm_avg,sc_cnt,sc_avg,ap_cnt,ap_avg,np_cnt,tp_cnt,tp_avg,qs_avg,bt_avg,dg_avg,ds_avg,vi_avg,im_avg,tt_avg);
     sprintf(perf_text,"mem usage=%.2f/%.2fMB, %.2f/%.2fKBlocks",
             memsize[0]/1024.0/1024.0,memused/1024.0/1024.0,
             memptrs[0]/1024.0,memptrused/1024.0);
-    //if (display_vc) dd_drawtext_fmt(2,62,whitecolor,DD_SMALL|DD_LEFT|DD_FRAME,perf_text);
 
-    tt_time+=GetTickCount()-start;
-
-    sc_hit=sc_miss=sc_maxstep=vc_hit=vc_miss=vc_unique=sc_blits=sm_cnt=0;
-    vc_cnt=sc_cnt=ap_cnt=np_cnt=tp_cnt=vm_cnt=0;
-    if (cnt<99) {
-        vc_avg=(vc_avg*(100.0-100/cnt)+vc_time*(100.0/cnt))/100.0;
-        vm_avg=(vm_avg*(100.0-100/cnt)+vm_time*(100.0/cnt))/100.0;
-        sc_avg=(sc_avg*(100.0-100/cnt)+sc_time*(100.0/cnt))/100.0;
-        ap_avg=(ap_avg*(100.0-100/cnt)+ap_time*(100.0/cnt))/100.0;
-        tp_avg=(tp_avg*(100.0-100/cnt)+tp_time*(100.0/cnt))/100.0;
-        tt_avg=(tt_avg*(100.0-100/cnt)+tt_time*(100.0/cnt))/100.0;
-        qs_avg=(qs_avg*(100.0-100/cnt)+qs_time*(100.0/cnt))/100.0;
-        bt_avg=(bt_avg*(100.0-100/cnt)+bless_time*(100.0/cnt))/100.0;
-        mis_avg=(mis_avg*(100.0-100/cnt)+mis_time*(100.0/cnt))/100.0;
-        dg_avg=(dg_avg*(100.0-100/cnt)+dg_time*(100.0/cnt))/100.0;
-        ds_avg=(ds_avg*(100.0-100/cnt)+ds_time*(100.0/cnt))/100.0;
-        vi_avg=(vi_avg*(100.0-100/cnt)+vi_time*(100.0/cnt))/100.0;
-        im_avg=(im_avg*(100.0-100/cnt)+im_time*(100.0/cnt))/100.0;
-        cnt++;
-    } else {
-        vc_avg=vc_avg*0.99+vc_time*0.01;
-        vm_avg=vm_avg*0.99+vm_time*0.01;
-        sc_avg=sc_avg*0.99+sc_time*0.01;
-        ap_avg=ap_avg*0.99+ap_time*0.01;
-        tp_avg=tp_avg*0.99+tp_time*0.01;
-        tt_avg=tt_avg*0.99+tt_time*0.01;
-        qs_avg=qs_avg*0.99+qs_time*0.01;
-        bt_avg=bt_avg*0.99+bless_time*0.01;
-        mis_avg=mis_avg*0.99+mis_time*0.01;
-        dg_avg=dg_avg*0.99+dg_time*0.01;
-        ds_avg=ds_avg*0.99+ds_time*0.01;
-        vi_avg=vi_avg*0.99+vi_time*0.01;
-        im_avg=im_avg*0.99+im_time*0.01;
-    }
-    /*if (tt_time>100) note("tt_time=%d",tt_time);
-    if (vm_time>20) note("vm_time=%d",vm_time);
-    if (vc_time>20) note("vc_time=%d",vc_time);
-    if (sc_time>20) note("sc_time=%d",sc_time);
-    if (ap_time>20) note("ap_time=%d",ap_time);
-    if (tp_time>20) note("tp_time=%d",tp_time);
-        if (qs_time>20) note("qs_time=%d",qs_time);
-    if (bless_time>20) note("bless_time=%d",bless_time);
-    if (ds_time>20) note("ds_time=%d",ds_time);
-    if (vi_time>20) note("vi_time=%d",vi_time);
-    if (im_time>20) note("im_time=%d",im_time);*/
-
-    vm_time=vc_time=sc_time=ap_time=tp_time=tt_time=qs_time=bless_time=dg_time=ds_time=vi_time=im_time=0; //sb_time=ol_time=0;
-    if (tick/24!=lastuni/24) { vc_unique24=0; lastuni=tick; }
-    fsprite_cnt=f2sprite_cnt=gsprite_cnt=g2sprite_cnt=isprite_cnt=csprite_cnt=0;
 
     display_mouseover();
 }
@@ -2384,23 +2325,17 @@ int exec_gen(int gen,int a,char *c) {
             if (a<1) return -1;
             if (a>31) return -1;
             dd_gamma=a;
-            //dd_reset_cache(1,1,1);
-            dd_exit_cache(); dd_init_cache();
             return dd_gamma;
         case GEN_FORCE_PNG:
             gfx_force_png=a;
-            dd_reset_cache(1,1,1);
             return gfx_force_png;
         case GEN_SET_LIGHTEFFECT:
             if (a<1) return -1;
             if (a>31) return -1;
             dd_lighteffect=a;
-            //dd_reset_cache(1,1,1);
-            dd_exit_cache(); dd_init_cache();
             return dd_lighteffect;
         case GEN_FORCE_DH:
             gfx_force_dh=a;
-            dd_reset_cache(1,1,1);
             return gfx_force_dh;
     }
     return 0;

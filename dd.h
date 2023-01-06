@@ -29,8 +29,6 @@ int dd_exit(void);
 
 int dd_islost(void);
 int dd_restore(void);
-int dd_reset_cache(int reset_image,int reset_system,int reset_video);
-int pre_do(int curtick);
 
 void dd_flip(void);
 
@@ -178,7 +176,5 @@ extern unsigned int R_MASK;
 extern unsigned int G_MASK;
 extern unsigned int B_MASK;
 
-int dd_init_cache(void);
-void dd_exit_cache(void);
 
 
