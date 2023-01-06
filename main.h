@@ -6,7 +6,6 @@
 #define DEVELOPER               // this one will compile the developer version - comment me out for the final release
 
 #ifdef DEVELOPER
-//    #define EDITOR
     #define NO_UPDATE
 #endif
 
@@ -16,7 +15,6 @@
 
 extern int panic_reached;
 extern int quit;
-extern int editor;
 
 // helper
 
@@ -42,7 +40,7 @@ char* load_ascii_file(char *filename,int ID);
 #define MEM_PC          8
 #define MEM_GUI         9
 #define MEM_GAME        10
-#define MEM_EDIT        11
+#define MEM_TEMP11      11
 #define MEM_VPC         12
 #define MEM_VSC         13
 #define MEM_VLC         14

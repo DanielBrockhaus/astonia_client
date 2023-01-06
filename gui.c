@@ -42,15 +42,6 @@ extern int mirror,newmirror;
 #define MAXHELP		24
 #define MAXQUEST2	10
 
-#ifdef EDITOR
-extern int init_editor(void);
-extern int exit_editor(void);
-extern void editor_keyproc(int wparam);
-extern int editor_mouseproc(int msg);
-extern int editor_sizeproc(void);
-extern void editor_tinproc(int t,char *buf);
-#endif
-
 void cmd_add_text(char *buf);
 
 // globals
@@ -2427,11 +2418,6 @@ int client_cmd(char *buf) {
         addline("°c3Sorry, but you are not allowed to say your password. No matter what you're promised, do not give your password to anyone! The only things which happened to players who did are: Loss of all items, lots of negative experience, bad karma and locked characters. If you really, really think you have to tell your password to someone, then I'm sure you'll find a way around this block.");
         return 1;
     }
-#ifdef EDITOR
-    if (editor) {
-        editor_tinproc(42,buf);
-    }
-#endif
 
     return 0;
 }
@@ -2859,9 +2845,6 @@ int main_init(void) {
     capbut=-1;
 
     // more inits
-#ifdef EDITOR
-    if (editor) init_editor();
-#endif
     init_game();
 
     return 0;
@@ -2877,11 +2860,6 @@ void main_exit(void) {
     skltab_max=0;
     skltab_cnt=0;
 
-    // more exits
-#ifdef EDITOR
-    if (editor) exit_editor();
-#endif
-    //exit_tin();
     exit_game();
 }
 

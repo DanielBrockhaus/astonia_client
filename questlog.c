@@ -14,7 +14,6 @@
 #include "sprite.h"
 #include "gui.h"
 #include "spell.h"
-#include "edit.h"
 #include "sound.h"
 
 #define QLF_REPEATABLE	(1u<<0)

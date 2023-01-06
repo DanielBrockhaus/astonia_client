@@ -2,8 +2,6 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
-// TODO: test and fix editor to work with new screen resolution logic
-
 #include <windows.h>
 #include <commctrl.h>
 #include <stdarg.h>
@@ -29,9 +27,6 @@ extern int main_init(void);
 extern void main_exit(void);
 
 int main_loop(void);
-#ifdef EDITOR
-int editor_main_loop(void);
-#endif
 
 // globs
 
@@ -208,7 +203,7 @@ static char *memname[MAX_MEM]={
     "MEM_PC",
     "MEM_GUI",
     "MEM_GAME", //10
-    "MEM_EDIT",
+    "MEM_TEMP11",
     "MEM_VPC",
     "MEM_VSC",
     "MEM_VLC",
@@ -525,10 +520,6 @@ int net_exit(void) {
 
 // parsing command line
 
-#ifdef EDITOR
-int editor;
-#endif
-
 char with_cmd;
 int with_nr;
 
@@ -579,23 +570,10 @@ int parse_cmd(char *s) {
                     else if (tmp==1200) opt_res=IDC_RES1600;
                     else if (tmp==1800) opt_res=IDC_RES2400;
                     else opt_res=IDC_RES800;
-            }
-            else if (tolower(*s)=='l') { //Large Text
+            } else if (tolower(*s)=='l') { //Large Text
                     s++;
                     largetext=1;
-            }
-
-#ifdef EDITOR
-else if (tolower(*s)=='e') {  // -e start the editor (not implemented so far, but the offscreensurface is prepared)
-                s++;
-                editor=1;
-            } else if (tolower(*s)=='a') {  // -a areaid of the editor (default is 1)
-                extern int  areaid;
-                areaid=strtol(s+1,&end,10);
-                s=end;
-            }
-#endif
-            else if (tolower(*s)=='x') {
+            } else if (tolower(*s)=='x') {
                 s++;
                 no_exec=1;
             } else if (tolower(*s)=='y') {
@@ -1170,9 +1148,6 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
     char buf[80];
     extern int x_offset,y_offset,x_max,y_max;
     struct hostent *he;
-#ifdef EDITOR
-    extern int  areaid;
-#endif
 
     errorfp=fopen("moac.log","a");
     if (!errorfp) errorfp=stderr;
@@ -1183,10 +1158,6 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 
     // set some stuff
     if (!*username || !*password) quickstart=0;
-#ifdef EDITOR
-    if (editor) quickstart=1;
-#endif
-
 
     // set instance
     instance=hInstance;
@@ -1216,24 +1187,15 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 
     if (!quickstart && win_start()) goto done;
 
-#ifdef EDITOR
-    if (editor) {
-        quickstart=1;
-        width=1600;
-        height=1200;
-    } else
-#endif
-    {
-        switch (opt_res) {
-            case IDC_RES1200:	width=1200; height=900; x_offset=y_offset=0; break;
-            case IDC_RES1600:	width=1600; height=1200; x_offset=y_offset=0; break;
-            case IDC_RES2400:	width=2400; height=1800; x_offset=y_offset=0; break;
-            case IDC_RES800:
-            default:		width=800; height=600; x_offset=y_offset=0; break;
-        }
-        x_max=x_offset+800;
-        y_max=y_offset+600;
+    switch (opt_res) {
+        case IDC_RES1200:	width=1200; height=900; x_offset=y_offset=0; break;
+        case IDC_RES1600:	width=1600; height=1200; x_offset=y_offset=0; break;
+        case IDC_RES2400:	width=2400; height=1800; x_offset=y_offset=0; break;
+        case IDC_RES800:
+        default:		width=800; height=600; x_offset=y_offset=0; break;
     }
+    x_max=x_offset+800;
+    y_max=y_offset+600;
 
 #ifndef NO_UPDATE
     if (!no_exec) {
@@ -1341,11 +1303,7 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
     }
     update_user_keys();
 
-#ifdef EDITOR
-    if (editor) editor_main_loop();
-    else
-#endif
-        main_loop();
+    main_loop();
 
     main_exit();
     dd_exit();

@@ -116,16 +116,8 @@ void dd_get_client_info(struct client_info *ci) {
 
 int dd_init(int width,int height) {
 
-#ifdef EDITOR
-    if (editor) {
-        XRES=width;
-        YRES=height;
-    } else
-#endif
-    {
-        XRES=800;
-        YRES=600;
-    }
+    XRES=800;
+    YRES=600;
 
     xres=XRES;
     yres=YRES;

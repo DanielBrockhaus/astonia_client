@@ -72,15 +72,6 @@ struct map {
 
     char xadd;                      // add this to the x position of the field used for c sprite
     char yadd;                      // add this to the y position of the field used for c sprite
-
-#ifdef EDITOR
-    unsigned int ex_flags;          // extended flags of the editor
-    unsigned int ex_map_flags;      // copy of the server flags (for display)
-    char *ex_chrname;               // chr name - beware of pointers (might explode if we dynamically change items and chars)
-    char *ex_itmname;               // itm name - beware of pointers
-    unsigned short sec_nr,sec_line;
-#endif
-
 };
 
 struct cef_generic {

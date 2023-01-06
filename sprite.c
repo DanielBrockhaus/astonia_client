@@ -875,10 +875,6 @@ int trans_asprite(int mn,int sprite,int attick,
     // if (!isprite) return 0;
     int help,scale=100,cr=0,cg=0,cb=0,light=0,sat=0,nr,c1=0,c2=0,c3=0,shine=0,edi=0;
 
-#ifdef EDITOR
-    if (editor) edi=1;
-#endif
-
     switch (sprite) {
         case 60042: sprite=1012+((attick/8)%8); break;  // north pent
         case 60043: sprite=1012+((attick/4)%8); break;

@@ -15,7 +15,6 @@
 #include "sprite.h"
 #include "gui.h"
 #include "spell.h"
-#include "edit.h"
 #include "sound.h"
 
 // extern
@@ -1236,9 +1235,6 @@ void display_game_map(struct map *cmap) {
 
         // field is invisible - draw a black square and ignore everything else
         if (!light) { dl_next_set(GNDSTR_LAY,0,scrx,scry,DDFX_NLIGHT); continue; }
-#ifdef EDITOR
-        if (cmap[mn].ex_flags&EXF_BRIGHT) light=DDFX_BRIGHT;
-#endif
 
         // blit the grounds and straighten it, if neccassary ...
         if (cmap[mn].rg.sprite) {
@@ -1515,23 +1511,12 @@ void display_game_map(struct map *cmap) {
     show_bubbles();
     dg_time+=GetTickCount()-start;
 
-#ifdef EDITOR
-    if (cmap==map || editor) {  // double ouch!!
-#else
     if (cmap==map) {            // ouch!!
-#endif
         // selection on ground
         if (mapsel!=-1) {
             mn=mapsel;
             mapx=mn%MAPDX;
             mapy=mn/MAPDX;
-#ifdef EDITOR
-            if (editor) {
-                extern int emapdx,emapdy;
-                mapx=mn%emapdx;
-                mapy=mn/emapdy;
-            }
-#endif
             mtos(mapx,mapy,&scrx,&scry);
             if (cmap[mn].rlight==0 || (cmap[mn].mmf&MMF_SIGHTBLOCK)) sprite=SPR_FFIELD;
             else sprite=SPR_FIELD;
@@ -2126,24 +2111,10 @@ void make_quick(int game) {
     int dist=DIST;
 
     if (game) {
-#ifdef EDITOR
-        if (editor) return;
-#endif
         note("make_quick: game");
         set_mapoff(400,270,MAPDX,MAPDY);
         set_mapadd(0,0);
     }
-#ifdef EDITOR
-else {
-        note("make_quick: winxres=%d winyres=%d",winxres,winyres);
-        dist=max(winxres/FDX,winyres/FDY+5);
-        emapdx=2*dist+1;
-        emapdy=2*dist+1;
-        emap=xrealloc(emap,emapdx*emapdy*sizeof(*emap),MEM_EDIT);
-        set_mapoff(winxres/2,winyres/2+2*FDY-15,dist*2+1,dist*2+1);
-        set_mapadd(0,0);
-    }
-#endif
 
     // calc maxquick
     for (i=y=0; y<=dist*2; y++) {
