@@ -5,10 +5,6 @@
 
 #define DEVELOPER               // this one will compile the developer version - comment me out for the final release
 
-#ifdef DEVELOPER
-    #define NO_UPDATE
-#endif
-
 #define PARANOIA(a) a
 #define DOSOUND
 //#define RELAY
