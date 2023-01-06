@@ -2372,12 +2372,6 @@ int client_cmd(char *buf) {
         return 1;
     }
 
-    if (!strncmp(buf,"#text",5)) {
-        extern int newtext;
-        newtext=1-newtext;
-        return 1;
-    }
-
     if (!strncmp(buf,"#gamma ",7)) {
         exec_gen(GEN_SET_GAMMA,atoi(&buf[7]),NULL);
         addline("using gamma %d",dd_gamma);
@@ -3098,7 +3092,7 @@ void flip_at(unsigned int t) {
 #endif
     } while (t>tnow);
 
-    dd_flip();
+    sdl_render();
 }
 
 unsigned int nextframe;
@@ -3106,7 +3100,6 @@ unsigned int nextframe;
 int main_loop(void) {
     MSG msg;
     int tmp,timediff,ltick=0;
-    unsigned int utmp;
     extern int q_size;
 
     nextframe=GetTickCount()+MPT;
@@ -3148,6 +3141,8 @@ int main_loop(void) {
         if (sockstate==4) timediff=nextframe-GetTickCount();
         else timediff=1;
 
+        // TODO: should we add this functionality again?
+#if 0
         if (dd_islost()) {
             while (42) {
                 while (PeekMessage(&msg,NULL,0,0,PM_REMOVE)) {
@@ -3162,7 +3157,9 @@ int main_loop(void) {
             }
 
             dd_restore();
-        } else {
+        } else
+#endif
+        {
             if (timediff>-MPT/2) {
 
                 set_cmd_states();
@@ -3177,7 +3174,6 @@ int main_loop(void) {
                 frames++;
 
                 flip_at(nextframe);
-                sdl_render();
             } else {
                 skip-=timediff;
 

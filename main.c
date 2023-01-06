@@ -27,7 +27,6 @@
 extern long main_wnd_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) __attribute__((stdcall));
 extern int main_init(void);
 extern void main_exit(void);
-extern int newtext;
 
 int main_loop(void);
 #ifdef EDITOR
@@ -1301,11 +1300,11 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 #endif
     {
         switch (opt_res) {
-            case IDC_RES1200:	width=1200; height=900; x_offset=y_offset=0; newtext=1; break;
-            case IDC_RES1600:	width=1600; height=1200; x_offset=y_offset=0; newtext=0; break;
-            case IDC_RES2400:	width=2400; height=1800; x_offset=y_offset=0; newtext=0; break;
+            case IDC_RES1200:	width=1200; height=900; x_offset=y_offset=0; break;
+            case IDC_RES1600:	width=1600; height=1200; x_offset=y_offset=0; break;
+            case IDC_RES2400:	width=2400; height=1800; x_offset=y_offset=0; break;
             case IDC_RES800:
-            default:		width=800; height=600; x_offset=y_offset=0; newtext=0; break;
+            default:		width=800; height=600; x_offset=y_offset=0; break;
         }
         x_max=x_offset+800;
         y_max=y_offset+600;
@@ -1390,7 +1389,7 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
         char buf[512];
         dd_exit();
 
-        sprintf(buf,"Can't Initialize DirectX\n%s\nPlease make sure you have DirectX and the latest drivers\nfor your graphics card installed.",DDERR);
+        sprintf(buf,"Can't Initialize SDL\nPlease make sure you have DirectX and the latest drivers\nfor your graphics card installed.");
         MessageBox(mainwnd,buf,"Error",MB_APPLMODAL|MB_OK|MB_ICONSTOP);
 
         win_exit();

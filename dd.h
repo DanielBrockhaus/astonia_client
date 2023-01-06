@@ -17,8 +17,6 @@ extern int largetext;
 
 extern int xres;                // pitch of the back surfache (ddbs)
 
-extern const char *DDERR;
-
 void dd_push_clip(void);
 void dd_pop_clip(void);
 void dd_more_clip(int sx,int sy,int ex,int ey);
@@ -26,11 +24,6 @@ void dd_set_clip(int sx,int sy,int ex,int ey);
 
 int dd_init(int width,int height);
 int dd_exit(void);
-
-int dd_islost(void);
-int dd_restore(void);
-
-void dd_flip(void);
 
 void dd_pixel(int x,int y,unsigned short col);
 void dd_draw_bless(int x,int y,int ticker,int strength,int front);

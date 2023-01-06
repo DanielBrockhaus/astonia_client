@@ -5,7 +5,6 @@
 #include <windows.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <ddraw.h>
 #include <math.h>
 #include <stdio.h>
 
@@ -31,10 +30,6 @@ float *fontdim=fontdim_a;
 void dd_create_font(void);
 void dd_init_text(void);
 
-// extern ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-extern HWND mainwnd;
-
 // helpers
 
 #ifndef irgb_blend
@@ -54,34 +49,19 @@ int YRES;               // set to indicate the maximal size of the offscreen sur
 
 float mouse_scale=1.0f;      // mouse input needs to be scaled by this factor because the display window is stretched
 
-char dderr[256]={""};
-const char *DDERR=dderr;
-
 unsigned int R_MASK;
 unsigned int G_MASK;
 unsigned int B_MASK;
 
-#define RGBM_R5G6B5     0
-#define RGBM_X1R5G5B5   1
-#define RGBM_B5G6R5     2
-
-const char *rgbmstr[3]={"RGBM_R5G6B5","RGBM_X1R5G5B5","RGBM_B5G6R5"};
 
 int x_offset,y_offset;
 int x_max,y_max;
 
-int vc_cnt=0,sc_cnt=0,ap_cnt=0,np_cnt=0,tp_cnt=0,vm_cnt=0,sm_cnt=0;
-int vc_time=0,ap_time=0,tp_time=0,sc_time=0,vm_time=0,bless_time=0,vi_time=0,im_time=0;
-
-int rgbm=-1;
 int xres;
 int yres;
 
 int dd_tick=0;
 
-LPDIRECTDRAW dd=NULL;
-LPDIRECTDRAWCLIPPER ddcl=NULL;
-LPDIRECTDRAWSURFACE ddbs=NULL;
 
 int clipsx,clipsy,clipex,clipey;
 int clipstore[32][4],clippos=0;
@@ -120,75 +100,6 @@ void dd_set_clip(int sx,int sy,int ex,int ey) {
     clipey=ey;
 }
 
-static const char* dd_errstr(int err) {
-    static char buf[256];
-
-    switch (err) {
-        case -1:                                        return "DDERR INTERNAL";
-        case DDERR_INVALIDOBJECT:                       return "DDERR_INVALIDOBJECT";
-        case DDERR_INVALIDPARAMS:                       return "DDERR_INVALIDPARAMS";
-        case DDERR_OUTOFMEMORY:                         return "DDERR_OUTOFMEMORY";
-        case DDERR_SURFACEBUSY:                         return "DDERR_SURFACEBUSY";
-        case DDERR_SURFACELOST:                         return "DDERR_SURFACELOST";
-        case DDERR_WASSTILLDRAWING:                 	return "DDERR_WASSTILLDRAWING";
-        case DDERR_INCOMPATIBLEPRIMARY:             	return "DDERR_INCOMPATIBLEPRIMARY";
-        case DDERR_INVALIDCAPS:                   	return "DDERR_INVALIDCAPS";
-        case DDERR_INVALIDPIXELFORMAT:            	return "DDERR_INVALIDPIXELFORMAT";
-        case DDERR_NOALPHAHW:                     	return "DDERR_NOALPHAHW";
-        case DDERR_NOCOOPERATIVELEVELSET:         	return "DDERR_NOCOOPERATIVELEVELSET";
-        case DDERR_NODIRECTDRAWHW:                	return "DDERR_NODIRECTDRAWHW";
-        case DDERR_NOEMULATION:                   	return "DDERR_NOEMULATION";
-        case DDERR_NOEXCLUSIVEMODE:               	return "DDERR_NOEXCLUSIVEMODE";
-        case DDERR_NOFLIPHW:                      	return "DDERR_NOFLIPHW";
-        case DDERR_NOMIPMAPHW:                    	return "DDERR_NOMIPMAPHW";
-        case DDERR_NOOVERLAYHW:                   	return "DDERR_NOOVERLAYHW";
-        case DDERR_NOZBUFFERHW:                   	return "DDERR_NOZBUFFERHW";
-        case DDERR_OUTOFVIDEOMEMORY:              	return "DDERR_OUTOFVIDEOMEMORY";
-        case DDERR_PRIMARYSURFACEALREADYEXISTS:   	return "DDERR_PRIMARYSURFACEALREADYEXISTS";
-        case DDERR_UNSUPPORTEDMODE:               	return "DDERR_UNSUPPORTEDMODE";
-        case DDERR_EXCEPTION:                           return "DDERR_EXCEPTION";
-        case DDERR_GENERIC:                             return "DDERR_GENERIC";
-        case DDERR_INVALIDRECT:                         return "DDERR_INVALIDRECT";
-        case DDERR_NOTFLIPPABLE:                        return "DDERR_NOTFLIPPABLE";
-        case DDERR_UNSUPPORTED:                         return "DDERR_UNSUPPORTED";
-    }
-
-    sprintf(buf,"DDERR_UNKNOWN(%d,%X,%lX)",err,err,DDERR_EXCEPTION);
-    return buf;
-}
-
-static int dd_error(const char *txt,int err) {
-    sprintf(dderr,"%s : %s",txt,dd_errstr(err));
-    if (err==DDERR_SURFACELOST) note("%s",dderr);
-    else fail("%s",dderr);
-    return -1;
-}
-
-static char* ddsdstr(char *buf,DDSURFACEDESC *ddsd) {
-    int bpp,pitch;
-    char *memstr;
-
-    if (ddsd->ddsCaps.dwCaps&DDSCAPS_LOCALVIDMEM) memstr="localvidmem";
-    else if (ddsd->ddsCaps.dwCaps&DDSCAPS_VIDEOMEMORY) memstr="videomemory";
-    else if (ddsd->ddsCaps.dwCaps&DDSCAPS_SYSTEMMEMORY) memstr="systemmemory";
-    else memstr="funnymemory";
-
-    bpp=ddsd->ddpfPixelFormat.dwRGBBitCount;
-    if (bpp) pitch=ddsd->lPitch/(bpp/8);
-    else pitch=-1;
-
-    sprintf(buf,"%ldx%ldx%d %s (pitch=%d) (%08lX,%08lX,%08lX)",
-            ddsd->dwWidth,ddsd->dwHeight,bpp,
-            memstr,
-            pitch,
-            ddsd->ddpfPixelFormat.dwRBitMask, // binstr(rbuf,ddsd->ddpfPixelFormat.u2.dwRBitMask,bpp),
-            ddsd->ddpfPixelFormat.dwGBitMask, // binstr(gbuf,ddsd->ddpfPixelFormat.u3.dwGBitMask,bpp),
-            ddsd->ddpfPixelFormat.dwBBitMask  // binstr(bbuf,ddsd->ddpfPixelFormat.u4.dwBBitMask,bpp)
-           );
-
-    return buf;
-}
-
 void dd_get_client_info(struct client_info *ci) {
     static MEMORYSTATUS memstat;
 
@@ -204,14 +115,7 @@ void dd_get_client_info(struct client_info *ci) {
 }
 
 int dd_init(int width,int height) {
-    DDSURFACEDESC ddsd;
-    int err;
-    char buf[1024];
 
-    // create dd
-    if ((err=DirectDrawCreate(NULL,&dd,NULL))!=DD_OK) return dd_error("DirectDrawCreate()",err);
-
-    // you can force any screen (and offscreen) size
 #ifdef EDITOR
     if (editor) {
         XRES=width;
@@ -223,51 +127,12 @@ int dd_init(int width,int height) {
         YRES=600;
     }
 
-    // set cooperative level
-    if ((err=dd->lpVtbl->SetCooperativeLevel(dd,mainwnd,DDSCL_NORMAL))!=DD_OK) return dd_error("SetCooperativeLevel()",err);
+    xres=XRES;
+    yres=YRES;
 
-    // create a back surface (offscreen, always using a 16 bit mode)
-    note("back surface: %dx%d",XRES,YRES);
-    bzero(&ddsd,sizeof(ddsd));
-    ddsd.dwSize=sizeof(ddsd);
-    ddsd.dwFlags=DDSD_CAPS|DDSD_WIDTH|DDSD_HEIGHT|DDSD_PIXELFORMAT;
-    ddsd.ddsCaps.dwCaps=DDSCAPS_OFFSCREENPLAIN|DDSCAPS_SYSTEMMEMORY;
-    ddsd.dwWidth=XRES;
-    ddsd.dwHeight=YRES;
-    ddsd.ddpfPixelFormat.dwSize=sizeof(ddsd.ddpfPixelFormat);
-    ddsd.ddpfPixelFormat.dwFlags=DDPF_RGB;
-    ddsd.ddpfPixelFormat.dwRGBBitCount=16;
-
-    // RGBM_R5G6B5
-    ddsd.ddpfPixelFormat.dwRBitMask=0x7C00;
-    ddsd.ddpfPixelFormat.dwGBitMask=0x03E0;
-    ddsd.ddpfPixelFormat.dwBBitMask=0x001F;
-    ddsd.ddpfPixelFormat.dwRGBAlphaBitMask=0;
-
-    if ((err=dd->lpVtbl->CreateSurface(dd,&ddsd,&ddbs,NULL))!=DD_OK) return dd_error("CreateSurface(ddbs)",err);    // create Backsurface
-
-    // do some neccassary clipper stuff
-    if ((err=dd->lpVtbl->CreateClipper(dd,0,&ddcl,NULL))!=DD_OK) return dd_error("CreateClipper(ddbs)",err);        // CreateClipper
-    if ((err=ddcl->lpVtbl->SetHWnd(ddcl,0,mainwnd))!=DD_OK) return dd_error("SetHWnd(ddcl)",err);                   // Attach Clipper to Window
-
-    // get informations about the back surface
-    bzero(&ddsd,sizeof(ddsd));
-    ddsd.dwSize=sizeof(ddsd);
-    ddsd.dwFlags=DDSD_ALL;
-    if ((err=ddbs->lpVtbl->GetSurfaceDesc(ddbs,&ddsd))!=DD_OK) return dd_error("GetSurfaceDesc(ddbs)",err);
-    note("ddbs is %s",ddsdstr(buf,&ddsd));
-    xres=ddsd.lPitch/2;
-    yres=ddsd.dwHeight;
-
-    if (!(ddsd.ddpfPixelFormat.dwFlags&DDPF_RGB)) return dd_error("CANNOT HANDLE PIXEL FORMAT",-1);
-    R_MASK=ddsd.ddpfPixelFormat.dwRBitMask;
-    G_MASK=ddsd.ddpfPixelFormat.dwGBitMask;
-    B_MASK=ddsd.ddpfPixelFormat.dwBBitMask;
-
-    if (R_MASK==0xF800 && G_MASK==0x07E0 && B_MASK==0x001F) { rgbm=RGBM_R5G6B5; }
-    else if (R_MASK==0x7C00 && G_MASK==0x03E0 && B_MASK==0x001F) { rgbm=RGBM_X1R5G5B5; }
-    else if (R_MASK==0x001F && G_MASK==0x07E0 && B_MASK==0xF800) { rgbm=RGBM_B5G6R5; }
-    else return dd_error("CANNOT HANDLE RGB MASK",-1);
+    R_MASK=0x7C00;
+    G_MASK=0x03E0;
+    B_MASK=0x001F;
 
     // set the clipping to the maximum possible
     clippos=0;
@@ -284,206 +149,8 @@ int dd_init(int width,int height) {
 }
 
 int dd_exit(void) {
-
-    // removed - slow!
-    //gfx_exit();
-    //dd_exit_cache();
-
-    if (ddbs) {
-        ddbs->lpVtbl->Release(ddbs);
-        ddbs=NULL;
-    }
-
-    if (ddcl) {
-        ddcl->lpVtbl->Release(ddcl);
-        ddcl=NULL;
-    }
-
-    if (dd) {
-        dd->lpVtbl->RestoreDisplayMode(dd);
-        dd->lpVtbl->Release(dd);
-        dd=NULL;
-    }
-
-
     return 0;
 }
-
-HDC dd_get_dc(LPDIRECTDRAWSURFACE surface) {
-    int err;
-    HDC dc;
-
-    if ((err=surface->lpVtbl->GetDC(surface,&dc))!=DD_OK) { dd_error("dd_get_dc()",err); return NULL; }
-
-    return dc;
-}
-
-int dd_release_dc(LPDIRECTDRAWSURFACE surface,HDC dc) {
-    int err;
-
-    if ((err=surface->lpVtbl->ReleaseDC(surface,dc))!=DD_OK) return dd_error("dd_release_dc()",err);
-
-    return 0;
-}
-
-#define MAXTEXTER   1024
-struct texter {
-    int x,y;
-    char *text;
-    int color;
-    int flags;
-};
-
-int textcnt=0;
-struct texter texter[MAXTEXTER];
-int newtext=0;
-
-void texter_add(int x, int y,int color,int flags,const char *text) {
-    int r,g,b;
-
-    if (textcnt>=MAXTEXTER) return;
-
-    r=(int)((((color>>11)&31)/31.0f)*255.0f);
-    g=(int)((((color>>5) &63)/63.0f)*255.0f);
-    b=(int)((((color)    &31)/31.0f)*255.0f);
-
-
-    texter[textcnt].x=x;
-    texter[textcnt].y=y;
-    texter[textcnt].color=(r)|(g<<8)|(b<<16);
-    texter[textcnt].flags=flags;
-    texter[textcnt].text=strdup(text);
-    textcnt++;
-}
-
-void dd_flip(void) {
-    HDC srcdc;
-    HDC tgtdc;
-    HDC tmpdc;
-    HBITMAP bm=NULL;
-    RECT r;
-    int xs,ys;
-
-    srcdc=dd_get_dc(ddbs);
-    tgtdc=GetDC(mainwnd);
-
-    GetClientRect(mainwnd,&r);
-    xs=r.right-r.left;
-    ys=r.bottom-r.top;
-
-    if (newtext) {
-        tmpdc=CreateCompatibleDC(tgtdc);
-        bm=CreateCompatibleBitmap(tgtdc,xs,ys);
-        SelectObject(tmpdc,bm);
-    } else tmpdc=tgtdc;
-
-    if (xs!=XRES && ys!=YRES) {
-
-        mouse_scale=1.0*xs/XRES;
-
-        if (mouse_scale!=2.0f && mouse_scale!=3.0f) {
-            if (srcdc) SetStretchBltMode(srcdc,HALFTONE);
-            if (tmpdc) SetStretchBltMode(tmpdc,HALFTONE);
-        } else {
-            if (srcdc) SetStretchBltMode(srcdc,COLORONCOLOR);
-            if (tmpdc) SetStretchBltMode(tmpdc,COLORONCOLOR);
-        }
-        if (srcdc && tmpdc) StretchBlt(tmpdc,0,0,xs,ys,srcdc,0,0,XRES,YRES,SRCCOPY);
-    } else {
-        if (srcdc && tmpdc) BitBlt(tmpdc,0,0,XRES,YRES,srcdc,0,0,SRCCOPY);
-        mouse_scale=1.0;
-    }
-
-    dd_release_dc(ddbs,srcdc);
-
-    if (newtext) {
-        static HFONT wfonts=NULL,wfontm=NULL,wfontb=NULL;
-        int n,x,y,flags;
-        char *text;
-
-        if (!wfonts) {
-            ABC abc;
-            int n;
-
-            #define fontname "Small"
-            wfonts=CreateFont(10*mouse_scale,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_OUTLINE_PRECIS,CLIP_DEFAULT_PRECIS,ANTIALIASED_QUALITY,VARIABLE_PITCH,TEXT(fontname));
-            wfontm=CreateFont(11*mouse_scale,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_OUTLINE_PRECIS,CLIP_DEFAULT_PRECIS,ANTIALIASED_QUALITY,VARIABLE_PITCH,TEXT(fontname));
-            wfontb=CreateFont(15*mouse_scale,0,0,0,FW_DONTCARE,FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_OUTLINE_PRECIS,CLIP_DEFAULT_PRECIS,ANTIALIASED_QUALITY,VARIABLE_PITCH,TEXT(fontname));
-
-            SelectObject(tmpdc,wfontm);
-            for (n=32; n<128; n++) {
-                GetCharABCWidths(tmpdc,n,n,&abc);
-                fontdim_a[n]=(abc.abcA+abc.abcB+abc.abcC)/mouse_scale;
-            }
-            SelectObject(tmpdc,wfonts);
-            for (n=32; n<128; n++) {
-                GetCharABCWidths(tmpdc,n,n,&abc);
-                fontdim_b[n]=(abc.abcA+abc.abcB+abc.abcC)/mouse_scale;
-            }
-            SelectObject(tmpdc,wfontb);
-            for (n=32; n<128; n++) {
-                GetCharABCWidths(tmpdc,n,n,&abc);
-                fontdim_c[n]=(abc.abcA+abc.abcB+abc.abcC)/mouse_scale;
-            }
-        }
-        SetBkMode(tmpdc,TRANSPARENT);
-
-        for (n=0; n<textcnt; n++) {
-            x=(texter[n].x)*mouse_scale;
-            y=(texter[n].y-2)*mouse_scale;
-            text=texter[n].text;
-            flags=texter[n].flags;
-
-            if (flags&DD_SMALL) SelectObject(tmpdc,wfonts);
-            else if (flags&DD_BIG) SelectObject(tmpdc,wfontb);
-            else SelectObject(tmpdc,wfontm);
-
-
-            if (flags&DD_CENTER) SetTextAlign(tmpdc,TA_CENTER|TA_TOP);
-            else if (flags&DD_RIGHT) SetTextAlign(tmpdc,TA_RIGHT|TA_TOP);
-            else SetTextAlign(tmpdc,TA_LEFT|TA_TOP);
-
-            if (flags&(DD_SHADE|DD_FRAME)) {
-                SetTextColor(tmpdc,0);
-                TextOut(tmpdc,x-1,y,text,strlen(text));
-                TextOut(tmpdc,x,y-1,text,strlen(text));
-                TextOut(tmpdc,x+1,y,text,strlen(text));
-                TextOut(tmpdc,x,y+1,text,strlen(text));
-            }
-
-            SetTextColor(tmpdc,texter[n].color);
-            TextOut(tmpdc,x,y,text,strlen(text));
-            free(text);
-        }
-        textcnt=0;
-
-        if (tgtdc && tmpdc) BitBlt(tgtdc,0,0,xs,ys,tmpdc,0,0,SRCCOPY);
-
-        SelectObject(tmpdc,NULL);
-        DeleteObject(bm);
-        DeleteDC(tmpdc);
-    }
-    ReleaseDC(mainwnd,tgtdc);
-}
-
-int dd_islost(void) {
-
-    if (ddbs->lpVtbl->IsLost(ddbs)!=DD_OK) return 1; // ddbs->lpVtbl->Restore(ddbs); else ok++;
-
-    return 0;
-}
-
-int dd_restore(void) {
-    if (ddbs->lpVtbl->IsLost(ddbs)!=DD_OK) if (ddbs->lpVtbl->Restore(ddbs)!=DD_OK) return -1;
-
-    return 0;
-}
-
-// cache ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-//unsigned short rgbcolorkey=IRGB(31,0,31);
-//unsigned short rgbcolorkey2=IRGB(16,0,16);
 
 int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry) {
     int stx;
@@ -666,31 +333,30 @@ void dd_display_pulseback(int fx,int fy,int tx,int ty) {
 
 int dd_textlength(int flags,const char *text) {
     DDFONT *font;
-    float *dim;
-    float x;
+    int x;
     const char *c;
 
-    if (flags&DD_SMALL) { font=fontb; dim=fontdim_b; }
-    else if (flags&DD_BIG) { font=fontc; dim=fontdim_c; }
-    else { font=fonta; dim=fontdim_a; }
+    if (flags&DD_SMALL) { font=fontb; }
+    else if (flags&DD_BIG) { font=fontc; }
+    else { font=fonta; }
 
-    for (x=0,c=text; *c && *c!=DDT; c++) if (newtext) x+=dim[*c]; else x+=font[*c].dim;
+    for (x=0,c=text; *c && *c!=DDT; c++) x+=font[*c].dim;
 
     return (int)(x+0.5f);
 }
 
 int dd_textlen(int flags,const char *text,int n) {
     DDFONT *font;
-    float x,*dim;
+    int x;
     const char *c;
 
     if (n<0) return dd_textlength(flags,text);
 
-    if (flags&DD_SMALL) { font=fontb; dim=fontdim_b; }
-    else if (flags&DD_BIG) { font=fontc; dim=fontdim_c; }
-    else { font=fonta; dim=fontdim_a; }
+    if (flags&DD_SMALL) { font=fontb; }
+    else if (flags&DD_BIG) { font=fontc; }
+    else { font=fonta; }
 
-    for (x=0,c=text; *c && *c!=DDT && n; c++,n--) if (newtext) x+=dim[*c]; else x+=font[*c].dim;
+    for (x=0,c=text; *c && *c!=DDT && n; c++,n--)  x+=font[*c].dim;
 
     return (int)(x+0.5f);
 }
@@ -962,16 +628,16 @@ int dd_drawtext_char(int sx,int sy,int c,unsigned short int color) {
 }
 
 int dd_text_len(const char *text) {
-    float x;
+    int x;
     const char *c;
 
-    for (x=0,c=text; *c; c++) if (newtext) x+=fontdim[*c]; else x+=textfont[*c].dim;
+    for (x=0,c=text; *c; c++) x+=textfont[*c].dim;
 
     return (int)(x+0.5f);
 }
 
 int dd_char_len(char c) {
-    if (newtext) return fontdim[c]; else return textfont[c].dim;
+    return textfont[c].dim;
 }
 
 
@@ -1074,7 +740,7 @@ void dd_display_text(void) {
 
 void dd_add_text(char *ptr) {
     int n,m,pos,color=0,link=0;
-    float x=0.0f,tmp;
+    int x=0,tmp;
     char buf[256];
 
     pos=textnextline*MAXTEXTLETTERS;
@@ -1112,8 +778,7 @@ void dd_add_text(char *ptr) {
 
             for (m=0; m<2; m++) {
                 text[pos].c=32;
-                if (newtext) x+=fontdim[32];
-                else x+=textfont[32].dim;
+                x+=textfont[32].dim;
                 text[pos].color=color;
                 text[pos].link=link;
                 pos++;
@@ -1129,8 +794,7 @@ void dd_add_text(char *ptr) {
             text[pos].link=link;
         }
         text[pos].c=32;
-        if (newtext) x+=fontdim[32];
-        else x+=textfont[32].dim;
+        x+=textfont[32].dim;
         text[pos].color=color;
         text[pos].link=link;
 
@@ -1157,7 +821,7 @@ int dd_text_init_done(void) {
 
 int dd_scantext(int x,int y,char *hit) {
     int n,m,pos,panic=0,tmp=0;
-    float dx;
+    int dx;
 
     if (x<TEXTDISPLAY_X || y<TEXTDISPLAY_Y) return 0;
     if (x>TEXTDISPLAY_X+TEXTDISPLAY_SX) return 0;
@@ -1169,8 +833,7 @@ int dd_scantext(int x,int y,char *hit) {
     for (pos=n*MAXTEXTLETTERS,dx=m=0; m<MAXTEXTLETTERS && text[pos].c; m++,pos++) {
         if (text[pos].c>0 && text[pos].c<32) { dx=((int)text[pos].c)*12+TEXTDISPLAY_X; continue; }
 
-        if (newtext) dx+=fontdim[text[pos].c];
-        else dx+=textfont[text[pos].c].dim;
+        dx+=textfont[text[pos].c].dim;
 
         if (dx+TEXTDISPLAY_X>x) {
             if (text[pos].link) {   // link palette color
