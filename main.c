@@ -245,6 +245,7 @@ void myheapfree(void *ptr) {
 void list_mem(void) {
     int i,flag=0;
     MEMORYSTATUS ms;
+    extern long long mem_tex;
 
     note("--mem----------------------");
     for (i=1; i<MAX_MEM; i++) {
@@ -256,14 +257,16 @@ void list_mem(void) {
     if (flag) note("%s %.2fMB in %d ptrs",memname[0],memsize[0]/(1024.0*1024.0),memptrs[0]);
     note("%s %.2fMB in %d ptrs","MEM_MAX",maxmemsize/(1024.0*1024.0),maxmemptrs);
     note("---------------------------");
+    note("Texture Cache: %.2fMB",mem_tex/(1024.0*1024.0));
 
     bzero(&ms,sizeof(ms));
     ms.dwLength=sizeof(ms);
     GlobalMemoryStatus(&ms);
-    note("availphys=%.2fM",ms.dwAvailPhys/1024.0/1024.0);
-    note("UsedMem=%.2fM / %d",memused/1024.0/1024.0,memptrused);
 
-    note("validate says: %d",HeapValidate(myheap,0,NULL));
+    note("UsedMem=%.2fG of %.2fG",(memused+mem_tex)/1024.0/1024.0/1024.0,ms.dwTotalPhys/1024.0/1024.0/1024.0);
+
+    i=HeapValidate(myheap,0,NULL);
+    if (!i) note("validate says: %d",i);
 
 }
 

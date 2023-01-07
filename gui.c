@@ -1520,9 +1520,18 @@ static void display(void) {
     display_citem();
 
     if (display_vc) {
+        extern long long mem_tex,texc_miss;
+
         dd_drawtext_fmt(650,5,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);
-        dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"skip=%3.0f%%",100.0*skip/tota);
-        dd_drawtext_fmt(650,25,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"idle=%3.0f%%",100.0*idle/tota);
+        dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"skip %3.0f%%",100.0*skip/tota);
+        dd_drawtext_fmt(650,25,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"idle %3.0f%%",100.0*idle/tota);
+
+        dd_drawtext_fmt(650,44,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"RAM");
+        dd_drawtext_fmt(650,54,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"TEX");
+        dd_drawtext_fmt(650+20,44,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"%5.2f MB",memsize[0]/(1024.0*1024.0));
+        dd_drawtext_fmt(650+20,54,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"%5.2f MB",mem_tex/(1024.0*1024.0));
+
+        dd_drawtext_fmt(650,64,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"MISS %lld",texc_miss);
 
         dd_shaded_rect(770,110,790,110+skip);
     } else dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);

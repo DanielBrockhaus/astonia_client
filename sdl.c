@@ -19,8 +19,8 @@ SDL_Renderer *sdlren;
 
 extern int gfx_force_png;
 
-#define MAX_TEXCACHE    2500
-#define MAX_TEXHASH     2000
+#define MAX_TEXCACHE    1500
+#define MAX_TEXHASH     1000
 #define STX_NONE        (-1)
 
 #define SF_USED         (1<<0)
@@ -68,8 +68,8 @@ struct sdl_image {
 
 struct sdl_image *sdli=NULL;
 
-long mem_png=0,mem_tex=0;
-long texc_hit=0,texc_miss=0;
+long long mem_png=0,mem_tex=0;
+long long texc_hit=0,texc_miss=0;
 
 /* This function is a hack. It can only load one specific type of
    Windows cursor file: 32x32 pixels with 1 bit depth. */
@@ -959,6 +959,22 @@ void sdl_blit(int stx,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,
     sdl_blit_tex(sdlt[stx].tex,sx,sy,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 }
 
+#define DD_LEFT         0
+#define DD_CENTER       1
+#define DD_RIGHT        2
+#define DD_SHADE        4
+#define DD_LARGE        0
+#define DD_SMALL        8
+#define DD_FRAME        16
+#define DD_BIG        	32
+
+#define DD__SHADEFONT	128
+#define DD__FRAMEFONT	256
+
+#define R16TO32(color)  (int)((((color>>10)&31)/31.0f)*255.0f)
+#define G16TO32(color)  (int)((((color>>5) &31)/31.0f)*255.0f)
+#define B16TO32(color)  (int)((((color)    &31)/31.0f)*255.0f)
+
 #define MAXFONTHEIGHT   36
 
 SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,int flags) {
@@ -968,6 +984,8 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
     const char *c;
 
     for (sizex=0,c=text; *c; c++) sizex+=font[*c].dim;
+
+    if (flags&(DD__FRAMEFONT|DD__SHADEFONT)) sizex+=2;
 
     pixel=xcalloc(sizex*MAXFONTHEIGHT*sizeof(uint32_t),MEM_SDL_PIXEL);
     if (pixel==NULL) return NULL;
@@ -1015,22 +1033,6 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
 
     return texture;
 }
-
-#define DD_LEFT         0
-#define DD_CENTER       1
-#define DD_RIGHT        2
-#define DD_SHADE        4
-#define DD_LARGE        0
-#define DD_SMALL        8
-#define DD_FRAME        16
-#define DD_BIG        	32
-
-#define DD__SHADEFONT	128
-#define DD__FRAMEFONT	256
-
-#define R16TO32(color)  (int)((((color>>10)&31)/31.0f)*255.0f)
-#define G16TO32(color)  (int)((((color>>5) &31)/31.0f)*255.0f)
-#define B16TO32(color)  (int)((((color)    &31)/31.0f)*255.0f)
 
 int sdl_drawtext(int sx,int sy,unsigned short int color,int flags,const char *text,struct ddfont *font,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
     int dx,dy;
