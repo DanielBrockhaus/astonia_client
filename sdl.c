@@ -3,7 +3,6 @@
  */
 
 #include <stdint.h>
-#include <windows.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <SDL2/SDL.h>
@@ -11,6 +10,9 @@
 
 #include "main.h"
 #include "sdl.h"
+
+#define max(a,b)    ((a)>(b)?(a):(b))
+#define min(a,b)    ((a)<(b)?(a):(b))
 
 SDL_Window *sdlwnd;
 SDL_Renderer *sdlren;

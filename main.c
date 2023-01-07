@@ -3,7 +3,6 @@
  */
 
 #include <windows.h>
-#include <commctrl.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <io.h>
@@ -21,7 +20,6 @@
 
 // extern
 
-extern long main_wnd_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) __attribute__((stdcall));
 extern int main_init(void);
 extern void main_exit(void);
 
@@ -29,13 +27,10 @@ int main_loop(void);
 
 // globs
 
-HICON mainicon;
-
 int quit=0;
 int quickstart=0;
 int panic_reached=0;
 int xmemcheck_failed=0;
-HINSTANCE instance=NULL;
 int opt_res=800;
 int largetext=0;
 int vendor=1;
@@ -538,12 +533,22 @@ unsigned int validate_intra(unsigned int ip) {
     return 0;
 }
 
+void display_usage(void) {
+    printf("Usage: moac -u playername -p password -d url [-w resolution] [-l largetextenable] [-s soundenable]\n\n");
+    printf("url being, for example, \"server.astonia.com\" (without the quotes).\n");
+    printf("resolution is one of 600p, 900p, 1200p, 1800p for 800x600, 1200x900, 1600x1200 or 2400x1800 pixels.\n");
+    printf("largetextenable and soundenable can be either 0 or 1, for off or on.\n");
+}
+
+char server_url[256];
+
 int parse_cmd(char *s) {
     int n;
     char *end;
 
+    note("command line: '%s'",s);
+
     while (isspace(*s)) s++;
-    //while (*s && *s!='-') s++;
 
     while (*s) {
         if (*s=='-') {
@@ -551,7 +556,7 @@ int parse_cmd(char *s) {
             if (tolower(*s)=='u') {         // -u <username>
                 s++;
                 while (isspace(*s)) s++;
-                n=0; while (n<40 && *s && !isspace(*s))	username[n++]=*s++;
+                n=0; while (n<40 && *s && !isspace(*s)) username[n++]=*s++;
                 username[n]=0;
                 quickstart=1;
             } else if (tolower(*s)=='p') {  // -p <password>
@@ -561,14 +566,15 @@ int parse_cmd(char *s) {
                 password[n]=0;
             } else if (tolower(*s)=='d') {
                 s++;
-                developer_server=strtol(s+1,&end,10);
-                s=end;;
-                if (developer_server!=554433) developer_server=0;
+                while (isspace(*s)) s++;
+                n=0; while (n<250 && *s && !isspace(*s)) server_url[n++]=*s++;
             } else if (tolower(*s)=='w') {    // -w vertical_resolution, currently supporting 600, 900, 1200 and 1800.
                     int tmp;
                     s++;
-                    tmp=strtol(s+1,&end,10);
-                    s=end;;
+                    while (isspace(*s)) s++;
+                    tmp=strtol(s,&end,10);
+                    s=end;
+                    if (*s=='p') s++;
 
                     if (tmp==900) opt_res=IDC_RES1200;
                     else if (tmp==1200) opt_res=IDC_RES1600;
@@ -576,92 +582,33 @@ int parse_cmd(char *s) {
                     else opt_res=IDC_RES800;
             } else if (tolower(*s)=='l') { //Large Text
                     s++;
-                    largetext=1;
-            } else { printf("haha\n"); return -1; }
-        } else { printf("huha\n"); return -2; }
+                    while (isspace(*s)) s++;
+                    largetext=strtol(s,&end,10);
+                    s=end;
+            } else if (tolower(*s)=='s') { //Sound
+                    s++;
+                    while (isspace(*s)) s++;
+                    enable_sound=strtol(s,&end,10);
+                    s=end;
+            } else { display_usage(); return -1; }
+        } else { display_usage(); return -2; }
         while (isspace(*s)) s++;
     }
     return 0;
 }
 
-// windows
-
-int main_wnd_proc_safe(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
-    switch (msg) {
-        case WM_DESTROY:
-            PostQuitMessage(0);
-            quit=1;
-            return 0;
-        case WM_KEYDOWN:
-            DestroyWindow(wnd);
-            return 0;
-
-    }
-    return DefWindowProc(wnd,msg,wparam,lparam);
-}
-
-// startup
-
-void update_res(HWND hwnd) {
-    if (opt_res==IDC_RES800) CheckRadioButton(hwnd,IDC_RES800,IDC_RES2400,IDC_RES800);
-    else if (opt_res==IDC_RES1200) CheckRadioButton(hwnd,IDC_RES800,IDC_RES2400,IDC_RES1200);
-    else if (opt_res==IDC_RES1600) CheckRadioButton(hwnd,IDC_RES800,IDC_RES2400,IDC_RES1600);
-    else if (opt_res==IDC_RES2400) CheckRadioButton(hwnd,IDC_RES800,IDC_RES2400,IDC_RES2400);
-    else { CheckRadioButton(hwnd,IDC_RES800,IDC_RES2400,IDC_RES800); opt_res=IDC_RES800; }
-
-}
-
-int save_pwd=0;
-void update_savepwd(HWND hwnd) {
-    CheckDlgButton(hwnd,IDC_SAVEPWD,save_pwd);
-}
-
-int enable_sound=0;
-void update_sound(HWND hwnd) {
-    CheckDlgButton(hwnd,IDC_SOUND,enable_sound);
-}
-
-void update_newlight(HWND hwnd) {
-    CheckDlgButton(hwnd,IDC_NEWLIGHT,newlight);
-}
-
-
-void update_large(HWND hwnd) {
-    CheckDlgButton(hwnd,IDC_LARGETEXT,largetext);
-}
-
 void save_options(void) {
     int handle;
-    int dummy;
-    char nullbuff[sizeof(password)];
 
-    bzero(nullbuff,sizeof(nullbuff));
-
-    handle=open("conflict.dat",O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,0666);
+    handle=open("moac.dat",O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,0666);
     if (handle==-1) return;
 
-    write(handle,&dummy,sizeof(dummy));
-    write(handle,&dummy,sizeof(dummy));
-    write(handle,&dummy,sizeof(dummy));
-    write(handle,username,sizeof(username));
-    if (save_pwd) write(handle,password,sizeof(password));
-    else write(handle,nullbuff,sizeof(password));
-    write(handle,&save_pwd,sizeof(save_pwd));
-    write(handle,&opt_res,sizeof(opt_res));
-    write(handle,&dummy,sizeof(dummy));
-    write(handle,&dummy,sizeof(dummy));
-    write(handle,&dummy,sizeof(dummy));
-    write(handle,&dummy,sizeof(dummy));
-    write(handle,&largetext,sizeof(largetext));
-    write(handle,&enable_sound,sizeof(enable_sound));
     write(handle,&user_keys,sizeof(user_keys));
-    write(handle,&dummy,sizeof(dummy));
-    write(handle,&newlight,sizeof(newlight));
     close(handle);
 }
 
 void load_options(void) {
-    int handle,len,dummy;
+    int handle,len;
     char buf[80];
 
     handle=open("vendor.dat",O_RDONLY|O_BINARY);
@@ -672,129 +619,32 @@ void load_options(void) {
         close(handle);
     }
 
-    handle=open("conflict.dat",O_RDONLY|O_BINARY);
+    handle=open("moac.dat",O_RDONLY|O_BINARY);
     if (handle==-1) return;
 
-    newlight=1;
-
-    read(handle,&dummy,sizeof(dummy));
-    read(handle,&dummy,sizeof(dummy));
-    read(handle,&dummy,sizeof(dummy));
-    read(handle,username,sizeof(username));
-    read(handle,password,sizeof(password));
-    read(handle,&save_pwd,sizeof(save_pwd));
-    read(handle,&opt_res,sizeof(opt_res));
-    read(handle,&dummy,sizeof(dummy));
-    read(handle,&dummy,sizeof(dummy));
-    read(handle,&dummy,sizeof(dummy));
-    read(handle,&dummy,sizeof(dummy));
-    read(handle,&largetext,sizeof(largetext));
-    read(handle,&enable_sound,sizeof(enable_sound));
     read(handle,&user_keys,sizeof(user_keys));
-    read(handle,&dummy,sizeof(dummy));
-    read(handle,&newlight,sizeof(newlight));
     close(handle);
 }
 
-int check_username(char *ptr) {
-    while (*ptr) if (isdigit(*ptr)) return 0;
-        else ptr++;
+// conver command line from unix style to windows style
+void convert_cmd_line(char *d,int argc,char *args[],int maxsize) {
+    int n;
+    char *s;
 
-    return 1;
-}
+    maxsize-=2;
 
-
-BOOL WINAPI start_dlg_proc(HWND wnd,UINT msg,WPARAM wparam,LPARAM lparam) {
-    char buf[80];
-
-    switch (msg) {
-        case WM_INITDIALOG:
-            SetClassLong(wnd,GCL_HICON,(long)LoadIcon(instance,MAKEINTRESOURCE(1)));
-            sprintf(buf,"Astonia 3 v%d.%02d.%02d",(VERSION>>16)&255,(VERSION>>8)&255,(VERSION)&255);
-            SetWindowText(wnd,buf);
-            SetDlgItemText(wnd,IDC_USERNAME,username);
-            SetDlgItemText(wnd,IDC_PASSWORD,password);
-            CreateWindowEx(WS_EX_STATICEDGE,"STATIC",NULL,SS_BITMAP|WS_VISIBLE|WS_CHILD,0,0,0,0,wnd,(HMENU)1999,instance,NULL);
-            SendDlgItemMessage(wnd,1999,STM_SETIMAGE,IMAGE_BITMAP,(LPARAM)LoadBitmap(instance,MAKEINTRESOURCE(BITMAP_STARTUP)));
-            //SetWindowPos(GetDlgItem(wnd,1999),0,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE);
-            update_savepwd(wnd);
-            update_sound(wnd);
-            update_newlight(wnd);
-            update_large(wnd);
-            update_res(wnd);
-            return TRUE;
-        case WM_COMMAND:
-            switch (wparam) {
-                case IDCANCEL:
-                    EndDialog(wnd,-1);
-                    return TRUE;
-                case IDOK:
-                    GetDlgItemText(wnd,IDC_USERNAME,username,sizeof(username));
-                    if (!check_username(username)) {
-                        MessageBox(wnd,"The character name you entered does not seem to be correct. Note that this is not your account number but the name of the character you wish to play.","Error",MB_APPLMODAL|MB_OK|MB_ICONSTOP);
-                        return TRUE;
-                    }
-                    GetDlgItemText(wnd,IDC_PASSWORD,password,sizeof(password));
-                    save_options();
-                    EndDialog(wnd,0);
-                    return TRUE;
-
-                case IDC_RES800:
-                case IDC_RES1200:
-                case IDC_RES1600:
-                case IDC_RES2400:
-                    opt_res=wparam;
-                    update_res(wnd);
-                    return 1;
-
-                case IDC_SAVEPWD:
-                    if (save_pwd) save_pwd=0;
-                    else save_pwd=1;
-                    update_savepwd(wnd);
-                    return 1;
-
-                case IDC_SOUND:
-                    if (enable_sound) enable_sound=0;
-                    else enable_sound=1;
-                    update_sound(wnd);
-                    return 1;
-
-                case IDC_NEWLIGHT:
-                    if (newlight) newlight=0;
-                    else newlight=1;
-                    update_newlight(wnd);
-                    return 1;
-                case IDC_LARGETEXT:
-                    if (largetext) largetext=0;
-                    else largetext=1;
-                    update_large(wnd);
-                    return 1;
-                case IDC_CREATE:
-                    ShellExecute(wnd,"open","https://www.intent-software.com/cgi-v3/conflict.cgi?step=1",NULL,NULL,SW_SHOWNORMAL);
-                    return 1;
-                case IDC_ACCOUNT:
-                    ShellExecute(wnd,"open","https://www.intent-software.com/cgi-v3/conflict.cgi?step=0",NULL,NULL,SW_SHOWNORMAL);
-                    return 1;
-                case IDC_WEBSITE:
-                    ShellExecute(wnd,"open","http://www.astonia.com/",NULL,NULL,SW_SHOWNORMAL);
-                    return 1;
-            }
-            return FALSE;
+    for (n=1; n<argc && maxsize>0; n++) {
+        for (s=args[n]; *s && maxsize>0; *d++=*s++) maxsize--;
+        *d++=' '; maxsize--;
     }
-    return FALSE;
-}
-
-int win_start(void) {
-    return DialogBox(instance,MAKEINTRESOURCE(IDD_STARTUP),NULL,start_dlg_proc);
+    *d=0;
 }
 
 // main
-
-int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow) {
+int main(int argc,char *args[]) {
     int ret;
     int width,height;
-    char buf[80];
-    extern int x_offset,y_offset;
+    char buf[80],buffer[1024];
     struct hostent *he;
 
     // This hide the console window SDL usually show
@@ -806,13 +656,14 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 
     load_options();
 
-    if ((ret=parse_cmd(lpCmdLine))!=0) return fail("ill command (%d)",ret);
+    convert_cmd_line(buffer,argc,args,1000);
+    if ((ret=parse_cmd(buffer))!=0) return -1;
 
     // set some stuff
-    if (!*username || !*password) quickstart=0;
-
-    // set instance
-    instance=hInstance;
+    if (!*username || !*password || !*server_url) {
+        display_usage();
+        return 0;
+    }
 
     // next init (only once)
     if (net_init()==-1) {
@@ -820,61 +671,34 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
         return -1;
     }
 
-    if (!quickstart && win_start()) goto done;
-
     switch (opt_res) {
-        case IDC_RES1200:	width=1200; height=900; x_offset=y_offset=0; break;
-        case IDC_RES1600:	width=1600; height=1200; x_offset=y_offset=0; break;
-        case IDC_RES2400:	width=2400; height=1800; x_offset=y_offset=0; break;
+        case IDC_RES1200:	width=1200; height=900; break;
+        case IDC_RES1600:	width=1600; height=1200; break;
+        case IDC_RES2400:	width=2400; height=1800; break;
         case IDC_RES800:
-        default:		width=800; height=600; x_offset=y_offset=0; break;
+        default:		    width=800; height=600;  break;
     }
 
-    if (developer_server) {
-        he=gethostbyname("astonia.dyndns.org");
-        if (he) base_server=target_server=ntohl(*(unsigned long *)(*he->h_addr_list));
+    if (isdigit(server_url[0])) {
+        target_server=ntohl(inet_addr(server_url));
+    } else {
+        he=gethostbyname(server_url);
+        if (he) target_server=ntohl(*(unsigned long *)(*he->h_addr_list));
         else {
-            base_server=target_server=(192<<24)|(168<<16)|(42<<8)|(2<<0);
-            fail("gethostbyname4a failed, using default");
+            fail("Could not resolve server %s.");
+            return -2;
         }
-    } else
+    }
 
-#ifndef DEVELOPER
-        if (backup_server==0) {
-            he=gethostbyname("login.astonia.com");
-            if (he) base_server=target_server=ntohl(*(unsigned long *)(*he->h_addr_list));
-            else {
-                base_server=target_server=(195<<24)|(90<<16)|(31<<8)|(34<<0);
-                fail("gethostbyname4 failed, using default");
-            }
-        } else if (backup_server==1) {
-            he=gethostbyname("login2.astonia.com");
-            if (he) base_server=target_server=ntohl(*(unsigned long *)(*he->h_addr_list));
-            else {
-                base_server=target_server=(195<<24)|(50<<16)|(166<<8)|(1<<0);
-                fail("gethostbyname5 failed, using default");
-            }
-        } else {
-            he=gethostbyname("login3.astonia.com");
-            if (he) base_server=target_server=ntohl(*(unsigned long *)(*he->h_addr_list));
-            else {
-                base_server=target_server=(195<<24)|(50<<16)|(166<<8)|(1<<0);
-                fail("gethostbyname6 failed, using default");
-            }
-        }
-#endif
     note("Using login server at %u.%u.%u.%u",(target_server>>24)&255,(target_server>>16)&255,(target_server>>8)&255,(target_server>>0)&255);
 
     // init random
     rrandomize();
 
-    sprintf(buf,"Astonia 3 v%d.%d.%d",(VERSION>>16)&255,(VERSION>>8)&255,(VERSION)&255);
-    if (dd_init(width,height)==-1) {
-        char buf[512];
+    if (dd_init()==-1) {
         dd_exit();
 
-        sprintf(buf,"Can't Initialize SDL\nPlease make sure you have DirectX and the latest drivers\nfor your graphics card installed.");
-        MessageBox(NULL,buf,"Error",MB_APPLMODAL|MB_OK|MB_ICONSTOP);
+        MessageBox(NULL,"Can't Initialize SDL\nPlease make sure you have DirectX and the latest drivers\nfor your graphics card installed.","Error",MB_APPLMODAL|MB_OK|MB_ICONSTOP);
 
         net_exit();
         return -1;
@@ -915,7 +739,7 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 
     if (panic_reached) MessageBox(NULL,panic_reached_str,"recursion panic",MB_APPLMODAL|MB_OK|MB_ICONSTOP);
     if (xmemcheck_failed) MessageBox(NULL,memcheck_failed_str,"memory panic",MB_APPLMODAL|MB_OK|MB_ICONSTOP);
-done:
+
     net_exit();
     return 0;
 }

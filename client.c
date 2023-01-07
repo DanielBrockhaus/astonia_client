@@ -46,13 +46,10 @@ int change_area=0;
 int kicked_out=0;
 int target_port=5556;
 int backup_server=0;
-int developer_server=0;
 unsigned int unique=0;
 unsigned int usum=0;
 
-int target_server=(192<<24)|(168<<16)|(42<<8)|(132<<0);
-int update_server=(192<<24)|(168<<16)|(42<<8)|(27<<0);
-int base_server=(192<<24)|(168<<16)|(42<<8)|(27<<0);
+int target_server=0;
 
 char username[40];
 char password[16];
@@ -771,40 +768,12 @@ void sv_lookinv(unsigned char *buf) {
 
 void sv_server_old(unsigned char *buf) {
     change_area=1;
-    if (!developer_server) target_server=*(unsigned int *)(buf+1);
     target_port=*(unsigned short *)(buf+5);
-
-    if (backup_server==0) {
-        switch (target_server) {
-            case (212<<24)|(202<<16)|(240<<8)|(67<<0):	target_server=(195<<24)|(90<<16)|(31<<8)|(34<<0); break;
-            case (212<<24)|(202<<16)|(240<<8)|(68<<0):	target_server=(195<<24)|(90<<16)|(31<<8)|(35<<0); break;
-            case (212<<24)|(202<<16)|(240<<8)|(69<<0):	target_server=(195<<24)|(90<<16)|(31<<8)|(36<<0); break;
-            case (212<<24)|(202<<16)|(240<<8)|(70<<0):	target_server=(195<<24)|(90<<16)|(31<<8)|(37<<0); break;
-        }
-    } else if (backup_server==1) {
-        switch (target_server) {
-            case (212<<24)|(202<<16)|(240<<8)|(67<<0):	target_server=(195<<24)|(50<<16)|(166<<8)|(1<<0); break;
-            case (212<<24)|(202<<16)|(240<<8)|(68<<0):	target_server=(195<<24)|(50<<16)|(166<<8)|(2<<0); break;
-            case (212<<24)|(202<<16)|(240<<8)|(69<<0):	target_server=(195<<24)|(50<<16)|(166<<8)|(3<<0); break;
-            case (212<<24)|(202<<16)|(240<<8)|(70<<0):	target_server=(195<<24)|(50<<16)|(166<<8)|(4<<0); break;
-        }
-    }
 }
 
 void sv_server(unsigned char *buf) {
     change_area=1;
     target_port=*(unsigned short *)(buf+5);
-
-#ifndef DEVELOPER
-    if (!developer_server) target_server=base_server+((*(unsigned int *)(buf+1))-((212<<24)|(202<<16)|(240<<8)|(67<<0)));
-    else target_server=base_server;
-#endif
-    note("serverID=%d, would translate to: %u.%u.%u.%u",
-         ((*(unsigned int *)(buf+1))-((212<<24)|(202<<16)|(240<<8)|(67<<0))),
-         ((base_server+((*(unsigned int *)(buf+1))-((212<<24)|(202<<16)|(240<<8)|(67<<0))))>>24)&255,
-         ((base_server+((*(unsigned int *)(buf+1))-((212<<24)|(202<<16)|(240<<8)|(67<<0))))>>16)&255,
-         ((base_server+((*(unsigned int *)(buf+1))-((212<<24)|(202<<16)|(240<<8)|(67<<0))))>>8)&255,
-         ((base_server+((*(unsigned int *)(buf+1))-((212<<24)|(202<<16)|(240<<8)|(67<<0))))>>0)&255);
 }
 
 void sv_logindone(void) {

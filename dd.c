@@ -94,7 +94,7 @@ void dd_get_client_info(struct client_info *ci) {
     ci->systemfree=memstat.dwAvailPhys;
 }
 
-int dd_init(int width,int height) {
+int dd_init(void) {
     // set the clipping to the maximum possible
     clippos=0;
     clipsx=0;
@@ -341,9 +341,9 @@ int dd_drawtext(int sx,int sy,unsigned short int color,int flags,const char *tex
     if (!font) return 42;
 
     if (flags&DD_SHADE) {
-        dd_drawtext(sx-1,sy-1,IRGB(0,0,0),DT_LEFT|(flags&(DD_SMALL|DD_BIG|DD_CENTER|DD_RIGHT))|DD__SHADEFONT,text);
+        dd_drawtext(sx-1,sy-1,IRGB(0,0,0),DD_LEFT|(flags&(DD_SMALL|DD_BIG|DD_CENTER|DD_RIGHT))|DD__SHADEFONT,text);
     } else if (flags&DD_FRAME) {
-        dd_drawtext(sx-1,sy-1,IRGB(0,0,0),DT_LEFT|(flags&(DD_SMALL|DD_BIG|DD_CENTER|DD_RIGHT))|DD__FRAMEFONT,text);
+        dd_drawtext(sx-1,sy-1,IRGB(0,0,0),DD_LEFT|(flags&(DD_SMALL|DD_BIG|DD_CENTER|DD_RIGHT))|DD__FRAMEFONT,text);
     }
 
     sx=sdl_drawtext(sx,sy,color,flags,text,font,clipsx,clipsy,clipex,clipey,x_offset,y_offset);

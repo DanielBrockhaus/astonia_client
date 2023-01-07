@@ -5,7 +5,7 @@ BCCPATH=c:\borland\bcc55
 CC=gcc
 CFLAGS=-O -ggdb -Wall -Wno-pointer-sign -Wno-char-subscripts -m32
 LDFLAGS=-O -ggdb -m32
-LIBS = -lwsock32 -lws2_32 -lz -lpng -lsdl2
+LIBS = -lwsock32 -lws2_32 -lz -lpng -lsdl2 -lsdl2main
 
 OBJS	=	gui.o client.o skill.o dd.o font.o main.o sprite.o game.o\
 		sound.o questlog.o resource.o sdl.o

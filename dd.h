@@ -22,7 +22,7 @@ void dd_pop_clip(void);
 void dd_more_clip(int sx,int sy,int ex,int ey);
 void dd_set_clip(int sx,int sy,int ex,int ey);
 
-int dd_init(int width,int height);
+int dd_init(void);
 int dd_exit(void);
 
 void dd_pixel(int x,int y,unsigned short col);

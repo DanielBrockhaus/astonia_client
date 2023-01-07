@@ -6,19 +6,14 @@
 #include <fcntl.h>
 #include <io.h>
 #include <stdlib.h>
-#include <windows.h>
-#include <windowsx.h>
 #include <process.h>
 #include <errno.h>
 #include <math.h>
 #include "main.h"
 #include "dd.h"
+#include "sound.h"
 
-/* NOTE: we could speed up sound a lot by caching and re-using buffers containing recently played sounds */
-
-extern int enable_sound;
-
-
+int enable_sound=0;
 
 int init_sound(void) {
 

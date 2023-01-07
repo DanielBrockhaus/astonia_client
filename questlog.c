@@ -2,7 +2,6 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
-#include <windows.h>
 #include <memory.h>
 #include <stdlib.h>
 #include <stdio.h>

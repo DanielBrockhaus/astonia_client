@@ -79,3 +79,6 @@ void paranoia(const char *format,...); // calls flush and exit
 
 void addline(const char *format,...);
 
+// misc
+void save_options(void);
+

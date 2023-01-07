@@ -26,8 +26,6 @@
 // extern
 
 extern int quit;
-extern HINSTANCE instance;
-extern HWND mainwnd;
 void set_map_values(struct map *cmap,int attick);
 extern void display_game(void);
 extern void prefetch_game(int attick);
@@ -1085,40 +1083,39 @@ void cmd_color(int nr) {
     int val;
     char buf[80];
 
-    //addline("got %d / %d",nr,show_cx);
-
     switch (nr) {
         case 1:		show_cur=0; break;
         case 2:		show_cur=1; break;
         case 3:		show_cur=2; break;
         case 4:		val=max(min(31,show_cx/2),1);
-            show_color_c[show_cur]=IRGB(
+                    show_color_c[show_cur]=IRGB(
                                    val,
                                    IGET_G(show_color_c[show_cur]),
                                    IGET_B(show_color_c[show_cur]));
-            break;
+                    break;
         case 5:		val=max(min(31,show_cx/2),1);
-            show_color_c[show_cur]=IRGB(
+                    show_color_c[show_cur]=IRGB(
                                    IGET_R(show_color_c[show_cur]),
                                    val,
                                    IGET_B(show_color_c[show_cur]));
-            break;
+                    break;
         case 6:		val=max(min(31,show_cx/2),1);
-            show_color_c[show_cur]=IRGB(
+                    show_color_c[show_cur]=IRGB(
                                    IGET_R(show_color_c[show_cur]),
                                    IGET_G(show_color_c[show_cur]),
                                    val);
-            break;
+                    break;
         case 7:		show_color=0; break;
         case 8:		sprintf(buf,"/col1 %d %d %d",IGET_R(show_color_c[0]),IGET_G(show_color_c[0]),IGET_B(show_color_c[0]));
-            cmd_text(buf);
-            sprintf(buf,"/col2 %d %d %d",IGET_R(show_color_c[1]),IGET_G(show_color_c[1]),IGET_B(show_color_c[1]));
-            cmd_text(buf);
-            sprintf(buf,"/col3 %d %d %d",IGET_R(show_color_c[2]),IGET_G(show_color_c[2]),IGET_B(show_color_c[2]));
-            cmd_text(buf);
-            break;
+                    cmd_text(buf);
+                    sprintf(buf,"/col2 %d %d %d",IGET_R(show_color_c[1]),IGET_G(show_color_c[1]),IGET_B(show_color_c[1]));
+                    cmd_text(buf);
+                    sprintf(buf,"/col3 %d %d %d",IGET_R(show_color_c[2]),IGET_G(show_color_c[2]),IGET_B(show_color_c[2]));
+                    cmd_text(buf);
+                    break;
     }
 }
+
 // date stuff
 #define DAYLEN		(60*60*2)
 #define HOURLEN		(DAYLEN/24)
@@ -2355,7 +2352,6 @@ char* strcasestr(const char *haystack,const char *needle) {
 }
 
 int client_cmd(char *buf) {
-    extern void save_options(void);
 
     if (!strncmp(buf,"#ps ",3)) {
         playersprite_override=atoi(&buf[3]);
@@ -2861,15 +2857,10 @@ void main_exit(void) {
 }
 
 void flip_at(unsigned int t) {
-    MSG msg;
     unsigned int tnow;
 
     do {
         sdl_loop();
-        while (PeekMessage(&msg,NULL,0,0,PM_REMOVE)) {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
         tnow=GetTickCount();
         /*if (GetActiveWindow()!=mainwnd) { // TODO: re-active this once we have the SDL window as only window?
             Sleep(100);
@@ -2882,7 +2873,6 @@ void flip_at(unsigned int t) {
 unsigned int nextframe;
 
 int main_loop(void) {
-    MSG msg;
     int tmp,timediff,ltick=0;
     extern int q_size;
 
@@ -2957,10 +2947,7 @@ int main_loop(void) {
             } else {
                 skip-=timediff;
 
-                while (PeekMessage(&msg,NULL,0,0,PM_REMOVE)) {
-                    TranslateMessage(&msg);
-                    DispatchMessage(&msg);
-                }
+                sdl_loop();
             }
         }
 
