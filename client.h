@@ -555,7 +555,6 @@ extern unsigned int csprite;        // and sprite
 extern int originx;
 extern int originy;
 extern struct map map[MAPDX*MAPDY];
-extern struct map map2[MAPDX*MAPDY];
 
 extern int value[2][V_MAX];
 extern int item[INVENTORYSIZE];

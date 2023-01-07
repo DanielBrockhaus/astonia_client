@@ -28,7 +28,6 @@
 extern int quit;
 void set_map_values(struct map *cmap,int attick);
 extern void display_game(void);
-extern void prefetch_game(int attick);
 extern void init_game(void);
 extern void exit_game(void);
 void display_cmd(void);
@@ -2897,8 +2896,7 @@ int main_loop(void) {
 
         // check if we can go on
         if (sockstate>2) {
-            // prefetch as much as possible
-            while (next_tick());   //prefetch_game(tick+q_size);
+            while (next_tick());
 
             // get one tick to display
             do_tick(); ltick++;

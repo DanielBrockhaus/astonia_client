@@ -2204,9 +2204,3 @@ void exit_game(void) {
 
 }
 
-//---------------------------
-
-void prefetch_game(int attick) {
-    set_map_values(map2,attick);
-    display_game_map(map2);
-}
