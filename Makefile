@@ -3,8 +3,8 @@ all: moac.exe
 BCCPATH=c:\borland\bcc55
 
 CC=gcc
-CFLAGS=-O -ggdb -Wall -Wno-pointer-sign -Wno-char-subscripts -m32
-LDFLAGS=-O -ggdb -m32
+CFLAGS=-O -ggdb -Wall -Wno-pointer-sign -Wno-char-subscripts
+LDFLAGS=-O -ggdb
 LIBS = -lwsock32 -lws2_32 -lz -lpng -lsdl2 -lsdl2main
 
 OBJS	=	gui.o client.o skill.o dd.o font.o main.o sprite.o game.o\
@@ -28,7 +28,7 @@ neuquant.o:   	neuquant.c neuquant.h
 sdl.o:		sdl.c sdl.h
 
 resource.o:	resource.res
-		windres -F pe-i386 resource.res resource.o
+		windres -F pe-x86-64 resource.res resource.o
 
 resource.res:   resource.rc resource.h
 		$(BCCPATH)\bin\brcc32 -fo resource.res resource.rc
