@@ -1021,7 +1021,10 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
         sx+=font[*text++].dim;
     }
 
-    if (sizex<1 || sizey<1) return NULL;
+    if (sizex<1 || sizey<1) {
+        xfree(pixel);
+        return NULL;
+    }
 
     sizey++;
     SDL_Texture *texture = SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_STATIC,sizex,sizey);
@@ -1035,9 +1038,10 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
 }
 
 int sdl_drawtext(int sx,int sy,unsigned short int color,int flags,const char *text,struct ddfont *font,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
-    int dx,dy;
+    int dx;
     SDL_Texture *tex;
     int r,g,b,a;
+    const char *c;
 
     r=R16TO32(color);
     g=G16TO32(color);
@@ -1046,14 +1050,16 @@ int sdl_drawtext(int sx,int sy,unsigned short int color,int flags,const char *te
 
     tex=sdl_maketext(text,font,IRGBA(r,g,b,a),flags);
 
-    SDL_QueryTexture(tex, NULL, NULL, &dx, &dy);
+    for (dx=0,c=text; *c; c++) dx+=font[*c].dim;
 
-    if (flags&DD_CENTER) sx-=dx/2;
-    else if (flags&DD_RIGHT) sx-=dx;
+    if (tex) {
+        if (flags&DD_CENTER) sx-=dx/2;
+        else if (flags&DD_RIGHT) sx-=dx;
 
-    sdl_blit_tex(tex,sx,sy,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
+        sdl_blit_tex(tex,sx,sy,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 
-    SDL_DestroyTexture(tex);
+        SDL_DestroyTexture(tex);
+    }
 
     return sx+dx;
 }
