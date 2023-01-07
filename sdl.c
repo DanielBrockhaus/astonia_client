@@ -78,12 +78,12 @@ SDL_Cursor *sdl_create_cursor(char *filename) {
 
     handle=open(filename,O_RDONLY|O_BINARY);
     if (handle==-1) {
-        printf("SDL Error: Could not open cursor file %s.\n",filename);
+        warn("SDL Error: Could not open cursor file %s.\n",filename);
         return NULL;
     }
 
     if (read(handle,buf,326)!=326) {
-        printf("SDL Error: Read cursor file failed.\n");
+        warn("SDL Error: Read cursor file failed.\n");
         return NULL;
     }
     close(handle);
@@ -134,13 +134,13 @@ int sdl_init(int width,int height,char *title) {
     int len,i;
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0){
-        printf("SDL_Init Error: %s",SDL_GetError());
+        fail("SDL_Init Error: %s",SDL_GetError());
 	    return 0;
     }
 
     sdlwnd = SDL_CreateWindow(title, 2560/2-width/2, 1400/2-height/2, width, height, SDL_WINDOW_SHOWN);
     if (!sdlwnd) {
-        printf("SDL_Init Error: %s",SDL_GetError());
+        fail("SDL_Init Error: %s",SDL_GetError());
         SDL_Quit();
 	    return 0;
     }
@@ -151,7 +151,7 @@ int sdl_init(int width,int height,char *title) {
     sdlren=SDL_CreateRenderer(sdlwnd, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!sdlren){
         SDL_DestroyWindow(sdlwnd);
-        printf("SDL_Init Error: %s",SDL_GetError());
+        fail("SDL_Init Error: %s",SDL_GetError());
         SDL_Quit();
         return 0;
     }
@@ -206,7 +206,7 @@ int maxpanic=0;
 int sdl_clear(void) {
     SDL_SetRenderDrawColor(sdlren,31,63,127,255);
     SDL_RenderClear(sdlren);
-    //printf("mem: %.2fM PNG, %.2fM Tex, Hit: %ld, Miss: %ld, Max: %d\n",mem_png/(1024.0*1024.0),mem_tex/(1024.0*1024.0),texc_hit,texc_miss,maxpanic); fflush(stdout);
+    //note("mem: %.2fM PNG, %.2fM Tex, Hit: %ld, Miss: %ld, Max: %d\n",mem_png/(1024.0*1024.0),mem_tex/(1024.0*1024.0),texc_hit,texc_miss,maxpanic);
     maxpanic=0;
     return 1;
 }
@@ -241,20 +241,20 @@ int sdl_load_image_png(struct sdl_image *si,char *filename) {
     if (!fp) return -1;
 
     png_ptr=png_create_read_struct(PNG_LIBPNG_VER_STRING,NULL,NULL,NULL);
-    if (!png_ptr) { fclose(fp); printf("create read\n"); return -1; }
+    if (!png_ptr) { fclose(fp); warn("create read\n"); return -1; }
 
     info_ptr=png_create_info_struct(png_ptr);
-    if (!info_ptr) { fclose(fp); png_destroy_read_struct(&png_ptr,(png_infopp)NULL,(png_infopp)NULL); printf("create info1\n"); return -1; }
+    if (!info_ptr) { fclose(fp); png_destroy_read_struct(&png_ptr,(png_infopp)NULL,(png_infopp)NULL); warn("create info1\n"); return -1; }
 
     end_info=png_create_info_struct(png_ptr);
-    if (!end_info) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); printf("create info2\n"); return -1; }
+    if (!end_info) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("create info2\n"); return -1; }
 
     png_init_io(png_ptr,fp);
     png_set_strip_16(png_ptr);
     png_read_png(png_ptr,info_ptr,PNG_TRANSFORM_PACKING,NULL);
 
     row=png_get_rows(png_ptr,info_ptr);
-    if (!row) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); printf("read row\n"); return -1; }
+    if (!row) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("read row\n"); return -1; }
 
     xres=png_get_image_width(png_ptr,info_ptr);
     yres=png_get_image_height(png_ptr,info_ptr);
@@ -263,10 +263,10 @@ int sdl_load_image_png(struct sdl_image *si,char *filename) {
 
     if (tmp==xres*3) format=3;
     else if (tmp==xres*4) format=4;
-    else { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); printf("rowbytes!=xres*4 (%d)",tmp); return -1; }
+    else { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("rowbytes!=xres*4 (%d)",tmp); return -1; }
 
-    if (png_get_bit_depth(png_ptr,info_ptr)!=8) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); printf("bit depth!=8\n"); return -1; }
-    if (png_get_channels(png_ptr,info_ptr)!=format) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); printf("channels!=format\n"); return -1; }
+    if (png_get_bit_depth(png_ptr,info_ptr)!=8) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("bit depth!=8\n"); return -1; }
+    if (png_get_channels(png_ptr,info_ptr)!=format) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("channels!=format\n"); return -1; }
 
     // prescan
     sx=xres;
@@ -435,13 +435,9 @@ static uint32_t sdl_shine_pix(uint32_t irgb,unsigned short shine) {
     b=IGET_B(irgb)/127.5;
     a=IGET_A(irgb);
 
-    printf("r=%.2f -> ",r);
-
     r=((r*r*r*r)*shine+r*(100.0-shine))/200.0;
     g=((g*g*g*g)*shine+g*(100.0-shine))/200.0;
     b=((b*b*b*b)*shine+b*(100.0-shine))/200.0;
-
-    printf("%.2f\n",r); fflush(stdout);
 
     if (r>1.0) r=1.0;
     if (g>1.0) g=1.0;
@@ -748,7 +744,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
         }
     }
     SDL_Texture *texture = SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_STATIC,st->xres,st->yres);
-    if (!texture) printf("SDL_texture Error: %s",SDL_GetError());
+    if (!texture) warn("SDL_texture Error: %s",SDL_GetError());
     SDL_UpdateTexture(texture,NULL,pixel,st->xres*sizeof(uint32_t));
     SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
     xfree(pixel);
@@ -809,13 +805,12 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
     for (stx=sdlt_cache[hash]; stx!=STX_NONE; stx=sdlt[stx].hnext,panic++) {
 
         if (panic>999) {
-            printf("%04d: stx=%d, hprev=%d, hnext=%d sprite=%d (%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d), PANIC\n",panic,stx,sdlt[stx].hprev,sdlt[stx].hnext,sprite,
+            warn("%04d: stx=%d, hprev=%d, hnext=%d sprite=%d (%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d), PANIC\n",panic,stx,sdlt[stx].hprev,sdlt[stx].hnext,sprite,
                    sdlt[stx].sink,sdlt[stx].freeze,sdlt[stx].grid,sdlt[stx].scale,
                    sdlt[stx].cr,sdlt[stx].cg,sdlt[stx].cb,sdlt[stx].light,
                    sdlt[stx].sat,sdlt[stx].c1,sdlt[stx].c2,sdlt[stx].c3,
                    sdlt[stx].shine,sdlt[stx].ml,sdlt[stx].ll,sdlt[stx].rl,
                    sdlt[stx].ul,sdlt[stx].dl);
-            fflush(stdout);
             if (panic>1099) exit(42);
         }
         if (sdlt[stx].sprite!=sprite) continue;
@@ -877,7 +872,7 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
 
         if (ptx==STX_NONE) {
             if (sdlt_cache[hash2]!=stx) {
-                printf("sdli[sprite].stx!=stx\n");
+                fail("sdli[sprite].stx!=stx\n");
                 exit(42);
             }
             sdlt_cache[hash2]=ntx;
@@ -1010,7 +1005,7 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
 
     sizey++;
     SDL_Texture *texture = SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_STATIC,sizex,sizey);
-    if (!texture) printf("SDL_texture Error: %s",SDL_GetError());
+    if (!texture) warn("SDL_texture Error: %s",SDL_GetError());
     SDL_UpdateTexture(texture,NULL,pixel,sizex*sizeof(uint32_t));
     SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
 
@@ -1161,6 +1156,9 @@ void sdl_loop(void) {
 
     while (SDL_PollEvent(&event)) {
         switch(event.type) {
+            case SDL_QUIT:
+                quit=1;
+                break;
             case SDL_KEYDOWN:
                 gui_sdl_keyproc(event.key.keysym.sym);
                 break;

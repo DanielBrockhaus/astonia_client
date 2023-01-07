@@ -9,7 +9,6 @@
 #include <io.h>
 #include <fcntl.h>
 #include <time.h>
-#include <dsound.h>
 
 #define ISCLIENT
 #include "main.h"
@@ -62,6 +61,7 @@ int note(const char *format,...) {
     va_end(va);
 
     printf("NOTE: %s\n",buf);
+    fflush(stdout);
 #ifdef DEVELOPER
     addline("NOTE: %s\n",buf);
 #endif
@@ -79,6 +79,7 @@ int warn(const char *format,...) {
     va_end(va);
 
     printf("WARN: %s\n",buf);
+    fflush(stdout);
     addline("WARN: %s\n",buf);
 
     return 0;
@@ -94,6 +95,9 @@ int fail(const char *format,...) {
     va_end(va);
 
     fprintf(errorfp,"FAIL: %s\n",buf);
+    fflush(errorfp);
+    printf("FAIL: %s\n",buf);
+    fflush(stdout);
     addline("FAIL: %s\n",buf);
 
     return -1;
@@ -573,26 +577,6 @@ int parse_cmd(char *s) {
             } else if (tolower(*s)=='l') { //Large Text
                     s++;
                     largetext=1;
-            } else if (tolower(*s)=='y') {
-                extern unsigned int sock_server;
-                s++;
-                while (isspace(*s)) s++;
-                sock_server=validate_intra(ntohl(inet_addr(s)));
-                while (*s && *s!=' ') s++;
-            } else if (tolower(*s)=='z') {
-                extern unsigned short sock_port;
-                s++;
-                while (isspace(*s)) s++;
-                sock_port=atoi(s);
-                while (*s && *s!=' ') s++;
-            } else if (tolower(*s)=='h') {
-                extern char sock_user[80];
-                int n=0;
-                s++;
-                while (isspace(*s)) s++;
-                while (*s && !isspace(*s) && n<79) sock_user[n++]=*s++;
-                sock_user[n]=0;
-                while (*s && *s!=' ') s++;
             } else { printf("haha\n"); return -1; }
         } else { printf("huha\n"); return -2; }
         while (isspace(*s)) s++;
@@ -810,8 +794,12 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
     int ret;
     int width,height;
     char buf[80];
-    extern int x_offset,y_offset,x_max,y_max;
+    extern int x_offset,y_offset;
     struct hostent *he;
+
+    // This hide the console window SDL usually show
+    // TODO: Figure out a cleaner way to get rid of this
+	ShowWindow(GetConsoleWindow(),SW_HIDE);
 
     errorfp=fopen("moac.log","a");
     if (!errorfp) errorfp=stderr;
@@ -841,8 +829,6 @@ int PASCAL WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
         case IDC_RES800:
         default:		width=800; height=600; x_offset=y_offset=0; break;
     }
-    x_max=x_offset+800;
-    y_max=y_offset+600;
 
     if (developer_server) {
         he=gethostbyname("astonia.dyndns.org");

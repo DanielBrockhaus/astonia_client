@@ -2599,17 +2599,16 @@ void gui_sdl_keyproc(int wparam) {
         case SDLK_UP:             cmd_proc(CMD_UP); return;
         case SDLK_DOWN:           cmd_proc(CMD_DOWN); return;
 
-        case SDLK_KP_0:
-        case SDLK_KP_1:
-        case SDLK_KP_2:
-        case SDLK_KP_3:
-        case SDLK_KP_4:
-        case SDLK_KP_5:
-        case SDLK_KP_6:
-        case SDLK_KP_7:
-        case SDLK_KP_8:
-        case SDLK_KP_9:
-            wparam=wparam-SDLK_KP_0+'0';
+        case SDLK_KP_0: wparam='0'; goto spellbindkey;
+        case SDLK_KP_1: wparam='1'; goto spellbindkey;
+        case SDLK_KP_2: wparam='2'; goto spellbindkey;
+        case SDLK_KP_3: wparam='3'; goto spellbindkey;
+        case SDLK_KP_4: wparam='4'; goto spellbindkey;
+        case SDLK_KP_5: wparam='5'; goto spellbindkey;
+        case SDLK_KP_6: wparam='6'; goto spellbindkey;
+        case SDLK_KP_7: wparam='7'; goto spellbindkey;
+        case SDLK_KP_8: wparam='8'; goto spellbindkey;
+        case SDLK_KP_9: wparam='9'; goto spellbindkey;
 
         case '0':
         case '1':
@@ -2621,36 +2620,36 @@ void gui_sdl_keyproc(int wparam) {
         case '7':
         case '8':
         case '9':
-            // TODO: these should probably be lower case for SDL
-            // but since I intend to re-write the GUI anyway
-            // I won't put any effort into these.
-        case 'A':
-        case 'B':
-        case 'C':
-        case 'D':
-        case 'E':
-        case 'F':
-        case 'G':
-        case 'H':
-        case 'I':
-        case 'J':
-        case 'K':
-        case 'L':
-        case 'M':
-        case 'N':
-        case 'O':
-        case 'P':
-        case 'Q':
-        case 'R':
-        case 'S':
-        case 'T':
-        case 'U':
-        case 'V':
-        case 'W':
-        case 'X':
-        case 'Y':
-        case 'Z':
+        case 'a':
+        case 'b':
+        case 'c':
+        case 'd':
+        case 'e':
+        case 'f':
+        case 'g':
+        case 'h':
+        case 'i':
+        case 'j':
+        case 'k':
+        case 'l':
+        case 'm':
+        case 'n':
+        case 'o':
+        case 'p':
+        case 'q':
+        case 'r':
+        case 's':
+        case 't':
+        case 'u':
+        case 'v':
+        case 'w':
+        case 'x':
+        case 'y':
+        case 'z':
+            spellbindkey:
             if (!vk_item && !vk_char && !vk_spell) return;
+
+            wparam=toupper(wparam);
 
             for (i=0; i<max_keytab; i++) {
 

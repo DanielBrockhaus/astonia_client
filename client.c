@@ -50,11 +50,6 @@ int developer_server=0;
 unsigned int unique=0;
 unsigned int usum=0;
 
-unsigned int sock_server=0; //(192<<24)|(168<<16)|(42<<8)|(22<<0);
-unsigned short sock_port=1080;
-char sock_user[80]="astonia";
-int sock_done=0;
-
 int target_server=(192<<24)|(168<<16)|(42<<8)|(132<<0);
 int update_server=(192<<24)|(168<<16)|(42<<8)|(27<<0);
 int base_server=(192<<24)|(168<<16)|(42<<8)|(27<<0);
@@ -165,7 +160,7 @@ int sv_map01(unsigned char *buf,int *last,struct map *cmap) {
         c=*(unsigned short *)(buf+1);
     }
 
-    if (c>MAPDX*MAPDY || c<0) { printf("sv_map01 illegal call with c=%d\n",c); fflush(stdout); exit(-1); }
+    if (c>MAPDX*MAPDY || c<0) { fail("sv_map01 illegal call with c=%d\n",c); exit(-1); }
 
     if (buf[0]&1) {
         cmap[c].ef[0]=*(unsigned int *)(buf+p); p+=4;
@@ -202,7 +197,7 @@ int sv_map10(unsigned char *buf,int *last,struct map *cmap) {
         c=*(unsigned short *)(buf+1);
     }
 
-    if (c>MAPDX*MAPDY || c<0) { printf("sv_map10 illegal call with c=%d\n",c); fflush(stdout); exit(-1); }
+    if (c>MAPDX*MAPDY || c<0) { fail("sv_map10 illegal call with c=%d\n",c); exit(-1); }
 
     if (buf[0]&1) {
         cmap[c].csprite=*(unsigned int *)(buf+p); p+=4;
@@ -252,7 +247,7 @@ int sv_map11(unsigned char *buf,int *last,struct map *cmap) {
         c=*(unsigned short *)(buf+1);
     }
 
-    if (c>MAPDX*MAPDY || c<0) { printf("sv_map11 illegal call with c=%d\n",c); fflush(stdout); exit(-1); }
+    if (c>MAPDX*MAPDY || c<0) { fail("sv_map11 illegal call with c=%d\n",c); exit(-1); }
 
     if (buf[0]&1) {
         tmp32=*(unsigned int *)(buf+p); p+=4;
@@ -629,7 +624,7 @@ int sv_ceffect(unsigned char *buf) {
         default:	note("unknown effect %d",type); break;
     }
 
-    if (nr<0 || nr>=MAXEF) { printf("sv_ceffect: invalid nr %d\n",nr); fflush(stdout); exit(-1); }
+    if (nr<0 || nr>=MAXEF) { fail("sv_ceffect: invalid nr %d\n",nr); exit(-1); }
 
     memcpy(ceffect+nr,buf+2,len);
 
@@ -684,7 +679,7 @@ int svl_ceffect(unsigned char *buf) {
 
     }
 
-    if (nr<0 || nr>=MAXEF) { printf("svl_ceffect: invalid nr %d\n",nr); fflush(stdout); exit(-1); }
+    if (nr<0 || nr>=MAXEF) { fail("svl_ceffect: invalid nr %d\n",nr); exit(-1); }
 
     return len+2;
 }
@@ -693,7 +688,7 @@ void sv_container(unsigned char *buf) {
     int nr;
 
     nr=buf[1];
-    if (nr<0 || nr>=CONTAINERSIZE) { printf("illegal nr %d in sv_container!",nr);  fflush(stdout); exit(-1); }
+    if (nr<0 || nr>=CONTAINERSIZE) { fail("illegal nr %d in sv_container!",nr);  exit(-1); }
 
     container[nr]=*(unsigned int *)(buf+2);
 }
@@ -702,7 +697,7 @@ void sv_price(unsigned char *buf) {
     int nr;
 
     nr=buf[1];
-    if (nr<0 || nr>=CONTAINERSIZE) { printf("illegal nr %d in sv_price!",nr);  fflush(stdout); exit(-1); }
+    if (nr<0 || nr>=CONTAINERSIZE) { fail("illegal nr %d in sv_price!",nr);  exit(-1); }
 
     price[nr]=*(unsigned int *)(buf+2);
 }
@@ -711,7 +706,7 @@ void sv_itemprice(unsigned char *buf) {
     int nr;
 
     nr=buf[1];
-    if (nr<0 || nr>=CONTAINERSIZE) { printf("illegal nr %d in sv_itemprice!",nr);  fflush(stdout); exit(-1); }
+    if (nr<0 || nr>=CONTAINERSIZE) { fail("illegal nr %d in sv_itemprice!",nr);  exit(-1); }
 
     itemprice[nr]=*(unsigned int *)(buf+2);
 }
@@ -728,7 +723,7 @@ void sv_concnt(unsigned char *buf) {
     int nr;
 
     nr=buf[1];
-    if (nr<0 || nr>CONTAINERSIZE) { printf("illegal nr %d in sv_contcnt!",nr);  fflush(stdout); exit(-1); }
+    if (nr<0 || nr>CONTAINERSIZE) { fail("illegal nr %d in sv_contcnt!",nr);  exit(-1); }
 
     con_cnt=nr;
 }
@@ -975,14 +970,14 @@ void process(unsigned char *buf,int size) {
                 case SV_UNIQUE:			sv_unique(buf); len=5; break;
                 case SV_QUESTLOG:		sv_questlog(buf); len=101+sizeof(struct shrine_ppd); break;
 
-                default:                        return; // endwin(); printf("size=%d, len=%d",size,len); exit(1);
+                default:                        return; // endwin(); fail("size=%d, len=%d",size,len); exit(1);
             }
 
         size-=len; buf+=len;
     }
 
     if (size) {
-        printf("PANIC! size=%d",size); exit(1);
+        fail("PANIC! size=%d",size); exit(1);
     }
 }
 
@@ -1065,7 +1060,7 @@ void prefetch(unsigned char *buf,int size) {
     }
 
     if (size) {
-        printf("2 PANIC! size=%d",size); exit(1);
+        fail("2 PANIC! size=%d",size); exit(1);
     }
 }
 
@@ -1393,7 +1388,6 @@ void bzero_client(int part) {
         inused=0;
         indone=0;
         login_done=0;
-        sock_done=0;
         bzero(inbuf,sizeof(inbuf));
 
         outused=0;
@@ -1543,34 +1537,18 @@ int poll_network(void) {
         }
 
         // connect to server
-        if (sock_server) {
-            addr.sin_family=AF_INET;
-            addr.sin_port=htons(sock_port);
-            addr.sin_addr.s_addr=htonl(sock_server);
-            note("trying sock server at %d.%d.%d.%d:%d as %s. will connect to %d.%d.%d.%d:%d",
-                 (sock_server>>24)&255,(sock_server>>16)&255,(sock_server>>8)&255,(sock_server>>0)&255,sock_port,sock_user,
-                 (target_server>>24)&255,(target_server>>16)&255,(target_server>>8)&255,(target_server>>0)&255,target_port);
-            if ((connect(sock,(struct sockaddr *)&addr,sizeof(addr)))) {
-                if (WSAGetLastError()!=WSAEWOULDBLOCK) {
-                    fail("connect failed (%d)\n",WSAGetLastError());
-                    sockstate=-3;   // fail - no retry
-                    return -1;
-                }
-            }
-        } else {
-            addr.sin_family=AF_INET;
-            addr.sin_port=htons(target_port);
-            addr.sin_addr.s_addr=htonl(target_server);
-            note("trying %d.%d.%d.%d",(target_server>>24)&255,(target_server>>16)&255,(target_server>>8)&255,(target_server>>0)&255);
-            if ((connect(sock,(struct sockaddr *)&addr,sizeof(addr)))) {
-                if (WSAGetLastError()!=WSAEWOULDBLOCK) {
-                    fail("connect failed (%d)\n",WSAGetLastError());
-                    sockstate=-3;   // fail - no retry
-                    return -1;
-                }
+
+        addr.sin_family=AF_INET;
+        addr.sin_port=htons(target_port);
+        addr.sin_addr.s_addr=htonl(target_server);
+        note("trying %d.%d.%d.%d",(target_server>>24)&255,(target_server>>16)&255,(target_server>>8)&255,(target_server>>0)&255);
+        if ((connect(sock,(struct sockaddr *)&addr,sizeof(addr)))) {
+            if (WSAGetLastError()!=WSAEWOULDBLOCK) {
+                fail("connect failed (%d)\n",WSAGetLastError());
+                sockstate=-3;   // fail - no retry
+                return -1;
             }
         }
-
         // statechange
         sockstate=1;
         // return 0;
@@ -1628,16 +1606,6 @@ int poll_network(void) {
         }
         zsinit=1;
 
-        if (sock_server) {
-            tmp[0]=4;
-            tmp[1]=1;
-            *(unsigned short *)(tmp+2)=htons(target_port);
-            *(unsigned int *)(tmp+4)=htonl(target_server);
-            strcpy(tmp+8,sock_user);
-            send(sock,tmp,strlen(sock_user)+8+1,0);
-        }
-
-        // send name
         bzero(tmp,sizeof(tmp));
         strcpy(tmp,username);
         send(sock,tmp,40,0);
@@ -1654,23 +1622,6 @@ int poll_network(void) {
 
         // statechange
         sockstate=3;
-    }
-
-    if (sock_server && sock_done<8) {
-        static unsigned char sock_msg[8];
-        n=recv(sock,sock_msg+sock_done,8-sock_done,0);
-        if (n<=0) {
-            if (WSAGetLastError()!=WSAEWOULDBLOCK) {
-                addline("connection lost during read (%d)\n",WSAGetLastError());
-                sockstate=0;
-                socktimeout=time(NULL);
-                return -1;
-            }
-            return 0;
-        }
-        sock_done+=n;
-
-        return 0;
     }
 
     // here we go ...
@@ -1788,12 +1739,12 @@ int next_tick(void) {
 
         ret=inflate(&zs,Z_SYNC_FLUSH);
         if (ret!=Z_OK) {
-            printf("Compression error %d\n",ret);
+            warn("Compression error %d\n",ret);
             quit=1;
             return 0;
         }
 
-        if (zs.avail_in) { printf("HELP (%d)\n",zs.avail_in); return 0; }
+        if (zs.avail_in) { warn("HELP (%d)\n",zs.avail_in); return 0; }
 
         size=sizeof(queue[q_in].buf)-zs.avail_out;
     } else {

@@ -99,8 +99,8 @@ int dd_init(int width,int height) {
     clippos=0;
     clipsx=0;
     clipsy=0;
-    clipex=800;
-    clipey=600;
+    clipex=XRES;
+    clipey=YRES;
 
     // initialize the gfx loading stuff - TODO: call this in dd_init_cache();
     dd_create_font();
@@ -747,8 +747,6 @@ void dd_add_text(char *ptr) {
 
         } else x+=tmp;
 
-        //printf("adding [%s] at pos %d (nextline=%d)\n",buf,pos,textnextline);
-
         for (m=0; m<n; m++,pos++) {
             text[pos].c=buf[m];
             text[pos].color=color;
@@ -766,7 +764,6 @@ void dd_add_text(char *ptr) {
         text[pos].c=0;
         text[pos].color=0;
         text[pos].link=0;
-        //printf("erase space at %d\n",pos);
     }
 
     if (textdisplayline==(textnextline+(MAXTEXTLINES-TEXTDISPLAYLINES))%MAXTEXTLINES) textdisplayline=(textdisplayline+1)%MAXTEXTLINES;
