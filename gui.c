@@ -1523,6 +1523,8 @@ static void display(void) {
         dd_drawtext_fmt(650,5,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);
         dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"skip=%3.0f%%",100.0*skip/tota);
         dd_drawtext_fmt(650,25,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"idle=%3.0f%%",100.0*idle/tota);
+
+        dd_shaded_rect(770,110,790,110+skip);
     } else dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);
 
     sprintf(perf_text,"mem usage=%.2f/%.2fMB, %.2f/%.2fKBlocks",
@@ -2562,49 +2564,49 @@ void gui_sdl_keyproc(int wparam) {
     switch (wparam) {
 
         case SDLK_ESCAPE:       cmd_stop(); show_look=0; display_gfx=0; teleporter=0; show_tutor=0; display_help=0; display_quest=0; show_color=0; return;
-        case SDLK_F1:            	if (fkeyitem[0]) exec_cmd(CMD_USE_FKEYITEM,0); return;
-        case SDLK_F2:            	if (fkeyitem[1]) exec_cmd(CMD_USE_FKEYITEM,1); return;
-        case SDLK_F3:            	if (fkeyitem[2]) exec_cmd(CMD_USE_FKEYITEM,2); return;
-        case SDLK_F4:            	if (fkeyitem[3]) exec_cmd(CMD_USE_FKEYITEM,3); return;
+        case SDLK_F1:           if (fkeyitem[0]) exec_cmd(CMD_USE_FKEYITEM,0); return;
+        case SDLK_F2:           if (fkeyitem[1]) exec_cmd(CMD_USE_FKEYITEM,1); return;
+        case SDLK_F3:           if (fkeyitem[2]) exec_cmd(CMD_USE_FKEYITEM,2); return;
+        case SDLK_F4:           if (fkeyitem[3]) exec_cmd(CMD_USE_FKEYITEM,3); return;
 
-        case SDLK_F5:		cmd_speed(1); return;
-        case SDLK_F6:             cmd_speed(0); return;
-        case SDLK_F7:             cmd_speed(2); return;
+        case SDLK_F5:		    cmd_speed(1); return;
+        case SDLK_F6:           cmd_speed(0); return;
+        case SDLK_F7:           cmd_speed(2); return;
 
-        case SDLK_F8:		nocut^=1; return;
+        case SDLK_F8:		    nocut^=1; return;
 
-        case SDLK_F9:		if (display_quest) display_quest=0;
-            else { display_help=0; display_quest=1; }
-            return;
+        case SDLK_F9:		    if (display_quest) display_quest=0;
+                                else { display_help=0; display_quest=1; }
+                                return;
 
-        case SDLK_F10:		display_vc^=1; list_mem(); return;
+        case SDLK_F10:		    display_vc^=1; list_mem(); return;
 
-        case SDLK_F11:            if (display_help) display_help=0;
-            else { display_quest=0; display_help=1; }
-            return;
-        case SDLK_F12:            quit=1; return;
+        case SDLK_F11:          if (display_help) display_help=0;
+                                else { display_quest=0; display_help=1; }
+                                return;
+        case SDLK_F12:          quit=1; return;
 
         case SDLK_RETURN:
-        case SDLK_RETURN2:        cmd_proc(CMD_RETURN); return;
-        case SDLK_DELETE:         cmd_proc(CMD_DELETE); return;
-        case SDLK_BACKSPACE:      cmd_proc(CMD_BACK); return;
-        case SDLK_LEFT:           cmd_proc(CMD_LEFT); return;
-        case SDLK_RIGHT:          cmd_proc(CMD_RIGHT); return;
-        case SDLK_HOME:           cmd_proc(CMD_HOME); return;
-        case SDLK_END:            cmd_proc(CMD_END); return;
-        case SDLK_UP:             cmd_proc(CMD_UP); return;
-        case SDLK_DOWN:           cmd_proc(CMD_DOWN); return;
+        case SDLK_KP_ENTER:     cmd_proc(CMD_RETURN); return;
+        case SDLK_DELETE:       cmd_proc(CMD_DELETE); return;
+        case SDLK_BACKSPACE:    cmd_proc(CMD_BACK); return;
+        case SDLK_LEFT:         cmd_proc(CMD_LEFT); return;
+        case SDLK_RIGHT:        cmd_proc(CMD_RIGHT); return;
+        case SDLK_HOME:         cmd_proc(CMD_HOME); return;
+        case SDLK_END:          cmd_proc(CMD_END); return;
+        case SDLK_UP:           cmd_proc(CMD_UP); return;
+        case SDLK_DOWN:         cmd_proc(CMD_DOWN); return;
 
-        case SDLK_KP_0: wparam='0'; goto spellbindkey;
-        case SDLK_KP_1: wparam='1'; goto spellbindkey;
-        case SDLK_KP_2: wparam='2'; goto spellbindkey;
-        case SDLK_KP_3: wparam='3'; goto spellbindkey;
-        case SDLK_KP_4: wparam='4'; goto spellbindkey;
-        case SDLK_KP_5: wparam='5'; goto spellbindkey;
-        case SDLK_KP_6: wparam='6'; goto spellbindkey;
-        case SDLK_KP_7: wparam='7'; goto spellbindkey;
-        case SDLK_KP_8: wparam='8'; goto spellbindkey;
-        case SDLK_KP_9: wparam='9'; goto spellbindkey;
+        case SDLK_KP_0:         wparam='0'; goto spellbindkey;
+        case SDLK_KP_1:         wparam='1'; goto spellbindkey;
+        case SDLK_KP_2:         wparam='2'; goto spellbindkey;
+        case SDLK_KP_3:         wparam='3'; goto spellbindkey;
+        case SDLK_KP_4:         wparam='4'; goto spellbindkey;
+        case SDLK_KP_5:         wparam='5'; goto spellbindkey;
+        case SDLK_KP_6:         wparam='6'; goto spellbindkey;
+        case SDLK_KP_7:         wparam='7'; goto spellbindkey;
+        case SDLK_KP_8:         wparam='8'; goto spellbindkey;
+        case SDLK_KP_9:         wparam='9'; goto spellbindkey;
 
         case '0':
         case '1':
@@ -2667,8 +2669,8 @@ void gui_sdl_keyproc(int wparam) {
             }
             return;
 
-        case SDLK_PAGEUP:   dd_text_pageup(); break;
-        case SDLK_PAGEDOWN: dd_text_pagedown(); break;
+        case SDLK_PAGEUP:       dd_text_pageup(); break;
+        case SDLK_PAGEDOWN:     dd_text_pagedown(); break;
     }
 }
 
@@ -2950,13 +2952,35 @@ int main_loop(void) {
                 sdl_loop();
             }
         }
+// More aggressive queue / latency management. Leaving the old in as an option.
+#if 1
+        {
+            int size=lasttick+q_size;
+            switch (size) {
+                case 0:     tmp=MPT*2.00; break;
+                case 1:     tmp=MPT*1.50; break;
+                case 2:     tmp=MPT*1.40; break;
+                case 3:     tmp=MPT*1.25; break;
+                case 4:     tmp=MPT*1.10; break;
+                case 5:     tmp=MPT+1; break;
+                case 6:     tmp=MPT; break; // optimal
+                case 7:     tmp=MPT-1; break;
+                case 8:     tmp=MPT-1; break;
+                case 9:     tmp=MPT*0.90; break;
+                case 10:    tmp=MPT*0.75; break;
+                case 11:    tmp=MPT*0.60; break;
+                case 12:    tmp=MPT*0.50; break;
+                default:    tmp=MPT*0.25; break;
 
+
+            }
+        }
+#else
         if (lasttick+q_size>0) tmp=MPT*12/(lasttick+q_size);
-        //if (lasttick+q_size>0) tmp=MPT-MPT/10;
         else tmp=MPT+MPT/10;
 
-        //note("tmp=%d, size=%d",tmp,lasttick+q_size);
-
+        note("tmp=%d, size=%d (%d,%d)",tmp,lasttick+q_size,lasttick,q_size);
+#endif
         nextframe+=tmp;
         tota+=tmp;
         if (tick%24==0) { tota/=2; skip/=2; idle/=2; frames/=2; } //{ tota=2; skip=idle=1; }

@@ -31,7 +31,7 @@ int quit=0;
 int quickstart=0;
 int panic_reached=0;
 int xmemcheck_failed=0;
-int opt_res=800;
+int opt_res=600;
 int largetext=0;
 int vendor=1;
 extern int newlight;
@@ -569,17 +569,11 @@ int parse_cmd(char *s) {
                 while (isspace(*s)) s++;
                 n=0; while (n<250 && *s && !isspace(*s)) server_url[n++]=*s++;
             } else if (tolower(*s)=='w') {    // -w vertical_resolution, currently supporting 600, 900, 1200 and 1800.
-                    int tmp;
                     s++;
                     while (isspace(*s)) s++;
-                    tmp=strtol(s,&end,10);
+                    opt_res=strtol(s,&end,10);
                     s=end;
                     if (*s=='p') s++;
-
-                    if (tmp==900) opt_res=IDC_RES1200;
-                    else if (tmp==1200) opt_res=IDC_RES1600;
-                    else if (tmp==1800) opt_res=IDC_RES2400;
-                    else opt_res=IDC_RES800;
             } else if (tolower(*s)=='l') { //Large Text
                     s++;
                     while (isspace(*s)) s++;
@@ -672,11 +666,11 @@ int main(int argc,char *args[]) {
     }
 
     switch (opt_res) {
-        case IDC_RES1200:	width=1200; height=900; break;
-        case IDC_RES1600:	width=1600; height=1200; break;
-        case IDC_RES2400:	width=2400; height=1800; break;
-        case IDC_RES800:
-        default:		    width=800; height=600;  break;
+        case 900:   	width=1200; height=900; break;
+        case 1200:  	width=1600; height=1200; break;
+        case 1800:  	width=2400; height=1800; break;
+        case 800:
+        default:	    width=800; height=600;  break;
     }
 
     if (isdigit(server_url[0])) {
