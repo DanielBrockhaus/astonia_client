@@ -1105,7 +1105,6 @@ static void display_game_names(void) {
         x=scrx+map[mn].xadd;
         y=scry+4+map[mn].yadd+get_chr_height(map[mn].csprite)-25+get_sink(mn,map);
 
-        //dd_drawtext(x,y,whitecolor,DD_CENTER|DD_SMALL|DD_FRAME,player[map[mn].cn].name);
         col=whitecolor;
 
         if (player[map[mn].cn].clan) col=clancolor[player[map[mn].cn].clan];
@@ -1583,7 +1582,6 @@ int do_display_help(int nr) {
             y=dd_drawtext_break(110,y,202,lightbluecolor,0,"* S");
             y=dd_drawtext_break(110,y,202,lightbluecolor,0,"* T");
             y=dd_drawtext_break(110,y,202,lightbluecolor,0,"* W");
-            //y=dd_drawtext_break(110,y,202,lightbluecolor,0,"* K");
             break;
 
         case 2:
@@ -1630,7 +1628,6 @@ int do_display_help(int nr) {
             y=dd_drawtext_break(10,y,202,graycolor,0,"/col1 <R><G><B> shirt color"); y+=5;
             y=dd_drawtext_break(10,y,202,graycolor,0,"/col2 <R><G><B> pants/skirt/cape color"); y+=5;
             y=dd_drawtext_break(10,y,202,graycolor,0,"/col3 <R><G><B> hair/cap color"); y+=10;
-            //y=dd_drawtext_break(10,y,202,graycolor,0,"Example:  to make your pants a glossy green color, you would hit the spacebar once, then type:  /col2 32 31 1.  To make your hair/cap a glossy yellow, hit the spacebar once then type:  /col3 62 31 1.  Black is 1 1 1 and white is 31 31 31.  There is no glossy black color.  If you are having trouble with the command, make sure you have hit the spacebar on your keyboard once before typing in the command.  The command will not work without a space in front of it.  Try experimenting with different color combinations to see what colors you can develop!"); y+=10;
             break;
         case 7:
             y=dd_drawtext_break(10,y,202,whitecolor,0,"Commands"); y+=5;
@@ -1713,7 +1710,6 @@ int do_display_help(int nr) {
 
             y=dd_drawtext_break(10,y,202,whitecolor,0,"Scamming"); y+=5;
             y=dd_drawtext_break(10,y,202,graycolor,0,"Most cases of scamming happen when players share passwords.  NEVER give your password to another player for any reason!  Make your passwords hard to guess by using a combination of numbers and letters.  Change your password often; go to www.astonia.com, then click on Account Management to change your password.  Always use an NPC Trader when trading with another player.  The NPC Trader can be found in most towns in or near the banks - he is a non-playing character that will handle the trade for both parties.  If a player does not want to use an NPC Trader for trading with you, then do not trade with him - he could potentially steal your items.  Do not put your items on the ground when trading with another player or you risk losing them.  Be wary of loaning your equipment to others - unfortunately, many never see their items again.  Players are able to perform welding in the game, but welds are very valuable and should not be traded away too early.  Hold on to your welds until you learn more about the game!"); y+=10;
-            //y=dd_drawtext_break(10,y,202,graycolor,0,"If you have been scammed or have any questions about scamming, you can email:  game@astonia.com."); y+=10;
             break;
 
         case 21:
@@ -1741,305 +1737,9 @@ int do_display_help(int nr) {
             y=dd_drawtext_break(10,y,202,whitecolor,0,"Walking"); y+=5;
             y=dd_drawtext_break(10,y,202,graycolor,0,"To walk, move your cursor to the place where you'd like to go, then LEFT CLICK on your destination."); y+=10;
             break;
-            /*case 3:	// talking and commands
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Talking and Commands"); y+=15;
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Talking"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"Everything you hear and say is displayed in the chat window, at the bottom of your screen. To talk to a character standing next to you, just type what you'd like to say and hit ENTER. To say something in the general chat channel (the 'Gossip' channel) which will be heard by all other players, type: /c2 <your message> and hit ENTER. Use the PAGE-UP, PAGE_DOWN keys on your keyboard to scroll the chat window up and down."); y+=10;
-
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Messaging a particular player"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"To send a message to a particular player, type: /tell <player name> and then your message. Nobody else will hear what you said."); y+=10;
-
-                            y=dd_drawtext_break(10,y,202,whitecolor,0,"Commands"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"Type: /help to see a list of all available commands. You can type: /status to see a list of optional toggle commands that may aid your character's performance."); y+=10;
-                break;
-
-            case 4:	// magic and fighting
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Magic and Fighting"); y+=15;
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Casting spells"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"To use a spell, hit ALT and the corresponding number of the spell that appears on your screen. To cast the Bless spell on another player, rest your cursor on him and hit CTRL 6. If you are a warrior, hit ALT 8 to use Warcry."); y+=10;
-
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Fighting"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"To attack somebody, place your cursor over the character you'd like to attack, and then hit CTRL+LEFT CLICK."); y+=10;
-                break;
-
-            case 5:	// items
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Items"); y+=15;
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Looking at characters/items"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"To look at a character, place your cursor over him and hit CTRL+RIGHT CLICK. To look at an item around you, place your cursor over the item and hit SHIFT+RIGHT CLICK. To look at an item in your Equipment/Inventory areas or in a trade window, RIGHT-CLICK."); y+=10;
-
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Using/Picking up items, looting bodies, giving items to others..."); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"To use or pick up items around you, put your cursor over the item and hit SHIFT+LEFT CLICK. To use an item in your Inventory, LEFT CLICK on it. To give an item to another character, take the item by using SHIFT+LEFT CLICK, then pull it over the other character and hit CTRL+LEFT CLICK. To loot the corpses of slain enemies, place your cursor over the body and SHIFT+LEFT CLICK."); y+=10;
-
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Reading books, signs, etc."); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"To read books,  use SHIFT + LEFT CLICK.  To read signs, use SHIFT + RIGHT CLICK."); y+=10;
-                break;
-
-            case 6:		// newbie hints
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Newbie Hints"); y+=15;
-                            y=dd_drawtext_break(10,y,202,whitecolor,0,"First Quest"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"Your first quest will be to find Lydia, the daughter of Gwendylon the mage. She will ask you to find a potion which was stolen the night before. Lydia lives in the grey building across from the fortress (the place where you first arrived in the game)."); y+=10;
-
-                            y=dd_drawtext_break(10,y,202,whitecolor,0,"Finding New Quests"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"NPCs (Non-Player Characters) give the quests in the game.  Even if you talked to an NPC before, talk to him again; he may tell you something new or give you another quest.  Say 'hi' or '<name>, repeat' to get an NPC to talk to you."); y+=10;
-
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Light"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"Torches provide the main source of light in the game.  To use a torch, equip it, then LEFT CLICK on it to light it.  It is a good idea to carry extras with you at all times."); y+=10;
-
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Leaving the game"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"To leave the game, step on one of the blue tile rest areas and hit F12. You can also hit F12 when not on a blue tile, but your character will stay in that same spot for five minutes and risks being attacked."); y+=10;
-                break;
-
-            case 7:		// money
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Money"); y+=15;
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Gold"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"Gold and silver are the monetary units used in the game.  To give money to another person, place your cursor over your gold (bottom of your screen), LEFT CLICK, and slowly drag your mouse upwards until you have the amount on your cursor that you want. Then, let your cursor rest on the person you wish to give the money to, and hit CTRL+LEFT CLICK."); y+=10;
-
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Banking"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"Money and items can be stored in the Imperial Bank.  You have one account per character, and you can access your account at any bank. SHIFT+LEFT CLICK on the cabinet in the bank to access your Depot (item storage locker)."); y+=10;
-
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Trading with Merchants"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"To open a trade window with a merchant, type: 'trade <merchant name>'. When trading with a merchant, the items for sale are shown in the bottom left of your screen (the view of your skills/stats is temporarily replaced by the trade window).  To read about the items, RIGHT CLICK on them.  To buy something, LEFT CLICK on it.  To sell an item from your inventory, LEFT CLICK on it."); y+=10;
-                break;
-
-            case 8:		//misc
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Misc"); y+=15;
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Skills/Stats"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"In your stats/skills window (bottom-left of your screen) you see red/blue lines below your skills. Blue indicates that you have enough experience points to raise the skill; red indicates that you don't have enough experience points. To raise a skill, CLICK on the blue orb next to the skill."); y+=10;
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Saves"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"With each new level you obtain as you play, you also receive a Save. A Save is a gift from Ishtar: if you die, your items stay with you instead of having them left on your corpse, and you will not get negative experience. The maximum number of saves that a player can have at any time is 10."); y+=10;
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Karma"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"Karma is a measurement of how well a player has obeyed game rules. When you receive a Punishment, you lose karma. All players enter the game with 0 karma. If you receive a Level 1 punishment, for example, your karma will drop to -1. Please review the Laws, Rules and Regulations section in the Game Manual to familiarize yourself with the punishment system. If a player receives -12 karma, his account is locked."); y+=10;
-                            break;
-
-                    case  9:	// Death
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Dying"); y+=15;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"When you die, you will suddenly find yourself on a blue square - the last blue square that you stepped on.  You may see a message displayed on your screen telling you the name and level of the enemy that killed you."); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"If you were not saved, then your corpse will be at the place where you died and all of your items from your Equipment area and your Inventory will still be on your corpse. You have 30 minutes to make it back to your corpse to get these items. After 30 minutes, your corpse disappears, along with your items."); y+=10;
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Allowing Access to your Corpse"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"You can allow another player to retrieve your items from your corpse by typing: /allow <playername>  Quest items and keys can only be retrieved from a corpse by the one who has died, even if you /allow someone to access to your corpse."); y+=10;
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Negative Experience"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"When you die, you lose experience points. Too many deaths can result in negative experience. Negative experience is displayed in the upper left-hand top of your screen. Once this negative experience is made up, then experience points obtained will once again count towards leveling."); y+=10;
-                            break;
-            case 10:	// advanced
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Advanced"); y+=15;
-                            y=dd_drawtext_break(10,y,202,whitecolor,0,"Alias Commands"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"Text phrases that you use repeatedly can be stored as Alias commands and retrieved with a few characters. You can store up to 32 alias commands. To store an alias command, you first have to pick a phrase to store, then give that phrase a name. The alias command for storing text is: /alias <alias phrase name> <phrase>"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"For example, to get the phrase, 'Let's go penting today!', whenever you type 'p1' you'd type:"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"/alias p1 Let's go penting today!"); y+=10;
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Changing Clothing/Hair Colors"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"All characters enter the game with a set of default colors for their clothing and hair, but you can change the color of your character's shirt, pants/skirt, and hair/cap if you choose. Type: /col1 to bring up the Color Toolbox. From left to right, the three circles at the bottom represent shirt color, pants/skirt color, and hair/cap color. Click on a circle, then move the color bars to find a color that you like. The model in the box displays your color choices. Click the Exit button to exit the Color Toolbox."); y+=5;
-                break;
-
-            case 11:	// FAQ
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Frequently Asked Questions"); y+=15;
-
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"What's base value? What's mod value?"); y+=5;
-                            y=dd_drawtext_break(10,y,202,graycolor,0,"All your attributes and skills show two values, the first one is the base value (it shows how much you raised it), the second is the modified (mod) value. It consists of the base value, plus bonusses from your base attributes and special items."); y+=10;
-
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Why don't I get the full effect from Bless?"); y+=5;
-                            y=dd_drawtext_break(10,y,202,graycolor,0,"The spell Bless raises your base attributes (Wisdom, Intuition, Agility, Strength) by 1/4 of your modified Bless value (rounded down), but by no more than 50%."); y+=10;
-
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Why doesn't the special item I just found increase my skill XXX? It says XXX+5 in the description!"); y+=5;
-                            y=dd_drawtext_break(10,y,202,graycolor,0,"No skill or spell can be raised through items by more than 50% of its base value."); y+=10;
-
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"What is a mirror? What is the number I see next to my name when chatting? What does the M1...M26 on the teleport map mean?"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"Each area can have up to 26 mirrors, to allow more players to be online at once. Your mirror number determines which mirror you use. If you'd like to meet a player on a different mirror, go to a teleport station, click on the corresponding mirror number (M1...M26) and teleport to the area the other player is in. You have to teleport, even if the other player is in the same area."); y+=10;
-                break;
-            case 12:
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Frequently Asked Questions 2"); y+=15;
-                            y=dd_drawtext_break(10,y,202,whitecolor,0,"I have killed all the monsters in my area and still can't find the right key!"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"Be sure to step all the way into a room or area as you quest; monsters, chests, and doors may be hidden in the shadows. Carry a torch to light your way, and always check the bodies of slain enemies (SHIFT + LEFT CLICK)."); y+=10;
-
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"What is the Pentagram Quest(tm)?"); y+=5;
-                y=dd_drawtext_break(10,y,202,graycolor,0,"The Pentagram Quest(tm) is a game that all players (from about level 10 and up) can play together. It's an ongoing game that takes place in 'the pents' - a large, cavernous area partitioned off according to player levels. The walls and floors of this area are covered with 'stars' (pentagrams) and the object of the game is to touch as many pentagrams as possible as you fight off the evil demons that inhabit the area. Once a randomly chosen number of pentagrams have been touched, the pents are 'solved', and you receive experience points for the pentagrams you touched. The entrances to the Pentagram Quest(tm) are southeast of blue squares in Aston - be sure to SHIFT + RIGHT CLICK on the doors to determine which level area is right for you!"); y+=10;
-                break;
-
-            case 13:
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Frequently Asked Questions 3"); y+=15;
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"How do I kill other players?"); y+=5;
-                            y=dd_drawtext_break(10,y,202,graycolor,0,"A PKer (Player Killer) is one that has chosen to kill other PKers - which also means that he can be killed by other PKers too. If you are killed, the items in your Equipment area and your Inventory can be taken by the one who killed you. You must be level 10 or higher to become a PKer. To enable your PK status, type: /playerkiller. To attack someone who is a playerkiller and within your level range, type: /hate <name> To disable your PK status, you must wait four (4) weeks since you last killed someone, then type: /playerkiller"); y+=10;
-
-                y=dd_drawtext_break(10,y,202,whitecolor,0,"Another player is harassing me/making me uncomfortable. What can I do?"); y+=5;
-                            y=dd_drawtext_break(10,y,202,graycolor,0,"If another player harasses you, type: /complain <player> <reason> This command sends a screenshot of your chat window to Game Management. Replace <player> with the name of the player bothering you. The <reason> portion of the command is for you to enter your own comments regarding the situation. Please be aware that only the last 80 lines of text are sent, and that each server-change (teleport) erases this buffer. You can also type: /ignore <name> to ignore the things that player is saying to you."); y+=10;
-                break;*/
     }
     return y;
 }
-
-/*int do_display_help(int nr)
-{
-    int y=45;
-
-    switch(nr) {
-        case 1:
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Help Index"); y+=15;
-
-                        y=dd_drawtext_break(10,y,202,whitecolor,0,"Fast Help"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Walk: LEFT-CLICK");
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Look on Ground:  RIGHT-CLICK");
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Take/Drop/Use: SHIFT LEFT-CLICK");
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Look at Item: SHIFT RIGHT-CLICK");
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Attack/Give: CTRL LEFT-CLICK");
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Look at Character: CTRL RIGHT-CLICK");
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Use Item in Inventory: LEFT-CLICK or F1...F4");
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Fast/Normal/Stealth: F5/F6/F7");
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Scroll Chat Window: PAGE-UP/PAGE-DOWN");
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Repeat last Tell: TAB");
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Close Help: F11");
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Show Walls: F8");
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Quit Game: F12 - preferably on blue square");
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Assign Wheel Button: Use Wheel"); y+=10;
-
-            y=dd_drawtext_break(10,y,202,lightbluecolor,0,"* Walking and Transportation");
-            y=dd_drawtext_break(10,y,202,lightbluecolor,0,"* Talking and Commands");
-            y=dd_drawtext_break(10,y,202,lightbluecolor,0,"* Magic and Fighting");
-            y=dd_drawtext_break(10,y,202,lightbluecolor,0,"* Items");
-            y=dd_drawtext_break(10,y,202,lightbluecolor,0,"* Newbie Hints");
-            y=dd_drawtext_break(10,y,202,lightbluecolor,0,"* Money");
-            y=dd_drawtext_break(10,y,202,lightbluecolor,0,"* Misc");
-                        y=dd_drawtext_break(10,y,202,lightbluecolor,0,"* Dying");
-            y=dd_drawtext_break(10,y,202,lightbluecolor,0,"* Advanced Commands");
-            y=dd_drawtext_break(10,y,202,lightbluecolor,0,"* Frequently Asked Questions");
-            y=dd_drawtext_break(10,y,202,lightbluecolor,0,"* Frequently Asked Questions 2");
-            y=dd_drawtext_break(10,y,202,lightbluecolor,0,"* Frequently Asked Questions 3");
-            break;
-
-        case 2:		// walking and transportation
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Walking and Transportation"); y+=15;
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Walking"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"To walk, move your cursor to the place where you'd like to go, then LEFT CLICK on your destination."); y+=10;
-
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Navigational Directions"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Compass directions (North, East, South, West) are the same in the game as in real life.  North, for example, would be 'up' (the top of your screen).  East would be to the direct right of your screen."); y+=10;
-
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Transport System"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"You will find Teleport Stations, relics of the ancient culture, all over the world. SHIFT+LEFT CLICK on the Teleport Station, to see a map of all teleport stations. CLICK on the destination of your choice. You will only be able to teleport to a destination that you have reached at least once before by foot. Touch any new Teleport Station on your way so that you can teleport there in times to come."); y+=10;
-            break;
-
-        case 3:	// talking and commands
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Talking and Commands"); y+=15;
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Talking"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Everything you hear and say is displayed in the chat window, at the bottom of your screen. To talk to a character standing next to you, just type what you'd like to say and hit ENTER. To say something in the general chat channel (the 'Gossip' channel) which will be heard by all other players, type: /c2 <your message> and hit ENTER. Use the PAGE-UP, PAGE_DOWN keys on your keyboard to scroll the chat window up and down."); y+=10;
-
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Messaging a particular player"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"To send a message to a particular player, type: /tell <player name> and then your message. Nobody else will hear what you said."); y+=10;
-
-                        y=dd_drawtext_break(10,y,202,whitecolor,0,"Commands"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Type: /help to see a list of all available commands. You can type: /status to see a list of optional toggle commands that may aid your character's performance."); y+=10;
-            break;
-
-        case 4:	// magic and fighting
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Magic and Fighting"); y+=15;
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Casting spells"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"To use a spell, hit ALT and the corresponding number of the spell that appears on your screen. To cast the Bless spell on another player, rest your cursor on him and hit CTRL 6. If you are a warrior, hit ALT 8 to use Warcry."); y+=10;
-
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Fighting"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"To attack somebody, place your cursor over the character you'd like to attack, and then hit CTRL+LEFT CLICK."); y+=10;
-            break;
-
-        case 5:	// items
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Items"); y+=15;
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Looking at characters/items"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"To look at a character, place your cursor over him and hit CTRL+RIGHT CLICK. To look at an item around you, place your cursor over the item and hit SHIFT+RIGHT CLICK. To look at an item in your Equipment/Inventory areas or in a trade window, RIGHT-CLICK."); y+=10;
-
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Using/Picking up items, looting bodies, giving items to others..."); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"To use or pick up items around you, put your cursor over the item and hit SHIFT+LEFT CLICK. To use an item in your Inventory, LEFT CLICK on it. To give an item to another character, take the item by using SHIFT+LEFT CLICK, then pull it over the other character and hit CTRL+LEFT CLICK. To loot the corpses of slain enemies, place your cursor over the body and SHIFT+LEFT CLICK."); y+=10;
-
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Reading books, signs, etc."); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"To read books,  use SHIFT + LEFT CLICK.  To read signs, use SHIFT + RIGHT CLICK."); y+=10;
-            break;
-
-        case 6:		// newbie hints
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Newbie Hints"); y+=15;
-                        y=dd_drawtext_break(10,y,202,whitecolor,0,"First Quest"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Your first quest will be to find Lydia, the daughter of Gwendylon the mage. She will ask you to find a potion which was stolen the night before. Lydia lives in the grey building across from the fortress (the place where you first arrived in the game)."); y+=10;
-
-                        y=dd_drawtext_break(10,y,202,whitecolor,0,"Finding New Quests"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"NPCs (Non-Player Characters) give the quests in the game.  Even if you talked to an NPC before, talk to him again; he may tell you something new or give you another quest.  Say 'hi' or '<name>, repeat' to get an NPC to talk to you."); y+=10;
-
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Light"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Torches provide the main source of light in the game.  To use a torch, equip it, then LEFT CLICK on it to light it.  It is a good idea to carry extras with you at all times."); y+=10;
-
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Leaving the game"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"To leave the game, step on one of the blue tile rest areas and hit F12. You can also hit F12 when not on a blue tile, but your character will stay in that same spot for five minutes and risks being attacked."); y+=10;
-            break;
-
-        case 7:		// money
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Money"); y+=15;
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Gold"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Gold and silver are the monetary units used in the game.  To give money to another person, place your cursor over your gold (bottom of your screen), LEFT CLICK, and slowly drag your mouse upwards until you have the amount on your cursor that you want. Then, let your cursor rest on the person you wish to give the money to, and hit CTRL+LEFT CLICK."); y+=10;
-
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Banking"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Money and items can be stored in the Imperial Bank.  You have one account per character, and you can access your account at any bank. SHIFT+LEFT CLICK on the cabinet in the bank to access your Depot (item storage locker)."); y+=10;
-
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Trading with Merchants"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"To open a trade window with a merchant, type: 'trade <merchant name>'. When trading with a merchant, the items for sale are shown in the bottom left of your screen (the view of your skills/stats is temporarily replaced by the trade window).  To read about the items, RIGHT CLICK on them.  To buy something, LEFT CLICK on it.  To sell an item from your inventory, LEFT CLICK on it."); y+=10;
-            break;
-
-        case 8:		//misc
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Misc"); y+=15;
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Skills/Stats"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"In your stats/skills window (bottom-left of your screen) you see red/blue lines below your skills. Blue indicates that you have enough experience points to raise the skill; red indicates that you don't have enough experience points. To raise a skill, CLICK on the blue orb next to the skill."); y+=10;
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Saves"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"With each new level you obtain as you play, you also receive a Save. A Save is a gift from Ishtar: if you die, your items stay with you instead of having them left on your corpse, and you will not get negative experience. The maximum number of saves that a player can have at any time is 10."); y+=10;
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Karma"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Karma is a measurement of how well a player has obeyed game rules. When you receive a Punishment, you lose karma. All players enter the game with 0 karma. If you receive a Level 1 punishment, for example, your karma will drop to -1. Please review the Laws, Rules and Regulations section in the Game Manual to familiarize yourself with the punishment system. If a player receives -12 karma, his account is locked."); y+=10;
-                        break;
-
-                case  9:	// Death
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Dying"); y+=15;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"When you die, you will suddenly find yourself on a blue square - the last blue square that you stepped on.  You may see a message displayed on your screen telling you the name and level of the enemy that killed you."); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"If you were not saved, then your corpse will be at the place where you died and all of your items from your Equipment area and your Inventory will still be on your corpse. You have 30 minutes to make it back to your corpse to get these items. After 30 minutes, your corpse disappears, along with your items."); y+=10;
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Allowing Access to your Corpse"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"You can allow another player to retrieve your items from your corpse by typing: /allow <playername>  Quest items and keys can only be retrieved from a corpse by the one who has died, even if you /allow someone to access to your corpse."); y+=10;
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Negative Experience"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"When you die, you lose experience points. Too many deaths can result in negative experience. Negative experience is displayed in the upper left-hand top of your screen. Once this negative experience is made up, then experience points obtained will once again count towards leveling."); y+=10;
-                        break;
-        case 10:	// advanced
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Advanced"); y+=15;
-                        y=dd_drawtext_break(10,y,202,whitecolor,0,"Alias Commands"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Text phrases that you use repeatedly can be stored as Alias commands and retrieved with a few characters. You can store up to 32 alias commands. To store an alias command, you first have to pick a phrase to store, then give that phrase a name. The alias command for storing text is: /alias <alias phrase name> <phrase>"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"For example, to get the phrase, 'Let's go penting today!', whenever you type 'p1' you'd type:"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"/alias p1 Let's go penting today!"); y+=10;
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Changing Clothing/Hair Colors"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"All characters enter the game with a set of default colors for their clothing and hair, but you can change the color of your character's shirt, pants/skirt, and hair/cap if you choose. Type: /col1 to bring up the Color Toolbox. From left to right, the three circles at the bottom represent shirt color, pants/skirt color, and hair/cap color. Click on a circle, then move the color bars to find a color that you like. The model in the box displays your color choices. Click the Exit button to exit the Color Toolbox."); y+=5;
-            break;
-
-        case 11:	// FAQ
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Frequently Asked Questions"); y+=15;
-
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"What's base value? What's mod value?"); y+=5;
-                        y=dd_drawtext_break(10,y,202,graycolor,0,"All your attributes and skills show two values, the first one is the base value (it shows how much you raised it), the second is the modified (mod) value. It consists of the base value, plus bonusses from your base attributes and special items."); y+=10;
-
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Why don't I get the full effect from Bless?"); y+=5;
-                        y=dd_drawtext_break(10,y,202,graycolor,0,"The spell Bless raises your base attributes (Wisdom, Intuition, Agility, Strength) by 1/4 of your modified Bless value (rounded down), but by no more than 50%."); y+=10;
-
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Why doesn't the special item I just found increase my skill XXX? It says XXX+5 in the description!"); y+=5;
-                        y=dd_drawtext_break(10,y,202,graycolor,0,"No skill or spell can be raised through items by more than 50% of its base value."); y+=10;
-
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"What is a mirror? What is the number I see next to my name when chatting? What does the M1...M26 on the teleport map mean?"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Each area can have up to 26 mirrors, to allow more players to be online at once. Your mirror number determines which mirror you use. If you'd like to meet a player on a different mirror, go to a teleport station, click on the corresponding mirror number (M1...M26) and teleport to the area the other player is in. You have to teleport, even if the other player is in the same area."); y+=10;
-            break;
-        case 12:
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Frequently Asked Questions 2"); y+=15;
-                        y=dd_drawtext_break(10,y,202,whitecolor,0,"I have killed all the monsters in my area and still can't find the right key!"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"Be sure to step all the way into a room or area as you quest; monsters, chests, and doors may be hidden in the shadows. Carry a torch to light your way, and always check the bodies of slain enemies (SHIFT + LEFT CLICK)."); y+=10;
-
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"What is the Pentagram Quest(tm)?"); y+=5;
-            y=dd_drawtext_break(10,y,202,graycolor,0,"The Pentagram Quest(tm) is a game that all players (from about level 10 and up) can play together. It's an ongoing game that takes place in 'the pents' - a large, cavernous area partitioned off according to player levels. The walls and floors of this area are covered with 'stars' (pentagrams) and the object of the game is to touch as many pentagrams as possible as you fight off the evil demons that inhabit the area. Once a randomly chosen number of pentagrams have been touched, the pents are 'solved', and you receive experience points for the pentagrams you touched. The entrances to the Pentagram Quest(tm) are southeast of blue squares in Aston - be sure to SHIFT + RIGHT CLICK on the doors to determine which level area is right for you!"); y+=10;
-            break;
-
-        case 13:
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Frequently Asked Questions 3"); y+=15;
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"How do I kill other players?"); y+=5;
-                        y=dd_drawtext_break(10,y,202,graycolor,0,"A PKer (Player Killer) is one that has chosen to kill other PKers - which also means that he can be killed by other PKers too. If you are killed, the items in your Equipment area and your Inventory can be taken by the one who killed you. You must be level 10 or higher to become a PKer. To enable your PK status, type: /playerkiller. To attack someone who is a playerkiller and within your level range, type: /hate <name> To disable your PK status, you must wait four (4) weeks since you last killed someone, then type: /playerkiller"); y+=10;
-
-            y=dd_drawtext_break(10,y,202,whitecolor,0,"Another player is harassing me/making me uncomfortable. What can I do?"); y+=5;
-                        y=dd_drawtext_break(10,y,202,graycolor,0,"If another player harasses you, type: /complain <player> <reason> This command sends a screenshot of your chat window to Game Management. Replace <player> with the name of the player bothering you. The <reason> portion of the command is for you to enter your own comments regarding the situation. Please be aware that only the last 80 lines of text are sent, and that each server-change (teleport) erases this buffer. You can also type: /ignore <name> to ignore the things that player is saying to you."); y+=10;
-            break;
-    }
-    return y;
-}*/
 
 void display_pents(void) {
     extern char pent_str[7][80];

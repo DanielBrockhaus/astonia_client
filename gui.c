@@ -48,7 +48,11 @@ int winxres,winyres;
 
 // globals display
 
+#ifdef DEVELOPER
+int display_vc=1;
+#else
 int display_vc=0;
+#endif
 int display_help=0,display_quest=0;
 
 int playersprite_override=0;
@@ -431,11 +435,9 @@ static void display_wear(void) {
             fx.align=DD_CENTER;
             fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=i==weasel?FX_ITEMBRIGHT:FX_ITEMLIGHT;
 
-            //dd_copysprite(item[weatab[i]],x,y,i==weasel?FX_ITEMBRIGHT:FX_ITEMLIGHT,DD_CENTER);
             dd_copysprite_fx(&fx,x,y);
-        } //else dd_copysprite(13,x,y,DDFX_NLIGHT,DD_CENTER);
+        }
 
-        //if (mousex>=160 && mousex<=640 && mousey>=0 && mousey<=40 && !vk_item && capbut==-1) dd_drawtext(x,yt,textcolor,DD_CENTER|DD_SMALL|DD_FRAME,weaname[i]);
         if (butsel>=BUT_WEA_BEG && butsel<=BUT_WEA_END && !vk_item && capbut==-1) dd_drawtext(x,yt,textcolor,DD_CENTER|DD_SMALL|DD_FRAME,weaname[i]);
 
         if ((cflags&IF_WNRRING) && i==0) dd_drawtext(x,yt,whitecolor,DD_CENTER|DD_SMALL|DD_FRAME,weaname[i]);
@@ -679,9 +681,6 @@ static void display_citem(void) {
     unsigned short c1,c2,c3,shine;
     unsigned char scale,cr,cg,cb,light,sat;
     DDFX fx;
-
-    //dd_copysprite(50473,mousex,mousey,14,0);
-    //dd_drawtext_fmt(mousex,mousey-10,whitecolor,DD_CENTER|DD_FRAME|DD_SMALL,"x=%d,y=%d",mousex,mousey);
 
     // trashcan
     if (vk_item) {
@@ -1291,12 +1290,6 @@ static void display_selfspells(void) {
                 break;
         }
     }
-
-    /*for (nr=0; nr<64; nr++) {
-        dd_drawtext_fmt(10,100+nr*7,ueffect[nr] ? 0xffff : 0x3030,DD_SMALL|DD_FRAME,"%d (%s)",
-                         ceffect[nr].generic.type,
-                         is_char_ceffect(ceffect[nr].generic.type) ? name[ceffect[nr].strike.cn] : "mapeffect");
-    }*/
 }
 
 static void display_exp(void) {
@@ -1308,18 +1301,13 @@ static void display_exp(void) {
     cn=map[MAPDX*MAPDY/2].cn;
     level=player[cn].level;
 
-    expe=experience; //max(experience,experience_used);
+    expe=experience;
     clevel=exp2level(expe);
     nlevel=level+1;
 
     step=level2exp(nlevel)-expe;
     total=level2exp(nlevel)-level2exp(clevel);
     if (step>total) step=total; // ugh. fix for level 1 with 0 exp
-
-    //dd_drawtext_fmt(20,20,0xffff,DD_SMALL|DD_FRAME,"Level %d",clevel);
-    //dd_drawtext_fmt(110,20,0xffff,DD_SMALL|DD_FRAME,"Level %d",nlevel);
-
-    //dd_drawtext_fmt(50,28,0xffff,DD_SMALL|DD_FRAME,"In-Game Level %d",level);
 
     if (total) {
         if (last_exp!=expe) {
@@ -1522,15 +1510,15 @@ static void display(void) {
         extern long long mem_tex,texc_miss;
 
         dd_drawtext_fmt(650,5,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);
-        dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"skip %3.0f%%",100.0*skip/tota);
-        dd_drawtext_fmt(650,25,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"idle %3.0f%%",100.0*idle/tota);
+        dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"skip %3.0f%%",100.0*skip/tota);
+        dd_drawtext_fmt(650,25,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"idle %3.0f%%",100.0*idle/tota);
 
         dd_drawtext_fmt(650,44,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"RAM");
         dd_drawtext_fmt(650,54,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"TEX");
-        dd_drawtext_fmt(650+20,44,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"%5.2f MB",memsize[0]/(1024.0*1024.0));
-        dd_drawtext_fmt(650+20,54,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"%5.2f MB",mem_tex/(1024.0*1024.0));
+        dd_drawtext_fmt(650+20,44,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"%5.2f MB",memsize[0]/(1024.0*1024.0));
+        dd_drawtext_fmt(650+20,54,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"%5.2f MB",mem_tex/(1024.0*1024.0));
 
-        dd_drawtext_fmt(650,64,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"MISS %lld",texc_miss);
+        dd_drawtext_fmt(650,64,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"MISS %lld",texc_miss);
 
         dd_shaded_rect(770,110,790,110+skip);
     } else dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);

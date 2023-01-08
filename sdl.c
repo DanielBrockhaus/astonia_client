@@ -19,11 +19,13 @@ SDL_Renderer *sdlren;
 
 extern int gfx_force_png;
 
-#define MAX_TEXCACHE    1500
-#define MAX_TEXHASH     1000
+#define MAX_TEXCACHE    15000
+#define MAX_TEXHASH     10000
 #define STX_NONE        (-1)
 
 #define SF_USED         (1<<0)
+#define SF_SPRITE       (1<<1)
+#define SF_TEXT         (1<<2)
 
 struct sdl_texture {
     SDL_Texture *tex;
@@ -33,6 +35,7 @@ struct sdl_texture {
 
     uint16_t flags;
 
+    // ---------- sprites ------------
     // fx
     int32_t sprite;
     int8_t sink;
@@ -51,7 +54,12 @@ struct sdl_texture {
     uint16_t yres;              // y resolution in pixels
     int16_t xoff;               // offset to blit position
     int16_t yoff;               // offset to blit position
-    uint16_t size;              // size in pixels (xres*yres) - TODO: needed?
+
+    // ---------- text --------------
+    uint16_t text_flags;
+    uint32_t text_color;
+    char *text;
+    void *text_font;
 };
 
 struct sdl_texture *sdlt=NULL;
@@ -150,7 +158,7 @@ int sdl_init(int width,int height,char *title) {
     //SDL_SetWindowFullscreen(sdlwnd,SDL_WINDOW_FULLSCREEN);  // true full screen
     //SDL_SetWindowFullscreen(sdlwnd,SDL_WINDOW_FULLSCREEN_DESKTOP); // borderless windowed
 
-    sdlren=SDL_CreateRenderer(sdlwnd, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    sdlren=SDL_CreateRenderer(sdlwnd, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE);
     if (!sdlren){
         SDL_DestroyWindow(sdlwnd);
         fail("SDL_Init Error: %s",SDL_GetError());
@@ -159,17 +167,19 @@ int sdl_init(int width,int height,char *title) {
     }
 
     len=sizeof(struct sdl_image)*MAXSPRITE;
-    note("SDL Image cache needs %.2fM for image cache index",len/(1024.0*1024.0));
     sdli=xcalloc(len*1,MEM_SDL_BASE);
+    note("SDL Image cache needs %.2fM for image cache index",len/(1024.0*1024.0));
     if (!sdli) return fail("Out of memory in sdl_init");
 
     sdlt_cache=xcalloc(MAX_TEXHASH*sizeof(int),MEM_SDL_BASE);
+    note("SDL texture cache needs %.2fM for cache index",MAX_TEXHASH*sizeof(int)/(1024.0*1024.0));
     if (!sdlt_cache) return fail("Out of memory in sdl_init");
 
     for (i=0; i<MAX_TEXHASH; i++)
         sdlt_cache[i]=STX_NONE;
 
     sdlt=xcalloc(MAX_TEXCACHE*sizeof(struct sdl_texture),MEM_SDL_BASE);
+    note("SDL texture cache needs %.2fM for cache",MAX_TEXCACHE*sizeof(struct sdl_texture)/(1024.0*1024.0));
     if (!sdlt) return fail("Out of memory in sdl_init");
 
     for (i=0; i<MAX_TEXCACHE; i++) {
@@ -586,14 +596,12 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
     if (scale!=100) {
         st->xres=ceil((double)(si->xres-1)*scale/100.0);
         st->yres=ceil((double)(si->yres-1)*scale/100.0);
-        st->size=st->xres*st->yres;
 
         st->xoff=floor(si->xoff*scale/100.0+0.5);
         st->yoff=floor(si->yoff*scale/100.0+0.5);
     } else {
         st->xres=si->xres;
         st->yres=si->yres;
-        st->size=st->xres*st->yres;
         st->xoff=si->xoff;
         st->yoff=si->yoff;
     }
@@ -751,7 +759,6 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
     SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
     xfree(pixel);
 
-    mem_tex+=st->xres*st->yres*sizeof(uint32_t);
     st->tex=texture;
 }
 
@@ -787,17 +794,42 @@ static void sdl_tx_best(int stx) {
     }
 }
 
-static inline int hashfunc(int sprite,int ml,int ll,int rl,int ul,int dl) {
-    int hash;
+static inline unsigned int hashfunc(int sprite,int ml,int ll,int rl,int ul,int dl) {
+    unsigned int hash;
 
     hash=sprite^(ml<<2)^(ll<<4)^(rl<<6)^(ul<<8)^(dl<<10);
 
     return hash%MAX_TEXHASH;
 }
 
-int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,int cb,int light,int sat,int c1,int c2,int c3,int shine,int ml,int ll,int rl,int ul,int dl) {
+static inline unsigned int hashfunc_text(const char *text,int color,int flags) {
+    unsigned int hash,t0,t1,t2,t3;
+
+    t0=text[0];
+    if (text[0]) {
+        t1=text[1];
+        if (text[1]) {
+            t2=text[2];
+            if (text[2]) {
+                t3=text[3];
+            } else t3=0;
+        } else t2=t3=0;
+    } else t1=t2=t3=0;
+
+    hash=(t0<<0)^(t1<<3)^(t2<<6)^(t3<<9)^(color<<0)^(flags<<5);
+
+    return hash%MAX_TEXHASH;
+}
+
+SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,int flags);
+
+int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,int cb,int light,int sat,int c1,int c2,int c3,int shine,int ml,int ll,int rl,int ul,int dl,
+                const char *text,int text_color,int text_flags,void *text_font) {
     int stx,ptx,ntx,panic=0;
-    int hash=hashfunc(sprite,ml,ll,rl,ul,dl);
+    int hash;
+
+    if (!text) hash=hashfunc(sprite,ml,ll,rl,ul,dl);
+    else hash=hashfunc_text(text,text_color,text_flags);
 
     if (sprite>=MAXSPRITE || sprite<0) {
         note("illegal sprite %d wanted in sdl_tx_load",sprite);
@@ -815,25 +847,34 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
                    sdlt[stx].ul,sdlt[stx].dl);
             if (panic>1099) exit(42);
         }
-        if (sdlt[stx].sprite!=sprite) continue;
-        if (sdlt[stx].sink!=sink) continue;
-        if (sdlt[stx].freeze!=freeze) continue;
-        if (sdlt[stx].grid!=grid) continue;
-        if (sdlt[stx].scale!=scale) continue;
-        if (sdlt[stx].cr!=cr) continue;
-        if (sdlt[stx].cg!=cg) continue;
-        if (sdlt[stx].cb!=cb) continue;
-        if (sdlt[stx].light!=light) continue;
-        if (sdlt[stx].sat!=sat) continue;
-        if (sdlt[stx].c1!=c1) continue;
-        if (sdlt[stx].c2!=c2) continue;
-        if (sdlt[stx].c3!=c3) continue;
-        if (sdlt[stx].shine!=shine) continue;
-        if (sdlt[stx].ml!=ml) continue;
-        if (sdlt[stx].ll!=ll) continue;
-        if (sdlt[stx].rl!=rl) continue;
-        if (sdlt[stx].ul!=ul) continue;
-        if (sdlt[stx].dl!=dl) continue;
+        if (text) {
+            if (!(sdlt[stx].flags&SF_TEXT)) continue;
+            if (!sdlt[stx].text || strcmp(sdlt[stx].text,text)) continue;
+            if (sdlt[stx].text_flags!=text_flags) continue;
+            if (sdlt[stx].text_color!=text_color) continue;
+            if (sdlt[stx].text_font!=text_font) continue;
+        } else {
+            if (!(sdlt[stx].flags&SF_SPRITE)) continue;
+            if (sdlt[stx].sprite!=sprite) continue;
+            if (sdlt[stx].sink!=sink) continue;
+            if (sdlt[stx].freeze!=freeze) continue;
+            if (sdlt[stx].grid!=grid) continue;
+            if (sdlt[stx].scale!=scale) continue;
+            if (sdlt[stx].cr!=cr) continue;
+            if (sdlt[stx].cg!=cg) continue;
+            if (sdlt[stx].cb!=cb) continue;
+            if (sdlt[stx].light!=light) continue;
+            if (sdlt[stx].sat!=sat) continue;
+            if (sdlt[stx].c1!=c1) continue;
+            if (sdlt[stx].c2!=c2) continue;
+            if (sdlt[stx].c3!=c3) continue;
+            if (sdlt[stx].shine!=shine) continue;
+            if (sdlt[stx].ml!=ml) continue;
+            if (sdlt[stx].ll!=ll) continue;
+            if (sdlt[stx].rl!=rl) continue;
+            if (sdlt[stx].ul!=ul) continue;
+            if (sdlt[stx].dl!=dl) continue;
+        }
 
         if (panic>maxpanic) maxpanic=panic;
 
@@ -867,7 +908,11 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
 
     // delete
     if (sdlt[stx].flags) {
-        int hash2=hashfunc(sdlt[stx].sprite,sdlt[stx].ml,sdlt[stx].ll,sdlt[stx].rl,sdlt[stx].ul,sdlt[stx].dl);
+        int hash2;
+
+        if (sdlt[stx].flags&SF_SPRITE) hash2=hashfunc(sdlt[stx].sprite,sdlt[stx].ml,sdlt[stx].ll,sdlt[stx].rl,sdlt[stx].ul,sdlt[stx].dl);
+        else if (sdlt[stx].flags&SF_TEXT) hash2=hashfunc_text(sdlt[stx].text,sdlt[stx].text_color,sdlt[stx].text_flags);
+        else { hash2=0; warn("weird entry in texture cache!"); }
 
         ntx=sdlt[stx].hnext;
         ptx=sdlt[stx].hprev;
@@ -888,35 +933,55 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
 
         mem_tex-=sdlt[stx].xres*sdlt[stx].yres*sizeof(uint32_t);
         SDL_DestroyTexture(sdlt[stx].tex);
+
+        if (sdlt[stx].flags&SF_TEXT) xfree(sdlt[stx].text);
+
         sdlt[stx].flags=0;
     }
 
     // build
-    sdl_ic_load(sprite);
+    if (text) {
+        int w,h;
+        sdlt[stx].tex=sdl_maketext(text,(struct ddfont *)text_font,text_color,text_flags);
+        sdlt[stx].flags=SF_USED|SF_TEXT;
+        sdlt[stx].text_color=text_color;
+        sdlt[stx].text_flags=text_flags;
+        sdlt[stx].text_font=text_font;
+        sdlt[stx].text=xstrdup(text,MEM_TEMP7);
+        if (sdlt[stx].tex) {
+            SDL_QueryTexture(sdlt[stx].tex,NULL,NULL,&w,&h);
+            sdlt[stx].xres=w;
+            sdlt[stx].yres=h;
+        } else sdlt[stx].xres=sdlt[stx].yres=0;
+    } else {
+        sdl_ic_load(sprite);
 
-    sdl_make(sdlt+stx,sdli+sprite,sink,freeze,grid,scale,cr,cg,cb,light,sat,c1,c2,c3,shine,ml,ll,rl,ul,dl);
+        sdl_make(sdlt+stx,sdli+sprite,sink,freeze,grid,scale,cr,cg,cb,light,sat,c1,c2,c3,shine,ml,ll,rl,ul,dl);
 
-    // init
-    sdlt[stx].flags=SF_USED;
-    sdlt[stx].sprite=sprite;
-    sdlt[stx].sink=sink;
-    sdlt[stx].freeze=freeze;
-    sdlt[stx].grid=grid;
-    sdlt[stx].scale=scale;
-    sdlt[stx].cr=cr;
-    sdlt[stx].cg=cg;
-    sdlt[stx].cb=cb;
-    sdlt[stx].light=light;
-    sdlt[stx].sat=sat;
-    sdlt[stx].c1=c1;
-    sdlt[stx].c2=c2;
-    sdlt[stx].c3=c3;
-    sdlt[stx].shine=shine;
-    sdlt[stx].ml=ml;
-    sdlt[stx].ll=ll;
-    sdlt[stx].rl=rl;
-    sdlt[stx].ul=ul;
-    sdlt[stx].dl=dl;
+        // init
+        sdlt[stx].flags=SF_USED|SF_SPRITE;
+        sdlt[stx].sprite=sprite;
+        sdlt[stx].sink=sink;
+        sdlt[stx].freeze=freeze;
+        sdlt[stx].grid=grid;
+        sdlt[stx].scale=scale;
+        sdlt[stx].cr=cr;
+        sdlt[stx].cg=cg;
+        sdlt[stx].cb=cb;
+        sdlt[stx].light=light;
+        sdlt[stx].sat=sat;
+        sdlt[stx].c1=c1;
+        sdlt[stx].c2=c2;
+        sdlt[stx].c3=c3;
+        sdlt[stx].shine=shine;
+        sdlt[stx].ml=ml;
+        sdlt[stx].ll=ll;
+        sdlt[stx].rl=rl;
+        sdlt[stx].ul=ul;
+        sdlt[stx].dl=dl;
+    }
+
+    mem_tex+=sdlt[stx].xres*sdlt[stx].yres*sizeof(uint32_t);
 
     ntx=sdlt_cache[hash];
 
@@ -967,6 +1032,7 @@ void sdl_blit(int stx,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,
 #define DD_SMALL        8
 #define DD_FRAME        16
 #define DD_BIG        	32
+#define DD_NOCACHE      64
 
 #define DD__SHADEFONT	128
 #define DD__FRAMEFONT	256
@@ -1037,8 +1103,98 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
     return texture;
 }
 
+int *dumpidx;
+
+int dump_cmp(const void *ca,const void *cb) {
+    int a,b;
+
+    a=*(int*)ca;
+    b=*(int*)cb;
+
+    if (!sdlt[a].flags) return 1;
+    if (!sdlt[b].flags) return -1;
+
+    if (sdlt[a].flags&SF_TEXT) return 1;
+    if (sdlt[b].flags&SF_TEXT) return -1;
+
+    return sdlt[a].sprite-sdlt[b].sprite;
+}
+
+#ifdef DEVELOPER
+void sdl_dump_spritechache(void) {
+    int i,n,cnt=0,uni=0,text=0;
+    long long size=0;
+    FILE *fp;
+
+    dumpidx=xmalloc(sizeof(int)*MAX_TEXCACHE,MEM_TEMP);
+    for (i=0; i<MAX_TEXCACHE; i++) dumpidx[i]=i;
+
+    qsort(dumpidx,MAX_TEXCACHE,sizeof(int),dump_cmp);
+
+    fp=fopen("sdlt.txt","w");
+
+    for (i=0; i<MAX_TEXCACHE; i++) {
+
+        n=dumpidx[i];
+        if (!sdlt[n].flags) break;
+
+        if (sdlt[n].flags&SF_TEXT) text++;
+        else {
+            if (i==0) uni++;
+            else if (sdlt[dumpidx[i]].sprite!=sdlt[dumpidx[i-1]].sprite) uni++;
+            cnt++;
+        }
+
+        if (sdlt[n].flags&SF_SPRITE)
+            fprintf(fp,"Sprite: %6d, Lights: %2d,%2d,%2d,%2d,%2d, Light: %3d, Colors: %3d,%3d,%3d, Colors: %4X,%4X,%4X, Sink: %2d, Freeze: %2d, Grid: %2d, Scale: %3d, Sat: %3d, Shine: %3d, %dx%d\n",
+                   sdlt[n].sprite,
+                   sdlt[n].ml,
+                   sdlt[n].ll,
+                   sdlt[n].rl,
+                   sdlt[n].ul,
+                   sdlt[n].dl,
+                   sdlt[n].light,
+                   sdlt[n].cr,
+                   sdlt[n].cg,
+                   sdlt[n].cb,
+                   sdlt[n].c1,
+                   sdlt[n].c2,
+                   sdlt[n].c3,
+                   sdlt[n].sink,
+                   sdlt[n].freeze,
+                   sdlt[n].grid,
+                   sdlt[n].scale,
+                   sdlt[n].sat,
+                   sdlt[n].shine,
+                   sdlt[n].xres,
+                   sdlt[n].yres);
+        if (sdlt[n].flags&SF_TEXT)
+            fprintf(fp,"Color: %08X, Flags: %04X, Font: %p, Text: %s (%dx%d)\n",
+                    sdlt[n].text_color,
+                    sdlt[n].text_flags,
+                    sdlt[n].text_font,
+                    sdlt[n].text,
+                    sdlt[n].xres,
+                    sdlt[n].yres);
+
+        size+=sdlt[n].xres*sdlt[n].yres*sizeof(uint32_t);
+
+    }
+    fprintf(fp,"\n%d unique sprites, %d sprites + %d texts of %d used. %.2fM texture memory.\n",uni,cnt,text,MAX_TEXCACHE,size/(1024.0*1024.0));
+    fclose(fp);
+    xfree(dumpidx);
+
+}
+#endif
+
+void sdl_exit(void) {
+#ifdef DEVELOPER
+    sdl_dump_spritechache();
+#endif
+}
+
 int sdl_drawtext(int sx,int sy,unsigned short int color,int flags,const char *text,struct ddfont *font,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
-    int dx;
+    int dx,stx;
     SDL_Texture *tex;
     int r,g,b,a;
     const char *c;
@@ -1048,7 +1204,12 @@ int sdl_drawtext(int sx,int sy,unsigned short int color,int flags,const char *te
     b=B16TO32(color);
     a=255;
 
-    tex=sdl_maketext(text,font,IRGBA(r,g,b,a),flags);
+    if (flags&DD_NOCACHE) {
+        tex=sdl_maketext(text,font,IRGBA(r,g,b,a),flags);
+    } else {
+        stx=sdl_tx_load(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,text,IRGBA(r,g,b,a),flags,font);
+        tex=sdlt[stx].tex;
+    }
 
     for (dx=0,c=text; *c; c++) dx+=font[*c].dim;
 
@@ -1058,7 +1219,7 @@ int sdl_drawtext(int sx,int sy,unsigned short int color,int flags,const char *te
 
         sdl_blit_tex(tex,sx,sy,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 
-        SDL_DestroyTexture(tex);
+        if (flags&DD_NOCACHE) SDL_DestroyTexture(tex);
     }
 
     return sx+dx;

@@ -122,6 +122,7 @@ void dd_rect(int sx,int sy,int ex,int ey,unsigned short int color);
 #define DD_SMALL        8
 #define DD_FRAME        16
 #define DD_BIG        	32
+#define DD_NOCACHE      64
 
 #define DD__SHADEFONT	128
 #define DD__FRAMEFONT	256
