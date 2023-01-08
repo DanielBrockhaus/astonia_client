@@ -1,53 +1,5 @@
-/****************************************************************************
-
-
-resource.rc
-
-produced by Borland Resource Workshop
-
-
-*****************************************************************************/
-
 #include "resource.h"
 
 IDI_MOAC ICON "res/moa3.ico"
 
-1 VERSIONINFO
-FILEVERSION 1, 0, 0, 0
-PRODUCTVERSION 1, 0, 0, 0
-FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
-FILEOS VOS_DOS_WINDOWS16
-FILETYPE VFT_APP
-{
- BLOCK "StringFileInfo"
- {
-  BLOCK "040904E4"
-  {
-   VALUE "CompanyName", "Intent Software\000"
-   VALUE "Author", "Daniel Brockhaus, Markus Roeder\000"
-   VALUE "FileDescription", "Astonia 3 Client\000"
-   VALUE "FileVersion", "03.00.00\000"
-   VALUE "InternalName", "MOAC\000"
-   VALUE "LegalCopyright", "\251 2001-2002 Intent Software\000"
-   VALUE "OriginalFilename", "MOAC.EXE\000"
-   VALUE "ProductName", "Astonia 3\000"
-   VALUE "ProductVersion", "03.00.00\000"
-   VALUE "Comments", "Gamma Version\000"
-  }
-
-  BLOCK "040704B0"
-  {
-   VALUE "CompanyName", "Intent Software\000"
-   VALUE "Author", "Daniel Brockhaus, Markus Roeder\000"
-   VALUE "FileDescription", "Astonia 3 Client\000"
-   VALUE "FileVersion", "03.00.00\000"
-   VALUE "InternalName", "MOAC\000"
-   VALUE "LegalCopyright", "\251 2001-2002 Intent Software\000"
-   VALUE "OriginalFilename", "MOAC.EXE\000"
-   VALUE "ProductName", "Astonia 3\000"
-   VALUE "ProductVersion", "03.00.00\000"
-   VALUE "Comments", "Gamma Version\000"
-  }
- }
-}
 
