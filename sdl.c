@@ -79,6 +79,8 @@ struct sdl_image *sdli=NULL;
 long long mem_png=0,mem_tex=0;
 long long texc_hit=0,texc_miss=0;
 
+int sdl_scale=1;
+
 /* This function is a hack. It can only load one specific type of
    Windows cursor file: 32x32 pixels with 1 bit depth. */
 
@@ -158,7 +160,7 @@ int sdl_init(int width,int height,char *title) {
     //SDL_SetWindowFullscreen(sdlwnd,SDL_WINDOW_FULLSCREEN);  // true full screen
     //SDL_SetWindowFullscreen(sdlwnd,SDL_WINDOW_FULLSCREEN_DESKTOP); // borderless windowed
 
-    sdlren=SDL_CreateRenderer(sdlwnd, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE);
+    sdlren=SDL_CreateRenderer(sdlwnd, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!sdlren){
         SDL_DestroyWindow(sdlwnd);
         fail("SDL_Init Error: %s",SDL_GetError());
@@ -205,9 +207,10 @@ int sdl_init(int width,int height,char *title) {
     sdl_create_cursors();
 
     if (width!=XRES) {
-        sdltgt = SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_TARGET,XRES,YRES);
-        SDL_SetRenderTarget(sdlren,sdltgt);
-        mouse_scale=width/(float)XRES;
+        if (width/XRES==2) sdl_scale=2;
+        else if (width/XRES==3) sdl_scale=3;
+        else if (width/XRES==4) sdl_scale=4;
+        mouse_scale=sdl_scale;
     }
 
     return 1;
@@ -224,18 +227,6 @@ int sdl_clear(void) {
 }
 
 int sdl_render(void) {
-    extern float mouse_scale;
-    SDL_Rect s,d;
-
-    if (mouse_scale!=1.0f) {
-        SDL_SetRenderTarget(sdlren,NULL);
-        s.x=0; s.y=0;
-        s.w=XRES; s.h=YRES;
-        d.x=0; d.y=0;
-        d.w=s.w*mouse_scale; d.h=s.h*mouse_scale;
-        SDL_RenderCopy(sdlren,sdltgt,&s,&d);
-        SDL_SetRenderTarget(sdlren,sdltgt);
-    }
     SDL_RenderPresent(sdlren);
     return 1;
 }
@@ -1010,8 +1001,8 @@ static void sdl_blit_tex(SDL_Texture *tex,int sx,int sy,int clipsx,int clipsy,in
     if (sx+dx>=clipex) dx=clipex-sx;
     if (sy+dy>=clipey) dy=clipey-sy;
 
-    dr.x=sx+x_offset; dr.w=dx;
-    dr.y=sy+y_offset; dr.h=dy;
+    dr.x=(sx+x_offset)*sdl_scale; dr.w=dx*sdl_scale;
+    dr.y=(sy+y_offset)*sdl_scale; dr.h=dy*sdl_scale;
 
     sr.x=addx; sr.w=dx;
     sr.y=addy; sr.h=dy;
@@ -1241,8 +1232,8 @@ void sdl_rect(int sx,int sy,int ex,int ey,unsigned short int color,int clipsx,in
 
     if (sx>ex || sy>ey) return;
 
-    rc.x=sx+x_offset; rc.w=ex-sx;
-    rc.y=sy+y_offset; rc.h=ey-sy;
+    rc.x=(sx+x_offset)*sdl_scale; rc.w=(ex-sx)*sdl_scale;
+    rc.y=(sy+y_offset)*sdl_scale; rc.h=(ey-sy)*sdl_scale;
 
     SDL_SetRenderDrawColor(sdlren,r,g,b,a);
     SDL_RenderFillRect(sdlren,&rc);
@@ -1264,8 +1255,8 @@ void sdl_shaded_rect(int sx,int sy,int ex,int ey,unsigned short int color,int cl
 
     if (sx>ex || sy>ey) return;
 
-    rc.x=sx+x_offset; rc.w=ex-sx;
-    rc.y=sy+y_offset; rc.h=ey-sy;
+    rc.x=(sx+x_offset)*sdl_scale; rc.w=(ex-sx)*sdl_scale;
+    rc.y=(sy+y_offset)*sdl_scale; rc.h=(ey-sy)*sdl_scale;
 
     SDL_SetRenderDrawColor(sdlren,r,g,b,a);
     SDL_SetRenderDrawBlendMode(sdlren,SDL_BLENDMODE_BLEND);
@@ -1274,7 +1265,8 @@ void sdl_shaded_rect(int sx,int sy,int ex,int ey,unsigned short int color,int cl
 
 
 void sdl_pixel(int x,int y,unsigned short color,int x_offset,int y_offset) {
-    int r,g,b,a;
+    int r,g,b,a,i;
+    SDL_Point pt[16];
 
     r=R16TO32(color);
     g=G16TO32(color);
@@ -1282,7 +1274,75 @@ void sdl_pixel(int x,int y,unsigned short color,int x_offset,int y_offset) {
     a=255;
 
     SDL_SetRenderDrawColor(sdlren,r,g,b,a);
-    SDL_RenderDrawPoint(sdlren,x+x_offset,y+y_offset);
+    switch (sdl_scale) {
+        case 1:     SDL_RenderDrawPoint(sdlren,x+x_offset,y+y_offset); return;
+        case 2:     pt[0].x=(x+x_offset)*sdl_scale;
+                    pt[0].y=(y+y_offset)*sdl_scale;
+                    pt[1].x=pt[0].x+1;
+                    pt[1].y=pt[0].y;
+                    pt[2].x=pt[0].x;
+                    pt[2].y=pt[0].y+1;
+                    pt[3].x=pt[0].x+1;
+                    pt[3].y=pt[0].y+1;
+                    i=4;
+                    break;
+        case 3:     pt[0].x=(x+x_offset)*sdl_scale;
+                    pt[0].y=(y+y_offset)*sdl_scale;
+                    pt[1].x=pt[0].x+1;
+                    pt[1].y=pt[0].y;
+                    pt[2].x=pt[0].x;
+                    pt[2].y=pt[0].y+1;
+                    pt[3].x=pt[0].x+1;
+                    pt[3].y=pt[0].y+1;
+                    pt[4].x=pt[0].x+2;
+                    pt[4].y=pt[0].y;
+                    pt[5].x=pt[0].x;
+                    pt[5].y=pt[0].y+2;
+                    pt[6].x=pt[0].x+2;
+                    pt[6].y=pt[0].y+2;
+                    pt[7].x=pt[0].x+2;
+                    pt[7].y=pt[0].y+1;
+                    pt[8].x=pt[0].x+1;
+                    pt[8].y=pt[0].y+2;
+                    i=9;
+                    break;
+        case 4:     pt[0].x=(x+x_offset)*sdl_scale;
+                    pt[0].y=(y+y_offset)*sdl_scale;
+                    pt[1].x=pt[0].x+1;
+                    pt[1].y=pt[0].y;
+                    pt[2].x=pt[0].x;
+                    pt[2].y=pt[0].y+1;
+                    pt[3].x=pt[0].x+1;
+                    pt[3].y=pt[0].y+1;
+                    pt[4].x=pt[0].x+2;
+                    pt[4].y=pt[0].y;
+                    pt[5].x=pt[0].x;
+                    pt[5].y=pt[0].y+2;
+                    pt[6].x=pt[0].x+2;
+                    pt[6].y=pt[0].y+2;
+                    pt[7].x=pt[0].x+2;
+                    pt[7].y=pt[0].y+1;
+                    pt[8].x=pt[0].x+1;
+                    pt[8].y=pt[0].y+2;
+                    pt[9].x=pt[0].x+3;
+                    pt[9].y=pt[0].y;
+                    pt[10].x=pt[0].x+3;
+                    pt[10].y=pt[0].y+1;
+                    pt[11].x=pt[0].x+3;
+                    pt[11].y=pt[0].y+2;
+                    pt[12].x=pt[0].x+3;
+                    pt[12].y=pt[0].y+3;
+                    pt[13].x=pt[0].x;
+                    pt[13].y=pt[0].y+3;
+                    pt[14].x=pt[0].x+1;
+                    pt[14].y=pt[0].y+3;
+                    pt[15].x=pt[0].x+2;
+                    pt[15].y=pt[0].y+3;
+                    i=16;
+                    break;
+        default:    warn("unsupported scale %d in sdl_pixel()",sdl_scale); return;
+    }
+    SDL_RenderDrawPoints(sdlren,pt,i);
 }
 
 void sdl_line(int fx,int fy,int tx,int ty,unsigned short color,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
@@ -1307,7 +1367,8 @@ void sdl_line(int fx,int fy,int tx,int ty,unsigned short color,int clipsx,int cl
     fy+=y_offset; ty+=y_offset;
 
     SDL_SetRenderDrawColor(sdlren,r,g,b,a);
-    SDL_RenderDrawLine(sdlren,fx,fy,tx,ty);
+    // TODO: This is a thinner line when scaled up. It looks surprisingly good. Maybe keep it this way?
+    SDL_RenderDrawLine(sdlren,fx*sdl_scale,fy*sdl_scale,tx*sdl_scale,ty*sdl_scale);
 }
 
 void gui_sdl_keyproc(int wparam);
