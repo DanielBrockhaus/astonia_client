@@ -71,5 +71,4 @@ int sdlt_yoff(int stx);
 int sdlt_xres(int stx);
 int sdlt_yres(int stx);
 
-
-
+uint32_t *sdl_load_png(char *filename,int *dx,int *dy);

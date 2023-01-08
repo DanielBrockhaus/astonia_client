@@ -17,8 +17,6 @@
 SDL_Window *sdlwnd;
 SDL_Renderer *sdlren;
 
-extern int gfx_force_png;
-
 #define MAX_TEXCACHE    15000
 #define MAX_TEXHASH     10000
 #define STX_NONE        (-1)
@@ -207,11 +205,18 @@ int sdl_init(int width,int height,char *title) {
     sdl_create_cursors();
 
     if (width!=XRES) {
-        if (width/XRES==2) sdl_scale=2;
-        else if (width/XRES==3) sdl_scale=3;
-        else if (width/XRES==4) sdl_scale=4;
+        extern int x_offset,y_offset;
+
+        if (width/XRES>=4 && height/YRES>=4) sdl_scale=4;
+        else if (width/XRES>=3 && height/YRES>=3) sdl_scale=3;
+        else if (width/XRES>=2 && height/YRES>=2) sdl_scale=2;
+
         mouse_scale=sdl_scale;
+
+        x_offset=(width/sdl_scale-XRES)/2;
+        y_offset=(height/sdl_scale-YRES)/2;
     }
+
 
     return 1;
 }
@@ -219,7 +224,7 @@ int sdl_init(int width,int height,char *title) {
 int maxpanic=0;
 
 int sdl_clear(void) {
-    SDL_SetRenderDrawColor(sdlren,31,63,127,255);
+    SDL_SetRenderDrawColor(sdlren,0,0,0,255);
     SDL_RenderClear(sdlren);
     //note("mem: %.2fM PNG, %.2fM Tex, Hit: %ld, Miss: %ld, Max: %d\n",mem_png/(1024.0*1024.0),mem_tex/(1024.0*1024.0),texc_hit,texc_miss,maxpanic);
     maxpanic=0;
@@ -990,6 +995,29 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
     return stx;
 }
 
+// function to blit a high res texture to screen
+static void sdl_blit_tex_(SDL_Texture *tex,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
+    int addx=0,addy=0,dx,dy;
+    SDL_Rect dr,sr;
+
+    SDL_QueryTexture(tex, NULL, NULL, &dx, &dy);
+
+    if (sx<clipsx) { addx=clipsx-sx; dx-=addx; sx=clipsx; }
+    if (sy<clipsy) { addy=clipsy-sy; dy-=addy; sy=clipsy; }
+    if (sx+dx>=clipex) dx=clipex-sx;
+    if (sy+dy>=clipey) dy=clipey-sy;
+
+    dr.x=(sx+x_offset)*sdl_scale; dr.w=dx;
+    dr.y=(sy+y_offset)*sdl_scale; dr.h=dy;
+
+    sr.x=addx; sr.w=dx;
+    sr.y=addy; sr.h=dy;
+
+    SDL_RenderCopy(sdlren,tex,&sr,&dr);
+}
+
+
+// function to blit a low res texture to screen
 static void sdl_blit_tex(SDL_Texture *tex,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
     int addx=0,addy=0,dx,dy;
     SDL_Rect dr,sr;
@@ -1040,7 +1068,7 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
     int x,y=0,sizex,sizey=0,sx=0;
     const char *c;
 
-    for (sizex=0,c=text; *c; c++) sizex+=font[*c].dim;
+    for (sizex=0,c=text; *c; c++) sizex+=font[*c].dim*sdl_scale;
 
     if (flags&(DD__FRAMEFONT|DD__SHADEFONT)) sizex+=2;
 
@@ -1075,7 +1103,7 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
             rawrun++;
             *dst=color;
         }
-        sx+=font[*text++].dim;
+        sx+=font[*text++].dim*sdl_scale;
     }
 
     if (sizex<1 || sizey<1) {
@@ -1208,7 +1236,7 @@ int sdl_drawtext(int sx,int sy,unsigned short int color,int flags,const char *te
         if (flags&DD_CENTER) sx-=dx/2;
         else if (flags&DD_RIGHT) sx-=dx;
 
-        sdl_blit_tex(tex,sx,sy,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
+        sdl_blit_tex_(tex,sx,sy,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 
         if (flags&DD_NOCACHE) SDL_DestroyTexture(tex);
     }
@@ -1454,3 +1482,87 @@ int sdlt_yres(int stx) {
     return sdlt[stx].yres;
 }
 
+uint32_t *sdl_load_png(char *filename,int *dx,int *dy) {
+    int x,y,xres,yres,tmp,r,g,b,a;
+    int format;
+    unsigned char **row;
+    uint32_t *pixel;
+    FILE *fp;
+    png_structp png_ptr;
+    png_infop info_ptr;
+    png_infop end_info;
+
+    fp=fopen(filename,"rb");
+    if (!fp) return NULL;
+
+    png_ptr=png_create_read_struct(PNG_LIBPNG_VER_STRING,NULL,NULL,NULL);
+    if (!png_ptr) { fclose(fp); warn("create read\n"); return NULL; }
+
+    info_ptr=png_create_info_struct(png_ptr);
+    if (!info_ptr) { fclose(fp); png_destroy_read_struct(&png_ptr,(png_infopp)NULL,(png_infopp)NULL); warn("create info1\n"); return NULL; }
+
+    end_info=png_create_info_struct(png_ptr);
+    if (!end_info) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("create info2\n"); return NULL; }
+
+    png_init_io(png_ptr,fp);
+    png_set_strip_16(png_ptr);
+    png_read_png(png_ptr,info_ptr,PNG_TRANSFORM_PACKING,NULL);
+
+    row=png_get_rows(png_ptr,info_ptr);
+    if (!row) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("read row\n"); return NULL; }
+
+    xres=png_get_image_width(png_ptr,info_ptr);
+    yres=png_get_image_height(png_ptr,info_ptr);
+
+    tmp=png_get_rowbytes(png_ptr,info_ptr);
+
+    if (tmp==xres*3) format=3;
+    else if (tmp==xres*4) format=4;
+    else { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("rowbytes!=xres*4 (%d)",tmp); return NULL; }
+
+    if (png_get_bit_depth(png_ptr,info_ptr)!=8) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("bit depth!=8\n"); return NULL; }
+    if (png_get_channels(png_ptr,info_ptr)!=format) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("channels!=format\n"); return NULL; }
+
+    // prescan
+    if (dx) *dx=xres;
+    if (dy) *dy=yres;
+
+    pixel=xmalloc(xres*yres*sizeof(uint32_t),MEM_TEMP8);
+
+    if (format==4) {
+        for (y=0; y<yres; y++) {
+            for (x=0; x<xres; x++) {
+
+                r=row[y][x*4+0];
+                g=row[y][x*4+1];
+                b=row[y][x*4+2];
+                a=row[y][x*4+3];
+
+                if (a) {
+                    r=min(255,r*255/a);
+                    g=min(255,g*255/a);
+                    b=min(255,b*255/a);
+                } else r=g=b=0;
+
+                pixel[x+y*xres]=(a<<24)|(b<<16)|(g<<8)|(r);
+            }
+        }
+    } else {
+        for (y=0; y<yres; y++) {
+            for (x=0; x<xres; x++) {
+
+                r=row[y][x*3+0];
+                g=row[y][x*3+1];
+                b=row[y][x*3+2];
+                a=255;
+
+                pixel[x+y*xres]=(a<<24)|(b<<16)|(g<<8)|(r);
+            }
+        }
+    }
+
+    png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL);
+    fclose(fp);
+
+    return pixel;
+}

@@ -3,6 +3,7 @@
  */
 
 #include <windows.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <math.h>
@@ -102,7 +103,6 @@ int dd_init(void) {
     clipex=XRES;
     clipey=YRES;
 
-    // initialize the gfx loading stuff - TODO: call this in dd_init_cache();
     dd_create_font();
     dd_init_text();
 
@@ -489,7 +489,7 @@ void dd_draw_rain(int x,int y,int ticker,int strength,int front) {
     }
 }
 
-void dd_create_letter(unsigned char *rawrun,int sx,int sy,int val,char letter[16][16]) {
+void dd_create_letter(unsigned char *rawrun,int sx,int sy,int val,char letter[64][64]) {
     int x=sx,y=sy;
 
     while (*rawrun!=255) {
@@ -506,15 +506,15 @@ void dd_create_letter(unsigned char *rawrun,int sx,int sy,int val,char letter[16
     }
 }
 
-char* dd_create_rawrun(char letter[16][16]) {
+char* dd_create_rawrun(char letter[64][64]) {
     char *ptr,*fon,*last;
     int x,y,step;
 
-    last=fon=ptr=xmalloc(256,MEM_TEMP);
+    last=fon=ptr=xmalloc(1024,MEM_TEMP);
 
-    for (y=3; y<16; y++) {
+    for (y=3; y<64; y++) {
         step=0;
-        for (x=3; x<16; x++) {
+        for (x=3; x<64; x++) {
             if (letter[y][x]==2) {
                 *ptr++=step; last=ptr;
                 step=1;
@@ -530,7 +530,7 @@ char* dd_create_rawrun(char letter[16][16]) {
 }
 
 void create_shade_font(DDFONT *src,DDFONT *dst) {
-    char letter[16][16];
+    char letter[64][64];
     int c;
 
     for (c=0; c<128; c++) {
@@ -544,7 +544,7 @@ void create_shade_font(DDFONT *src,DDFONT *dst) {
 }
 
 void create_frame_font(DDFONT *src,DDFONT *dst) {
-    char letter[16][16];
+    char letter[64][64];
     int c;
 
     for (c=0; c<128; c++) {
@@ -563,8 +563,52 @@ void create_frame_font(DDFONT *src,DDFONT *dst) {
     }
 }
 
+int dd_create_font_png(DDFONT *dst,uint32_t *pixel,int dx,int dy,int yoff,int scale) {
+    int c,x,y,sx,sy;
+    char letter[64][64];
+
+    for (c=32; c<128; c++) {
+        if (c<80) {
+            sx=(c-32)*10*scale;
+            sy=yoff;
+        } else {
+            sx=(c-80)*10*scale;
+            sy=yoff+20*scale;
+        }
+        bzero(letter,sizeof(letter));
+
+        for (x=0; x<10*scale; x++) {
+            for (y=0; y<12*scale; y++) {
+                if (pixel[sx+x+(sy+y)*dx]==0xffffffff) {
+                    letter[y+3][x+3]=2;
+                }
+            }
+        }
+        dst[c].raw=dd_create_rawrun(letter);
+    }
+    return 1;
+}
+
 void dd_create_font(void) {
+    uint32_t *pixel;
+    int dx,dy;
+    extern int sdl_scale;
+
     if (fonta_shaded) return;
+
+    if (sdl_scale>1) {
+        if (sdl_scale==2) pixel=sdl_load_png("../gfx/font2x.png",&dx,&dy);
+        else if (sdl_scale==3) pixel=sdl_load_png("../gfx/font3x.png",&dx,&dy);
+        else if (sdl_scale==4) pixel=sdl_load_png("../gfx/font4x.png",&dx,&dy);
+        else { fail("Scale not supported in dd_create_font!"); pixel=NULL; }
+        if (!pixel) return;
+
+        dd_create_font_png(fonta,pixel,dx,dy,40*sdl_scale,sdl_scale);
+        dd_create_font_png(fontb,pixel,dx,dy,0,sdl_scale);
+        dd_create_font_png(fontc,pixel,dx,dy,80*sdl_scale,sdl_scale);
+
+        xfree(pixel);
+    }
 
     fonta_shaded=xmalloc(sizeof(DDFONT)*128,MEM_GLOB); create_shade_font(fonta,fonta_shaded);
     fontb_shaded=xmalloc(sizeof(DDFONT)*128,MEM_GLOB); create_shade_font(fontb,fontb_shaded);
@@ -573,7 +617,6 @@ void dd_create_font(void) {
     fonta_framed=xmalloc(sizeof(DDFONT)*128,MEM_GLOB); create_frame_font(fonta,fonta_framed);
     fontb_framed=xmalloc(sizeof(DDFONT)*128,MEM_GLOB); create_frame_font(fontb,fontb_framed);
     fontc_framed=xmalloc(sizeof(DDFONT)*128,MEM_GLOB); create_frame_font(fontc,fontc_framed);
-
 }
 
 DDFONT *textfont=fonta;

@@ -3,6 +3,7 @@
  */
 
 #include <windows.h>
+#include <stdint.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <io.h>
@@ -694,6 +695,12 @@ int main(int argc,char *args[]) {
     // init random
     rrandomize();
 
+    sprintf(buf,"Astonia 3 v%d.%d.%d",(VERSION>>16)&255,(VERSION>>8)&255,(VERSION)&255);
+    if (!sdl_init(width,height,buf)) {
+        dd_exit();
+        net_exit();
+        return -1;
+    }
     if (dd_init()==-1) {
         dd_exit();
 
@@ -703,12 +710,7 @@ int main(int argc,char *args[]) {
         return -1;
     }
 
-    sprintf(buf,"Astonia 3 v%d.%d.%d",(VERSION>>16)&255,(VERSION>>8)&255,(VERSION)&255);
-    if (!sdl_init(width,height,buf)) {
-        dd_exit();
-        net_exit();
-        return -1;
-    }
+
 
 #ifdef DOSOUND
     init_sound();

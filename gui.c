@@ -1476,6 +1476,17 @@ static void display(void) {
                 dd_drawtext_fmt(800/2,600/2-0,textcolor,DD_LARGE|DD_CENTER|DD_FRAME,"Additional information can be found at www.astonia.com.");
             }
         }
+        /* TODO: remove font creation helper
+        for (int i=32; i<80; i++) {
+            dd_drawtext(i*10-320,80,0xffff,DD_SMALL|DD_LEFT,(char*)&i);
+            dd_drawtext(i*10-320,120,0xffff,DD_LARGE|DD_LEFT,(char*)&i);
+            dd_drawtext(i*10-320,160,0xffff,DD_BIG|DD_LEFT,(char*)&i);
+        }
+        for (int i=80; i<128; i++) {
+            dd_drawtext(i*10-800,100,0xffff,DD_SMALL|DD_LEFT,(char*)&i);
+            dd_drawtext(i*10-800,140,0xffff,DD_LARGE|DD_LEFT,(char*)&i);
+            dd_drawtext(i*10-800,180,0xffff,DD_BIG|DD_LEFT,(char*)&i);
+        }*/
         return;
     }
 
@@ -2696,6 +2707,8 @@ void gui_sdl_mouseproc(int x,int y,int what) {
 
                 mousex/=mouse_scale;
                 mousey/=mouse_scale;
+                mousex-=x_offset;
+                mousey-=y_offset;
 
                 if (butsel!=-1 && vk_lbut && (but[butsel].flags&BUTF_MOVEEXEC)) exec_cmd(lcmd,0);
                 break;
