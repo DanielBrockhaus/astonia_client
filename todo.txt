@@ -1,0 +1,30 @@
+
+Astonia To-Do List
+==================
+
+
+Probably
+--------
+
+- Resize the client window to 800x540 to allow doubling the resolution on standard 2K displays.
+
+- Add multi-core pre-rendering of textures to speed up sdl_make().
+
+Possibly
+--------
+
+- Add configuration files for:
+  - Pretty much everything in sprite.c
+  - Everything in skill.c
+
+- New .PAK file format
+
+- Implement a control scheme that works without shift and control.
+
+
+Maybe Later
+-----------
+
+- Move all parts of the client into separate windows, including the different chat channels.
+
+

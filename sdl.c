@@ -515,12 +515,14 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         return -1;
     }
 
+#ifdef DEVELOPER
     if (sdl_scale>1) {
-        sprintf(filename,"x%d/%08d/%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
+        sprintf(filename,"../gfx/x%d/%08d/%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
         if (sdl_load_image_png_(si,filename)==0) return 0;
     }
-    sprintf(filename,"x1/%08d/%08d.png",(sprite/1000)*1000,sprite);
+    sprintf(filename,"../gfx/x1/%08d/%08d.png",(sprite/1000)*1000,sprite);
     if (sdl_load_image_png(si,filename)==0) return 0;
+#endif
     paranoia("%s not found",filename);
 
     return -1;
