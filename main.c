@@ -645,12 +645,6 @@ int main(int argc,char *args[]) {
     char buf[80],buffer[1024];
     struct hostent *he;
 
-    // This hide the console window SDL usually show
-    // TODO: Figure out a cleaner way to get rid of this
-#ifndef DEVELOPER
-	ShowWindow(GetConsoleWindow(),SW_HIDE);
-#endif
-
     errorfp=fopen("moac.log","a");
     if (!errorfp) errorfp=stderr;
 

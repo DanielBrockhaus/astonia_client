@@ -1530,6 +1530,7 @@ static void display(void) {
         dd_drawtext_fmt(650+20,54,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"%5.2f MB",mem_tex/(1024.0*1024.0));
 
         dd_drawtext_fmt(650,64,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"MISS %lld",texc_miss);
+        dd_drawtext_fmt(650,74,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Frames %.2f",1000.0*frames/tota);
 
         dd_shaded_rect(770,110,790,110+skip);
     } else dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);
@@ -2941,11 +2942,24 @@ int main_loop(void) {
 #endif
         {
             if (timediff>-MPT/2) {
-
                 set_cmd_states();
 
                 sdl_clear();
                 display();
+
+#if 0   // Full throttle (FPS)
+                while (1) {
+                    timediff=nextframe-GetTickCount();
+                    if (timediff<20) break;
+
+                    frames++;
+                    sdl_render();
+
+                    set_cmd_states();
+                    sdl_clear();
+                    display();
+                }
+#endif
 
                 timediff=nextframe-GetTickCount();
                 if (timediff>0) idle+=timediff;

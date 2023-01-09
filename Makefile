@@ -2,7 +2,7 @@ all: moac.exe
 
 CC=gcc
 CFLAGS=-O3 -ggdb -Wall -Wno-pointer-sign -Wno-char-subscripts
-LDFLAGS=-O3 -ggdb
+LDFLAGS=-O3 -ggdb -Wl,-subsystem,windows
 LIBS = -lwsock32 -lws2_32 -lz -lpng -lsdl2 -lsdl2main
 
 OBJS	=	gui.o client.o skill.o dd.o font.o main.o sprite.o game.o\

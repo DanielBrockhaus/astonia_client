@@ -1002,10 +1002,12 @@ static void sdl_blit_tex_(SDL_Texture *tex,int sx,int sy,int clipsx,int clipsy,i
 
     SDL_QueryTexture(tex, NULL, NULL, &dx, &dy);
 
+    dx/=sdl_scale; dy/=sdl_scale;
     if (sx<clipsx) { addx=clipsx-sx; dx-=addx; sx=clipsx; }
     if (sy<clipsy) { addy=clipsy-sy; dy-=addy; sy=clipsy; }
     if (sx+dx>=clipex) dx=clipex-sx;
     if (sy+dy>=clipey) dy=clipey-sy;
+    dx*=sdl_scale; dy*=sdl_scale;
 
     dr.x=(sx+x_offset)*sdl_scale; dr.w=dx;
     dr.y=(sy+y_offset)*sdl_scale; dr.h=dy;
