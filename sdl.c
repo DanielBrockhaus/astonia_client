@@ -238,6 +238,7 @@ int sdl_render(void) {
 
 int sdl_load_image_png(struct sdl_image *si,char *filename) {
     int x,y,xres,yres,tmp,r,g,b,a,sx,sy,ex,ey;
+    uint32_t c;
     int format;
     unsigned char **row;
     FILE *fp;
@@ -303,43 +304,66 @@ int sdl_load_image_png(struct sdl_image *si,char *filename) {
     si->xoff=-(xres/2)+sx;
     si->yoff=-(yres/2)+sy;
 
-    si->pixel=xmalloc(si->xres*si->yres*sizeof(uint32_t),MEM_SDL_PNG);
+    si->pixel=xmalloc(si->xres*si->yres*sizeof(uint32_t)*sdl_scale*sdl_scale,MEM_SDL_PNG);
     mem_png+=si->xres*si->yres*sizeof(uint32_t);
 
-    if (format==4) {
-        for (y=0; y<si->yres; y++) {
-            for (x=0; x<si->xres; x++) {
 
+    for (y=0; y<si->yres; y++) {
+        for (x=0; x<si->xres; x++) {
+
+            if (format==4) {
                 r=row[(sy+y)][(sx+x)*4+0];
                 g=row[(sy+y)][(sx+x)*4+1];
                 b=row[(sy+y)][(sx+x)*4+2];
                 a=row[(sy+y)][(sx+x)*4+3];
-
-                if (r==255 && g==0 && b==255) a=0;
-
-                if (a) {
-                    r=min(255,r*255/a);
-                    g=min(255,g*255/a);
-                    b=min(255,b*255/a);
-                } else r=g=b=0;
-
-                si->pixel[x+y*si->xres]=(a<<24)|(b<<16)|(g<<8)|(r);
-            }
-        }
-    } else {
-        for (y=0; y<si->yres; y++) {
-            for (x=0; x<si->xres; x++) {
-
+            } else {
                 r=row[(sy+y)][(sx+x)*3+0];
                 g=row[(sy+y)][(sx+x)*3+1];
                 b=row[(sy+y)][(sx+x)*3+2];
                 if (r==255 && g==0 && b==255) a=0;
                 else a=255;
+            }
 
-                si->pixel[x+y*si->xres]=(a<<24)|(b<<16)|(g<<8)|(r);
+            if (r==255 && g==0 && b==255) a=0;
+
+            if (a) {
+                r=min(255,r*255/a);
+                g=min(255,g*255/a);
+                b=min(255,b*255/a);
+            } else r=g=b=0;
+
+            c=(a<<24)|(b<<16)|(g<<8)|(r);
+
+            switch (sdl_scale) {
+                case 1:
+                    si->pixel[x+y*si->xres]=c;
+                    break;
+                case 2:
+                    si->pixel[x*2+y*si->xres*4]=c;
+                    si->pixel[x*2+y*si->xres*4+1]=c;
+                    si->pixel[x*2+y*si->xres*4+si->xres*2]=c;
+                    si->pixel[x*2+y*si->xres*4+1+si->xres*2]=c;
+                    break;
+                case 3:
+                    si->pixel[x*3+y*si->xres*9+0]=c;
+                    si->pixel[x*3+y*si->xres*9+0+si->xres*3]=c;
+                    si->pixel[x*3+y*si->xres*9+0+si->xres*6]=c;
+
+                    si->pixel[x*3+y*si->xres*9+1]=c;
+                    si->pixel[x*3+y*si->xres*9+1+si->xres*3]=c;
+                    si->pixel[x*3+y*si->xres*9+1+si->xres*6]=c;
+
+                    si->pixel[x*3+y*si->xres*9+2]=c;
+                    si->pixel[x*3+y*si->xres*9+2+si->xres*3]=c;
+                    si->pixel[x*3+y*si->xres*9+2+si->xres*6]=c;
+                    break;
+                default:
+                    warn("Unsupported scale %d in sdl_load_image_png()",sdl_scale);
+                    break;
             }
         }
     }
+
 
     png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL);
     fclose(fp);
@@ -604,10 +628,10 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
 
     if (sink) sink=min(sink,max(0,st->yres-4));
 
-    pixel=xcalloc(st->xres*st->yres*sizeof(uint32_t),MEM_SDL_PIXEL);
+    pixel=xcalloc(st->xres*st->yres*sizeof(uint32_t)*sdl_scale*sdl_scale,MEM_SDL_PIXEL);
 
-    for (y=0; y<st->yres; y++) {
-        for (x=0; x<st->xres; x++) {
+    for (y=0; y<st->yres*sdl_scale; y++) {
+        for (x=0; x<st->xres*sdl_scale; x++) {
 
             if (scale!=100) {
                 ix=x*100.0/scale;
@@ -618,7 +642,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
                 low_x=1-high_x;
                 low_y=1-high_y;
 
-                irgb=si->pixel[(int)(floor(ix)+floor(iy)*si->xres)];
+                irgb=si->pixel[(int)(floor(ix)+floor(iy)*si->xres*sdl_scale)];
 
                 if (c1v || c2v || c3v) irgb=sdl_colorize_pix(irgb,c1v,c2v,c3v);
                 dba=IGET_A(irgb)*low_x*low_y;
@@ -626,7 +650,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
                 dbg=IGET_G(irgb)*low_x*low_y;
                 dbb=IGET_B(irgb)*low_x*low_y;
 
-                irgb=si->pixel[(int)(ceil(ix)+floor(iy)*si->xres)];
+                irgb=si->pixel[(int)(ceil(ix)+floor(iy)*si->xres*sdl_scale)];
 
                 if (c1v || c2v || c3v) irgb=sdl_colorize_pix(irgb,c1v,c2v,c3v);
                 dba+=IGET_A(irgb)*high_x*low_y;
@@ -634,7 +658,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
                 dbg+=IGET_G(irgb)*high_x*low_y;
                 dbb+=IGET_B(irgb)*high_x*low_y;
 
-                irgb=si->pixel[(int)(floor(ix)+ceil(iy)*si->xres)];
+                irgb=si->pixel[(int)(floor(ix)+ceil(iy)*si->xres*sdl_scale)];
 
                 if (c1v || c2v || c3v) irgb=sdl_colorize_pix(irgb,c1v,c2v,c3v);
                 dba+=IGET_A(irgb)*low_x*high_y;
@@ -642,7 +666,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
                 dbg+=IGET_G(irgb)*low_x*high_y;
                 dbb+=IGET_B(irgb)*low_x*high_y;
 
-                irgb=si->pixel[(int)(ceil(ix)+ceil(iy)*si->xres)];
+                irgb=si->pixel[(int)(ceil(ix)+ceil(iy)*si->xres*sdl_scale)];
 
                 if (c1v || c2v || c3v) irgb=sdl_colorize_pix(irgb,c1v,c2v,c3v);
                 dba+=IGET_A(irgb)*high_x*high_y;
@@ -653,7 +677,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
                 irgb=IRGBA(((int)dbr),((int)dbg),((int)dbb),((int)dba));
 
             } else {
-                irgb=si->pixel[x+y*si->xres];
+                irgb=si->pixel[x+y*si->xres*sdl_scale];
                 if (c1v || c2v || c3v) irgb=sdl_colorize_pix(irgb,c1v,c2v,c3v);
             }
 
@@ -669,15 +693,15 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
                 int div;
 
                 // TODO: Tilesizes are hardcoded, with 10px being 1/4th, 20px 1/2.
-                if (y<10+(20-abs(20-x))/2) {
-                    if (x/2<20-y) {
-                        v2=-(x/2-(20-y))+1;
+                if (y<10*sdl_scale+(20*sdl_scale-abs(20*sdl_scale-x))/2) {
+                    if (x/2<20*sdl_scale-y) {
+                        v2=-(x/2-(20*sdl_scale-y))+1;
                         r2=IGET_R(sdl_light(ll,irgb));
                         g2=IGET_G(sdl_light(ll,irgb));
                         b2=IGET_B(sdl_light(ll,irgb));
                     } else v2=0;
-                    if (x/2>20-y) {
-                        v3=(x/2-(20-y))+1;
+                    if (x/2>20*sdl_scale-y) {
+                        v3=(x/2-(20*sdl_scale-y))+1;
                         r3=IGET_R(sdl_light(rl,irgb));
                         g3=IGET_G(sdl_light(rl,irgb));
                         b3=IGET_B(sdl_light(rl,irgb));
@@ -695,25 +719,25 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
                         b5=IGET_B(sdl_light(dl,irgb));
                     } else v5=0;
                 } else {
-                    if (x<10) {
-                        v2=(10-x)*2-2;
+                    if (x<10*sdl_scale) {
+                        v2=(10*sdl_scale-x)*2-2;
                         r2=IGET_R(sdl_light(ll,irgb));
                         g2=IGET_G(sdl_light(ll,irgb));
                         b2=IGET_B(sdl_light(ll,irgb));
                     } else v2=0;
-                    if (x>10 && x<20) {
-                        v3=(x-10)*2-2;
+                    if (x>10*sdl_scale && x<20*sdl_scale) {
+                        v3=(x-10*sdl_scale)*2-2;
                         r3=IGET_R(sdl_light(rl,irgb));
                         g3=IGET_G(sdl_light(rl,irgb));
                         b3=IGET_B(sdl_light(rl,irgb));
                     } else v3=0;
-                    if (x>20 && x<30) {
-                        v5=(10-(x-20))*2-2;
+                    if (x>20*sdl_scale && x<30*sdl_scale) {
+                        v5=(10*sdl_scale-(x-20*sdl_scale))*2-2;
                         r5=IGET_R(sdl_light(dl,irgb));
                         g5=IGET_G(sdl_light(dl,irgb));
                         b5=IGET_B(sdl_light(dl,irgb));
                     } else v5=0;
-                    if (x>30 && x<40) {
+                    if (x>30*sdl_scale && x<40*sdl_scale) {
                         v4=(x-30)*2-2;
                         r4=IGET_R(sdl_light(ul,irgb));
                         g4=IGET_G(sdl_light(ul,irgb));
@@ -721,7 +745,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
                     } else v4=0;
                 }
 
-                v1=20-(v2+v3+v4+v5)/2;
+                v1=20*sdl_scale-(v2+v3+v4+v5)/2;
                 r1=IGET_R(sdl_light(ml,irgb));
                 g1=IGET_G(sdl_light(ml,irgb));
                 b1=IGET_B(sdl_light(ml,irgb));
@@ -738,7 +762,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
             } else irgb=sdl_light(ml,irgb);
 
             if (sink) {
-                if (st->yres-sink<y) irgb&=0xffffff;    // zero alpha to make it transparent
+                if (st->yres*sdl_scale-sink<y) irgb&=0xffffff;    // zero alpha to make it transparent
             }
 
             if (freeze) irgb=sdl_freeze(freeze,irgb);
@@ -746,12 +770,12 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
             if (grid==DDFX_LEFTGRID) { if ((st->xoff+x+st->yoff+y)&1) irgb&=0xffffff; }
             if (grid==DDFX_RIGHTGRID) {  if ((st->xoff+x+st->yoff+y+1)&1) irgb&=0xffffff; }
 
-            pixel[x+y*st->xres]=irgb;
+            pixel[x+y*st->xres*sdl_scale]=irgb;
         }
     }
-    SDL_Texture *texture = SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_STATIC,st->xres,st->yres);
+    SDL_Texture *texture = SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_STATIC,st->xres*sdl_scale,st->yres*sdl_scale);
     if (!texture) warn("SDL_texture Error: %s",SDL_GetError());
-    SDL_UpdateTexture(texture,NULL,pixel,st->xres*sizeof(uint32_t));
+    SDL_UpdateTexture(texture,NULL,pixel,st->xres*sizeof(uint32_t)*sdl_scale);
     SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
     xfree(pixel);
 
@@ -1042,7 +1066,7 @@ static void sdl_blit_tex(SDL_Texture *tex,int sx,int sy,int clipsx,int clipsy,in
 
 
 void sdl_blit(int stx,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
-    sdl_blit_tex(sdlt[stx].tex,sx,sy,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
+    sdl_blit_tex_(sdlt[stx].tex,sx,sy,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 }
 
 #define DD_LEFT         0
