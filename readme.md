@@ -12,15 +12,25 @@ pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-SDL2 mingw-w64-x86_64-libpng mak
 to install the 64 bit GCC compiler toolchain, the SDL2 library and the
 PNG library. And make, of course.
 
-Then download the old client source code archive from my website at:
+Create a directory structure like this:
 
-https://brockhaus.org/astonia3.html
+mkdir astonia3
+cd astonia3
+mkdir moac
+mkdir gfx
+cd moac
 
-It contains next to the old source code a lot of graphics and other resources
-you'll need. Unzip it to a folder of your liking. Then download these sources
-from Github into the moac directory. This will overwrite several files.
+Then clone or download the sources from Github to the current directory
+("astonia3/moac").
 
-Then run
+Then download
+
+https://brockhaus.org/astonia_client_pngs.zip
+
+and extract it in the main folder ("astonia3"). This should put the "x1",
+"x2", etc. folders into "astonia3/gfx" resulting in, e.g. "astonia3/gfx/x1".
+
+Go back into the moac folder and run
 
 make
 
