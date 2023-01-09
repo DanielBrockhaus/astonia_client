@@ -598,9 +598,9 @@ void dd_create_font(void) {
     if (fonta_shaded) return;
 
     if (sdl_scale>1) {
-        if (sdl_scale==2) pixel=sdl_load_png("../gfx/font2x.png",&dx,&dy);
-        else if (sdl_scale==3) pixel=sdl_load_png("../gfx/font3x.png",&dx,&dy);
-        else if (sdl_scale==4) pixel=sdl_load_png("../gfx/font4x.png",&dx,&dy);
+        if (sdl_scale==2) pixel=sdl_load_png("font/font2x.png",&dx,&dy);
+        else if (sdl_scale==3) pixel=sdl_load_png("font/font3x.png",&dx,&dy);
+        else if (sdl_scale==4) pixel=sdl_load_png("font/font4x.png",&dx,&dy);
         else { fail("Scale not supported in dd_create_font!"); pixel=NULL; }
         if (!pixel) return;
 

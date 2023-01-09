@@ -110,24 +110,24 @@ SDL_Cursor *sdl_create_cursor(char *filename) {
 SDL_Cursor *curs[20];
 
 int sdl_create_cursors(void) {
-    curs[SDL_CUR_c_only]=sdl_create_cursor("../gfx/c_only.cur");
-    curs[SDL_CUR_c_take]=sdl_create_cursor("../gfx/c_take.cur");
-    curs[SDL_CUR_c_drop]=sdl_create_cursor("../gfx/c_drop.cur");
-    curs[SDL_CUR_c_attack]=sdl_create_cursor("../gfx/c_atta.cur");
-    curs[SDL_CUR_c_raise]=sdl_create_cursor("../gfx/c_rais.cur");
-    curs[SDL_CUR_c_give]=sdl_create_cursor("../gfx/c_give.cur");
-    curs[SDL_CUR_c_use]=sdl_create_cursor("../gfx/c_use.cur");
-    curs[SDL_CUR_c_usewith]=sdl_create_cursor("../gfx/c_usew.cur");
-    curs[SDL_CUR_c_swap]=sdl_create_cursor("../gfx/c_swap.cur");
-    curs[SDL_CUR_c_sell]=sdl_create_cursor("../gfx/c_sell.cur");
-    curs[SDL_CUR_c_buy]=sdl_create_cursor("../gfx/c_buy.cur");
-    curs[SDL_CUR_c_look]=sdl_create_cursor("../gfx/c_look.cur");
-    curs[SDL_CUR_c_set]=sdl_create_cursor("../gfx/c_set.cur");
-    curs[SDL_CUR_c_spell]=sdl_create_cursor("../gfx/c_spell.cur");
-    curs[SDL_CUR_c_pix]=sdl_create_cursor("../gfx/c_pix.cur");
-    curs[SDL_CUR_c_say]=sdl_create_cursor("../gfx/c_say.cur");
-    curs[SDL_CUR_c_junk]=sdl_create_cursor("../gfx/c_junk.cur");
-    curs[SDL_CUR_c_get]=sdl_create_cursor("../gfx/c_get.cur");
+    curs[SDL_CUR_c_only]=sdl_create_cursor("cursor/c_only.cur");
+    curs[SDL_CUR_c_take]=sdl_create_cursor("cursor/c_take.cur");
+    curs[SDL_CUR_c_drop]=sdl_create_cursor("cursor/c_drop.cur");
+    curs[SDL_CUR_c_attack]=sdl_create_cursor("cursor/c_atta.cur");
+    curs[SDL_CUR_c_raise]=sdl_create_cursor("cursor/c_rais.cur");
+    curs[SDL_CUR_c_give]=sdl_create_cursor("cursor/c_give.cur");
+    curs[SDL_CUR_c_use]=sdl_create_cursor("cursor/c_use.cur");
+    curs[SDL_CUR_c_usewith]=sdl_create_cursor("cursor/c_usew.cur");
+    curs[SDL_CUR_c_swap]=sdl_create_cursor("cursor/c_swap.cur");
+    curs[SDL_CUR_c_sell]=sdl_create_cursor("cursor/c_sell.cur");
+    curs[SDL_CUR_c_buy]=sdl_create_cursor("cursor/c_buy.cur");
+    curs[SDL_CUR_c_look]=sdl_create_cursor("cursor/c_look.cur");
+    curs[SDL_CUR_c_set]=sdl_create_cursor("cursor/c_set.cur");
+    curs[SDL_CUR_c_spell]=sdl_create_cursor("cursor/c_spell.cur");
+    curs[SDL_CUR_c_pix]=sdl_create_cursor("cursor/c_pix.cur");
+    curs[SDL_CUR_c_say]=sdl_create_cursor("cursor/c_say.cur");
+    curs[SDL_CUR_c_junk]=sdl_create_cursor("cursor/c_junk.cur");
+    curs[SDL_CUR_c_get]=sdl_create_cursor("cursor/c_get.cur");
 
     return 1;
 }
@@ -236,6 +236,120 @@ int sdl_render(void) {
     return 1;
 }
 
+// Load high res PNG
+int sdl_load_image_png_(struct sdl_image *si,char *filename) {
+    int x,y,xres,yres,tmp,r,g,b,a,sx,sy,ex,ey;
+    uint32_t c;
+    int format;
+    unsigned char **row;
+    FILE *fp;
+    png_structp png_ptr;
+    png_infop info_ptr;
+    png_infop end_info;
+
+    fp=fopen(filename,"rb");
+    if (!fp) return -1;
+
+    png_ptr=png_create_read_struct(PNG_LIBPNG_VER_STRING,NULL,NULL,NULL);
+    if (!png_ptr) { fclose(fp); warn("create read\n"); return -1; }
+
+    info_ptr=png_create_info_struct(png_ptr);
+    if (!info_ptr) { fclose(fp); png_destroy_read_struct(&png_ptr,(png_infopp)NULL,(png_infopp)NULL); warn("create info1\n"); return -1; }
+
+    end_info=png_create_info_struct(png_ptr);
+    if (!end_info) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("create info2\n"); return -1; }
+
+    png_init_io(png_ptr,fp);
+    png_set_strip_16(png_ptr);
+    png_read_png(png_ptr,info_ptr,PNG_TRANSFORM_PACKING,NULL);
+
+    row=png_get_rows(png_ptr,info_ptr);
+    if (!row) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("read row\n"); return -1; }
+
+    xres=png_get_image_width(png_ptr,info_ptr);
+    yres=png_get_image_height(png_ptr,info_ptr);
+
+    tmp=png_get_rowbytes(png_ptr,info_ptr);
+
+    if (tmp==xres*3) format=3;
+    else if (tmp==xres*4) format=4;
+    else { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("rowbytes!=xres*4 (%d, %d, %s)",tmp,xres,filename); return -1; }
+
+    if (png_get_bit_depth(png_ptr,info_ptr)!=8) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("bit depth!=8\n"); return -1; }
+    if (png_get_channels(png_ptr,info_ptr)!=format) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("channels!=format\n"); return -1; }
+
+    // prescan
+    sx=xres;
+    sy=yres;
+    ex=0;
+    ey=0;
+
+    for (y=0; y<yres; y++) {
+        for (x=0; x<xres; x++) {
+            if (format==4 && (row[y][x*4+3]==0 || (row[y][x*4+0]==255 && row[y][x*4+1]==0 && row[y][x*4+2]==255))) continue;
+            if (format==3 && ((row[y][x*3+0]==255 && row[y][x*3+1]==0 && row[y][x*3+2]==255))) continue;
+            if (x<sx) sx=x;
+            if (x>ex) ex=x;
+            if (y<sy) sy=y;
+            if (y>ey) ey=y;
+        }
+    }
+
+    if (ex<sx) ex=sx-1;
+    if (ey<sy) ey=sy-1;
+
+    // write
+    si->flags=1;
+    si->xres=((ex-sx+sdl_scale-1)/sdl_scale)*sdl_scale;
+    si->yres=((ey-sy+sdl_scale-1)/sdl_scale)*sdl_scale;;
+    si->xoff=-(xres/2)+sx;
+    si->yoff=-(yres/2)+sy;
+
+    si->pixel=xmalloc(si->xres*si->yres*sizeof(uint32_t),MEM_SDL_PNG);
+    mem_png+=si->xres*si->yres*sizeof(uint32_t);
+
+    for (y=0; y<si->yres; y++) {
+        for (x=0; x<si->xres; x++) {
+
+            if (format==4) {
+                r=row[(sy+y)][(sx+x)*4+0];
+                g=row[(sy+y)][(sx+x)*4+1];
+                b=row[(sy+y)][(sx+x)*4+2];
+                a=row[(sy+y)][(sx+x)*4+3];
+            } else {
+                r=row[(sy+y)][(sx+x)*3+0];
+                g=row[(sy+y)][(sx+x)*3+1];
+                b=row[(sy+y)][(sx+x)*3+2];
+                if (r==255 && g==0 && b==255) a=0;
+                else a=255;
+            }
+
+            if (r==255 && g==0 && b==255) a=0;
+
+            if (a) {
+                r=min(255,r*255/a);
+                g=min(255,g*255/a);
+                b=min(255,b*255/a);
+            } else r=g=b=0;
+
+            c=(a<<24)|(b<<16)|(g<<8)|(r);
+
+            si->pixel[x+y*si->xres]=c;
+        }
+    }
+
+    png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL);
+    fclose(fp);
+
+    si->xres/=sdl_scale;
+    si->yres/=sdl_scale;
+    si->xoff/=sdl_scale;
+    si->yoff/=sdl_scale;
+
+    return 0;
+}
+
+// Load and up-scale low res PNG
 int sdl_load_image_png(struct sdl_image *si,char *filename) {
     int x,y,xres,yres,tmp,r,g,b,a,sx,sy,ex,ey;
     uint32_t c;
@@ -357,6 +471,27 @@ int sdl_load_image_png(struct sdl_image *si,char *filename) {
                     si->pixel[x*3+y*si->xres*9+2+si->xres*3]=c;
                     si->pixel[x*3+y*si->xres*9+2+si->xres*6]=c;
                     break;
+                case 4:
+                    si->pixel[x*4+y*si->xres*16+0]=c;
+                    si->pixel[x*4+y*si->xres*16+0+si->xres*4]=c;
+                    si->pixel[x*4+y*si->xres*16+0+si->xres*8]=c;
+                    si->pixel[x*4+y*si->xres*16+0+si->xres*12]=c;
+
+                    si->pixel[x*4+y*si->xres*16+1]=c;
+                    si->pixel[x*4+y*si->xres*16+1+si->xres*4]=c;
+                    si->pixel[x*4+y*si->xres*16+1+si->xres*8]=c;
+                    si->pixel[x*4+y*si->xres*16+1+si->xres*12]=c;
+
+                    si->pixel[x*4+y*si->xres*16+2]=c;
+                    si->pixel[x*4+y*si->xres*16+2+si->xres*4]=c;
+                    si->pixel[x*4+y*si->xres*16+2+si->xres*8]=c;
+                    si->pixel[x*4+y*si->xres*16+2+si->xres*12]=c;
+
+                    si->pixel[x*4+y*si->xres*16+3]=c;
+                    si->pixel[x*4+y*si->xres*16+3+si->xres*4]=c;
+                    si->pixel[x*4+y*si->xres*16+3+si->xres*8]=c;
+                    si->pixel[x*4+y*si->xres*16+3+si->xres*12]=c;
+                    break;
                 default:
                     warn("Unsupported scale %d in sdl_load_image_png()",sdl_scale);
                     break;
@@ -380,7 +515,11 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         return -1;
     }
 
-    sprintf(filename,"%s%08d/%08d.png",GFXPATH,(sprite/1000)*1000,sprite);
+    if (sdl_scale>1) {
+        sprintf(filename,"x%d/%08d/%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
+        if (sdl_load_image_png_(si,filename)==0) return 0;
+    }
+    sprintf(filename,"x1/%08d/%08d.png",(sprite/1000)*1000,sprite);
     if (sdl_load_image_png(si,filename)==0) return 0;
     paranoia("%s not found",filename);
 
@@ -1569,3 +1708,13 @@ uint32_t *sdl_load_png(char *filename,int *dx,int *dy) {
 
     return pixel;
 }
+
+
+/*
+
+for /r "." %a in (0*) do magick mogrify -resize 200% "%~a"
+
+-transparent rgb(255,0,255)
+- specify output format (32 bits RGBA)
+
+*/
