@@ -1461,6 +1461,7 @@ static void display(void) {
     extern int memused;
     extern int memptrused;
     int t;
+    long long start=SDL_GetTicks64();
 
     if (sockstate<4 && ((t=time(NULL)-socktimeout)>10 || !originx)) {
         dd_rect(0,0,800,600,blackcolor);
@@ -1517,8 +1518,12 @@ static void display(void) {
     display_tutor();
     display_citem();
 
+    int duration=SDL_GetTicks64()-start;
+
     if (display_vc) {
         extern long long mem_tex,texc_miss;
+        extern long long sdl_time_make,sdl_time_tex,sdl_time_text,sdl_time_blit;
+        static int dur=0,make=0,tex=0,text=0,blit=0,stay=0;
 
         dd_drawtext_fmt(650,5,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);
         dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"skip %3.0f%%",100.0*skip/tota);
@@ -1530,7 +1535,28 @@ static void display(void) {
         dd_drawtext_fmt(650+20,54,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"%5.2f MB",mem_tex/(1024.0*1024.0));
 
         dd_drawtext_fmt(650,64,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"MISS %lld",texc_miss);
-        dd_drawtext_fmt(650,74,0xffff,DD_SMALL|DD_LEFT|DD_SHADE|DD_NOCACHE,"Frames %.2f",1000.0*frames/tota);
+
+        if (duration>10 && (!stay || duration>dur)) {
+            dur=duration;
+            make=sdl_time_make;
+            tex=sdl_time_tex;
+            text=sdl_time_text;
+            blit=sdl_time_blit;
+            stay=24*4;
+        }
+        sdl_time_make=0;
+        sdl_time_tex=0;
+        sdl_time_text=0;
+        sdl_time_blit=0;
+
+        if (stay>0) {
+            stay--;
+            dd_drawtext_fmt(650,74,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Dur %dms (%.0f%%)",dur,100.0*(make+tex+text+blit)/dur);
+            dd_drawtext_fmt(650,84,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Make %dms (%.0f%%)",make,100.0*make/dur);
+            dd_drawtext_fmt(650,94,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Tex %dms (%.0f%%)",tex,100.0*tex/dur);
+            dd_drawtext_fmt(650,104,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Text %dms (%.0f%%)",text,100.0*text/dur);
+            dd_drawtext_fmt(650,114,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Blit %dms (%.0f%%)",blit,100.0*blit/dur);
+        }
 
         dd_shaded_rect(770,110,790,110+skip);
     } else dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);

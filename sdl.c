@@ -14,6 +14,13 @@
 #define max(a,b)    ((a)>(b)?(a):(b))
 #define min(a,b)    ((a)<(b)?(a):(b))
 
+#define IGET_A(c)       ((((uint32_t)(c))>>24)&0xFF)
+#define IGET_R(c)       ((((uint32_t)(c))>>16)&0xFF)
+#define IGET_G(c)       ((((uint32_t)(c))>>8)&0xFF)
+#define IGET_B(c)       ((((uint32_t)(c))>>0)&0xFF)
+#define IRGB(r,g,b)     (((r)<<0)|((g)<<8)|((b)<<16))
+#define IRGBA(r,g,b,a)  (((a)<<24)|((r)<<16)|((g)<<8)|((b)<<0))
+
 SDL_Window *sdlwnd;
 SDL_Renderer *sdlren;
 
@@ -76,6 +83,11 @@ struct sdl_image *sdli=NULL;
 
 long long mem_png=0,mem_tex=0;
 long long texc_hit=0,texc_miss=0;
+
+long long sdl_time_make=0;
+long long sdl_time_tex=0;
+long long sdl_time_text=0;
+long long sdl_time_blit=0;
 
 int sdl_scale=1;
 
@@ -142,21 +154,25 @@ SDL_Texture *sdltgt;
 int sdl_init(int width,int height,char *title) {
     extern float mouse_scale;
     int len,i;
+    SDL_DisplayMode DM;
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0){
         fail("SDL_Init Error: %s",SDL_GetError());
 	    return 0;
     }
 
-    sdlwnd = SDL_CreateWindow(title, 2560/2-width/2, 1400/2-height/2, width, height, SDL_WINDOW_SHOWN);
+    SDL_GetCurrentDisplayMode(0, &DM);
+    sdlwnd = SDL_CreateWindow(title, DM.w/2-width/2, DM.h/2-height/2, width, height, SDL_WINDOW_SHOWN);
     if (!sdlwnd) {
         fail("SDL_Init Error: %s",SDL_GetError());
         SDL_Quit();
 	    return 0;
     }
 
-    //SDL_SetWindowFullscreen(sdlwnd,SDL_WINDOW_FULLSCREEN);  // true full screen
-    //SDL_SetWindowFullscreen(sdlwnd,SDL_WINDOW_FULLSCREEN_DESKTOP); // borderless windowed
+    if (DM.w==width && DM.h==height) {
+        SDL_SetWindowFullscreen(sdlwnd,SDL_WINDOW_FULLSCREEN);  // true full screen
+        //SDL_SetWindowFullscreen(sdlwnd,SDL_WINDOW_FULLSCREEN_DESKTOP); // borderless windowed
+    }
 
     sdlren=SDL_CreateRenderer(sdlwnd, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!sdlren){
@@ -332,7 +348,7 @@ int sdl_load_image_png_(struct sdl_image *si,char *filename) {
                 b=min(255,b*255/a);
             } else r=g=b=0;
 
-            c=(a<<24)|(b<<16)|(g<<8)|(r);
+            c=IRGBA(r,g,b,a);
 
             si->pixel[x+y*si->xres]=c;
         }
@@ -446,7 +462,7 @@ int sdl_load_image_png(struct sdl_image *si,char *filename) {
                 b=min(255,b*255/a);
             } else r=g=b=0;
 
-            c=(a<<24)|(b<<16)|(g<<8)|(r);
+            c=IRGBA(r,g,b,a);
 
             switch (sdl_scale) {
                 case 1:
@@ -515,6 +531,8 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         return -1;
     }
 
+    //printf("Loading sprite %d\n",sprite);
+
 #ifdef DEVELOPER
     if (sdl_scale>1) {
         sprintf(filename,"../gfx/x%d/%08d/%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
@@ -545,13 +563,6 @@ int sdl_ic_load(int sprite) {
 #define DDFX_RIGHTGRID          2
 
 #define DDFX_MAX_FREEZE         8
-
-#define IGET_A(c)       ((((uint32_t)(c))>>24)&0xFF)
-#define IGET_R(c)       ((((uint32_t)(c))>>0)&0xFF)
-#define IGET_G(c)       ((((uint32_t)(c))>>8)&0xFF)
-#define IGET_B(c)       ((((uint32_t)(c))>>16)&0xFF)
-#define IRGB(r,g,b)     (((r)<<0)|((g)<<8)|((b)<<16))
-#define IRGBA(r,g,b,a)  (((a)<<24)|((r)<<0)|((g)<<8)|((b)<<16))
 
 static inline uint32_t sdl_light(int light,uint32_t irgb) {
     int r,g,b,a;
@@ -751,6 +762,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
     double ix,iy,low_x,low_y,high_x,high_y,dbr,dbg,dbb,dba;
     uint32_t irgb;
     uint32_t *pixel;
+    long long start=SDL_GetTicks64();
 
     if (si->xres==0 || si->yres==0) scale=100;    // !!! needs better handling !!!
 
@@ -914,13 +926,17 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
             pixel[x+y*st->xres*sdl_scale]=irgb;
         }
     }
-    SDL_Texture *texture = SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_STATIC,st->xres*sdl_scale,st->yres*sdl_scale);
+    sdl_time_make+=SDL_GetTicks64()-start;
+
+    start=SDL_GetTicks64();
+    SDL_Texture *texture = SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STATIC,st->xres*sdl_scale,st->yres*sdl_scale);
     if (!texture) warn("SDL_texture Error: %s",SDL_GetError());
     SDL_UpdateTexture(texture,NULL,pixel,st->xres*sizeof(uint32_t)*sdl_scale);
     SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
     xfree(pixel);
-
     st->tex=texture;
+
+    sdl_time_tex+=SDL_GetTicks64()-start;
 }
 
 static void sdl_tx_best(int stx) {
@@ -1160,10 +1176,10 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
     return stx;
 }
 
-// function to blit a high res texture to screen
 static void sdl_blit_tex(SDL_Texture *tex,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
     int addx=0,addy=0,dx,dy;
     SDL_Rect dr,sr;
+    long long start=SDL_GetTicks64();
 
     SDL_QueryTexture(tex, NULL, NULL, &dx, &dy);
 
@@ -1181,6 +1197,8 @@ static void sdl_blit_tex(SDL_Texture *tex,int sx,int sy,int clipsx,int clipsy,in
     sr.y=addy*sdl_scale; sr.h=dy;
 
     SDL_RenderCopy(sdlren,tex,&sr,&dr);
+
+    sdl_time_blit+=SDL_GetTicks64()-start;
 }
 
 void sdl_blit(int stx,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
@@ -1211,6 +1229,7 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
     unsigned char *rawrun;
     int x,y=0,sizex,sizey=0,sx=0;
     const char *c;
+    long long start=SDL_GetTicks64();
 
     for (sizex=0,c=text; *c; c++) sizex+=font[*c].dim*sdl_scale;
 
@@ -1254,14 +1273,16 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
         xfree(pixel);
         return NULL;
     }
-
     sizey++;
-    SDL_Texture *texture = SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_STATIC,sizex,sizey);
+    sdl_time_text+=SDL_GetTicks64()-start;
+
+    start=SDL_GetTicks64();
+    SDL_Texture *texture = SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STATIC,sizex,sizey);
     if (!texture) warn("SDL_texture Error: %s",SDL_GetError());
     SDL_UpdateTexture(texture,NULL,pixel,sizex*sizeof(uint32_t));
     SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
-
     xfree(pixel);
+    sdl_time_tex+=SDL_GetTicks64()-start;
 
     return texture;
 }
@@ -1688,7 +1709,7 @@ uint32_t *sdl_load_png(char *filename,int *dx,int *dy) {
                     b=min(255,b*255/a);
                 } else r=g=b=0;
 
-                pixel[x+y*xres]=(a<<24)|(b<<16)|(g<<8)|(r);
+                pixel[x+y*xres]=IRGBA(r,g,b,a);
             }
         }
     } else {
@@ -1700,7 +1721,7 @@ uint32_t *sdl_load_png(char *filename,int *dx,int *dy) {
                 b=row[y][x*3+2];
                 a=255;
 
-                pixel[x+y*xres]=(a<<24)|(b<<16)|(g<<8)|(r);
+                pixel[x+y*xres]=IRGBA(r,g,b,a);
             }
         }
     }

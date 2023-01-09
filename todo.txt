@@ -13,6 +13,8 @@ Probably
 Possibly
 --------
 
+- Add stuff to the client window to make it 960 pixels wide to fill a standard 19:10 display.
+
 - Add configuration files for:
   - Pretty much everything in sprite.c
   - Everything in skill.c
