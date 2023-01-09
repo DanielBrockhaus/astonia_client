@@ -669,6 +669,7 @@ int main(int argc,char *args[]) {
         case 900:   	width=1200; height=900; break;
         case 1200:  	width=1600; height=1200; break;
         case 1800:  	width=2400; height=1800; break;
+        case 2400:  	width=3200; height=2400; break;
         case 800:
         default:	    width=800; height=600;  break;
     }

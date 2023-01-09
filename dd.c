@@ -509,12 +509,13 @@ void dd_create_letter(unsigned char *rawrun,int sx,int sy,int val,char letter[64
 char* dd_create_rawrun(char letter[64][64]) {
     char *ptr,*fon,*last;
     int x,y,step;
+    extern int sdl_scale;
 
-    last=fon=ptr=xmalloc(1024,MEM_TEMP);
+    last=fon=ptr=xmalloc(8192,MEM_TEMP);
 
-    for (y=3; y<64; y++) {
+    for (y=sdl_scale*3; y<64; y++) {
         step=0;
-        for (x=3; x<64; x++) {
+        for (x=sdl_scale*3; x<64; x++) {
             if (letter[y][x]==2) {
                 *ptr++=step; last=ptr;
                 step=1;
@@ -532,12 +533,13 @@ char* dd_create_rawrun(char letter[64][64]) {
 void create_shade_font(DDFONT *src,DDFONT *dst) {
     char letter[64][64];
     int c;
+    extern int sdl_scale;
 
     for (c=0; c<128; c++) {
         bzero(letter,sizeof(letter));
-        dd_create_letter(src[c].raw,4,5,2,letter);
-        dd_create_letter(src[c].raw,5,4,2,letter);
-        dd_create_letter(src[c].raw,4,4,1,letter);
+        dd_create_letter(src[c].raw,sdl_scale*4,sdl_scale*5,2,letter);
+        dd_create_letter(src[c].raw,sdl_scale*5,sdl_scale*4,2,letter);
+        dd_create_letter(src[c].raw,sdl_scale*4,sdl_scale*4,1,letter);
         dst[c].raw=dd_create_rawrun(letter);
         dst[c].dim=src[c].dim;
     }
@@ -545,19 +547,17 @@ void create_shade_font(DDFONT *src,DDFONT *dst) {
 
 void create_frame_font(DDFONT *src,DDFONT *dst) {
     char letter[64][64];
-    int c;
+    int c,x,y;
+    extern int sdl_scale;
 
     for (c=0; c<128; c++) {
         bzero(letter,sizeof(letter));
-        dd_create_letter(src[c].raw,5,4,2,letter);
-        dd_create_letter(src[c].raw,3,4,2,letter);
-        dd_create_letter(src[c].raw,4,5,2,letter);
-        dd_create_letter(src[c].raw,4,3,2,letter);
-        dd_create_letter(src[c].raw,5,5,2,letter);
-        dd_create_letter(src[c].raw,5,3,2,letter);
-        dd_create_letter(src[c].raw,3,5,2,letter);
-        dd_create_letter(src[c].raw,3,3,2,letter);
-        dd_create_letter(src[c].raw,4,4,1,letter);
+        for (y=0; y<=sdl_scale*2; y+=sdl_scale) {
+            for (x=0; x<=sdl_scale*2; x+=sdl_scale) {
+                dd_create_letter(src[c].raw,sdl_scale*3+x,sdl_scale*3+y,2,letter);
+            }
+        }
+        dd_create_letter(src[c].raw,sdl_scale*4,sdl_scale*4,1,letter);
         dst[c].raw=dd_create_rawrun(letter);
         dst[c].dim=src[c].dim;
     }
@@ -566,6 +566,7 @@ void create_frame_font(DDFONT *src,DDFONT *dst) {
 int dd_create_font_png(DDFONT *dst,uint32_t *pixel,int dx,int dy,int yoff,int scale) {
     int c,x,y,sx,sy;
     char letter[64][64];
+    extern int sdl_scale;
 
     for (c=32; c<128; c++) {
         if (c<80) {
@@ -580,7 +581,7 @@ int dd_create_font_png(DDFONT *dst,uint32_t *pixel,int dx,int dy,int yoff,int sc
         for (x=0; x<10*scale; x++) {
             for (y=0; y<12*scale; y++) {
                 if (pixel[sx+x+(sy+y)*dx]==0xffffffff) {
-                    letter[y+3][x+3]=2;
+                    letter[y+sdl_scale*3][x+sdl_scale*3]=2;
                 }
             }
         }

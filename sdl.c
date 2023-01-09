@@ -110,24 +110,24 @@ SDL_Cursor *sdl_create_cursor(char *filename) {
 SDL_Cursor *curs[20];
 
 int sdl_create_cursors(void) {
-    curs[SDL_CUR_c_only]=sdl_create_cursor("res/c_only.cur");
-    curs[SDL_CUR_c_take]=sdl_create_cursor("res/c_take.cur");
-    curs[SDL_CUR_c_drop]=sdl_create_cursor("res/c_drop.cur");
-    curs[SDL_CUR_c_attack]=sdl_create_cursor("res/c_atta.cur");
-    curs[SDL_CUR_c_raise]=sdl_create_cursor("res/c_rais.cur");
-    curs[SDL_CUR_c_give]=sdl_create_cursor("res/c_give.cur");
-    curs[SDL_CUR_c_use]=sdl_create_cursor("res/c_use.cur");
-    curs[SDL_CUR_c_usewith]=sdl_create_cursor("res/c_usew.cur");
-    curs[SDL_CUR_c_swap]=sdl_create_cursor("res/c_swap.cur");
-    curs[SDL_CUR_c_sell]=sdl_create_cursor("res/c_sell.cur");
-    curs[SDL_CUR_c_buy]=sdl_create_cursor("res/c_buy.cur");
-    curs[SDL_CUR_c_look]=sdl_create_cursor("res/c_look.cur");
-    curs[SDL_CUR_c_set]=sdl_create_cursor("res/c_set.cur");
-    curs[SDL_CUR_c_spell]=sdl_create_cursor("res/c_spell.cur");
-    curs[SDL_CUR_c_pix]=sdl_create_cursor("res/c_pix.cur");
-    curs[SDL_CUR_c_say]=sdl_create_cursor("res/c_say.cur");
-    curs[SDL_CUR_c_junk]=sdl_create_cursor("res/c_junk.cur");
-    curs[SDL_CUR_c_get]=sdl_create_cursor("res/c_get.cur");
+    curs[SDL_CUR_c_only]=sdl_create_cursor("../gfx/c_only.cur");
+    curs[SDL_CUR_c_take]=sdl_create_cursor("../gfx/c_take.cur");
+    curs[SDL_CUR_c_drop]=sdl_create_cursor("../gfx/c_drop.cur");
+    curs[SDL_CUR_c_attack]=sdl_create_cursor("../gfx/c_atta.cur");
+    curs[SDL_CUR_c_raise]=sdl_create_cursor("../gfx/c_rais.cur");
+    curs[SDL_CUR_c_give]=sdl_create_cursor("../gfx/c_give.cur");
+    curs[SDL_CUR_c_use]=sdl_create_cursor("../gfx/c_use.cur");
+    curs[SDL_CUR_c_usewith]=sdl_create_cursor("../gfx/c_usew.cur");
+    curs[SDL_CUR_c_swap]=sdl_create_cursor("../gfx/c_swap.cur");
+    curs[SDL_CUR_c_sell]=sdl_create_cursor("../gfx/c_sell.cur");
+    curs[SDL_CUR_c_buy]=sdl_create_cursor("../gfx/c_buy.cur");
+    curs[SDL_CUR_c_look]=sdl_create_cursor("../gfx/c_look.cur");
+    curs[SDL_CUR_c_set]=sdl_create_cursor("../gfx/c_set.cur");
+    curs[SDL_CUR_c_spell]=sdl_create_cursor("../gfx/c_spell.cur");
+    curs[SDL_CUR_c_pix]=sdl_create_cursor("../gfx/c_pix.cur");
+    curs[SDL_CUR_c_say]=sdl_create_cursor("../gfx/c_say.cur");
+    curs[SDL_CUR_c_junk]=sdl_create_cursor("../gfx/c_junk.cur");
+    curs[SDL_CUR_c_get]=sdl_create_cursor("../gfx/c_get.cur");
 
     return 1;
 }
@@ -1020,7 +1020,7 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
 }
 
 // function to blit a high res texture to screen
-static void sdl_blit_tex_(SDL_Texture *tex,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
+static void sdl_blit_tex(SDL_Texture *tex,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
     int addx=0,addy=0,dx,dy;
     SDL_Rect dr,sr;
 
@@ -1036,37 +1036,14 @@ static void sdl_blit_tex_(SDL_Texture *tex,int sx,int sy,int clipsx,int clipsy,i
     dr.x=(sx+x_offset)*sdl_scale; dr.w=dx;
     dr.y=(sy+y_offset)*sdl_scale; dr.h=dy;
 
-    sr.x=addx; sr.w=dx;
-    sr.y=addy; sr.h=dy;
+    sr.x=addx*sdl_scale; sr.w=dx;
+    sr.y=addy*sdl_scale; sr.h=dy;
 
     SDL_RenderCopy(sdlren,tex,&sr,&dr);
 }
-
-
-// function to blit a low res texture to screen
-static void sdl_blit_tex(SDL_Texture *tex,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
-    int addx=0,addy=0,dx,dy;
-    SDL_Rect dr,sr;
-
-    SDL_QueryTexture(tex, NULL, NULL, &dx, &dy);
-
-    if (sx<clipsx) { addx=clipsx-sx; dx-=addx; sx=clipsx; }
-    if (sy<clipsy) { addy=clipsy-sy; dy-=addy; sy=clipsy; }
-    if (sx+dx>=clipex) dx=clipex-sx;
-    if (sy+dy>=clipey) dy=clipey-sy;
-
-    dr.x=(sx+x_offset)*sdl_scale; dr.w=dx*sdl_scale;
-    dr.y=(sy+y_offset)*sdl_scale; dr.h=dy*sdl_scale;
-
-    sr.x=addx; sr.w=dx;
-    sr.y=addy; sr.h=dy;
-
-    SDL_RenderCopy(sdlren,tex,&sr,&dr);
-}
-
 
 void sdl_blit(int stx,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
-    sdl_blit_tex_(sdlt[stx].tex,sx,sy,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
+    sdl_blit_tex(sdlt[stx].tex,sx,sy,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 }
 
 #define DD_LEFT         0
@@ -1096,7 +1073,7 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
 
     for (sizex=0,c=text; *c; c++) sizex+=font[*c].dim*sdl_scale;
 
-    if (flags&(DD__FRAMEFONT|DD__SHADEFONT)) sizex+=2;
+    if (flags&(DD__FRAMEFONT|DD__SHADEFONT)) sizex+=sdl_scale*2;
 
     pixel=xcalloc(sizex*MAXFONTHEIGHT*sizeof(uint32_t),MEM_SDL_PIXEL);
     if (pixel==NULL) return NULL;
@@ -1262,7 +1239,7 @@ int sdl_drawtext(int sx,int sy,unsigned short int color,int flags,const char *te
         if (flags&DD_CENTER) sx-=dx/2;
         else if (flags&DD_RIGHT) sx-=dx;
 
-        sdl_blit_tex_(tex,sx,sy,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
+        sdl_blit_tex(tex,sx,sy,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 
         if (flags&DD_NOCACHE) SDL_DestroyTexture(tex);
     }
