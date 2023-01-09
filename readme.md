@@ -14,21 +14,20 @@ PNG library. And make, of course.
 
 Create a directory structure like this:
 
+```
 mkdir astonia3
 cd astonia3
 mkdir moac
 mkdir gfx
 cd moac
+```
 
 Then clone or download the sources from Github to the current directory
 ("astonia3/moac").
 
-Then download
-
-https://brockhaus.org/astonia_client_pngs.zip
-
-and extract it in the main folder ("astonia3"). This should put the "x1",
-"x2", etc. folders into "astonia3/gfx" resulting in, e.g. "astonia3/gfx/x1".
+Then download https://brockhaus.org/astonia_client_pngs.zip and extract it in
+the main folder ("astonia3"). This should put the "x1","x2", etc. folders into
+"astonia3/gfx" resulting in, e.g. "astonia3/gfx/x1".
 
 Go back into the moac folder and run
 
