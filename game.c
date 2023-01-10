@@ -404,6 +404,39 @@ void dl_play(void) {
     dlused=0;
 }
 
+void sdl_pre_add(int attick,int sprite,signed char sink,unsigned char freeze,unsigned char grid,unsigned char scale,char cr,char cg,char cb,char light,char sat,int c1,int c2,int c3,int shine,char ml,char ll,char rl,char ul,char dl);
+
+void dl_prefetch(int attick) {
+    int d;
+
+    for (d=0; d<dlused && !quit; d++) {
+        if (dlsort[d]->call==0) {
+            sdl_pre_add(attick,
+                    dlsort[d]->ddfx.sprite,
+                    dlsort[d]->ddfx.sink,
+                    dlsort[d]->ddfx.freeze,
+                    dlsort[d]->ddfx.grid,
+                    dlsort[d]->ddfx.scale,
+                    dlsort[d]->ddfx.cr,
+                    dlsort[d]->ddfx.cg,
+                    dlsort[d]->ddfx.cb,
+                    dlsort[d]->ddfx.clight,
+                    dlsort[d]->ddfx.sat,
+                    dlsort[d]->ddfx.c1,
+                    dlsort[d]->ddfx.c2,
+                    dlsort[d]->ddfx.c3,
+                    dlsort[d]->ddfx.shine,
+                    dlsort[d]->ddfx.ml,
+                    dlsort[d]->ddfx.ll,
+                    dlsort[d]->ddfx.rl,
+                    dlsort[d]->ddfx.ul,
+                    dlsort[d]->ddfx.dl);
+        }
+    }
+
+    dlused=0;
+}
+
 // analyse
 QUICK *quick;
 int maxquick;
@@ -1510,7 +1543,7 @@ void display_game_map(struct map *cmap) {
     show_bubbles();
     dg_time+=GetTickCount()-start;
 
-    if (cmap==map) {            // ouch!!
+    if (cmap==map) {            // avoid acting on prefetch
         // selection on ground
         if (mapsel!=-1) {
             mn=mapsel;
@@ -1902,5 +1935,12 @@ void exit_game(void) {
     dlmax=0;
 
 
+}
+
+void prefetch_game(int attick) {
+    extern struct map map2[];
+    set_map_values(map2,attick);
+    display_game_map(map2);
+    dl_prefetch(attick);
 }
 

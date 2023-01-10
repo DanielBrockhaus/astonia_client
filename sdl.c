@@ -82,7 +82,7 @@ struct sdl_image {
 struct sdl_image *sdli=NULL;
 
 long long mem_png=0,mem_tex=0;
-long long texc_hit=0,texc_miss=0;
+long long texc_hit=0,texc_miss=0,texc_pre=0;
 
 long long sdl_time_make=0;
 long long sdl_time_tex=0;
@@ -1143,7 +1143,7 @@ static inline unsigned int hashfunc_text(const char *text,int color,int flags) {
 SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,int flags);
 
 int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,int cb,int light,int sat,int c1,int c2,int c3,int shine,int ml,int ll,int rl,int ul,int dl,
-                const char *text,int text_color,int text_flags,void *text_font) {
+                const char *text,int text_color,int text_flags,void *text_font,int checkonly,int preload) {
     int stx,ptx,ntx,panic=0;
     int hash;
 
@@ -1195,6 +1195,8 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
             if (sdlt[stx].dl!=dl) continue;
         }
 
+        if (checkonly) return 1;
+
         if (panic>maxpanic) maxpanic=panic;
 
         sdl_tx_best(stx);
@@ -1222,6 +1224,7 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
 
         return stx;
     }
+    if (checkonly) return 0;
 
     stx=sdlt_last;
 
@@ -1313,7 +1316,19 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
 
     sdl_tx_best(stx);
 
-    texc_miss++;
+    if (preload) texc_pre++;
+    else if (sprite) {  // Do not count missed text sprites. Those are expected.
+        texc_miss++;
+        /*
+        printf("miss sprite=%d (%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d)\n",
+               sprite,
+               sdlt[stx].sink,sdlt[stx].freeze,sdlt[stx].grid,sdlt[stx].scale,
+               sdlt[stx].cr,sdlt[stx].cg,sdlt[stx].cb,sdlt[stx].light,
+               sdlt[stx].sat,sdlt[stx].c1,sdlt[stx].c2,sdlt[stx].c3,
+               sdlt[stx].shine,sdlt[stx].ml,sdlt[stx].ll,sdlt[stx].rl,
+               sdlt[stx].ul,sdlt[stx].dl);
+        */
+    }
 
     return stx;
 }
@@ -1533,7 +1548,7 @@ int sdl_drawtext(int sx,int sy,unsigned short int color,int flags,const char *te
     if (flags&DD_NOCACHE) {
         tex=sdl_maketext(text,font,IRGBA(r,g,b,a),flags);
     } else {
-        stx=sdl_tx_load(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,text,IRGBA(r,g,b,a),flags,font);
+        stx=sdl_tx_load(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,text,IRGBA(r,g,b,a),flags,font,0,0);
         tex=sdlt[stx].tex;
     }
 
@@ -1874,6 +1889,134 @@ uint32_t *sdl_load_png(char *filename,int *dx,int *dy) {
     return pixel;
 }
 
+struct prefetch {
+    int attick;
+    int sprite;
+    signed char sink;
+    unsigned char scale,cr,cg,cb,light,sat;
+    unsigned short c1,c2,c3,shine;
+    char ml,ll,rl,ul,dl;
+    unsigned char freeze;
+    unsigned char grid;
+};
+
+#define MAXPRE (16384)
+static struct prefetch pre[MAXPRE];
+int pre_in=0,pre_out=0;
+
+void sdl_pre_add(int attick,int sprite,signed char sink,unsigned char freeze,unsigned char grid,unsigned char scale,char cr,char cg,char cb,char light,char sat,int c1,int c2,int c3,int shine,char ml,char ll,char rl,char ul,char dl) {
+    int n;
+    if ((pre_in+1)%MAXPRE==pre_out) return; // buffer is full
+
+    if (sprite>MAXSPRITE || sprite<0) {
+        note("illegal sprite %d wanted in pre_add",sprite);
+        return;
+    }
+    // Don't add again
+    for (n=pre_out; n!=pre_in; n=(n+1)%MAXPRE) {
+        if (pre[n].attick==attick &&
+            pre[n].sprite==sprite &&
+            pre[n].sink==sink &&
+            pre[n].freeze==freeze &&
+            pre[n].grid==grid &&
+            pre[n].scale==scale &&
+            pre[n].cr==cr &&
+            pre[n].cg==cg &&
+            pre[n].cb==cb &&
+            pre[n].light==light &&
+            pre[n].sat==sat &&
+            pre[n].c1==c1 &&
+            pre[n].c2==c2 &&
+            pre[n].c3==c3 &&
+            pre[n].shine==shine &&
+            pre[n].ml==ml &&
+            pre[n].ll==ll &&
+            pre[n].rl==rl &&
+            pre[n].dl==dl &&
+            pre[n].ul==ul) return;
+    }
+    // Don't add if alredy in cache
+    if (sdl_tx_load(sprite,
+                    sink,
+                    freeze,
+                    grid,
+                    scale,
+                    cr,
+                    cg,
+                    cb,
+                    light,
+                    sat,
+                    c1,
+                    c2,
+                    c3,
+                    shine,
+                    ml,
+                    ll,
+                    rl,
+                    ul,
+                    dl,
+                    NULL,0,0,NULL,1,0))
+        return;
+
+    pre[pre_in].attick=attick;
+    pre[pre_in].sprite=sprite;
+    pre[pre_in].sink=sink;
+    pre[pre_in].freeze=freeze;
+    pre[pre_in].grid=grid;
+    pre[pre_in].scale=scale;
+    pre[pre_in].cr=cr;
+    pre[pre_in].cg=cg;
+    pre[pre_in].cb=cb;
+    pre[pre_in].light=light;
+    pre[pre_in].sat=sat;
+    pre[pre_in].c1=c1;
+    pre[pre_in].c2=c2;
+    pre[pre_in].c3=c3;
+    pre[pre_in].shine=shine;
+    pre[pre_in].ml=ml;
+    pre[pre_in].ll=ll;
+    pre[pre_in].rl=rl;
+    pre[pre_in].dl=dl;
+    pre[pre_in].ul=ul;
+
+    //note("add_pre: %d %d %d %d %d %d",pre[pre_in].sprite,pre[pre_in].ml,pre[pre_in].ll,pre[pre_in].rl,pre[pre_in].ul,pre[pre_in].dl);
+
+    pre_in=(pre_in+1)%MAXPRE;
+}
+
+int sdl_pre_do(int curtick) {
+    while (pre[pre_out].attick<curtick && pre_in!=pre_out) pre_out=(pre_out+1)%MAXPRE;
+
+    if (pre_in==pre_out) return 0;  // prefetch buffer is empty
+
+    // load into systemcache
+    sdl_tx_load(pre[pre_out].sprite,
+            pre[pre_out].sink,
+            pre[pre_out].freeze,
+            pre[pre_out].grid,
+            pre[pre_out].scale,
+            pre[pre_out].cr,
+            pre[pre_out].cg,
+            pre[pre_out].cb,
+            pre[pre_out].light,
+            pre[pre_out].sat,
+            pre[pre_out].c1,
+            pre[pre_out].c2,
+            pre[pre_out].c3,
+            pre[pre_out].shine,
+            pre[pre_out].ml,
+            pre[pre_out].ll,
+            pre[pre_out].rl,
+            pre[pre_out].ul,
+            pre[pre_out].dl,
+                NULL,0,0,NULL,0,1);
+    //note("pre_do: %d %d %d %d %d %d",pre[pre_out].sprite,pre[pre_out].ml,pre[pre_out].ll,pre[pre_out].rl,pre[pre_out].ul,pre[pre_out].dl);
+
+    pre_out=(pre_out+1)%MAXPRE;
+
+    if (pre_in>=pre_out) return pre_in-pre_out;
+    else return MAXPRE+pre_in-pre_out;
+}
 
 /*
 

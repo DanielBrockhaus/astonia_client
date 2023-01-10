@@ -1521,20 +1521,23 @@ static void display(void) {
     int duration=SDL_GetTicks64()-start;
 
     if (display_vc) {
-        extern long long mem_tex,texc_miss;
+        extern long long mem_tex,texc_miss,texc_pre;
         extern long long sdl_time_make,sdl_time_tex,sdl_time_text,sdl_time_blit;
-        static int dur=0,make=0,tex=0,text=0,blit=0,stay=0;
+        extern int  pre_in,pre_out;
+        static int dur=0,make=0,tex=0,text=0,blit=0,stay=0,size;
 
         dd_drawtext_fmt(650,5,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);
         dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"skip %3.0f%%",100.0*skip/tota);
         dd_drawtext_fmt(650,25,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"idle %3.0f%%",100.0*idle/tota);
 
-        dd_drawtext_fmt(650,44,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"RAM");
-        dd_drawtext_fmt(650,54,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"TEX");
-        dd_drawtext_fmt(650+20,44,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"%5.2f MB",memsize[0]/(1024.0*1024.0));
-        dd_drawtext_fmt(650+20,54,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"%5.2f MB",mem_tex/(1024.0*1024.0));
+        dd_drawtext_fmt(650,44,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Tex: %5.2f MB",mem_tex/(1024.0*1024.0));
 
-        dd_drawtext_fmt(650,64,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"MISS %lld",texc_miss);
+         if (pre_in>=pre_out) size=pre_in-pre_out;
+         else size=16384+pre_in-pre_out;
+
+        dd_drawtext_fmt(650,54,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"PreC %d",size);
+        dd_drawtext_fmt(650,64,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Miss %lld",texc_miss);
+        dd_drawtext_fmt(650,74,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Prel %lld",texc_pre);
 
         if (duration>10 && (!stay || duration>dur)) {
             dur=duration;
@@ -1551,14 +1554,14 @@ static void display(void) {
 
         if (stay>0) {
             stay--;
-            dd_drawtext_fmt(650,74,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Dur %dms (%.0f%%)",dur,100.0*(make+tex+text+blit)/dur);
-            dd_drawtext_fmt(650,84,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Make %dms (%.0f%%)",make,100.0*make/dur);
-            dd_drawtext_fmt(650,94,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Tex %dms (%.0f%%)",tex,100.0*tex/dur);
-            dd_drawtext_fmt(650,104,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Text %dms (%.0f%%)",text,100.0*text/dur);
-            dd_drawtext_fmt(650,114,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Blit %dms (%.0f%%)",blit,100.0*blit/dur);
+            dd_drawtext_fmt(650,100,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Dur %dms (%.0f%%)",dur,100.0*(make+tex+text+blit)/dur);
+            dd_drawtext_fmt(650,110,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Make %dms (%.0f%%)",make,100.0*make/dur);
+            dd_drawtext_fmt(650,120,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Tex %dms (%.0f%%)",tex,100.0*tex/dur);
+            dd_drawtext_fmt(650,130,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Text %dms (%.0f%%)",text,100.0*text/dur);
+            dd_drawtext_fmt(650,140,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Blit %dms (%.0f%%)",blit,100.0*blit/dur);
         }
 
-        dd_shaded_rect(770,110,790,110+skip);
+        //dd_shaded_rect(770,110,790,110+skip);
     } else dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);
 
     sprintf(perf_text,"mem usage=%.2f/%.2fMB, %.2f/%.2fKBlocks",
@@ -2896,13 +2899,15 @@ void main_exit(void) {
 
 void flip_at(unsigned int t) {
     unsigned int tnow;
+    int sdl_pre_do(int curtick);
 
     do {
         sdl_loop();
+        if (!sdl_pre_do(tick)) Sleep(1);
         tnow=GetTickCount();
         /*if (GetActiveWindow()!=mainwnd) { // TODO: re-active this once we have the SDL window as only window?
             Sleep(100);
-        } else */ Sleep(1);
+        } else Sleep(1); */
     } while (t>tnow);
 
     sdl_render();
@@ -2911,6 +2916,7 @@ void flip_at(unsigned int t) {
 unsigned int nextframe;
 
 int main_loop(void) {
+    void prefetch_game(int attick);
     int tmp,timediff,ltick=0;
     extern int q_size;
 
@@ -2924,7 +2930,10 @@ int main_loop(void) {
 
         // check if we can go on
         if (sockstate>2) {
-            while (next_tick());
+
+            // decode as many ticks as we can
+            while (next_tick())
+                prefetch_game(tick+q_size);     // and add their contents to the prefetch queue
 
             // get one tick to display
             do_tick(); ltick++;

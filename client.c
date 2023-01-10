@@ -95,6 +95,7 @@ unsigned int csprite;       // and sprite
 int originx;
 int originy;
 struct map map[MAPDX*MAPDY];
+struct map map2[MAPDX*MAPDY];
 
 int value[2][V_MAX];
 int item[INVENTORYSIZE];
@@ -869,9 +870,9 @@ void process(unsigned char *buf,int size) {
     int len=0,panic=0,last=-1;
 
     while (size>0 && panic++<20000) {
-        if ((buf[0]&(64+128))==SV_MAP01) len=sv_map01(buf,&last,map);  // ANKH
-        else if ((buf[0]&(64+128))==SV_MAP10) len=sv_map10(buf,&last,map);  // ANKH
-        else if ((buf[0]&(64+128))==SV_MAP11) len=sv_map11(buf,&last,map);  // ANKH
+        if ((buf[0]&(64+128))==SV_MAP01) len=sv_map01(buf,&last,map);
+        else if ((buf[0]&(64+128))==SV_MAP10) len=sv_map10(buf,&last,map);
+        else if ((buf[0]&(64+128))==SV_MAP11) len=sv_map11(buf,&last,map);
         else switch (buf[0]) {
                 case SV_SCROLL_UP:              sv_scroll_up(map); len=1; break;
                 case SV_SCROLL_DOWN:            sv_scroll_down(map); len=1; break;
@@ -888,8 +889,8 @@ void process(unsigned char *buf,int size) {
                 case SV_SETHP:                  sv_sethp(buf); len=3; break;
                 case SV_SETMANA:                sv_setmana(buf); len=3; break;
                 case SV_SETRAGE:                sv_setrage(buf); len=3; break;
-                case SV_ENDURANCE:		sv_endurance(buf); len=3; break;
-                case SV_LIFESHIELD:		sv_lifeshield(buf); len=3; break;
+                case SV_ENDURANCE:		        sv_endurance(buf); len=3; break;
+                case SV_LIFESHIELD:		        sv_lifeshield(buf); len=3; break;
 
                 case SV_SETITEM:                sv_setitem(buf); len=10; break;
 
@@ -898,47 +899,47 @@ void process(unsigned char *buf,int size) {
                 case SV_SETCITEM:               sv_setcitem(buf); len=9; break;
 
                 case SV_ACT:                    sv_act(buf); len=7; break;
-                case SV_EXIT:			len=sv_exit(buf); break;
+                case SV_EXIT:			        len=sv_exit(buf); break;
                 case SV_TEXT:                   len=sv_text(buf); break;
 
 
-                case SV_NAME:			len=sv_name(buf); break;
+                case SV_NAME:			        len=sv_name(buf); break;
 
-                case SV_CONTAINER:		sv_container(buf); len=6; break;
-                case SV_PRICE:			sv_price(buf); len=6; break;
-                case SV_CPRICE:			sv_cprice(buf); len=5; break;
-                case SV_CONCNT:			sv_concnt(buf); len=2; break;
-                case SV_ITEMPRICE:		sv_itemprice(buf); len=6; break;
-                case SV_CONTYPE:		sv_contype(buf); len=2; break;
-                case SV_CONNAME:		len=sv_conname(buf); break;
+                case SV_CONTAINER:		        sv_container(buf); len=6; break;
+                case SV_PRICE:			        sv_price(buf); len=6; break;
+                case SV_CPRICE:			        sv_cprice(buf); len=5; break;
+                case SV_CONCNT:			        sv_concnt(buf); len=2; break;
+                case SV_ITEMPRICE:		        sv_itemprice(buf); len=6; break;
+                case SV_CONTYPE:		        sv_contype(buf); len=2; break;
+                case SV_CONNAME:		        len=sv_conname(buf); break;
 
-                case SV_GOLD:			sv_gold(buf); len=5; break;
+                case SV_GOLD:			        sv_gold(buf); len=5; break;
 
-                case SV_EXP:	 		sv_exp(buf); len=5; break;
-                case SV_EXP_USED:		sv_exp_used(buf); len=5; break;
-                case SV_MIL_EXP:	 	sv_mil_exp(buf); len=5; break;
-                case SV_LOOKINV:		sv_lookinv(buf); len=17+12*4; break;
-                case SV_CYCLES:			sv_cycles(buf); len=5; break;
-                case SV_CEFFECT:		len=sv_ceffect(buf); break;
-                case SV_UEFFECT:		sv_ueffect(buf); len=9; break;
+                case SV_EXP:	 		        sv_exp(buf); len=5; break;
+                case SV_EXP_USED:		        sv_exp_used(buf); len=5; break;
+                case SV_MIL_EXP:	 	        sv_mil_exp(buf); len=5; break;
+                case SV_LOOKINV:		        sv_lookinv(buf); len=17+12*4; break;
+                case SV_CYCLES:			        sv_cycles(buf); len=5; break;
+                case SV_CEFFECT:		        len=sv_ceffect(buf); break;
+                case SV_UEFFECT:		        sv_ueffect(buf); len=9; break;
 
-                case SV_SERVER:			sv_server(buf); len=7; break;
+                case SV_SERVER:			        sv_server(buf); len=7; break;
 
                 case SV_REALTIME:               sv_realtime(buf); len=5; break;
 
-                case SV_SPEEDMODE:		sv_speedmode(buf); len=2; break;
-                case SV_FIGHTMODE:		sv_fightmode(buf); len=2; break;
-                case SV_LOGINDONE:		sv_logindone(); len=1; break;
-                case SV_SPECIAL:		sv_special(buf); len=13; break;
-                case SV_TELEPORT:		sv_teleport(buf); len=13; break;
+                case SV_SPEEDMODE:		        sv_speedmode(buf); len=2; break;
+                case SV_FIGHTMODE:		        sv_fightmode(buf); len=2; break;
+                case SV_LOGINDONE:		        sv_logindone(); len=1; break;
+                case SV_SPECIAL:		        sv_special(buf); len=13; break;
+                case SV_TELEPORT:		        sv_teleport(buf); len=13; break;
 
                 case SV_MIRROR:                 sv_mirror(buf); len=5; break;
-                case SV_PROF:			sv_prof(buf); len=21; break;
-                case SV_PING:			len=sv_ping(buf); break;
-                case SV_UNIQUE:			sv_unique(buf); len=5; break;
-                case SV_QUESTLOG:		sv_questlog(buf); len=101+sizeof(struct shrine_ppd); break;
+                case SV_PROF:			        sv_prof(buf); len=21; break;
+                case SV_PING:			        len=sv_ping(buf); break;
+                case SV_UNIQUE:			        sv_unique(buf); len=5; break;
+                case SV_QUESTLOG:		        sv_questlog(buf); len=101+sizeof(struct shrine_ppd); break;
 
-                default:                        return; // endwin(); fail("size=%d, len=%d",size,len); exit(1);
+                default:                        fail("got illegal command %d",buf[0]); exit(1);
             }
 
         size-=len; buf+=len;
@@ -946,6 +947,89 @@ void process(unsigned char *buf,int size) {
 
     if (size) {
         fail("PANIC! size=%d",size); exit(1);
+    }
+}
+
+void prefetch(unsigned char *buf,int size) {
+    int len=0,panic=0,last=-1;
+
+    while (size>0 && panic++<20000) {
+        if ((buf[0]&(64+128))==SV_MAP01) len=sv_map01(buf,&last,map2);  // ANKH
+        else if ((buf[0]&(64+128))==SV_MAP10) len=sv_map10(buf,&last,map2);  // ANKH
+        else if ((buf[0]&(64+128))==SV_MAP11) len=sv_map11(buf,&last,map2);  // ANKH
+        else switch (buf[0]) {
+                case SV_SCROLL_UP:              sv_scroll_up(map2); len=1; break;
+                case SV_SCROLL_DOWN:            sv_scroll_down(map2); len=1; break;
+                case SV_SCROLL_LEFT:            sv_scroll_left(map2); len=1; break;
+                case SV_SCROLL_RIGHT:           sv_scroll_right(map2); len=1; break;
+                case SV_SCROLL_LEFTUP:          sv_scroll_leftup(map2); len=1; break;
+                case SV_SCROLL_LEFTDOWN:        sv_scroll_leftdown(map2); len=1; break;
+                case SV_SCROLL_RIGHTUP:         sv_scroll_rightup(map2); len=1; break;
+                case SV_SCROLL_RIGHTDOWN:       sv_scroll_rightdown(map2); len=1; break;
+
+                case SV_SETVAL0:                len=4; break;
+                case SV_SETVAL1:                len=4; break;
+
+                case SV_SETHP:                  len=3; break;
+                case SV_SETMANA:                len=3; break;
+                case SV_SETRAGE:                len=3; break;
+                case SV_ENDURANCE:		        len=3; break;
+                case SV_LIFESHIELD:		        len=3; break;
+
+                case SV_SETITEM:                len=10; break;
+
+                case SV_SETORIGIN:              len=5; break;
+                case SV_SETTICK:                len=5; break;
+                case SV_SETCITEM:               len=9; break;
+
+                case SV_ACT:                    len=7; break;
+
+                case SV_TEXT:                   len=svl_text(buf); break;
+                case SV_EXIT:                   len=svl_exit(buf); break;
+
+                case SV_NAME:			        len=svl_name(buf); break;
+
+                case SV_CONTAINER:		        len=6; break;
+                case SV_PRICE:			        len=6; break;
+                case SV_CPRICE:			        len=5; break;
+                case SV_CONCNT:			        len=2; break;
+                case SV_ITEMPRICE:		        len=6; break;
+                case SV_CONTYPE:		        len=2; break;
+                case SV_CONNAME:		        len=svl_conname(buf); break;
+
+                case SV_MIRROR:                len=5; break;
+
+
+                case SV_GOLD:			        len=5; break;
+
+                case SV_EXP:	 		        len=5; break;
+                case SV_EXP_USED:		        len=5; break;
+                case SV_MIL_EXP:		        len=5; break;
+                case SV_LOOKINV:		        len=17+12*4; break;
+                case SV_CYCLES:			        len=5; break;
+                case SV_CEFFECT:		        len=svl_ceffect(buf); break;
+                case SV_UEFFECT:		        len=9; break;
+
+                case SV_SERVER:			        len=7; break;
+                case SV_REALTIME:               len=5; break;
+                case SV_SPEEDMODE:		        len=2; break;
+                case SV_FIGHTMODE:		        len=2; break;
+                case SV_LOGINDONE:		        len=1; break;
+                case SV_SPECIAL:		        len=13; break;
+                case SV_TELEPORT:		        len=13; break;
+                case SV_PROF:			        len=21; break;
+                case SV_PING:			        len=svl_ping(buf); break;
+                case SV_UNIQUE:			        len=5; break;
+                case SV_QUESTLOG:		        len=101+sizeof(struct shrine_ppd); break;
+
+                default:                        fail("got illegal command %d",buf[0]); exit(1);
+            }
+
+        size-=len; buf+=len;
+    }
+
+    if (size) {
+        printf("2 PANIC! size=%d",size); exit(1);
     }
 }
 
@@ -1636,6 +1720,9 @@ int next_tick(void) {
         memcpy(queue[q_in].buf,inbuf+indone,size);
     }
     queue[q_in].size=size;
+
+    auto_tick(map2);
+    prefetch(queue[q_in].buf,queue[q_in].size);
 
     q_in=(q_in+1)%Q_SIZE;
     q_size++;
