@@ -1008,19 +1008,19 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
                         g2=IGET_G(sdl_light(ll,irgb));
                         b2=IGET_B(sdl_light(ll,irgb));
                     } else v2=0;
-                    if (x>=10*sdl_scale && x<20*sdl_scale) {
+                    if (x>10*sdl_scale && x<20*sdl_scale) {
                         v3=(x-10*sdl_scale)*2-2;
                         r3=IGET_R(sdl_light(ml,irgb));
                         g3=IGET_G(sdl_light(ml,irgb));
                         b3=IGET_B(sdl_light(ml,irgb));
                     } else v3=0;
-                    if (x>=20*sdl_scale && x<30*sdl_scale) {
+                    if (x>20*sdl_scale && x<30*sdl_scale) {
                         v5=(10*sdl_scale-(x-20*sdl_scale))*2-2;
                         r5=IGET_R(sdl_light(ml,irgb));
                         g5=IGET_G(sdl_light(ml,irgb));
                         b5=IGET_B(sdl_light(ml,irgb));
                     } else v5=0;
-                    if (x>=30*sdl_scale && x<40*sdl_scale) {
+                    if (x>30*sdl_scale && x<40*sdl_scale) {
                         v4=(x-30*sdl_scale)*2-2;
                         r4=IGET_R(sdl_light(rl,irgb));
                         g4=IGET_G(sdl_light(rl,irgb));
@@ -1060,19 +1060,19 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
                             g2=IGET_G(sdl_light(ll,irgb));
                             b2=IGET_B(sdl_light(ll,irgb));
                         } else v2=0;
-                        if (x>=10*sdl_scale && x<20*sdl_scale) {
+                        if (x>10*sdl_scale && x<20*sdl_scale) {
                             v3=(x-10*sdl_scale)*2-2;
                             r3=IGET_R(sdl_light(rl,irgb));
                             g3=IGET_G(sdl_light(rl,irgb));
                             b3=IGET_B(sdl_light(rl,irgb));
                         } else v3=0;
-                        if (x>=20*sdl_scale && x<30*sdl_scale) {
+                        if (x>20*sdl_scale && x<30*sdl_scale) {
                             v5=(10*sdl_scale-(x-20*sdl_scale))*2-2;
                             r5=IGET_R(sdl_light(dl,irgb));
                             g5=IGET_G(sdl_light(dl,irgb));
                             b5=IGET_B(sdl_light(dl,irgb));
                         } else v5=0;
-                        if (x>=30*sdl_scale && x<40*sdl_scale) {
+                        if (x>30*sdl_scale && x<40*sdl_scale) {
                             v4=(x-30*sdl_scale)*2-2;
                             r4=IGET_R(sdl_light(ul,irgb));
                             g4=IGET_G(sdl_light(ul,irgb));
