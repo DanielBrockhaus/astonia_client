@@ -3,6 +3,12 @@ Astonia To-Do List
 ==================
 
 
+Bugs
+----
+
+- Invisible floor tiles in Ice Pents show an outline. Lighting? Scaling?
+
+
 Probably
 --------
 

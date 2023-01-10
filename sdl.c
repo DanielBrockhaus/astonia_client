@@ -90,6 +90,7 @@ long long sdl_time_text=0;
 long long sdl_time_blit=0;
 
 int sdl_scale=1;
+int sdl_frames=0;
 
 /* This function is a hack. It can only load one specific type of
    Windows cursor file: 32x32 pixels with 1 bit depth. */
@@ -249,6 +250,7 @@ int sdl_clear(void) {
 
 int sdl_render(void) {
     SDL_RenderPresent(sdlren);
+    sdl_frames++;
     return 1;
 }
 
@@ -893,7 +895,18 @@ static uint32_t sdl_colorbalance(uint32_t irgb,char cr,char cg,char cb,char ligh
     return irgb;
 }
 
+// TODO: add other sprites to this list
+// TODO: move to sprite.c
+int is_non_wall(int sprite) {
+
+    switch (sprite) {
+        case 14177:     return 1;   // earth underground door
+        default:        return 0;
+    }
+}
+
 static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
+                     int sprite,
                      signed char sink,unsigned char freeze,unsigned char grid,
                      unsigned char scale,char cr,char cg,char cb,
                      char light,char sat,
@@ -979,6 +992,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
             if (cr || cg || cb || light || sat) irgb=sdl_colorbalance(irgb,cr,cg,cb,light,sat);
             if (shine) irgb=sdl_shine_pix(irgb,shine);
 
+            //ll=dl=rl=ul=ml;
             if (ll!=ml || rl!=ml || ul!=ml || dl!=ml) {
                 int r,g,b,a;
                 int r1=0,r2=0,r3=0,r4=0,r5=0;
@@ -987,57 +1001,84 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
                 int v1,v2,v3,v4,v5=0;
                 int div;
 
-                // TODO: Tilesizes are hardcoded, with 10px being 1/4th, 20px 1/2.
-                if (y<10*sdl_scale+(20*sdl_scale-abs(20*sdl_scale-x))/2) {
-                    if (x/2<20*sdl_scale-y) {
-                        v2=-(x/2-(20*sdl_scale-y))+1;
-                        r2=IGET_R(sdl_light(ll,irgb));
-                        g2=IGET_G(sdl_light(ll,irgb));
-                        b2=IGET_B(sdl_light(ll,irgb));
-                    } else v2=0;
-                    if (x/2>20*sdl_scale-y) {
-                        v3=(x/2-(20*sdl_scale-y))+1;
-                        r3=IGET_R(sdl_light(rl,irgb));
-                        g3=IGET_G(sdl_light(rl,irgb));
-                        b3=IGET_B(sdl_light(rl,irgb));
-                    } else v3=0;
-                    if (x/2>y) {
-                        v4=(x/2-y)+1;
-                        r4=IGET_R(sdl_light(ul,irgb));
-                        g4=IGET_G(sdl_light(ul,irgb));
-                        b4=IGET_B(sdl_light(ul,irgb));
-                    } else v4=0;
-                    if (x/2<y) {
-                        v5=-(x/2-y)+1;
-                        r5=IGET_R(sdl_light(dl,irgb));
-                        g5=IGET_G(sdl_light(dl,irgb));
-                        b5=IGET_B(sdl_light(dl,irgb));
-                    } else v5=0;
-                } else {
+                if (is_non_wall(sprite)) {
                     if (x<10*sdl_scale) {
                         v2=(10*sdl_scale-x)*2-2;
                         r2=IGET_R(sdl_light(ll,irgb));
                         g2=IGET_G(sdl_light(ll,irgb));
                         b2=IGET_B(sdl_light(ll,irgb));
                     } else v2=0;
-                    if (x>10*sdl_scale && x<20*sdl_scale) {
+                    if (x>=10*sdl_scale && x<20*sdl_scale) {
                         v3=(x-10*sdl_scale)*2-2;
-                        r3=IGET_R(sdl_light(rl,irgb));
-                        g3=IGET_G(sdl_light(rl,irgb));
-                        b3=IGET_B(sdl_light(rl,irgb));
+                        r3=IGET_R(sdl_light(ml,irgb));
+                        g3=IGET_G(sdl_light(ml,irgb));
+                        b3=IGET_B(sdl_light(ml,irgb));
                     } else v3=0;
-                    if (x>20*sdl_scale && x<30*sdl_scale) {
+                    if (x>=20*sdl_scale && x<30*sdl_scale) {
                         v5=(10*sdl_scale-(x-20*sdl_scale))*2-2;
-                        r5=IGET_R(sdl_light(dl,irgb));
-                        g5=IGET_G(sdl_light(dl,irgb));
-                        b5=IGET_B(sdl_light(dl,irgb));
+                        r5=IGET_R(sdl_light(ml,irgb));
+                        g5=IGET_G(sdl_light(ml,irgb));
+                        b5=IGET_B(sdl_light(ml,irgb));
                     } else v5=0;
-                    if (x>30*sdl_scale && x<40*sdl_scale) {
-                        v4=(x-30)*2-2;
-                        r4=IGET_R(sdl_light(ul,irgb));
-                        g4=IGET_G(sdl_light(ul,irgb));
-                        b4=IGET_B(sdl_light(ul,irgb));
+                    if (x>=30*sdl_scale && x<40*sdl_scale) {
+                        v4=(x-30*sdl_scale)*2-2;
+                        r4=IGET_R(sdl_light(rl,irgb));
+                        g4=IGET_G(sdl_light(rl,irgb));
+                        b4=IGET_B(sdl_light(rl,irgb));
                     } else v4=0;
+                } else {
+                    // TODO: Tilesizes are hardcoded, with 10px being 1/4th, 20px 1/2.
+                    if (y<10*sdl_scale+(20*sdl_scale-abs(20*sdl_scale-x))/2) {
+                        if (x/2<20*sdl_scale-y) {
+                            v2=-(x/2-(20*sdl_scale-y))+1;
+                            r2=IGET_R(sdl_light(ll,irgb));
+                            g2=IGET_G(sdl_light(ll,irgb));
+                            b2=IGET_B(sdl_light(ll,irgb));
+                        } else v2=0;
+                        if (x/2>20*sdl_scale-y) {
+                            v3=(x/2-(20*sdl_scale-y))+1;
+                            r3=IGET_R(sdl_light(rl,irgb));
+                            g3=IGET_G(sdl_light(rl,irgb));
+                            b3=IGET_B(sdl_light(rl,irgb));
+                        } else v3=0;
+                        if (x/2>y) {
+                            v4=(x/2-y)+1;
+                            r4=IGET_R(sdl_light(ul,irgb));
+                            g4=IGET_G(sdl_light(ul,irgb));
+                            b4=IGET_B(sdl_light(ul,irgb));
+                        } else v4=0;
+                        if (x/2<y) {
+                            v5=-(x/2-y)+1;
+                            r5=IGET_R(sdl_light(dl,irgb));
+                            g5=IGET_G(sdl_light(dl,irgb));
+                            b5=IGET_B(sdl_light(dl,irgb));
+                        } else v5=0;
+                    } else {
+                        if (x<10*sdl_scale) {
+                            v2=(10*sdl_scale-x)*2-2;
+                            r2=IGET_R(sdl_light(ll,irgb));
+                            g2=IGET_G(sdl_light(ll,irgb));
+                            b2=IGET_B(sdl_light(ll,irgb));
+                        } else v2=0;
+                        if (x>=10*sdl_scale && x<20*sdl_scale) {
+                            v3=(x-10*sdl_scale)*2-2;
+                            r3=IGET_R(sdl_light(rl,irgb));
+                            g3=IGET_G(sdl_light(rl,irgb));
+                            b3=IGET_B(sdl_light(rl,irgb));
+                        } else v3=0;
+                        if (x>=20*sdl_scale && x<30*sdl_scale) {
+                            v5=(10*sdl_scale-(x-20*sdl_scale))*2-2;
+                            r5=IGET_R(sdl_light(dl,irgb));
+                            g5=IGET_G(sdl_light(dl,irgb));
+                            b5=IGET_B(sdl_light(dl,irgb));
+                        } else v5=0;
+                        if (x>=30*sdl_scale && x<40*sdl_scale) {
+                            v4=(x-30*sdl_scale)*2-2;
+                            r4=IGET_R(sdl_light(ul,irgb));
+                            g4=IGET_G(sdl_light(ul,irgb));
+                            b4=IGET_B(sdl_light(ul,irgb));
+                        } else v4=0;
+                    }
                 }
 
                 v1=20*sdl_scale-(v2+v3+v4+v5)/2;
@@ -1278,7 +1319,7 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
     } else {
         sdl_ic_load(sprite);
 
-        sdl_make(sdlt+stx,sdli+sprite,sink,freeze,grid,scale,cr,cg,cb,light,sat,c1,c2,c3,shine,ml,ll,rl,ul,dl);
+        sdl_make(sdlt+stx,sdli+sprite,sprite,sink,freeze,grid,scale,cr,cg,cb,light,sat,c1,c2,c3,shine,ml,ll,rl,ul,dl);
 
         // init
         sdlt[stx].flags=SF_USED|SF_SPRITE;
@@ -1319,9 +1360,9 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
     if (preload) texc_pre++;
     else if (sprite) {  // Do not count missed text sprites. Those are expected.
         texc_miss++;
-#if 0
-        if (sprite>200 && sprite<220) {
-            printf("miss sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d) M\n",
+#if 1
+        if (sdl_frames>10) {    // wait for things to stabilize before reporting misses
+            note("miss sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d) M",
                    sprite,
                    sdlt[stx].sink,sdlt[stx].freeze,sdlt[stx].grid,sdlt[stx].scale,
                    sdlt[stx].cr,sdlt[stx].cg,sdlt[stx].cb,sdlt[stx].light,
