@@ -10,6 +10,12 @@ Probably
 
 - Add multi-core pre-rendering of textures to speed up sdl_make().
 
+- Find an up-scaling algorithm that works with floor and wall tiles without creating edges around the tiles.
+- ... or, add a list of all non-tile sprites to do_smothify().
+
+- Create the bigger fonts, not just use the pixel-doubled ones.
+
+
 Possibly
 --------
 

@@ -252,6 +252,112 @@ int sdl_render(void) {
     return 1;
 }
 
+uint32_t mix_argb(uint32_t c1,uint32_t c2,float w1,float w2) {
+    int r1,r2,g1,g2,b1,b2,a1,a2;
+    int r,g,b,a;
+
+    a1=IGET_A(c1);
+    a2=IGET_A(c2);
+    if (!a1 && !a2) return 0; // save some work
+
+    r1=IGET_R(c1);
+    g1=IGET_G(c1);
+    b1=IGET_B(c1);
+
+    r2=IGET_R(c2);
+    g2=IGET_G(c2);
+    b2=IGET_B(c2);
+
+    a=(a1*w1+a2*w2);
+    r=(r1*w1+r2*w2);
+    g=(g1*w1+g2*w2);
+    b=(b1*w1+b2*w2);
+
+    a=min(255,a);
+    r=min(255,r);
+    g=min(255,g);
+    b=min(255,b);
+
+    return IRGBA(r,g,b,a);
+}
+
+void sdl_smothify(uint32_t *pixel,int xres,int yres,int scale) {
+    int x,y;
+    uint32_t c1,c2,c3,c4;
+
+    switch (scale) {
+        case 2:
+            for (x=0; x<xres-2; x+=2) {
+                for (y=0; y<yres-2; y+=2) {
+                    c1=pixel[x+y*xres];             // top left
+                    c2=pixel[x+y*xres+2];           // top right
+                    c3=pixel[x+y*xres+xres*2];      // bottom left
+                    c4=pixel[x+y*xres+2+xres*2];    // bottom right
+
+                    pixel[x+y*xres+1]=mix_argb(c1,c2,0.5,0.5);
+                    pixel[x+y*xres+xres]=mix_argb(c1,c3,0.5,0.5);
+                    pixel[x+y*xres+1+xres]=mix_argb(mix_argb(c1,c2,0.5,0.5),mix_argb(c3,c4,0.5,0.5),0.5,0.5);
+                }
+            }
+            break;
+        case 3:
+            for (x=0; x<xres-3; x+=3) {
+                for (y=0; y<yres-3; y+=3) {
+                    c1=pixel[x+y*xres];             // top left
+                    c2=pixel[x+y*xres+3];           // top right
+                    c3=pixel[x+y*xres+xres*3];      // bottom left
+                    c4=pixel[x+y*xres+3+xres*3];    // bottom right
+
+                    pixel[x+y*xres+1]=mix_argb(c1,c2,0.667,0.333);
+                    pixel[x+y*xres+2]=mix_argb(c1,c2,0.333,0.667);
+
+                    pixel[x+y*xres+xres*1]=mix_argb(c1,c3,0.667,0.333);
+                    pixel[x+y*xres+xres*2]=mix_argb(c1,c3,0.333,0.667);
+
+                    pixel[x+y*xres+1+xres*1]=mix_argb(mix_argb(c1,c2,0.5,0.5),mix_argb(c3,c4,0.5,0.5),0.5,0.5);
+                    pixel[x+y*xres+2+xres*1]=mix_argb(mix_argb(c1,c2,0.333,0.667),mix_argb(c3,c4,0.333,0.667),0.667,0.333);
+                    pixel[x+y*xres+1+xres*2]=mix_argb(mix_argb(c1,c2,0.667,0.333),mix_argb(c3,c4,0.667,0.333),0.333,0.667);
+                    pixel[x+y*xres+2+xres*2]=mix_argb(mix_argb(c1,c2,0.333,0.667),mix_argb(c3,c4,0.333,0.667),0.333,0.667);
+                }
+            }
+            break;
+
+        case 4:
+            for (x=0; x<xres-4; x+=4) {
+                for (y=0; y<yres-4; y+=4) {
+                    c1=pixel[x+y*xres];             // top left
+                    c2=pixel[x+y*xres+4];           // top right
+                    c3=pixel[x+y*xres+xres*4];      // bottom left
+                    c4=pixel[x+y*xres+4+xres*4];    // bottom right
+
+                    pixel[x+y*xres+1]=mix_argb(c1,c2,0.75,0.25);
+                    pixel[x+y*xres+2]=mix_argb(c1,c2,0.50,0.50);
+                    pixel[x+y*xres+3]=mix_argb(c1,c2,0.25,0.75);
+
+                    pixel[x+y*xres+xres*1]=mix_argb(c1,c3,0.75,0.25);
+                    pixel[x+y*xres+xres*2]=mix_argb(c1,c3,0.50,0.50);
+                    pixel[x+y*xres+xres*3]=mix_argb(c1,c3,0.25,0.75);
+
+                    pixel[x+y*xres+1+xres*1]=mix_argb(mix_argb(c1,c2,0.75,0.25),mix_argb(c3,c4,0.75,0.25),0.75,0.25);
+                    pixel[x+y*xres+1+xres*2]=mix_argb(mix_argb(c1,c2,0.75,0.25),mix_argb(c3,c4,0.75,0.25),0.50,0.50);
+                    pixel[x+y*xres+1+xres*3]=mix_argb(mix_argb(c1,c2,0.75,0.75),mix_argb(c3,c4,0.75,0.25),0.25,0.75);
+
+                    pixel[x+y*xres+2+xres*1]=mix_argb(mix_argb(c1,c2,0.50,0.50),mix_argb(c3,c4,0.50,0.50),0.75,0.25);
+                    pixel[x+y*xres+2+xres*2]=mix_argb(mix_argb(c1,c2,0.50,0.50),mix_argb(c3,c4,0.50,0.50),0.50,0.50);
+                    pixel[x+y*xres+2+xres*3]=mix_argb(mix_argb(c1,c2,0.50,0.50),mix_argb(c3,c4,0.50,0.50),0.25,0.75);
+
+                    pixel[x+y*xres+3+xres*1]=mix_argb(mix_argb(c1,c2,0.25,0.75),mix_argb(c3,c4,0.25,0.75),0.75,0.25);
+                    pixel[x+y*xres+3+xres*2]=mix_argb(mix_argb(c1,c2,0.25,0.75),mix_argb(c3,c4,0.25,0.75),0.50,0.50);
+                    pixel[x+y*xres+3+xres*3]=mix_argb(mix_argb(c1,c2,0.25,0.75),mix_argb(c3,c4,0.25,0.75),0.25,0.75);
+                }
+            }
+            break;
+        default:
+            warn("Unsupported scale %d in sdl_load_image_png()",sdl_scale);
+            break;
+    }
+}
+
 // Load high res PNG
 int sdl_load_image_png_(struct sdl_image *si,char *filename) {
     int x,y,xres,yres,tmp,r,g,b,a,sx,sy,ex,ey;
@@ -342,7 +448,7 @@ int sdl_load_image_png_(struct sdl_image *si,char *filename) {
 
             if (r==255 && g==0 && b==255) a=0;
 
-            if (a) {
+            if (a) {    // pre-multiply rgb channel by alpha
                 r=min(255,r*255/a);
                 g=min(255,g*255/a);
                 b=min(255,b*255/a);
@@ -366,7 +472,7 @@ int sdl_load_image_png_(struct sdl_image *si,char *filename) {
 }
 
 // Load and up-scale low res PNG
-int sdl_load_image_png(struct sdl_image *si,char *filename) {
+int sdl_load_image_png(struct sdl_image *si,char *filename,int smothify) {
     int x,y,xres,yres,tmp,r,g,b,a,sx,sy,ex,ey;
     uint32_t c;
     int format;
@@ -515,6 +621,7 @@ int sdl_load_image_png(struct sdl_image *si,char *filename) {
         }
     }
 
+    if (sdl_scale>1 && smothify) sdl_smothify(si->pixel,si->xres*sdl_scale,si->yres*sdl_scale,sdl_scale);
 
     png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL);
     fclose(fp);
@@ -522,6 +629,14 @@ int sdl_load_image_png(struct sdl_image *si,char *filename) {
     return 0;
 }
 
+
+int do_smothify(int sprite) {
+
+    if (sprite<=1000) return 1; // GUI
+    if (sprite>=100000) return 1;   // all character sprites
+
+    return 0;
+}
 
 int sdl_load_image(struct sdl_image *si,int sprite) {
     char filename[1024];
@@ -539,7 +654,7 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         if (sdl_load_image_png_(si,filename)==0) return 0;
     }
     sprintf(filename,"../gfx/x1/%08d/%08d.png",(sprite/1000)*1000,sprite);
-    if (sdl_load_image_png(si,filename)==0) return 0;
+    if (sdl_load_image_png(si,filename,do_smothify(sprite))==0) return 0;
 #endif
     paranoia("%s not found",filename);
 
@@ -1735,7 +1850,7 @@ uint32_t *sdl_load_png(char *filename,int *dx,int *dy) {
 
 /*
 
-for /r "." %a in (0*) do magick mogrify -resize 200% "%~a"
+for /r "." %a in (0*) do magick mogrify -resize 200% png32:"%~a"
 
 -transparent rgb(255,0,255)
 - specify output format (32 bits RGBA)
