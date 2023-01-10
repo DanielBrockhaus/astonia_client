@@ -450,7 +450,7 @@ int get_chr_height(int csprite) {
 #define IRGB(r,g,b) (((r)<<10)|((g)<<5)|((b)<<0))
 
 // charno to scale / colors
-int trans_charno(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,int *psat,int *pc1,int *pc2,int *pc3,int *pshine) {
+int trans_charno(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,int *psat,int *pc1,int *pc2,int *pc3,int *pshine,int attick) {
     int scale=100,cr=0,cg=0,cb=0,light=0,sat=0,c1=0,c2=0,c3=0,shine=0,helper;
 
     switch (csprite) {
@@ -492,7 +492,7 @@ int trans_charno(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,
         case 156:	csprite=30; break;              // ratling
 
         case 157:	csprite=39;                 // fire demon
-            helper=tick&31;
+            helper=attick&31;
             if (helper>15) helper=32-helper;
             sat=5; light=-80; cr=60+helper*3;
             break;
@@ -2310,7 +2310,7 @@ int trans_asprite(int mn,int sprite,int attick,
     }
 
     if (sprite>=100000) {
-        nr=trans_charno((sprite-100000)/1000,&scale,&cr,&cg,&cb,&light,&sat,&c1,&c2,&c3,&shine);
+        nr=trans_charno((sprite-100000)/1000,&scale,&cr,&cg,&cb,&light,&sat,&c1,&c2,&c3,&shine,attick);
         sprite=nr*1000+sprite%1000+100000;
     }
 
@@ -2330,10 +2330,10 @@ int trans_asprite(int mn,int sprite,int attick,
 
 // csprite
 
-int get_player_sprite(int nr,int zdir,int action,int step,int duration) {
+int get_player_sprite(int nr,int zdir,int action,int step,int duration,int attick) {
     int base;
 
-    if (nr>100) nr=trans_charno(nr,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+    if (nr>100) nr=trans_charno(nr,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,attick);
 
     base=100000+nr*1000;
 
@@ -2365,7 +2365,7 @@ int get_player_sprite(int nr,int zdir,int action,int step,int duration) {
             case 119:
             case 360:
                 action=60;
-                step=tick%16;
+                step=attick%16;
                 duration=16;
                 break;
             default: break;
@@ -2424,9 +2424,9 @@ void trans_csprite(int mn,struct map *cmap,int attick) {
     if (playersprite_override && mn==mapmn(MAPDX/2,MAPDY/2)) csprite=playersprite_override;
     else csprite=cmap[mn].csprite;
 
-    csprite=trans_charno(csprite,&scale,&cr,&cg,&cb,&light,&sat,&c1,&c2,&c3,&shine);
+    csprite=trans_charno(csprite,&scale,&cr,&cg,&cb,&light,&sat,&c1,&c2,&c3,&shine,attick);
 
-    cmap[mn].rc.sprite=get_player_sprite(csprite,cmap[mn].dir-1,cmap[mn].action,cmap[mn].step,cmap[mn].duration);
+    cmap[mn].rc.sprite=get_player_sprite(csprite,cmap[mn].dir-1,cmap[mn].action,cmap[mn].step,cmap[mn].duration,attick);
     cmap[mn].rc.scale=scale;
 
     cmap[mn].rc.shine=shine;

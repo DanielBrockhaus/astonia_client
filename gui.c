@@ -511,9 +511,9 @@ static void display_look(void) {
 
         bzero(&fx,sizeof(fx));
 
-        csprite=trans_charno(looksprite,&scale,&cr,&cg,&cb,&light,&sat,&c1,&c2,&c3,&shine);
+        csprite=trans_charno(looksprite,&scale,&cr,&cg,&cb,&light,&sat,&c1,&c2,&c3,&shine,tick);
 
-        fx.sprite=get_player_sprite(csprite,look_dir,look_anim,look_step,16);
+        fx.sprite=get_player_sprite(csprite,look_dir,look_anim,look_step,16,tick);
         look_step++;
         if (look_step==16) {
             look_step=0;
@@ -1025,9 +1025,9 @@ void display_color(void) {
 
     bzero(&fx,sizeof(fx));
 
-    csprite=trans_charno(map[MAPDX*MAPDY/2].csprite,&scale,&cr,&cg,&cb,&light,&sat,&c1,&c2,&c3,&shine);
+    csprite=trans_charno(map[MAPDX*MAPDY/2].csprite,&scale,&cr,&cg,&cb,&light,&sat,&c1,&c2,&c3,&shine,tick);
 
-    fx.sprite=get_player_sprite(csprite,col_dir,col_anim,col_step,16);
+    fx.sprite=get_player_sprite(csprite,col_dir,col_anim,col_step,16,tick);
     col_step++;
     if (col_step==16) {
         col_step=0;

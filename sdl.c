@@ -1319,15 +1319,17 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
     if (preload) texc_pre++;
     else if (sprite) {  // Do not count missed text sprites. Those are expected.
         texc_miss++;
-        /*
-        printf("miss sprite=%d (%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d)\n",
-               sprite,
-               sdlt[stx].sink,sdlt[stx].freeze,sdlt[stx].grid,sdlt[stx].scale,
-               sdlt[stx].cr,sdlt[stx].cg,sdlt[stx].cb,sdlt[stx].light,
-               sdlt[stx].sat,sdlt[stx].c1,sdlt[stx].c2,sdlt[stx].c3,
-               sdlt[stx].shine,sdlt[stx].ml,sdlt[stx].ll,sdlt[stx].rl,
-               sdlt[stx].ul,sdlt[stx].dl);
-        */
+#if 0
+        if (sprite>200 && sprite<220) {
+            printf("miss sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d) M\n",
+                   sprite,
+                   sdlt[stx].sink,sdlt[stx].freeze,sdlt[stx].grid,sdlt[stx].scale,
+                   sdlt[stx].cr,sdlt[stx].cg,sdlt[stx].cb,sdlt[stx].light,
+                   sdlt[stx].sat,sdlt[stx].c1,sdlt[stx].c2,sdlt[stx].c3,
+                   sdlt[stx].shine,sdlt[stx].ml,sdlt[stx].ll,sdlt[stx].rl,
+                   sdlt[stx].ul,sdlt[stx].dl);
+        }
+#endif
     }
 
     return stx;
@@ -1891,13 +1893,17 @@ uint32_t *sdl_load_png(char *filename,int *dx,int *dy) {
 
 struct prefetch {
     int attick;
-    int sprite;
-    signed char sink;
-    unsigned char scale,cr,cg,cb,light,sat;
-    unsigned short c1,c2,c3,shine;
-    char ml,ll,rl,ul,dl;
-    unsigned char freeze;
-    unsigned char grid;
+
+    int32_t sprite;
+    int8_t sink;
+    uint8_t scale;
+    int16_t cr,cg,cb,light,sat;
+    uint16_t c1,c2,c3,shine;
+
+    uint8_t freeze;
+    uint8_t grid;
+
+    int8_t ml,ll,rl,ul,dl;
 };
 
 #define MAXPRE (16384)
@@ -1935,7 +1941,7 @@ void sdl_pre_add(int attick,int sprite,signed char sink,unsigned char freeze,uns
             pre[n].dl==dl &&
             pre[n].ul==ul) return;
     }
-    // Don't add if alredy in cache
+    // Don't add if already in cache
     if (sdl_tx_load(sprite,
                     sink,
                     freeze,
@@ -1979,8 +1985,17 @@ void sdl_pre_add(int attick,int sprite,signed char sink,unsigned char freeze,uns
     pre[pre_in].dl=dl;
     pre[pre_in].ul=ul;
 
-    //note("add_pre: %d %d %d %d %d %d",pre[pre_in].sprite,pre[pre_in].ml,pre[pre_in].ll,pre[pre_in].rl,pre[pre_in].ul,pre[pre_in].dl);
-
+#if 0
+    if (sprite>200 && sprite<220) {
+        printf("add  sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d) A\n",
+                   pre[pre_in].sprite,
+                   pre[pre_in].sink,pre[pre_in].freeze,pre[pre_in].grid,pre[pre_in].scale,
+                   pre[pre_in].cr,pre[pre_in].cg,pre[pre_in].cb,pre[pre_in].light,
+                   pre[pre_in].sat,pre[pre_in].c1,pre[pre_in].c2,pre[pre_in].c3,
+                   pre[pre_in].shine,pre[pre_in].ml,pre[pre_in].ll,pre[pre_in].rl,
+                   pre[pre_in].ul,pre[pre_in].dl);
+    }
+#endif
     pre_in=(pre_in+1)%MAXPRE;
 }
 
