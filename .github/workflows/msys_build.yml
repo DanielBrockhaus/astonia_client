@@ -1,0 +1,34 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    defaults:
+      run:
+        shell: msys2 {0}
+        
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: configure
+      run: ./configure
+      
+    - uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: >-
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-SDL2
+          mingw-w64-x86_64-libpng
+          make
+          
+    - shell: msys2 {0}
+      run: |
+        make
