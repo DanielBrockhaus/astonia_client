@@ -15,20 +15,22 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: configure
-      run: ./configure
+      - name: '🧰 Checkout'
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       
-    - uses: msys2/setup-msys2@v2
-      with:
-        update: true
-        install: >-
-          mingw-w64-x86_64-gcc
-          mingw-w64-x86_64-SDL2
-          mingw-w64-x86_64-libpng
-          make
+      - name: '🧰 Setup msys2'
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-SDL2
+            mingw-w64-x86_64-libpng
+            make
           
-    - shell: msys2 {0}
-      run: |
-        make
+      - name: '🧰 Build Executeable'
+        shell: msys2 {0}
+        run: |
+            make
