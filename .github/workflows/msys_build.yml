@@ -1,0 +1,53 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    defaults:
+      run:
+        shell: msys2 {0}
+        
+    runs-on: windows-latest
+
+    steps:
+      - name: 'Setup msys2'
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-SDL2
+            mingw-w64-x86_64-libpng
+            make
+            wget
+            unzip
+
+      - name: 'Create directories'
+        run: |
+          mkdir astonia3
+          cd astonia3
+          mkdir moac
+          mkdir gfx
+          cd moac
+
+      - name: 'Checkout'
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: 'Fetch Image files'
+        run: |
+          cd ..
+          wget https://brockhaus.org/astonia_client_pngs.zip
+          unzip astonia_client_pngs.zip
+         
+      - name: 'Build Executeable'
+        shell: msys2 {0}
+        run: |
+            cd moac
+            make
