@@ -358,6 +358,29 @@ void sdl_smothify(uint32_t *pixel,int xres,int yres,int scale) {
     }
 }
 
+void sdl_premulti(uint32_t *pixel,int xres,int yres,int scale) {
+    int n,r,g,b,a;
+    uint32_t c;
+
+    for (n=0; n<xres*yres; n++) {
+        c=pixel[n];
+
+        a=IGET_A(c);
+        if (!a) continue;
+
+        r=IGET_R(c);
+        g=IGET_G(c);
+        b=IGET_B(c);
+
+        r=min(255,r*255/a);
+        g=min(255,g*255/a);
+        b=min(255,b*255/a);
+
+        c=IRGBA(r,g,b,a);
+        pixel[n]=c;
+    }
+}
+
 // Load high res PNG
 int sdl_load_image_png_(struct sdl_image *si,char *filename) {
     int x,y,xres,yres,tmp,r,g,b,a,sx,sy,ex,ey;
@@ -472,6 +495,8 @@ int sdl_load_image_png_(struct sdl_image *si,char *filename) {
 }
 
 // Load and up-scale low res PNG
+// TODO: add support for using a 2X image as a base for 4X
+// and possibly the other way around too
 int sdl_load_image_png(struct sdl_image *si,char *filename,int smothify) {
     int x,y,xres,yres,tmp,r,g,b,a,sx,sy,ex,ey;
     uint32_t c;
@@ -562,11 +587,9 @@ int sdl_load_image_png(struct sdl_image *si,char *filename,int smothify) {
 
             if (r==255 && g==0 && b==255) a=0;
 
-            if (a) {
-                r=min(255,r*255/a);
-                g=min(255,g*255/a);
-                b=min(255,b*255/a);
-            } else r=g=b=0;
+
+            if (!a) // don't pre-multiply rgb channel by alpha because that needs to happen after scaling
+                r=g=b=0;
 
             c=IRGBA(r,g,b,a);
 
@@ -621,7 +644,10 @@ int sdl_load_image_png(struct sdl_image *si,char *filename,int smothify) {
         }
     }
 
-    if (sdl_scale>1 && smothify) sdl_smothify(si->pixel,si->xres*sdl_scale,si->yres*sdl_scale,sdl_scale);
+    if (sdl_scale>1 && smothify) {
+        sdl_smothify(si->pixel,si->xres*sdl_scale,si->yres*sdl_scale,sdl_scale);
+        sdl_premulti(si->pixel,si->xres*sdl_scale,si->yres*sdl_scale,sdl_scale);
+    } else sdl_premulti(si->pixel,si->xres*sdl_scale,si->yres*sdl_scale,sdl_scale);
 
     png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL);
     fclose(fp);
@@ -632,6 +658,7 @@ int sdl_load_image_png(struct sdl_image *si,char *filename,int smothify) {
 
 int do_smothify(int sprite) {
 
+    // TODO: add more to this list
     if (sprite<=1000) return 1; // GUI
     if (sprite>=100000) return 1;   // all character sprites
 
