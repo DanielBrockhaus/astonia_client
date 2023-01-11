@@ -1,0 +1,10 @@
+
+Astonia is
+	Copyright 1997-2000 by Daniel Brockhaus, Markus Roeder
+	Copyright 2001-2007 by Intent Software GmbH && Co. KG
+	Copyright 2008-2022 by Daniel Brockhaus
+
+The software is provided "as is" without warranty of any kind.
+
+For the current license to use this software, please see https://brockhaus.org/astonia3.html
+
