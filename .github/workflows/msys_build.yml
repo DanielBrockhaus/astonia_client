@@ -27,6 +27,7 @@ jobs:
             wget
             unzip
             git
+            git-lfs
 
       - name: 'Checkout'
         uses: actions/checkout@v3
