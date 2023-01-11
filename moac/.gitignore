@@ -5,7 +5,6 @@
 *.pak
 *.lnk
 *.dat
-*.o
 moac.*
 moac_gcc.*
 sdlt.txt
