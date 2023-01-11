@@ -511,9 +511,9 @@ static void display_look(void) {
 
         bzero(&fx,sizeof(fx));
 
-        csprite=trans_charno(looksprite,&scale,&cr,&cg,&cb,&light,&sat,&c1,&c2,&c3,&shine);
+        csprite=trans_charno(looksprite,&scale,&cr,&cg,&cb,&light,&sat,&c1,&c2,&c3,&shine,tick);
 
-        fx.sprite=get_player_sprite(csprite,look_dir,look_anim,look_step,16);
+        fx.sprite=get_player_sprite(csprite,look_dir,look_anim,look_step,16,tick);
         look_step++;
         if (look_step==16) {
             look_step=0;
@@ -1025,9 +1025,9 @@ void display_color(void) {
 
     bzero(&fx,sizeof(fx));
 
-    csprite=trans_charno(map[MAPDX*MAPDY/2].csprite,&scale,&cr,&cg,&cb,&light,&sat,&c1,&c2,&c3,&shine);
+    csprite=trans_charno(map[MAPDX*MAPDY/2].csprite,&scale,&cr,&cg,&cb,&light,&sat,&c1,&c2,&c3,&shine,tick);
 
-    fx.sprite=get_player_sprite(csprite,col_dir,col_anim,col_step,16);
+    fx.sprite=get_player_sprite(csprite,col_dir,col_anim,col_step,16,tick);
     col_step++;
     if (col_step==16) {
         col_step=0;
@@ -1461,6 +1461,7 @@ static void display(void) {
     extern int memused;
     extern int memptrused;
     int t;
+    long long start=SDL_GetTicks64();
 
     if (sockstate<4 && ((t=time(NULL)-socktimeout)>10 || !originx)) {
         dd_rect(0,0,800,600,blackcolor);
@@ -1476,6 +1477,17 @@ static void display(void) {
                 dd_drawtext_fmt(800/2,600/2-0,textcolor,DD_LARGE|DD_CENTER|DD_FRAME,"Additional information can be found at www.astonia.com.");
             }
         }
+        /* TODO: remove font creation helper
+        for (int i=32; i<80; i++) {
+            dd_drawtext(i*10-320,80,0xffff,DD_SMALL|DD_LEFT,(char*)&i);
+            dd_drawtext(i*10-320,120,0xffff,DD_LARGE|DD_LEFT,(char*)&i);
+            dd_drawtext(i*10-320,160,0xffff,DD_BIG|DD_LEFT,(char*)&i);
+        }
+        for (int i=80; i<128; i++) {
+            dd_drawtext(i*10-800,100,0xffff,DD_SMALL|DD_LEFT,(char*)&i);
+            dd_drawtext(i*10-800,140,0xffff,DD_LARGE|DD_LEFT,(char*)&i);
+            dd_drawtext(i*10-800,180,0xffff,DD_BIG|DD_LEFT,(char*)&i);
+        }*/
         return;
     }
 
@@ -1506,21 +1518,50 @@ static void display(void) {
     display_tutor();
     display_citem();
 
+    int duration=SDL_GetTicks64()-start;
+
     if (display_vc) {
-        extern long long mem_tex,texc_miss;
+        extern long long mem_tex,texc_miss,texc_pre;
+        extern long long sdl_time_make,sdl_time_tex,sdl_time_text,sdl_time_blit;
+        extern int  pre_in,pre_out;
+        static int dur=0,make=0,tex=0,text=0,blit=0,stay=0,size;
 
         dd_drawtext_fmt(650,5,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);
         dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"skip %3.0f%%",100.0*skip/tota);
         dd_drawtext_fmt(650,25,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"idle %3.0f%%",100.0*idle/tota);
 
-        dd_drawtext_fmt(650,44,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"RAM");
-        dd_drawtext_fmt(650,54,0xffff,DD_SMALL|DD_LEFT|DD_FRAME,"TEX");
-        dd_drawtext_fmt(650+20,44,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"%5.2f MB",memsize[0]/(1024.0*1024.0));
-        dd_drawtext_fmt(650+20,54,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"%5.2f MB",mem_tex/(1024.0*1024.0));
+        dd_drawtext_fmt(650,44,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Tex: %5.2f MB",mem_tex/(1024.0*1024.0));
 
-        dd_drawtext_fmt(650,64,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"MISS %lld",texc_miss);
+         if (pre_in>=pre_out) size=pre_in-pre_out;
+         else size=16384+pre_in-pre_out;
 
-        dd_shaded_rect(770,110,790,110+skip);
+        dd_drawtext_fmt(650,54,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"PreC %d",size);
+        dd_drawtext_fmt(650,64,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Miss %lld",texc_miss);
+        dd_drawtext_fmt(650,74,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Prel %lld",texc_pre);
+
+        if (duration>10 && (!stay || duration>dur)) {
+            dur=duration;
+            make=sdl_time_make;
+            tex=sdl_time_tex;
+            text=sdl_time_text;
+            blit=sdl_time_blit;
+            stay=24*4;
+        }
+        sdl_time_make=0;
+        sdl_time_tex=0;
+        sdl_time_text=0;
+        sdl_time_blit=0;
+
+        if (stay>0) {
+            stay--;
+            dd_drawtext_fmt(650,100,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Dur %dms (%.0f%%)",dur,100.0*(make+tex+text+blit)/dur);
+            dd_drawtext_fmt(650,110,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Make %dms (%.0f%%)",make,100.0*make/dur);
+            dd_drawtext_fmt(650,120,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Tex %dms (%.0f%%)",tex,100.0*tex/dur);
+            dd_drawtext_fmt(650,130,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Text %dms (%.0f%%)",text,100.0*text/dur);
+            dd_drawtext_fmt(650,140,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Blit %dms (%.0f%%)",blit,100.0*blit/dur);
+        }
+
+        //dd_shaded_rect(770,110,790,110+skip);
     } else dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);
 
     sprintf(perf_text,"mem usage=%.2f/%.2fMB, %.2f/%.2fKBlocks",
@@ -2696,6 +2737,8 @@ void gui_sdl_mouseproc(int x,int y,int what) {
 
                 mousex/=mouse_scale;
                 mousey/=mouse_scale;
+                mousex-=x_offset;
+                mousey-=y_offset;
 
                 if (butsel!=-1 && vk_lbut && (but[butsel].flags&BUTF_MOVEEXEC)) exec_cmd(lcmd,0);
                 break;
@@ -2856,13 +2899,15 @@ void main_exit(void) {
 
 void flip_at(unsigned int t) {
     unsigned int tnow;
+    int sdl_pre_do(int curtick);
 
     do {
         sdl_loop();
+        if (!sdl_pre_do(tick)) Sleep(1);
         tnow=GetTickCount();
         /*if (GetActiveWindow()!=mainwnd) { // TODO: re-active this once we have the SDL window as only window?
             Sleep(100);
-        } else */ Sleep(1);
+        } else Sleep(1); */
     } while (t>tnow);
 
     sdl_render();
@@ -2871,6 +2916,7 @@ void flip_at(unsigned int t) {
 unsigned int nextframe;
 
 int main_loop(void) {
+    void prefetch_game(int attick);
     int tmp,timediff,ltick=0;
     extern int q_size;
 
@@ -2884,7 +2930,10 @@ int main_loop(void) {
 
         // check if we can go on
         if (sockstate>2) {
-            while (next_tick());
+
+            // decode as many ticks as we can
+            while (next_tick())
+                prefetch_game(tick+q_size);     // and add their contents to the prefetch queue
 
             // get one tick to display
             do_tick(); ltick++;
@@ -2928,11 +2977,24 @@ int main_loop(void) {
 #endif
         {
             if (timediff>-MPT/2) {
-
                 set_cmd_states();
 
                 sdl_clear();
                 display();
+
+#if 0   // Full throttle (FPS)
+                while (1) {
+                    timediff=nextframe-GetTickCount();
+                    if (timediff<20) break;
+
+                    frames++;
+                    sdl_render();
+
+                    set_cmd_states();
+                    sdl_clear();
+                    display();
+                }
+#endif
 
                 timediff=nextframe-GetTickCount();
                 if (timediff>0) idle+=timediff;

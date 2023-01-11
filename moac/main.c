@@ -3,6 +3,7 @@
  */
 
 #include <windows.h>
+#include <stdint.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <io.h>
@@ -644,12 +645,6 @@ int main(int argc,char *args[]) {
     char buf[80],buffer[1024];
     struct hostent *he;
 
-    // This hide the console window SDL usually show
-    // TODO: Figure out a cleaner way to get rid of this
-#ifndef DEVELOPER
-	ShowWindow(GetConsoleWindow(),SW_HIDE);
-#endif
-
     errorfp=fopen("moac.log","a");
     if (!errorfp) errorfp=stderr;
 
@@ -671,9 +666,10 @@ int main(int argc,char *args[]) {
     }
 
     switch (opt_res) {
-        case 900:   	width=1200; height=900; break;
+        case 900:   	width=2560; height=1440; break;
         case 1200:  	width=1600; height=1200; break;
         case 1800:  	width=2400; height=1800; break;
+        case 2400:  	width=3200; height=2400; break;
         case 800:
         default:	    width=800; height=600;  break;
     }
@@ -694,6 +690,12 @@ int main(int argc,char *args[]) {
     // init random
     rrandomize();
 
+    sprintf(buf,"Astonia 3 v%d.%d.%d",(VERSION>>16)&255,(VERSION>>8)&255,(VERSION)&255);
+    if (!sdl_init(width,height,buf)) {
+        dd_exit();
+        net_exit();
+        return -1;
+    }
     if (dd_init()==-1) {
         dd_exit();
 
@@ -703,12 +705,7 @@ int main(int argc,char *args[]) {
         return -1;
     }
 
-    sprintf(buf,"Astonia 3 v%d.%d.%d",(VERSION>>16)&255,(VERSION>>8)&255,(VERSION)&255);
-    if (!sdl_init(width,height,buf)) {
-        dd_exit();
-        net_exit();
-        return -1;
-    }
+
 
 #ifdef DOSOUND
     init_sound();

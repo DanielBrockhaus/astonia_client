@@ -2,8 +2,6 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
-#define GFXPATH "../gfx/"
-
 #define MAXSPRITE 250000
 
 #define XRES    800
@@ -29,7 +27,7 @@ int sdl_render(void);
 int sdl_ic_load(int sprite);
 void sdl_blit(int stx,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset);
 int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,int cb,int light,int sat,int c1,int c2,int c3,int shine,int ml,int ll,int rl,int ul,int dl,
-                const char *text,int text_color,int text_flags,void *text_font);
+                const char *text,int text_color,int text_flags,void *text_font,int checkonly,int preload);
 int sdl_drawtext(int sx,int sy,unsigned short int color,int flags,const char *text,struct ddfont *font,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset);
 void sdl_rect(int sx,int sy,int ex,int ey,unsigned short int color,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset);
 void sdl_shaded_rect(int sx,int sy,int ex,int ey,unsigned short int color,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset);
@@ -71,5 +69,4 @@ int sdlt_yoff(int stx);
 int sdlt_xres(int stx);
 int sdlt_yres(int stx);
 
-
-
+uint32_t *sdl_load_png(char *filename,int *dx,int *dy);

@@ -45,7 +45,7 @@ int is_yadd_sprite(int sprite);
 int get_chr_height(int csprite);
 int get_lay_sprite(int sprite,int lay);
 
-int get_player_sprite(int nr,int zdir,int action,int step,int duration);
+int get_player_sprite(int nr,int zdir,int action,int step,int duration,int attick);
 
 /*
 void trans_gsprite(int mn, struct map *cmap, int attick);
@@ -64,7 +64,7 @@ int trans_asprite(int mn,int sprite,int attick,
                   unsigned short *pc3,
                   unsigned short *pshine);
 
-int trans_charno(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,int *psat,int *pc1,int *pc2,int *pc3,int *pshine);
+int trans_charno(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,int *psat,int *pc1,int *pc2,int *pc3,int *pshine,int attick);
 int additional_sprite(int sprite,int attick);
 int no_alpha_sprite(int sprite);
 int get_offset_sprite(int sprite,int *px,int *py);

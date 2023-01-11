@@ -1,0 +1,82 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    defaults:
+      run:
+        shell: msys2 {0}
+        
+    runs-on: windows-latest
+
+    steps:
+      - name: 'Setup msys2'
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-zlib
+            mingw-w64-x86_64-SDL2
+            mingw-w64-x86_64-libpng
+            mingw-w64-x86_64-git-lfs
+            make
+            wget
+            zip
+            unzip
+            git
+
+      - name: 'Install git-lfs'
+        run: git-lfs install
+
+      - name: 'Checkout'
+        uses: actions/checkout@v3
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - name: 'Checkout LFS objects'
+        run: git lfs checkout
+
+
+      - name: 'Fetch Image files'
+        run: |
+          wget https://brockhaus.org/astonia_client_pngs.zip
+          unzip astonia_client_pngs.zip
+          rm -rf astonia_client_pngs.zip
+         
+      - name: 'Build Executeable'
+        working-directory: ./moac
+        run: |
+            make
+
+      - name : 'Fetch .dll files'
+        run: |
+          cp /mingw64/bin/SDL2.dll ./moac/SDL2.dll
+          cp /mingw64/bin/zlib1.dll ./moac/zlib1.dll
+          cp /mingw64/bin/libpng16-16.dll ./moac/libpng16-16.dll
+
+      - name : 'Create ZIP File excluding source code and a bunch of other files'
+        run: |
+          zip -r9 moac.zip . -x readme.md -x todo.txt -x *.git* -x ./moac/*.c -x ./moac/*.h -x ./moac/*.md -x ./moac/*.rc -x ./moac/*.o -x ./moac/*.txt -x ./moac/Makefile
+
+#       Commented this out for now as it keeps erroring. Rest seems to work fine, I guess manually making releases isn't the worst thing in the world :D
+#      - uses: "marvinpinto/action-automatic-releases@latest"
+#        with:
+#          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+#          automatic_release_tag: "latest"
+#          prerelease: true
+#          title: "Development Build"
+#          files: |
+#            moac.zip
+
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v3
+        with:
+          path: ./moac.zip
+

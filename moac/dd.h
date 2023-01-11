@@ -2,8 +2,6 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
-#define GFXPATH "../gfx/"
-
 #define MAXSPRITE 250000
 
 #define XRES    800
