@@ -44,23 +44,31 @@ jobs:
 
 
       - name: 'Fetch Image files'
-        working-directory: ./gfx
         run: |
           wget https://brockhaus.org/astonia_client_pngs.zip
           unzip astonia_client_pngs.zip
+          rm -rf astonia_client_pngs.zip
          
       - name: 'Build Executeable'
         working-directory: ./moac
         run: |
             make
 
-      - name : 'Create ZIP File excluding source code'
+      - name : 'Create ZIP File excluding source code and a bunch of other files'
         run: |
-          zip -r9 moac.zip . -x *.git* -x ./moac/*.c -x ./moac/*.h -x ./moac/*.md -x ./moac/*.rc -x ./moac/*.txt -x ./moac/Makefile
+          zip -r9 moac.zip . -x readme.md -x todo.txt -x *.git* -x ./moac/*.c -x ./moac/*.h -x ./moac/*.md -x ./moac/*.rc -x ./moac/*.o -x ./moac/*.txt -x ./moac/Makefile
+
+      - name: release
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: false
+          prerelease: false
+          release_name: ${{ github.run_id }}
+          tag_name: ${{ github.ref }}
 
       - name: 'Upload Artifact'
         uses: actions/upload-artifact@v3
         with:
-          name: astonia-client
           path: ./moac.zip
 
