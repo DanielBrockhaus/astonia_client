@@ -29,6 +29,9 @@ jobs:
             git
             git-lfs
 
+      - name: 'Install git-lfs'
+        run: git-lfs install
+
       - name: 'Checkout'
         uses: actions/checkout@v3
         with:
