@@ -27,7 +27,7 @@ jobs:
             wget
             unzip
             git
-            git-lfs
+            mingw-w64-x86_64-git-lfs
 
       - name: 'Install git-lfs'
         run: git-lfs install
