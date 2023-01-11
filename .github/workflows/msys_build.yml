@@ -58,14 +58,14 @@ jobs:
         run: |
           zip -r9 moac.zip . -x readme.md -x todo.txt -x *.git* -x ./moac/*.c -x ./moac/*.h -x ./moac/*.md -x ./moac/*.rc -x ./moac/*.o -x ./moac/*.txt -x ./moac/Makefile
 
-      - name: release
-        uses: actions/create-release@v1
-        id: create_release
+      - uses: "marvinpinto/action-automatic-releases@latest"
         with:
-          draft: false
-          prerelease: false
-          release_name: ${{ github.run_id }}
-          tag_name: ${{ github.ref }}
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Build"
+          files: |
+            moac.zip
 
       - name: 'Upload Artifact'
         uses: actions/upload-artifact@v3
