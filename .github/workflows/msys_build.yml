@@ -25,6 +25,7 @@ jobs:
             mingw-w64-x86_64-libpng
             make
             wget
+            zip
             unzip
             git
             mingw-w64-x86_64-git-lfs
