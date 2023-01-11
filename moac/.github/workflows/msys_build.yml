@@ -27,27 +27,30 @@ jobs:
             wget
             unzip
 
-      - name: 'Create directories'
-        run: |
-          mkdir astonia3
-          cd astonia3
-          mkdir moac
-          mkdir gfx
-          cd moac
-
       - name: 'Checkout'
+        working-directory: ./moac
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
       - name: 'Fetch Image files'
+        working-directory: ./gfx
         run: |
-          cd ..
           wget https://brockhaus.org/astonia_client_pngs.zip
           unzip astonia_client_pngs.zip
          
       - name: 'Build Executeable'
-        shell: msys2 {0}
+        working-directory: ./moac
         run: |
-            cd moac
             make
+
+      - name : 'Create ZIP File excluding source code'
+        run: |
+          zip -r9 moac.zip . -x *.git* -x ./moac/*.c -x ./moac/*.h -x ./moac/*.md -x ./moac/*.rc -x ./moac/*.txt -x ./moac/Makefile
+
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v3
+        with:
+          name: astonia-client
+          path: ./moac.zip
+
