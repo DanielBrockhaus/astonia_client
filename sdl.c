@@ -283,7 +283,7 @@ uint32_t mix_argb(uint32_t c1,uint32_t c2,float w1,float w2) {
     return IRGBA(r,g,b,a);
 }
 
-void sdl_smothify(uint32_t *pixel,int xres,int yres,int scale) {
+void sdl_smoothify(uint32_t *pixel,int xres,int yres,int scale) {
     int x,y;
     uint32_t c1,c2,c3,c4;
 
@@ -499,7 +499,7 @@ int sdl_load_image_png_(struct sdl_image *si,char *filename) {
 // Load and up-scale low res PNG
 // TODO: add support for using a 2X image as a base for 4X
 // and possibly the other way around too
-int sdl_load_image_png(struct sdl_image *si,char *filename,int smothify) {
+int sdl_load_image_png(struct sdl_image *si,char *filename,int smoothify) {
     int x,y,xres,yres,tmp,r,g,b,a,sx,sy,ex,ey;
     uint32_t c;
     int format;
@@ -646,8 +646,8 @@ int sdl_load_image_png(struct sdl_image *si,char *filename,int smothify) {
         }
     }
 
-    if (sdl_scale>1 && smothify) {
-        sdl_smothify(si->pixel,si->xres*sdl_scale,si->yres*sdl_scale,sdl_scale);
+    if (sdl_scale>1 && smoothify) {
+        sdl_smoothify(si->pixel,si->xres*sdl_scale,si->yres*sdl_scale,sdl_scale);
         sdl_premulti(si->pixel,si->xres*sdl_scale,si->yres*sdl_scale,sdl_scale);
     } else sdl_premulti(si->pixel,si->xres*sdl_scale,si->yres*sdl_scale,sdl_scale);
 
@@ -658,7 +658,7 @@ int sdl_load_image_png(struct sdl_image *si,char *filename,int smothify) {
 }
 
 
-int do_smothify(int sprite) {
+int do_smoothify(int sprite) {
 
     // TODO: add more to this list
     if (sprite<=1000) return 1; // GUI
@@ -683,7 +683,7 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         if (sdl_load_image_png_(si,filename)==0) return 0;
     }
     sprintf(filename,"../gfx/x1/%08d/%08d.png",(sprite/1000)*1000,sprite);
-    if (sdl_load_image_png(si,filename,do_smothify(sprite))==0) return 0;
+    if (sdl_load_image_png(si,filename,do_smoothify(sprite))==0) return 0;
 #endif
     paranoia("%s not found",filename);
 
@@ -1001,6 +1001,8 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
                 int v1,v2,v3,v4,v5=0;
                 int div;
 
+                // TODO: This is actually just one direction a non-wall might be facing
+                // and needs to account for the other one as well.
                 if (is_non_wall(sprite)) {
                     if (x<10*sdl_scale) {
                         v2=(10*sdl_scale-x)*2-2;
@@ -1027,8 +1029,9 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
                         b4=IGET_B(sdl_light(rl,irgb));
                     } else v4=0;
                 } else {
-                    // TODO: Tilesizes are hardcoded, with 10px being 1/4th, 20px 1/2.
                     if (y<10*sdl_scale+(20*sdl_scale-abs(20*sdl_scale-x))/2) {
+
+                        // This part calculates a floor tile, or the top of a wall tile
                         if (x/2<20*sdl_scale-y) {
                             v2=-(x/2-(20*sdl_scale-y))+1;
                             r2=IGET_R(sdl_light(ll,irgb));
@@ -1054,6 +1057,8 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
                             b5=IGET_B(sdl_light(dl,irgb));
                         } else v5=0;
                     } else {
+
+                        // This is for the lower part (left side and front as seen on the screen)
                         if (x<10*sdl_scale) {
                             v2=(10*sdl_scale-x)*2-2;
                             r2=IGET_R(sdl_light(ll,irgb));
@@ -1360,7 +1365,7 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
     if (preload) texc_pre++;
     else if (sprite) {  // Do not count missed text sprites. Those are expected.
         texc_miss++;
-#if 1
+#if 0
         if (sdl_frames>10) {    // wait for things to stabilize before reporting misses
             note("miss sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d) M",
                    sprite,

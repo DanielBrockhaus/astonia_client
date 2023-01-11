@@ -15,9 +15,11 @@ Probably
 - Resize the client window to 800x540 to allow doubling the resolution on standard 2K displays.
 
 - Find an up-scaling algorithm that works with floor and wall tiles without creating edges around the tiles.
-- ... or, add a list of all non-tile sprites to do_smothify().
+- ... or, add a list of all non-tile sprites to do_smoothify().
 
 - Create the bigger fonts, not just use the pixel-doubled ones.
+
+- Lighting calculations have been wrong all the time. This really becomes apparent in the higher resolutions. Fix them.
 
 
 Possibly

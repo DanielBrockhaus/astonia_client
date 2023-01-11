@@ -23,11 +23,6 @@ DDFONT *fontb_framed=NULL;
 DDFONT *fontc_shaded=NULL;
 DDFONT *fontc_framed=NULL;
 
-float fontdim_a[256];
-float fontdim_b[256];
-float fontdim_c[256];
-float *fontdim=fontdim_a;
-
 void dd_create_font(void);
 void dd_init_text(void);
 
@@ -698,8 +693,8 @@ void dd_init_text(void) {
 void dd_set_textfont(int nr) {
 
     switch (nr) {
-        case 0:	textfont=fonta; textdisplay_dy=10; fontdim=fontdim_a; break;
-        case 1:	textfont=fontc; textdisplay_dy=12; fontdim=fontdim_c; break;
+        case 0:	textfont=fonta; textdisplay_dy=10; break;
+        case 1:	textfont=fontc; textdisplay_dy=12; break;
     }
     bzero(text,MAXTEXTLINES*MAXTEXTLETTERS*sizeof(struct letter));
     textnextline=textdisplayline=0;
