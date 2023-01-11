@@ -21,14 +21,15 @@ jobs:
           update: true
           install: >-
             mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-zlib
             mingw-w64-x86_64-SDL2
             mingw-w64-x86_64-libpng
+            mingw-w64-x86_64-git-lfs
             make
             wget
             zip
             unzip
             git
-            mingw-w64-x86_64-git-lfs
 
       - name: 'Install git-lfs'
         run: git-lfs install
@@ -53,6 +54,12 @@ jobs:
         working-directory: ./moac
         run: |
             make
+
+      - name : 'Fetch .dll files'
+        run: |
+          cp /mingw64/bin/SDL2.dll ./moac/SDL2.dll
+          cp /mingw64/bin/zlib1.dll ./moac/zlib1.dll
+          cp /mingw64/bin/libpng16-16.dll ./moac/libpng16-16.dll
 
       - name : 'Create ZIP File excluding source code and a bunch of other files'
         run: |
