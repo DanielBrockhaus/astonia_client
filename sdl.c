@@ -8,6 +8,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 #include <png.h>
+#include <zip.h>
 
 #include "main.h"
 #include "sdl.h"
@@ -93,6 +94,9 @@ long long sdl_time_blit=0;
 
 int sdl_scale=1;
 int sdl_frames=0;
+
+zip_t *sdl_zip1=NULL;
+zip_t *sdl_zip2=NULL;
 
 /* This function is a hack. It can only load one specific type of
    Windows cursor file: 32x32 pixels with 1 bit depth. */
@@ -236,6 +240,14 @@ int sdl_init(int width,int height,char *title) {
         x_offset=(width/sdl_scale-XRES)/2;
         y_offset=(height/sdl_scale-YRES)/2;
     }
+
+    sdl_zip1=zip_open("gx1.zip",ZIP_RDONLY,NULL);
+    switch (sdl_scale) {
+        case 2:     sdl_zip2=zip_open("gx2.zip",ZIP_RDONLY,NULL);
+        case 3:     sdl_zip2=zip_open("gx3.zip",ZIP_RDONLY,NULL);
+        case 4:     sdl_zip2=zip_open("gx4.zip",ZIP_RDONLY,NULL);
+    }
+
 
     if (enable_sound && Mix_OpenAudio(44100,MIX_DEFAULT_FORMAT,2,2048)<0) {
         warn("initializing audio failed");
@@ -396,58 +408,94 @@ void sdl_premulti(uint32_t *pixel,int xres,int yres,int scale) {
     }
 }
 
-// Load high res PNG
-int sdl_load_image_png_(struct sdl_image *si,char *filename) {
-    int x,y,xres,yres,tmp,r,g,b,a,sx,sy,ex,ey;
-    uint32_t c;
-    int format;
+struct png_helper {
+    char *filename;
+    zip_t *zip;
     unsigned char **row;
-    FILE *fp;
+    int xres;
+    int yres;
+    int bpp;
+
     png_structp png_ptr;
     png_infop info_ptr;
-    png_infop end_info;
+};
 
-    fp=fopen(filename,"rb");
-    if (!fp) return -1;
+void png_helper_read(png_struct *ps,unsigned char *buf,long long unsigned len) {
+    zip_fread(png_get_io_ptr(ps),buf,len);
+}
 
-    png_ptr=png_create_read_struct(PNG_LIBPNG_VER_STRING,NULL,NULL,NULL);
-    if (!png_ptr) { fclose(fp); warn("create read\n"); return -1; }
+int png_load_helper(struct png_helper *p) {
+    FILE *fp=NULL;
+    zip_file_t *zp=NULL;
+    int tmp;
 
-    info_ptr=png_create_info_struct(png_ptr);
-    if (!info_ptr) { fclose(fp); png_destroy_read_struct(&png_ptr,(png_infopp)NULL,(png_infopp)NULL); warn("create info1\n"); return -1; }
+    if (p->zip) {
+        zp=zip_fopen(p->zip,p->filename,0);
+        if (!zp) return -1;
+    } else {
+        fp=fopen(p->filename,"rb");
+        if (!fp) return -1;
+    }
 
-    end_info=png_create_info_struct(png_ptr);
-    if (!end_info) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("create info2\n"); return -1; }
+    p->png_ptr=png_create_read_struct(PNG_LIBPNG_VER_STRING,NULL,NULL,NULL);
+    if (!p->png_ptr) { fclose(fp); warn("create read\n"); return -1; }
 
-    png_init_io(png_ptr,fp);
-    png_set_strip_16(png_ptr);
-    png_read_png(png_ptr,info_ptr,PNG_TRANSFORM_PACKING,NULL);
+    p->info_ptr=png_create_info_struct(p->png_ptr);
+    if (!p->info_ptr) { fclose(fp); png_destroy_read_struct(&p->png_ptr,(png_infopp)NULL,(png_infopp)NULL); warn("create info1\n"); return -1; }
 
-    row=png_get_rows(png_ptr,info_ptr);
-    if (!row) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("read row\n"); return -1; }
+    if (p->zip) {
+        png_set_read_fn(p->png_ptr,zp,png_helper_read);
+    } else {
+        png_init_io(p->png_ptr,fp);
+    }
+    png_set_strip_16(p->png_ptr);
+    png_read_png(p->png_ptr,p->info_ptr,PNG_TRANSFORM_PACKING,NULL);
 
-    xres=png_get_image_width(png_ptr,info_ptr);
-    yres=png_get_image_height(png_ptr,info_ptr);
+    p->row=png_get_rows(p->png_ptr,p->info_ptr);
+    if (!p->row) { fclose(fp); png_destroy_read_struct(&p->png_ptr,&p->info_ptr,(png_infopp)NULL); warn("read row\n"); return -1; }
 
-    tmp=png_get_rowbytes(png_ptr,info_ptr);
+    p->xres=png_get_image_width(p->png_ptr,p->info_ptr);
+    p->yres=png_get_image_height(p->png_ptr,p->info_ptr);
 
-    if (tmp==xres*3) format=3;
-    else if (tmp==xres*4) format=4;
-    else { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("rowbytes!=xres*4 (%d, %d, %s)",tmp,xres,filename); return -1; }
+    tmp=png_get_rowbytes(p->png_ptr,p->info_ptr);
 
-    if (png_get_bit_depth(png_ptr,info_ptr)!=8) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("bit depth!=8\n"); return -1; }
-    if (png_get_channels(png_ptr,info_ptr)!=format) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("channels!=format\n"); return -1; }
+    if (tmp==p->xres*3) p->bpp=24;
+    else if (tmp==p->xres*4) p->bpp=32;
+    else { fclose(fp); png_destroy_read_struct(&p->png_ptr,&p->info_ptr,(png_infopp)NULL); warn("rowbytes!=xres*4 (%d, %d, %s)",tmp,p->xres,p->filename); return -1; }
+
+    if (png_get_bit_depth(p->png_ptr,p->info_ptr)!=8) { fclose(fp); png_destroy_read_struct(&p->png_ptr,&p->info_ptr,(png_infopp)NULL); warn("bit depth!=8\n"); return -1; }
+    if (png_get_channels(p->png_ptr,p->info_ptr)!=p->bpp/8) { fclose(fp); png_destroy_read_struct(&p->png_ptr,&p->info_ptr,(png_infopp)NULL); warn("channels!=format\n"); return -1; }
+
+    if (p->zip) zip_fclose(zp);
+    else fclose(fp);
+
+    return 0;
+}
+
+void png_load_helper_exit(struct png_helper *p) {
+    png_destroy_read_struct(&p->png_ptr,&p->info_ptr,(png_infopp)NULL);
+}
+
+// Load high res PNG
+int sdl_load_image_png_(struct sdl_image *si,char *filename,zip_t *zip) {
+    int x,y,r,g,b,a,sx,sy,ex,ey;
+    uint32_t c;
+    struct png_helper p;
+
+    p.zip=zip;
+    p.filename=filename;
+    if (png_load_helper(&p)) return -1;
 
     // prescan
-    sx=xres;
-    sy=yres;
+    sx=p.xres;
+    sy=p.yres;
     ex=0;
     ey=0;
 
-    for (y=0; y<yres; y++) {
-        for (x=0; x<xres; x++) {
-            if (format==4 && (row[y][x*4+3]==0 || (row[y][x*4+0]==255 && row[y][x*4+1]==0 && row[y][x*4+2]==255))) continue;
-            if (format==3 && ((row[y][x*3+0]==255 && row[y][x*3+1]==0 && row[y][x*3+2]==255))) continue;
+    for (y=0; y<p.yres; y++) {
+        for (x=0; x<p.xres; x++) {
+            if (p.bpp==32 && (p.row[y][x*4+3]==0 || (p.row[y][x*4+0]==255 && p.row[y][x*4+1]==0 && p.row[y][x*4+2]==255))) continue;
+            if (p.bpp==24 && ((p.row[y][x*3+0]==255 && p.row[y][x*3+1]==0 && p.row[y][x*3+2]==255))) continue;
             if (x<sx) sx=x;
             if (x>ex) ex=x;
             if (y<sy) sy=y;
@@ -462,8 +510,8 @@ int sdl_load_image_png_(struct sdl_image *si,char *filename) {
     si->flags=1;
     si->xres=((ex-sx+sdl_scale-1)/sdl_scale)*sdl_scale;
     si->yres=((ey-sy+sdl_scale-1)/sdl_scale)*sdl_scale;;
-    si->xoff=-(xres/2)+sx;
-    si->yoff=-(yres/2)+sy;
+    si->xoff=-(p.xres/2)+sx;
+    si->yoff=-(p.yres/2)+sy;
 
     si->pixel=xmalloc(si->xres*si->yres*sizeof(uint32_t),MEM_SDL_PNG);
     mem_png+=si->xres*si->yres*sizeof(uint32_t);
@@ -471,15 +519,15 @@ int sdl_load_image_png_(struct sdl_image *si,char *filename) {
     for (y=0; y<si->yres; y++) {
         for (x=0; x<si->xres; x++) {
 
-            if (format==4) {
-                r=row[(sy+y)][(sx+x)*4+0];
-                g=row[(sy+y)][(sx+x)*4+1];
-                b=row[(sy+y)][(sx+x)*4+2];
-                a=row[(sy+y)][(sx+x)*4+3];
+            if (p.bpp==32) {
+                r=p.row[(sy+y)][(sx+x)*4+0];
+                g=p.row[(sy+y)][(sx+x)*4+1];
+                b=p.row[(sy+y)][(sx+x)*4+2];
+                a=p.row[(sy+y)][(sx+x)*4+3];
             } else {
-                r=row[(sy+y)][(sx+x)*3+0];
-                g=row[(sy+y)][(sx+x)*3+1];
-                b=row[(sy+y)][(sx+x)*3+2];
+                r=p.row[(sy+y)][(sx+x)*3+0];
+                g=p.row[(sy+y)][(sx+x)*3+1];
+                b=p.row[(sy+y)][(sx+x)*3+2];
                 if (r==255 && g==0 && b==255) a=0;
                 else a=255;
             }
@@ -498,8 +546,7 @@ int sdl_load_image_png_(struct sdl_image *si,char *filename) {
         }
     }
 
-    png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL);
-    fclose(fp);
+    png_load_helper_exit(&p);
 
     si->xres/=sdl_scale;
     si->yres/=sdl_scale;
@@ -512,57 +559,25 @@ int sdl_load_image_png_(struct sdl_image *si,char *filename) {
 // Load and up-scale low res PNG
 // TODO: add support for using a 2X image as a base for 4X
 // and possibly the other way around too
-int sdl_load_image_png(struct sdl_image *si,char *filename,int smoothify) {
-    int x,y,xres,yres,tmp,r,g,b,a,sx,sy,ex,ey;
+int sdl_load_image_png(struct sdl_image *si,char *filename,zip_t *zip,int smoothify) {
+    int x,y,r,g,b,a,sx,sy,ex,ey;
     uint32_t c;
-    int format;
-    unsigned char **row;
-    FILE *fp;
-    png_structp png_ptr;
-    png_infop info_ptr;
-    png_infop end_info;
+    struct png_helper p;
 
-    fp=fopen(filename,"rb");
-    if (!fp) return -1;
-
-    png_ptr=png_create_read_struct(PNG_LIBPNG_VER_STRING,NULL,NULL,NULL);
-    if (!png_ptr) { fclose(fp); warn("create read\n"); return -1; }
-
-    info_ptr=png_create_info_struct(png_ptr);
-    if (!info_ptr) { fclose(fp); png_destroy_read_struct(&png_ptr,(png_infopp)NULL,(png_infopp)NULL); warn("create info1\n"); return -1; }
-
-    end_info=png_create_info_struct(png_ptr);
-    if (!end_info) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("create info2\n"); return -1; }
-
-    png_init_io(png_ptr,fp);
-    png_set_strip_16(png_ptr);
-    png_read_png(png_ptr,info_ptr,PNG_TRANSFORM_PACKING,NULL);
-
-    row=png_get_rows(png_ptr,info_ptr);
-    if (!row) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("read row\n"); return -1; }
-
-    xres=png_get_image_width(png_ptr,info_ptr);
-    yres=png_get_image_height(png_ptr,info_ptr);
-
-    tmp=png_get_rowbytes(png_ptr,info_ptr);
-
-    if (tmp==xres*3) format=3;
-    else if (tmp==xres*4) format=4;
-    else { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("rowbytes!=xres*4 (%d)",tmp); return -1; }
-
-    if (png_get_bit_depth(png_ptr,info_ptr)!=8) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("bit depth!=8\n"); return -1; }
-    if (png_get_channels(png_ptr,info_ptr)!=format) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("channels!=format\n"); return -1; }
+    p.zip=zip;
+    p.filename=filename;
+    if (png_load_helper(&p)) return -1;
 
     // prescan
-    sx=xres;
-    sy=yres;
+    sx=p.xres;
+    sy=p.yres;
     ex=0;
     ey=0;
 
-    for (y=0; y<yres; y++) {
-        for (x=0; x<xres; x++) {
-            if (format==4 && (row[y][x*4+3]==0 || (row[y][x*4+0]==255 && row[y][x*4+1]==0 && row[y][x*4+2]==255))) continue;
-            if (format==3 && ((row[y][x*3+0]==255 && row[y][x*3+1]==0 && row[y][x*3+2]==255))) continue;
+    for (y=0; y<p.yres; y++) {
+        for (x=0; x<p.xres; x++) {
+            if (p.bpp==32 && (p.row[y][x*4+3]==0 || (p.row[y][x*4+0]==255 && p.row[y][x*4+1]==0 && p.row[y][x*4+2]==255))) continue;
+            if (p.bpp==24 && ((p.row[y][x*3+0]==255 && p.row[y][x*3+1]==0 && p.row[y][x*3+2]==255))) continue;
             if (x<sx) sx=x;
             if (x>ex) ex=x;
             if (y<sy) sy=y;
@@ -577,31 +592,29 @@ int sdl_load_image_png(struct sdl_image *si,char *filename,int smoothify) {
     si->flags=1;
     si->xres=ex-sx+1;
     si->yres=ey-sy+1;
-    si->xoff=-(xres/2)+sx;
-    si->yoff=-(yres/2)+sy;
+    si->xoff=-(p.xres/2)+sx;
+    si->yoff=-(p.yres/2)+sy;
 
     si->pixel=xmalloc(si->xres*si->yres*sizeof(uint32_t)*sdl_scale*sdl_scale,MEM_SDL_PNG);
     mem_png+=si->xres*si->yres*sizeof(uint32_t);
 
-
     for (y=0; y<si->yres; y++) {
         for (x=0; x<si->xres; x++) {
 
-            if (format==4) {
-                r=row[(sy+y)][(sx+x)*4+0];
-                g=row[(sy+y)][(sx+x)*4+1];
-                b=row[(sy+y)][(sx+x)*4+2];
-                a=row[(sy+y)][(sx+x)*4+3];
+            if (p.bpp==32) {
+                r=p.row[(sy+y)][(sx+x)*4+0];
+                g=p.row[(sy+y)][(sx+x)*4+1];
+                b=p.row[(sy+y)][(sx+x)*4+2];
+                a=p.row[(sy+y)][(sx+x)*4+3];
             } else {
-                r=row[(sy+y)][(sx+x)*3+0];
-                g=row[(sy+y)][(sx+x)*3+1];
-                b=row[(sy+y)][(sx+x)*3+2];
+                r=p.row[(sy+y)][(sx+x)*3+0];
+                g=p.row[(sy+y)][(sx+x)*3+1];
+                b=p.row[(sy+y)][(sx+x)*3+2];
                 if (r==255 && g==0 && b==255) a=0;
                 else a=255;
             }
 
             if (r==255 && g==0 && b==255) a=0;
-
 
             if (!a) // don't pre-multiply rgb channel by alpha because that needs to happen after scaling
                 r=g=b=0;
@@ -664,8 +677,7 @@ int sdl_load_image_png(struct sdl_image *si,char *filename,int smoothify) {
         sdl_premulti(si->pixel,si->xres*sdl_scale,si->yres*sdl_scale,sdl_scale);
     } else sdl_premulti(si->pixel,si->xres*sdl_scale,si->yres*sdl_scale,sdl_scale);
 
-    png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL);
-    fclose(fp);
+    png_load_helper_exit(&p);
 
     return 0;
 }
@@ -688,19 +700,29 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         return -1;
     }
 
-    //printf("Loading sprite %d\n",sprite);
+    if (sdl_zip2) {
+        sprintf(filename,"%08d.png",sprite);
+        if (sdl_load_image_png(si,filename,sdl_zip2,do_smoothify(sprite))==0) return 0;
+    }
 
-#ifdef DEVELOPER
+#if 0
     if (sdl_scale>1) {
         sprintf(filename,"../gfx/x%d/%08d/%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
-        if (sdl_load_image_png_(si,filename)==0) return 0;
+        if (sdl_load_image_png_(si,filename,NULL)==0) return 0;
     }
-    sprintf(filename,"../gfx/x1/%08d/%08d.png",(sprite/1000)*1000,sprite);
-    if (sdl_load_image_png(si,filename,do_smoothify(sprite))==0) return 0;
 #endif
-    paranoia("%s not found",filename);
 
-    return -1;
+    if (sdl_zip1) {
+        sprintf(filename,"%08d.png",sprite);
+        if (sdl_load_image_png(si,filename,sdl_zip1,do_smoothify(sprite))==0) return 0;
+    }
+
+#if 0
+    sprintf(filename,"../gfx/x1/%08d/%08d.png",(sprite/1000)*1000,sprite);
+    if (sdl_load_image_png(si,filename,NULL,do_smoothify(sprite))==0) return 0;
+#endif
+    fail("%s not found",filename);
+    exit(42);
 }
 
 int sdl_ic_load(int sprite) {
@@ -1590,6 +1612,10 @@ void sdl_dump_spritechache(void) {
 #endif
 
 void sdl_exit(void) {
+
+    if (sdl_zip1) zip_close(sdl_zip1);
+    if (sdl_zip2) zip_close(sdl_zip2);
+
     if (enable_sound) Mix_Quit();
 #ifdef DEVELOPER
     sdl_dump_spritechache();
@@ -2101,44 +2127,9 @@ for /r "." %a in (0*) do magick mogrify -resize 200% png32:"%~a"
 - specify output format (32 bits RGBA)
 
 
-zip -0 gx1.zip -r x1
-zip -0 gx2.zip -r x2
-zip -0 gx3.zip -r x3
-zip -0 gx4.zip -r x4
-
-zip_open(const char *path, int flags, int *errorp);
-zip_fopen(zip_t *archive, const char *fname, zip_flags_t flags);
-zip_fread(zip_file_t *file, void *buf, zip_uint64_t nbytes);
-zip_fclose(zip_file_t *file);
-zip_close(zip_t *archive);
-
-zip_64_t num_entries = zip_get_num_entries(archive, 0);
-for (zip_uint64_t i = 0; i < num_entries; ++i) {
-  const char* name = zip_get_name(archive, i, 0);
-  if (name == nullptr) {
-    // Handle error.
-  }
-  // Do work with name.
-}
-
-Input/Output in libpng is done through png_read() and png_write(), which currently just call fread() and fwrite(). The FILE * is stored in png_struct and is initialized via png_init_io(). If you wish to change the method of I/O, the library supplies callbacks that you can set through the function png_set_read_fn() and png_set_write_fn() at run time, instead of calling the png_init_io() function. These functions also provide a void pointer that can be retrieved via the function png_get_io_ptr(). For example:
-
-    png_set_read_fn(png_structp read_ptr,
-        voidp read_io_ptr, png_rw_ptr read_data_fn)
-
-    png_set_write_fn(png_structp write_ptr,
-        voidp write_io_ptr, png_rw_ptr write_data_fn,
-        png_flush_ptr output_flush_fn);
-
-    voidp read_io_ptr = png_get_io_ptr(read_ptr);
-    voidp write_io_ptr = png_get_io_ptr(write_ptr);
-The replacement I/O functions must have prototypes as follows:
-
-    void user_read_data(png_structp png_ptr,
-        png_bytep data, png_size_t length);
-    void user_write_data(png_structp png_ptr,
-        png_bytep data, png_size_t length);
-    void user_flush_data(png_structp png_ptr);
-Supplying NULL for the read, write, or flush functions sets them back to using the default C stream functions. It is an error to read from a write stream, and vice versa.
+zip -0 gx1.zip -r -j -q x1
+zip -0 gx2.zip -r -j -q x2
+zip -0 gx3.zip -r -j -q x3
+zip -0 gx4.zip -r -j -q x4
 
 */
