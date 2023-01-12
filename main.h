@@ -16,6 +16,9 @@ extern int quit;
 
 #define sign_p(v)       ((v)>=0?1:-1)
 #define sign_n(v)       ((v)>0?1:(v)<0?-1:0)
+#ifndef ARRAYSIZE
+#define ARRAYSIZE(a) (sizeof(a)/sizeof((a)[0]))
+#endif
 
 // io
 int rread(int fd,void *ptr,int size);
@@ -72,12 +75,12 @@ int rrand(int range);
 
 // messages
 
-int  note(const char *format,...);     // return   0;
-int  warn(const char *format,...);     // return   0;
-int  fail(const char *format,...);     // return  -1;
-void paranoia(const char *format,...); // calls flush and exit
+int  note(const char *format,...) __attribute__((format(printf, 1, 2)));
+int  warn(const char *format,...) __attribute__((format(printf, 1, 2)));
+int  fail(const char *format,...) __attribute__((format(printf, 1, 2)));
+void paranoia(const char *format,...) __attribute__((format(printf, 1, 2)));
 
-void addline(const char *format,...);
+void addline(const char *format,...) __attribute__((format(printf, 1, 2)));
 
 // misc
 void save_options(void);

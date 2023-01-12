@@ -21,6 +21,8 @@ Probably
 
 - Lighting calculations have been wrong all the time. This really becomes apparent in the higher resolutions. Fix them.
 
+- New .PAK file format, along with a new folder structure (talk to Edwin!)
+
 
 Possibly
 --------
@@ -30,8 +32,6 @@ Possibly
 - Add configuration files for:
   - Pretty much everything in sprite.c
   - Everything in skill.c
-
-- New .PAK file format
 
 - Implement a control scheme that works without shift and control.
 

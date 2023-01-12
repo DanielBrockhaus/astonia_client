@@ -8,10 +8,10 @@ To compile it, install https://www.msys2.org/
 Then run
 
 ```
-pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-SDL2 mingw-w64-x86_64-libpng make
+pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-SDL2 mingw-w64-x86_64-libpng mingw-w64-x86_64-SDL2_mixer make
 ```
 
-to install the 64 bit GCC compiler toolchain, the SDL2 library and the
+to install the 64 bit GCC compiler toolchain, the SDL2 graphics and audio library and the
 PNG library. And make, of course.
 
 Create a directory structure like this:

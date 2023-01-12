@@ -290,8 +290,8 @@ int xmemcheck(void *ptr) {
     rptr=((unsigned char *)(mem))+8+sizeof(memcheck);
     tail=((unsigned char *)(mem))+8+sizeof(memcheck)+mem->size;
 
-    if (memcmp(head,memcheck,sizeof(memcheck))) { fail("xmemcheck: ill head in %s (ptr=%08X)",memname[mem->ID],rptr); xmemcheck_failed=1; return -1; }
-    if (memcmp(tail,memcheck,sizeof(memcheck))) { fail("xmemcheck: ill tail in %s (ptr=%08X)",memname[mem->ID],rptr); xmemcheck_failed=1; return -1; }
+    if (memcmp(head,memcheck,sizeof(memcheck))) { fail("xmemcheck: ill head in %s (ptr=%p)",memname[mem->ID],rptr); xmemcheck_failed=1; return -1; }
+    if (memcmp(tail,memcheck,sizeof(memcheck))) { fail("xmemcheck: ill tail in %s (ptr=%p)",memname[mem->ID],rptr); xmemcheck_failed=1; return -1; }
 
     return 0;
 }
@@ -680,7 +680,7 @@ int main(int argc,char *args[]) {
         he=gethostbyname(server_url);
         if (he) target_server=ntohl(*(unsigned long *)(*he->h_addr_list));
         else {
-            fail("Could not resolve server %s.");
+            fail("Could not resolve server %s.",server_url);
             return -2;
         }
     }
@@ -729,6 +729,7 @@ int main(int argc,char *args[]) {
     main_loop();
 
     main_exit();
+    sound_exit();
     dd_exit();
     sdl_exit();
 

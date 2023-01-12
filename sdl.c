@@ -6,10 +6,12 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
 #include <png.h>
 
 #include "main.h"
 #include "sdl.h"
+#include "sound.h"
 
 #define max(a,b)    ((a)>(b)?(a):(b))
 #define min(a,b)    ((a)<(b)?(a):(b))
@@ -157,7 +159,7 @@ int sdl_init(int width,int height,char *title) {
     int len,i;
     SDL_DisplayMode DM;
 
-    if (SDL_Init(SDL_INIT_VIDEO) != 0){
+    if (SDL_Init(SDL_INIT_VIDEO|(enable_sound?SDL_INIT_AUDIO:0)) != 0){
         fail("SDL_Init Error: %s",SDL_GetError());
 	    return 0;
     }
@@ -221,6 +223,7 @@ int sdl_init(int width,int height,char *title) {
 
     sdl_create_cursors();
 
+    // decide on screen format
     if (width!=XRES) {
         extern int x_offset,y_offset;
 
@@ -232,6 +235,16 @@ int sdl_init(int width,int height,char *title) {
 
         x_offset=(width/sdl_scale-XRES)/2;
         y_offset=(height/sdl_scale-YRES)/2;
+    }
+
+    if (enable_sound && Mix_OpenAudio(44100,MIX_DEFAULT_FORMAT,2,2048)<0) {
+        warn("initializing audio failed");
+        enable_sound=0;
+    }
+
+    if (enable_sound) {
+        int number_of_sound_channels = Mix_AllocateChannels(MAX_SOUND_CHANNELS);
+        note("Allocated %d sound channels", number_of_sound_channels);
     }
 
 
@@ -1577,6 +1590,7 @@ void sdl_dump_spritechache(void) {
 #endif
 
 void sdl_exit(void) {
+    if (enable_sound) Mix_Quit();
 #ifdef DEVELOPER
     sdl_dump_spritechache();
 #endif
@@ -2085,5 +2099,46 @@ for /r "." %a in (0*) do magick mogrify -resize 200% png32:"%~a"
 
 -transparent rgb(255,0,255)
 - specify output format (32 bits RGBA)
+
+
+zip -0 gx1.zip -r x1
+zip -0 gx2.zip -r x2
+zip -0 gx3.zip -r x3
+zip -0 gx4.zip -r x4
+
+zip_open(const char *path, int flags, int *errorp);
+zip_fopen(zip_t *archive, const char *fname, zip_flags_t flags);
+zip_fread(zip_file_t *file, void *buf, zip_uint64_t nbytes);
+zip_fclose(zip_file_t *file);
+zip_close(zip_t *archive);
+
+zip_64_t num_entries = zip_get_num_entries(archive, 0);
+for (zip_uint64_t i = 0; i < num_entries; ++i) {
+  const char* name = zip_get_name(archive, i, 0);
+  if (name == nullptr) {
+    // Handle error.
+  }
+  // Do work with name.
+}
+
+Input/Output in libpng is done through png_read() and png_write(), which currently just call fread() and fwrite(). The FILE * is stored in png_struct and is initialized via png_init_io(). If you wish to change the method of I/O, the library supplies callbacks that you can set through the function png_set_read_fn() and png_set_write_fn() at run time, instead of calling the png_init_io() function. These functions also provide a void pointer that can be retrieved via the function png_get_io_ptr(). For example:
+
+    png_set_read_fn(png_structp read_ptr,
+        voidp read_io_ptr, png_rw_ptr read_data_fn)
+
+    png_set_write_fn(png_structp write_ptr,
+        voidp write_io_ptr, png_rw_ptr write_data_fn,
+        png_flush_ptr output_flush_fn);
+
+    voidp read_io_ptr = png_get_io_ptr(read_ptr);
+    voidp write_io_ptr = png_get_io_ptr(write_ptr);
+The replacement I/O functions must have prototypes as follows:
+
+    void user_read_data(png_structp png_ptr,
+        png_bytep data, png_size_t length);
+    void user_write_data(png_structp png_ptr,
+        png_bytep data, png_size_t length);
+    void user_flush_data(png_structp png_ptr);
+Supplying NULL for the read, write, or flush functions sets them back to using the default C stream functions. It is an error to read from a write stream, and vice versa.
 
 */

@@ -791,7 +791,7 @@ void sv_special(unsigned char *buf) {
     switch (type) {
         case 0:		display_gfx=opt1; display_time=tick; break;
 #ifdef DOSOUND
-        default:	if (type>0 && type<1000) play_pak_sound(type,opt1,opt2);
+        default:	if (type>0 && type<1000) play_sound(type,opt1,opt2);
             break;
 #endif
     }
@@ -1499,7 +1499,7 @@ int poll_network(void) {
 
         // set to nonblocking
         if (ioctlsocket(sock,FIONBIO,&one)==-1) {
-            fail("ioctlsocket(non-blocking) failed\n",WSAGetLastError());
+            fail("ioctlsocket(non-blocking) failed (%d)\n",WSAGetLastError());
             sockstate=-2;   // fail - no retry
             return -1;
         }

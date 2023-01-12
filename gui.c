@@ -2416,6 +2416,18 @@ int client_cmd(char *buf) {
         show_color_c[2]=map[MAPDX*MAPDY/2].rc.c3;
         return 1;
     }
+    if (!strncmp(buf, "#sound ", 7)) {
+    	play_sound(atoi(&buf[7]),0,0);
+    	return 1;
+    }
+    if (!strncmp(buf, "#volume ", 8)) {
+    	int new_sound_volume = atoi(&buf[8]);
+    	if (new_sound_volume < 0) new_sound_volume = 0;
+    	if (new_sound_volume >= 128) new_sound_volume = 128;
+    	sound_volume = new_sound_volume;
+    	addline("Volume is now at %d", sound_volume);
+    	return 1;
+    }
     if (!strncmp(buf,"#set ",5) || !strncmp(buf,"/set ",5)) {
         int what,key;
         char *ptr;
