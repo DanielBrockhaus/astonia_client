@@ -715,19 +715,30 @@ void dd_display_text(void) {
         for (m=0; m<MAXTEXTLETTERS; m++,pos++) {
             if (text[pos].c==0) break;
 
-            if (text[pos].c>0 && text[pos].c<32) continue;
-
-            if (bp==buf) {
-                lastcolor=text[pos].color;
-            }
-            if (lastcolor!=text[pos].color) {
-                *bp=0;
-                if (largetext) x=dd_drawtext(x,y,palette[lastcolor],DD_BIG,buf);
-                else x=dd_drawtext(x,y,palette[lastcolor],0,buf);
+            if (lastcolor!=text[pos].color || text[pos].c<32) {
+                if (bp!=buf) {
+                    *bp=0;
+                    if (largetext) x=dd_drawtext(x,y,palette[lastcolor],DD_BIG,buf);
+                    else x=dd_drawtext(x,y,palette[lastcolor],0,buf);
+                }
                 bp=buf; lastcolor=text[pos].color;
             }
+
+            if (text[pos].c<32) {
+				int i;
+
+				x=((int)text[pos].c)*12+TEXTDISPLAY_X;
+
+				// better display for numbers
+				for (i=pos+1; isdigit(text[i].c) || text[i].c=='-'; i++) {
+					x-=textfont[text[i].c].dim;
+				}
+				continue;
+			}
+
             *bp++=text[pos].c;
         }
+
         if (bp!=buf) {
             *bp=0;
             if (largetext) dd_drawtext(x,y,palette[lastcolor],DD_BIG,buf);
