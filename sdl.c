@@ -705,7 +705,7 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         if (sdl_load_image_png(si,filename,sdl_zip2,do_smoothify(sprite))==0) return 0;
     }
 
-#if 0
+#if 1
     if (sdl_scale>1) {
         sprintf(filename,"../gfx/x%d/%08d/%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
         if (sdl_load_image_png_(si,filename,NULL)==0) return 0;
@@ -717,7 +717,7 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         if (sdl_load_image_png(si,filename,sdl_zip1,do_smoothify(sprite))==0) return 0;
     }
 
-#if 0
+#if 1
     sprintf(filename,"../gfx/x1/%08d/%08d.png",(sprite/1000)*1000,sprite);
     if (sdl_load_image_png(si,filename,NULL,do_smoothify(sprite))==0) return 0;
 #endif
@@ -1462,7 +1462,7 @@ void sdl_blit(int stx,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,
 #define G16TO32(color)  (int)((((color>>5) &31)/31.0f)*255.0f)
 #define B16TO32(color)  (int)((((color)    &31)/31.0f)*255.0f)
 
-#define MAXFONTHEIGHT   36
+#define MAXFONTHEIGHT   64
 
 SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,int flags) {
     uint32_t *pixel,*dst;
@@ -1475,7 +1475,7 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
 
     if (flags&(DD__FRAMEFONT|DD__SHADEFONT)) sizex+=sdl_scale*2;
 
-    pixel=xcalloc(sizex*MAXFONTHEIGHT*sizeof(uint32_t),MEM_SDL_PIXEL);
+    pixel=xcalloc(sizex*MAXFONTHEIGHT*sizeof(uint32_t),MEM_SDL_PIXEL2);
     if (pixel==NULL) return NULL;
 
     while (*text && *text!=DDT) {

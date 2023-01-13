@@ -21,13 +21,13 @@ Probably
 
 - Lighting calculations have been wrong all the time. This really becomes apparent in the higher resolutions. Fix them.
 
-- New folder structure (talk to Edwin!)
+- Move all resources to a single resources folder. Duh.
 
 
 Possibly
 --------
 
-- Add stuff to the client window to make it 960 pixels wide to fill a standard 19:10 display.
+- Add stuff to the client window to make it 960 pixels wide to fill a standard 16:9 display.
 
 - Add configuration files for:
   - Pretty much everything in sprite.c
@@ -36,6 +36,13 @@ Possibly
 - Implement a control scheme that works without shift and control.
 
 - Improve prefetch logic to take advantage of multi-threading to speed up sdl_make().
+
+- Port the winsock stuff to SDL_net
+
+- A Linux port. Once all is SDL it should be possible.
+
+- Clean up the sources. Less header files. Merge dd.c and sdl.c? Or make a sharper cut.
+
 
 Maybe Later
 -----------

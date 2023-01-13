@@ -2,13 +2,12 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
+#include <stdint.h>
 #define ISCLIENT
 #define WANTMAPMN
 #include "main.h"
 #include "client.h"
 #include "sprite.h"
-
-#define NULL	((void*)0)
 
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define max(a,b) ((a) > (b) ? (a) : (b))
@@ -2566,3 +2565,33 @@ int additional_sprite(int sprite,int attick) {
         default: return 0;
     }
 }
+
+uint64_t sprite_options=0;
+
+int opt_sprite(int sprite) {
+    switch (sprite) {
+        case 13:
+            if (sprite_options&SO_DARK) return 300;
+            break;
+        case 14:
+            if (sprite_options&SO_DARK) return 301;
+            break;
+        case 35:
+            if (sprite_options&SO_DARK) return 302;
+            break;
+        case 994:
+            if (sprite_options&SO_DARK) return 303;
+            break;
+        case 995:
+            if (sprite_options&SO_DARK) return 304;
+            break;
+        case 998:
+            if (sprite_options&SO_DARK) return 305;
+            break;
+        case 999:
+            if (sprite_options&SO_DARK) return 306;
+            break;
+    }
+    return sprite;
+}
+

@@ -2,9 +2,8 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
-#define TPS             24              // ticks per second
-#define TICKS           TPS             // needed in spell.h
-#define MPT             (1000/TPS)      // milliseconds per tick
+#define TICKS           24              // ticks (frames) per second
+#define MPT             (1000/TICKS)    // milliseconds per tick
 
 #define DIST		25
 #define MAXCHARS	2048

@@ -2,6 +2,7 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
+#include <stdint.h>
 #include <windows.h>
 #include <memory.h>
 #include <stdlib.h>
@@ -14,7 +15,6 @@
 #include "client.h"
 #include "sprite.h"
 #include "gui.h"
-#include "spell.h"
 #include "sound.h"
 
 // extern
@@ -1813,7 +1813,7 @@ void display_game(void) {
         x_offset-=110;
         dd_pop_clip();
 
-        dd_copysprite(995,0,40,DDFX_NLIGHT,DD_NORMAL);
+        dd_copysprite(opt_sprite(995),0,40,DDFX_NLIGHT,DD_NORMAL);
 
         if (display_help) do_display_help(display_help);
         if (display_quest) do_display_questlog(display_quest);

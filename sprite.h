@@ -68,3 +68,9 @@ int trans_charno(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,
 int additional_sprite(int sprite,int attick);
 int no_alpha_sprite(int sprite);
 int get_offset_sprite(int sprite,int *px,int *py);
+
+#define SO_DARK     (1<<0)  // Dark GUI by Tegra
+extern uint64_t sprite_options;;
+
+int opt_sprite(int sprite);
+

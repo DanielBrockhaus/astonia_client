@@ -18,8 +18,6 @@
 #include "skill.h"
 #include "sprite.h"
 #include "gui.h"
-#include "resource.h"
-#include "spell.h"
 #include "sound.h"
 #include "sdl.h"
 
@@ -470,7 +468,7 @@ static void display_look(void) {
     extern int looksprite,lookc1,lookc2,lookc3;
     static int look_anim=4,look_step=0,look_dir=0;
 
-    dd_copysprite(994,151,50,DDFX_NLIGHT,DD_NORMAL);
+    dd_copysprite(opt_sprite(994),151,50,DDFX_NLIGHT,DD_NORMAL);
 
     for (b=BUT_WEA_BEG; b<=BUT_WEA_END; b++) {
         i=b-BUT_WEA_BEG;
@@ -1133,8 +1131,8 @@ static void display_screen(void) {
     extern int realtime;
 
     //dd_copysprite(9,0,0,DDFX_NLIGHT,DD_NORMAL);
-    dd_copysprite(999,0,0,DDFX_NLIGHT,DD_NORMAL);
-    dd_copysprite(998,0,430,DDFX_NLIGHT,DD_NORMAL);
+    dd_copysprite(opt_sprite(999),0,0,DDFX_NLIGHT,DD_NORMAL);
+    dd_copysprite(opt_sprite(998),0,430,DDFX_NLIGHT,DD_NORMAL);
 
     trans_date(realtime,&h,&m);
 
@@ -2426,6 +2424,12 @@ int client_cmd(char *buf) {
     	if (new_sound_volume >= 128) new_sound_volume = 128;
     	sound_volume = new_sound_volume;
     	addline("Volume is now at %d", sound_volume);
+    	return 1;
+    }
+    if (!strncmp(buf, "#option ", 8)) {
+    	int opt = atoi(&buf[8]);
+        sprite_options^=opt;
+        addline("Sprite_option is now  %08llX",sprite_options);
     	return 1;
     }
     if (!strncmp(buf,"#set ",5) || !strncmp(buf,"/set ",5)) {

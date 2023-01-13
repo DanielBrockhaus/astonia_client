@@ -2,6 +2,7 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
+#include <stdint.h>
 #include <memory.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,7 +13,6 @@
 #include "client.h"
 #include "sprite.h"
 #include "gui.h"
-#include "spell.h"
 #include "sound.h"
 
 #define QLF_REPEATABLE	(1u<<0)

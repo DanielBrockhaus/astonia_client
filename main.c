@@ -14,10 +14,10 @@
 #include "main.h"
 #include "client.h"
 #include "dd.h"
-#include "resource.h"
 #include "sound.h"
 #include "gui.h"
 #include "sdl.h"
+#include "sprite.h"
 
 // extern
 
@@ -210,7 +210,7 @@ static char *memname[MAX_MEM]={
     "MEM_SDL_BASE",
     "MEM_SDL_PIXEL",
     "MEM_SDL_PNG",
-    "MEM_TEMP4",
+    "MEM_SDL_PIXEL2",
     "MEM_TEMP5",
     "MEM_TEMP6",
     "MEM_TEMP7",
@@ -587,6 +587,11 @@ int parse_cmd(char *s) {
                     s++;
                     while (isspace(*s)) s++;
                     enable_sound=strtol(s,&end,10);
+                    s=end;
+            } else if (tolower(*s)=='o') { //option
+                    s++;
+                    while (isspace(*s)) s++;
+                    sprite_options=strtoull(s,&end,10);
                     s=end;
             } else { display_usage(); return -1; }
         } else { display_usage(); return -2; }
