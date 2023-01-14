@@ -5,7 +5,7 @@
 #define MAXSPRITE 250000
 
 #define XRES    800
-#define YRES    600
+#define YRES    540
 
 extern float mouse_scale;   // mouse input needs to be scaled by this factor because the display window is stretched
 

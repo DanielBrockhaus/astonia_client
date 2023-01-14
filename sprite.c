@@ -3,6 +3,9 @@
  */
 
 #include <stdint.h>
+
+#include "astonia.h"
+
 #define ISCLIENT
 #define WANTMAPMN
 #include "main.h"
@@ -2578,6 +2581,9 @@ int opt_sprite(int sprite) {
             break;
         case 35:
             if (sprite_options&SO_DARK) return 302;
+            break;
+        case 992:
+            if (sprite_options&SO_DARK) return 307;
             break;
         case 994:
             if (sprite_options&SO_DARK) return 303;

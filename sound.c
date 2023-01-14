@@ -13,6 +13,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 
+#include "engine.h"
+
 #include "main.h"
 #include "dd.h"
 #include "sound.h"

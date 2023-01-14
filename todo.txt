@@ -8,6 +8,8 @@ Bugs
 
 - Invisible floor tiles in Ice Pents show an outline. Lighting? Scaling?
 
+- There was an instance of a failed memory tail check in SDL_MEM_PIXEL (before splitting it into PIXEL and PIXEL2).
+
 
 Probably
 --------
@@ -23,6 +25,10 @@ Probably
 
 - Move all resources to a single resources folder. Duh.
 
+- Copy mouse scroll wheel functionality from V3.5
+
+- Improve prefetch logic to take advantage of multi-threading to speed up sdl_make().
+
 
 Possibly
 --------
@@ -34,8 +40,6 @@ Possibly
   - Everything in skill.c
 
 - Implement a control scheme that works without shift and control.
-
-- Improve prefetch logic to take advantage of multi-threading to speed up sdl_make().
 
 - Port the winsock stuff to SDL_net
 

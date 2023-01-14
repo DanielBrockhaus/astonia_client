@@ -10,6 +10,8 @@
 #include <png.h>
 #include <zip.h>
 
+#include "engine.h"
+
 #include "main.h"
 #include "sdl.h"
 #include "sound.h"
@@ -177,8 +179,8 @@ int sdl_init(int width,int height,char *title) {
     }
 
     if (DM.w==width && DM.h==height) {
-        SDL_SetWindowFullscreen(sdlwnd,SDL_WINDOW_FULLSCREEN);  // true full screen
-        //SDL_SetWindowFullscreen(sdlwnd,SDL_WINDOW_FULLSCREEN_DESKTOP); // borderless windowed
+        //SDL_SetWindowFullscreen(sdlwnd,SDL_WINDOW_FULLSCREEN);  // true full screen
+        SDL_SetWindowFullscreen(sdlwnd,SDL_WINDOW_FULLSCREEN_DESKTOP); // borderless windowed
     }
 
     sdlren=SDL_CreateRenderer(sdlwnd, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -705,7 +707,7 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         if (sdl_load_image_png(si,filename,sdl_zip2,do_smoothify(sprite))==0) return 0;
     }
 
-#if 1
+#if 0
     if (sdl_scale>1) {
         sprintf(filename,"../gfx/x%d/%08d/%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
         if (sdl_load_image_png_(si,filename,NULL)==0) return 0;
@@ -717,7 +719,7 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         if (sdl_load_image_png(si,filename,sdl_zip1,do_smoothify(sprite))==0) return 0;
     }
 
-#if 1
+#if 0
     sprintf(filename,"../gfx/x1/%08d/%08d.png",(sprite/1000)*1000,sprite);
     if (sdl_load_image_png(si,filename,NULL,do_smoothify(sprite))==0) return 0;
 #endif

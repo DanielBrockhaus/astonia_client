@@ -6,6 +6,8 @@
 
 #define max(a,b)    ((a)>(b)?(a):(b))
 
+#include "astonia.h"
+
 #define ISCLIENT
 #include "main.h"
 #include "client.h"

@@ -9,6 +9,10 @@
 #include <io.h>
 #include <fcntl.h>
 #include <time.h>
+#define SDL_MAIN_HANDLED
+#include <SDL2/SDL.h>
+
+#include "astonia.h"
 
 #define ISCLIENT
 #include "main.h"
@@ -32,7 +36,6 @@ int quit=0;
 int quickstart=0;
 int panic_reached=0;
 int xmemcheck_failed=0;
-int opt_res=600;
 int largetext=0;
 int vendor=1;
 extern int newlight;
@@ -474,22 +477,6 @@ void* xrecalloc(void *ptr,int size,int ID) {
     return rptr;
 }
 
-void addptr(void ***list,int *count,void *ptr,int ID) {
-    (*count)++;
-    (*list)=(void **)xrealloc((*list),(*count)*sizeof(void *),ID);
-    (*list)[*count-1]=ptr;
-}
-
-void delptr(void ***list,int *count,void *ptr,int ID) {
-    int i;
-
-    for (i=0; i<(*count); i++) if ((*list)[i]==ptr) break;
-    if (i==(*count)) return;
-    memmove(&(*list)[i],&(*list)[i+1],((*count)-i-1)*sizeof(void *));
-    (*count)--;
-    (*list)=(void **)xrealloc((*list),(*count)*sizeof(void *),ID);
-}
-
 // rrandom
 
 void rrandomize(void) {
@@ -545,6 +532,7 @@ void display_usage(void) {
 }
 
 char server_url[256];
+int want_width=0,want_height=0;
 
 int parse_cmd(char *s) {
     int n;
@@ -572,12 +560,17 @@ int parse_cmd(char *s) {
                 s++;
                 while (isspace(*s)) s++;
                 n=0; while (n<250 && *s && !isspace(*s)) server_url[n++]=*s++;
-            } else if (tolower(*s)=='w') {    // -w vertical_resolution, currently supporting 600, 900, 1200 and 1800.
+            } else if (tolower(*s)=='h') {    // -h horizontal_resolution
                     s++;
                     while (isspace(*s)) s++;
-                    opt_res=strtol(s,&end,10);
+                    want_height=strtol(s,&end,10);
                     s=end;
                     if (*s=='p') s++;
+            } else if (tolower(*s)=='w') {    // -w vertical_resolution
+                    s++;
+                    while (isspace(*s)) s++;
+                    want_width=strtol(s,&end,10);
+                    s=end;
             } else if (tolower(*s)=='l') { //Large Text
                     s++;
                     while (isspace(*s)) s++;
@@ -646,7 +639,6 @@ void convert_cmd_line(char *d,int argc,char *args[],int maxsize) {
 // main
 int main(int argc,char *args[]) {
     int ret;
-    int width,height;
     char buf[80],buffer[1024];
     struct hostent *he;
 
@@ -672,15 +664,6 @@ int main(int argc,char *args[]) {
         return -1;
     }
 
-    switch (opt_res) {
-        case 900:   	width=3840; height=2160; break;
-        case 1200:  	width=1600; height=1200; break;
-        case 1800:  	width=2400; height=1800; break;
-        case 2400:  	width=3200; height=2400; break;
-        case 800:
-        default:	    width=800; height=600;  break;
-    }
-
     if (isdigit(server_url[0])) {
         target_server=ntohl(inet_addr(server_url));
     } else {
@@ -697,8 +680,18 @@ int main(int argc,char *args[]) {
     // init random
     rrandomize();
 
+    if (!want_height) {
+        if (!want_width) want_width=800;
+        want_height=want_width*9/16;
+    }
+    if (!want_width) {
+        if (!want_height) want_height=540;
+        want_width=want_height*16/9;
+    }
+    note("Screen: %dx%d",want_width,want_height);
+
     sprintf(buf,"Astonia 3 v%d.%d.%d",(VERSION>>16)&255,(VERSION>>8)&255,(VERSION)&255);
-    if (!sdl_init(width,height,buf)) {
+    if (!sdl_init(want_width,want_height,buf)) {
         dd_exit();
         net_exit();
         return -1;

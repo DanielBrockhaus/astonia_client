@@ -19,6 +19,8 @@
 #include <math.h>
 #include <zlib.h>
 
+#include "astonia.h"
+
 #define ISCLIENT
 #define WANTMAPMN
 #include "main.h"

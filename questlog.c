@@ -136,7 +136,7 @@ int questcmp(const void *a,const void *b) {
 }
 
 int do_display_random(void) {
-    int y=55,x,n,idx,bit,m;
+    int y=15,x,n,idx,bit,m;
     static short indec[10]={0,11,24,38,43,57,64,76,83,96};
     static short bribes[10]={0,15,22,34,48,54,67,78,86,93};
     static short welding[10]={0,18,27,32,46,52,62,72,81,98};
@@ -261,14 +261,13 @@ int do_display_random(void) {
 }
 
 int do_display_questlog(int nr) {
-    int y=55,off,n,cnt,pass,m;
+    int y=15,off,n,cnt,pass,m;
     char buf[256];
 
     if (!questinit) {
         for (n=0; n<sizeof(questlog)/sizeof(questlog[0]); n++) questlist[n]=n;
         qsort(questlist,sizeof(questlog)/sizeof(questlog[0]),sizeof(int),questcmp);
     }
-
 
     if (!havequest) {
         cmd_getquestlog();

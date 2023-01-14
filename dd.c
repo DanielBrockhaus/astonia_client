@@ -9,6 +9,8 @@
 #include <math.h>
 #include <stdio.h>
 
+#include "engine.h"
+
 #include "main.h"
 #include "dd.h"
 #include "client.h"
@@ -639,13 +641,12 @@ int dd_char_len(char c) {
 }
 
 
-
 // ---------------------> Chat Window <-----------------------------
 #define MAXTEXTLINES		256
 #define MAXTEXTLETTERS		256
 
 #define TEXTDISPLAY_X		230
-#define TEXTDISPLAY_Y		438
+#define TEXTDISPLAY_Y		378
 
 #define TEXTDISPLAY_DY		(textdisplay_dy)
 
@@ -818,7 +819,6 @@ void dd_add_text(char *ptr) {
 
     textnextline=(textnextline+1)%MAXTEXTLINES;
     if (textnextline==textdisplayline) textdisplayline=(textdisplayline+1)%MAXTEXTLINES;
-    //textdisplayline=(textnextline+(MAXTEXTLINES-TEXTDISPLAYLINES))%MAXTEXTLINES;
 }
 
 int dd_text_init_done(void) {

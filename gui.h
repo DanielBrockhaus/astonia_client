@@ -37,26 +37,28 @@ extern unsigned short int lightorangecolor,orangecolor,darkorangecolor;
 extern unsigned short int textcolor;
 
 
-#define DOT_TL          0
-#define DOT_BR          1
-#define DOT_WEA         2
-#define DOT_INV         3
-#define DOT_CON         4
-#define DOT_SCL         5
-#define DOT_SCR         6
-#define DOT_SCU         7
-#define DOT_SCD         8
-#define DOT_TXT         9
-#define DOT_MTL         10
-#define DOT_MBR         11
-#define DOT_SKL         12
-#define DOT_GLD         13
+#define DOT_TL          0       // top left?
+#define DOT_BR          1       // bottom right?
+#define DOT_WEA         2       // worn equipment
+#define DOT_INV         3       // inventory
+#define DOT_CON         4       // container
+#define DOT_SCL         5       // scroll bar left, uses only X
+#define DOT_SCR         6       // scroll bar right, uses only X
+#define DOT_SCU         7       // scroll bars up arrows at this Y
+#define DOT_SCD         8       // scroll bars down arrors at thy Y
+#define DOT_TXT         9       // chat window
+#define DOT_MTL         10      // map top left
+#define DOT_MBR         11      // map bottom right
+#define DOT_SKL         12      // skill list
+#define DOT_GLD         13      // gold
 #define DOT_JNK         14      // trashcan
-#define DOT_MOD         15      // combat and walk
-#define MAX_DOT         16
+#define DOT_MOD         15      // combat and walk(?)
+#define DOT_MCT         16      // map center
+#define DOT_TOP         17      // top left corner of equipment bar
+#define DOT_BOT         18      // top left corner of bottom window holding skills, chat, etc.
+#define MAX_DOT         19
 
-#define DOTF_V          (1<<0)  // for display only (displays a VERTICAL line)
-#define DOTF_H          (1<<1)  // for display only (displays a HORIZONTAL line)
+#define DOTF_TOPOFF     (1<<0)  // dot moves with top bar
 
 struct dot {
     int flags;
@@ -119,6 +121,7 @@ typedef struct dot DOT;         // dot 0 is top left, dot 1 is bottom right of t
 #define BUTF_CAPTURE    (1<<2)  // button captures mouse on lclick
 #define BUTF_MOVEEXEC   (1<<3)  // button calls cmd_exec(lcmd) on mousemove
 #define BUTF_RECT       (1<<4)  // editor - button is a rectangle
+#define BUTF_TOPOFF     (1<<5)  // button moves with top bar
 
 struct but {
     int flags;      // flags

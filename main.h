@@ -64,9 +64,6 @@ void xfree(void *ptr);
 char* xstrdup(const char *src,int ID);
 void list_mem(void);
 
-void addptr(void ***list,int *count,void *ptr,int ID);
-void delptr(void ***list,int *count,void *ptr,int ID);
-
 // random
 
 void rrandomize(void);

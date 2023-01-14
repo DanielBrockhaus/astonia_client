@@ -10,6 +10,8 @@
 #include <time.h>
 #include <SDL2/SDL.h>
 
+#include "astonia.h"
+
 #define ISCLIENT
 #define WANTMAPMN
 #include "main.h"
@@ -25,10 +27,9 @@
 
 extern int quit;
 void set_map_values(struct map *cmap,int attick);
-extern void display_game(void);
-extern void init_game(void);
+void init_game(int mcx,int mcy);
 extern void exit_game(void);
-void display_cmd(void);
+void display_cmd();
 void quest_select(int nr);
 extern int gfx_force_png;
 extern int gfx_force_dh;
@@ -59,6 +60,8 @@ int allcut=0;
 
 int update_skltab=0;
 int show_look=0;
+
+int gui_topoff;     // offset of the top bar *above* the top of the window (0 ... -38)
 
 unsigned short int healthcolor,manacolor,endurancecolor,shieldcolor;
 unsigned short int whitecolor,lightgraycolor,graycolor,darkgraycolor,blackcolor;
@@ -294,30 +297,23 @@ int curspell_r=6;               // index into spelltab
 #define CMD_COMBAT1             59
 #define CMD_COMBAT2             60
 
-#define CMD_CON_FASTTAKE	61
-#define CMD_CON_FASTBUY		62
-#define CMD_CON_FASTSELL	63
-#define CMD_TELEPORT		64
-#define CMD_CON_FASTDROP	65
+#define CMD_CON_FASTTAKE	    61
+#define CMD_CON_FASTBUY		    62
+#define CMD_CON_FASTSELL	    63
+#define CMD_TELEPORT		    64
+#define CMD_CON_FASTDROP	    65
 
 #define CMD_HELP_NEXT           66
 #define CMD_HELP_PREV           67
 #define CMD_HELP_MISC           68
-#define CMD_HELP_CLOSE		69
-#define CMD_EXIT		70
-#define CMD_HELP		71
-#define CMD_NOLOOK		72
+#define CMD_HELP_CLOSE		    69
+#define CMD_EXIT		        70
+#define CMD_HELP		        71
+#define CMD_NOLOOK		        72
 
-#define CMD_COLOR		73
-#define CMD_SKL_LOOK		74
-#define CMD_QUEST		75
-
-// globals tin (text input)
-//TIN *tin;
-//int curtin;
-
-//void display_tin(int t,int something);
-//void tin_do(int t, int tindo, char c);
+#define CMD_COLOR		        73
+#define CMD_SKL_LOOK		    74
+#define CMD_QUEST		        75
 
 // dot and but helpers
 
@@ -327,6 +323,15 @@ void set_dot(int didx,int x,int y,int flags) {
     dot[didx].flags=flags;
     dot[didx].x=x;
     dot[didx].y=y;
+}
+
+int dotx(int didx) {
+    return dot[didx].x;
+}
+
+int doty(int didx) {
+    if (dot[didx].flags&DOTF_TOPOFF) return dot[didx].y+gui_topoff;
+    return dot[didx].y;
 }
 
 void set_but(int bidx,int x,int y,int hitrad,int id,int val,int flags) {
@@ -343,27 +348,44 @@ void set_but(int bidx,int x,int y,int hitrad,int id,int val,int flags) {
     but[bidx].sqhitrad=hitrad*hitrad;
 }
 
+int butx(int bidx) {
+    return but[bidx].x;
+}
+
+int buty(int bidx) {
+    if (but[bidx].flags&BUTF_TOPOFF) return but[bidx].y+gui_topoff;
+    return but[bidx].y;
+}
+
 // transformation
 
 int mapoffx,mapoffy;
-int mapaddx,mapaddy;
+int mapaddx,mapaddy;   // small offset to smoothen walking
 
+// set where to place the *center* of the map on the screen
 void set_mapoff(int cx,int cy,int mdx,int mdy) {
     mapoffx=(cx-(mdx/2-mdy/2)*(FDX/2));
     mapoffy=(cy-(mdx/2+mdy/2)*(FDY/2));
 }
 
+// small offset to smoothen walking
+// is set to the offset of the character in the center of the map (the player)
 void set_mapadd(int addx,int addy) {
     mapaddx=addx;
     mapaddy=addy;
 }
 
+// map to screen
 void mtos(int mapx,int mapy,int *scrx,int *scry) {
     *scrx=(mapoffx+mapaddx)+(mapx-mapy)*(FDX/2);
     *scry=(mapoffy+mapaddy)+(mapx+mapy)*(FDY/2);
 }
 
+// screen to map
 void stom(int scrx,int scry,int *mapx,int *mapy) {
+    extern int stom_off_x,stom_off_y;
+    scrx-=stom_off_x;
+    scry-=stom_off_y;
     scrx-=(mapoffx+mapaddx);
     scry-=(mapoffy+mapaddy)-10;
     *mapy=(40*scry-20*scrx-1)/(20*40);      // ??? -1 ???
@@ -405,15 +427,13 @@ static void display_wear(void) {
 
         i=b-BUT_WEA_BEG;
 
-        x=but[b].x;
-        y=but[b].y;
+        x=butx(b);
+        y=buty(b);
         yt=y+23;
 
         dd_copysprite(SPR_ITPAD,x,y,DDFX_NLIGHT,DD_CENTER);
         if (i==weasel) dd_copysprite(SPR_ITSEL,x,y,DDFX_NLIGHT,DD_CENTER);
         if (item[weatab[i]]) {
-
-            //dd_copysprite(14,x,y,DDFX_NLIGHT,DD_CENTER);
 
             bzero(&fx,sizeof(fx));
 
@@ -473,9 +493,8 @@ static void display_look(void) {
     for (b=BUT_WEA_BEG; b<=BUT_WEA_END; b++) {
         i=b-BUT_WEA_BEG;
 
-        x=but[b].x;
-        y=but[b].y+50;
-        //yt=y+23;
+        x=butx(b);
+        y=buty(b)+50;
 
         dd_copysprite(SPR_ITPAD,x,y,DDFX_NLIGHT,DD_CENTER);
         if (lookinv[weatab[i]]) {
@@ -499,7 +518,6 @@ static void display_look(void) {
             fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=FX_ITEMLIGHT;
             dd_copysprite_fx(&fx,x,y);
         }
-        //dd_drawtext(x,yt,whitecolor,DD_CENTER|DD_SMALL|DD_FRAME,weaname[i]);
     }
     dd_drawtext(220,100,0xffff,DD_LEFT,look_name);
     dd_drawtext_break(220,110,440,0xffff,DD_LEFT,look_desc);
@@ -562,15 +580,13 @@ static void display_inventory(void) {
         i=30+invoff*INVDX+b-BUT_INV_BEG;
         c=(i-2)%4;
 
-        x=but[b].x;
-        y=but[b].y;
+        x=butx(b);
+        y=buty(b);
         yt=y+12;
 
         dd_copysprite(SPR_ITPAD,x,y,DDFX_NLIGHT,DD_CENTER);
         if (i==invsel) dd_copysprite(SPR_ITSEL,x,y,DDFX_NLIGHT,DD_CENTER);
         if (item[i]) {
-
-            //dd_copysprite(14,x,y,DDFX_NLIGHT,DD_CENTER);
 
             bzero(&fx,sizeof(fx));
 
@@ -595,7 +611,7 @@ static void display_inventory(void) {
                 dd_copysprite_fx(&fx,x,y);
             }
 
-        } //else dd_copysprite(13,x,y,DDFX_NLIGHT,DD_CENTER);
+        }
         if (fkeyitem[c]==i) dd_drawtext(x,y-18,textcolor,DD_SMALL|DD_CENTER|DD_FRAME,fstr[c]);
         if (con_cnt && con_type==2 && itemprice[i]) dx_drawtext_gold(x,yt,textcolor,itemprice[i]);
     }
@@ -617,12 +633,12 @@ static void display_container(void) {
 
         i=conoff*CONDX+b-BUT_CON_BEG;
 
-        x=but[b].x;
-        y=but[b].y;
+        x=butx(b);
+        y=buty(b);
         yt=y+12;
 
         dd_copysprite(SPR_ITPAD,x,y,DDFX_NLIGHT,DD_CENTER);
-        if (i==consel/* && price[i]<=gold*/) dd_copysprite(SPR_ITSEL,x,y,DDFX_NLIGHT,DD_CENTER);
+        if (i==consel) dd_copysprite(SPR_ITSEL,x,y,DDFX_NLIGHT,DD_CENTER);
         if (i>=con_cnt) continue;
         if (container[i]) {
             bzero(&fx,sizeof(fx));
@@ -643,8 +659,7 @@ static void display_container(void) {
             fx.align=DD_CENTER;
             fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=i==consel?FX_ITEMBRIGHT:FX_ITEMLIGHT;
             dd_copysprite_fx(&fx,x,y);
-            //dd_copysprite(container[i],x,y,i==consel/* && price[i]<=gold*/?FX_ITEMBRIGHT:FX_ITEMLIGHT,DD_CENTER);
-        } //else dd_copysprite(14,x,y,DDFX_NLIGHT,DD_CENTER);
+        }
 
         if (con_type==2 && price[i]) {
             if (price[i]>gold && i!=consel) color=darkredcolor;
@@ -657,17 +672,14 @@ static void display_container(void) {
     }
 }
 
-static void display_scrollbars(void) {
-    dd_copysprite(SPR_SCRBAR,but[BUT_SCL_UP].x,but[BUT_SCL_UP].y+(but[BUT_SCL_DW].y-but[BUT_SCL_UP].y)/2,DDFX_NLIGHT,DD_OFFSET);
-    // dd_copysprite(34,but[BUT_SCL_UP].x,but[BUT_SCL_UP].y+4,DDFX_NLIGHT,DD_OFFSET);
-    // dd_copysprite(34,but[BUT_SCL_DW].x,but[BUT_SCL_DW].y-4,DDFX_NLIGHT,DD_OFFSET);
+static void display_scrollbars() {
+    // TODO: SPR_SCRBAR (image 26) is a single red pixel. This must be wrong?
+    //dd_copysprite(SPR_SCRBAR,but[BUT_SCL_UP].x,but[BUT_SCL_UP].y+(but[BUT_SCL_DW].y-but[BUT_SCL_UP].y)/2,DDFX_NLIGHT,DD_OFFSET);
     dd_copysprite(SPR_SCRUP,but[BUT_SCL_UP].x,but[BUT_SCL_UP].y,butsel==BUT_SCL_UP?FX_ITEMBRIGHT:FX_ITEMLIGHT,DD_OFFSET);
     dd_copysprite(SPR_SCRLT,but[BUT_SCL_TR].x,but[BUT_SCL_TR].y,butsel==BUT_SCL_TR?FX_ITEMBRIGHT:FX_ITEMLIGHT,DD_OFFSET);
     dd_copysprite(SPR_SCRDW,but[BUT_SCL_DW].x,but[BUT_SCL_DW].y,butsel==BUT_SCL_DW?FX_ITEMBRIGHT:FX_ITEMLIGHT,DD_OFFSET);
 
-    dd_copysprite(SPR_SCRBAR,but[BUT_SCR_UP].x,but[BUT_SCR_UP].y+(but[BUT_SCR_DW].y-but[BUT_SCR_UP].y)/2,DDFX_NLIGHT,DD_OFFSET);
-    // dd_copysprite(32,but[BUT_SCR_UP].x,but[BUT_SCR_UP].y+4,DDFX_NLIGHT,DD_OFFSET);
-    // dd_copysprite(32,but[BUT_SCR_DW].x,but[BUT_SCR_DW].y-4,DDFX_NLIGHT,DD_OFFSET);
+    //dd_copysprite(SPR_SCRBAR,but[BUT_SCR_UP].x,but[BUT_SCR_UP].y+(but[BUT_SCR_DW].y-but[BUT_SCR_UP].y)/2,DDFX_NLIGHT,DD_OFFSET);
     dd_copysprite(SPR_SCRUP,but[BUT_SCR_UP].x,but[BUT_SCR_UP].y,butsel==BUT_SCR_UP?FX_ITEMBRIGHT:FX_ITEMLIGHT,DD_OFFSET);
     dd_copysprite(SPR_SCRRT,but[BUT_SCR_TR].x,but[BUT_SCR_TR].y,butsel==BUT_SCR_TR?FX_ITEMBRIGHT:FX_ITEMLIGHT,DD_OFFSET);
     dd_copysprite(SPR_SCRDW,but[BUT_SCR_DW].x,but[BUT_SCR_DW].y,butsel==BUT_SCR_DW?FX_ITEMBRIGHT:FX_ITEMLIGHT,DD_OFFSET);
@@ -732,8 +744,8 @@ static void display_skill(void) {
 
         i=skloff+b-BUT_SKL_BEG;
 
-        x=but[b].x;
-        y=but[b].y;
+        x=butx(b);
+        y=buty(b);
         yt=y-4;
         bsx=x+10;
         bex=x+SKLWIDTH;
@@ -804,13 +816,13 @@ static void display_keys(void) {
 
         if (keytab[i].userdef) sprintf(buf,"%c/%c %s",keytab[i].keycode,keytab[i].userdef,keytab[i].name);
         else sprintf(buf,"%c %s",keytab[i].keycode,keytab[i].name);
-        dd_drawtext(x,427,col,DD_LEFT|DD_SMALL|DD_FRAME,buf);
-        // dd_drawtext(5,50+u*10,col,DD_LEFT|DD_SMALL|DD_FRAME,buf);
+
+        dd_drawtext(dotx(DOT_BOT)+x,doty(DOT_BOT)-20,col,DD_LEFT|DD_SMALL|DD_FRAME,buf);
     }
 }
 
 #define TELE_X	100
-#define TELE_Y	100
+#define TELE_Y	40
 
 int teleporter=0;
 extern int may_teleport[64+32];
@@ -960,23 +972,24 @@ char tutor_text[1024]={""};
 int show_tutor=0;
 
 void display_tutor(void) {
-    int x,y,n,mx=626,my=416;
+    int x,y,n,mx=dotx(DOT_BOT)+626,my=doty(DOT_BOT)-370+416;
     char *ptr,buf[80];
 
     if (!show_tutor) return;
 
-    dd_rect(220,350,630,426,IRGB(24,22,16));
-    dd_line(220,350,630,350,IRGB(12,10,4));
-    dd_line(630,350,630,426,IRGB(12,10,4));
-    dd_line(220,426,360,426,IRGB(12,10,4));
-    dd_line(220,350,220,426,IRGB(12,10,4));
+    // TODO: test me
+    dd_rect(dotx(DOT_BOT)+220,doty(DOT_BOT)-370+350-20,dotx(DOT_BOT)+630,doty(DOT_BOT)-370+426-20,IRGB(24,22,16));
+    dd_line(dotx(DOT_BOT)+220,doty(DOT_BOT)-370+350-20,dotx(DOT_BOT)+630,doty(DOT_BOT)-370+350-20,IRGB(12,10,4));
+    dd_line(dotx(DOT_BOT)+630,doty(DOT_BOT)-370+350-20,dotx(DOT_BOT)+630,doty(DOT_BOT)-370+426-20,IRGB(12,10,4));
+    dd_line(dotx(DOT_BOT)+220,doty(DOT_BOT)-370+426-20,dotx(DOT_BOT)+360,doty(DOT_BOT)-370+426-20,IRGB(12,10,4));
+    dd_line(dotx(DOT_BOT)+220,doty(DOT_BOT)-370+350-20,dotx(DOT_BOT)+220,doty(DOT_BOT)-370+426-20,IRGB(12,10,4));
 
-    x=224; y=354; ptr=tutor_text;
+    x=dotx(DOT_BOT)+224; y=doty(DOT_BOT)-370+354-20; ptr=tutor_text;
     while (*ptr) {
         while (*ptr==' ') ptr++;
         while (*ptr=='$') {
             ptr++;
-            x=224;
+            x=dotx(DOT_BOT)+224;
             y+=10;
             if (y>=my) break;
         }
@@ -985,17 +998,16 @@ void display_tutor(void) {
         while (*ptr && *ptr!=' ' && *ptr!='$' && n<79) buf[n++]=*ptr++;
         buf[n]=0;
         if (x+dd_textlength(DD_LEFT|DD_LARGE,buf)>=mx) {
-            x=224;
+            x=dotx(DOT_BOT)+224;
             y+=10;
             if (y>=my) break;
         }
         x=dd_drawtext(x,y,IRGB(12,10,4),DD_LEFT|DD_LARGE,buf)+3;
     }
-
 }
 
 #define COLO_X	(400-120/2)
-#define COLO_Y	(300-120/2)
+#define COLO_Y	(270-120/2)
 
 int show_color=0,show_cur=0;
 int show_color_c[3]={1,1,1};
@@ -1130,9 +1142,7 @@ static void display_screen(void) {
     static int rh1=0,rh2=0,rm1=0,rm2=0;
     extern int realtime;
 
-    //dd_copysprite(9,0,0,DDFX_NLIGHT,DD_NORMAL);
-    dd_copysprite(opt_sprite(999),0,0,DDFX_NLIGHT,DD_NORMAL);
-    dd_copysprite(opt_sprite(998),0,430,DDFX_NLIGHT,DD_NORMAL);
+    dd_copysprite(opt_sprite(999),dotx(DOT_TOP),doty(DOT_TOP),DDFX_NLIGHT,DD_NORMAL);
 
     trans_date(realtime,&h,&m);
 
@@ -1153,13 +1163,16 @@ static void display_screen(void) {
     if (m2!=rm2) rm2++;
     if (rm2==30) rm2=0;
 
-    dd_copysprite(200+rh1,730+0*10-2,5+3,DDFX_NLIGHT,DD_NORMAL);
-    dd_copysprite(200+rh2,730+1*10-2,5+3,DDFX_NLIGHT,DD_NORMAL);
-    dd_copysprite(200+rm1,734+2*10-2,5+3,DDFX_NLIGHT,DD_NORMAL);
-    dd_copysprite(200+rm2,734+3*10-2,5+3,DDFX_NLIGHT,DD_NORMAL);
+    dd_copysprite(200+rh1,dotx(DOT_TOP)+730+0*10-2,doty(DOT_TOP)+5+3,DDFX_NLIGHT,DD_NORMAL);
+    dd_copysprite(200+rh2,dotx(DOT_TOP)+730+1*10-2,doty(DOT_TOP)+5+3,DDFX_NLIGHT,DD_NORMAL);
+    dd_copysprite(200+rm1,dotx(DOT_TOP)+734+2*10-2,doty(DOT_TOP)+5+3,DDFX_NLIGHT,DD_NORMAL);
+    dd_copysprite(200+rm2,dotx(DOT_TOP)+734+3*10-2,doty(DOT_TOP)+5+3,DDFX_NLIGHT,DD_NORMAL);
 
     sprintf(time_text,"%02d:%02d Astonia Standard Time",h,m);
+
+    dd_copysprite(opt_sprite(998),dotx(DOT_BOT),doty(DOT_BOT),DDFX_NLIGHT,DD_NORMAL);
 }
+
 
 static void display_text(void) {
     dd_display_text();
@@ -1167,10 +1180,6 @@ static void display_text(void) {
     if (dd_scantext(mousex,mousey,hitsel));
     else hitsel[0]=0;
     display_cmd();
-
-    /*if (dd_scantext(mousex,mousey,hitsel)) {
-        dd_drawtext(230,587,redcolor,DD_LARGE|DD_LEFT,hitsel);
-        } else { display_cmd(); hitsel[0]=0; } */
 }
 
 static void display_gold(void) {
@@ -1191,7 +1200,6 @@ static void display_gold(void) {
 
 static void display_mode(void) {
     static char *speedtext[3]={"NORMAL","FAST","STEALTH"};
-    //static char *combattext[3]={"BALANCED","OFFENSIVE","DEFENSIVE"};
     int sel,seltxt,lg;
     unsigned short int col;
 
@@ -1208,18 +1216,6 @@ static void display_mode(void) {
     dd_drawtext(but[BUT_MOD_WALK2].x,but[BUT_MOD_WALK2].y+7,bluecolor,DD_SMALL|DD_FRAME|DD_CENTER,"F7");
 
     if (*speedtext[sel]) dd_drawtext(but[BUT_MOD_WALK0].x,but[BUT_MOD_WALK0].y-13,col,DD_SMALL|DD_CENTER|DD_FRAME,speedtext[seltxt]);
-
-    /*// combat
-    if (butsel>=BUT_MOD_COMB0 && butsel<=BUT_MOD_COMB2) { seltxt=butsel-BUT_MOD_COMB0; lg=2; col=seltxt==pcombat?lightbluecolor:bluecolor; }
-    else { seltxt=pcombat; lg=1; col=lightbluecolor; }
-    sel=pcombat;
-
-    dx_copysprite_emerald(but[BUT_MOD_COMB0].x,but[BUT_MOD_COMB0].y,4,(sel==0?lg:0));
-    dx_copysprite_emerald(but[BUT_MOD_COMB1].x,but[BUT_MOD_COMB1].y,4,(sel==1?lg:0));
-    dx_copysprite_emerald(but[BUT_MOD_COMB2].x,but[BUT_MOD_COMB2].y,4,(sel==2?lg:0));
-
-    if (*combattext[sel]) dd_drawtext(but[BUT_MOD_COMB0].x,but[BUT_MOD_COMB0].y-13,col,DD_SMALL|DD_CENTER|DD_FRAME,combattext[seltxt]);*/
-
 }
 
 static char bless_text[120];
@@ -1230,19 +1226,19 @@ static char level_text[120];
 static char rank_text[120];
 
 static void display_mouseover(void) {
-    if (mousey>=496 && mousey<=551) {
-        if (mousex>=207 && mousex<=214) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,rage_text);
-        if (mousex>=197 && mousex<=204) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,bless_text);
-        if (mousex>=187 && mousex<=194) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,freeze_text);
-        if (mousex>=177 && mousex<=184) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,potion_text);
+    if (mousey>=doty(DOT_BOT)-370+496-60 && mousey<=doty(DOT_BOT)-370+551-60) {
+        if (mousex>=dotx(DOT_BOT)+207 && mousex<=dotx(DOT_BOT)+214) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,rage_text);
+        if (mousex>=dotx(DOT_BOT)+187 && mousex<=dotx(DOT_BOT)+194) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,freeze_text);
+        if (mousex>=dotx(DOT_BOT)+177 && mousex<=dotx(DOT_BOT)+184) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,potion_text);
     }
 
-    if (mousex>=25 && mousex<=135) {
-        if (mousey>=5 && mousey<=13) dd_drawtext(mousex+16,mousey-4,0xffff,DD_BIG|DD_FRAME,level_text);
-        if (mousey>=22 && mousey<=30) dd_drawtext(mousex+16,mousey-4,0xffff,DD_BIG|DD_FRAME,rank_text);
+    if (mousex>=dotx(DOT_BOT)+25 && mousex<=dotx(DOT_BOT)+135) {
+        if (mousey>=doty(DOT_TOP)+5 && mousey<=doty(DOT_TOP)+13) dd_drawtext(mousex+16,mousey-4,0xffff,DD_BIG|DD_FRAME,level_text);
+        if (mousey>=doty(DOT_TOP)+22 && mousey<=doty(DOT_TOP)+30) dd_drawtext(mousex+16,mousey-4,0xffff,DD_BIG|DD_FRAME,rank_text);
     }
 
-    if (mousex>=728 && mousex<=772 && mousey>=7 && mousey<=17) dd_drawtext(mousex-16,mousey-4,0xffff,DD_BIG|DD_FRAME|DD_RIGHT,time_text);
+    if (mousex>=dotx(DOT_TOP)+728 && mousex<=dotx(DOT_TOP)+772 && mousey>=doty(DOT_TOP)+7 && mousey<=doty(DOT_TOP)+17)
+        dd_drawtext(mousex-16,mousey-4,0xffff,DD_BIG|DD_FRAME|DD_RIGHT,time_text);
 }
 
 static void display_selfspells(void) {
@@ -1260,29 +1256,30 @@ static void display_selfspells(void) {
         if (nr==-1) continue;
 
         switch (ceffect[nr].generic.type) {
-            case 9:		step=50-50*(ceffect[nr].bless.stop-tick)/(ceffect[nr].bless.stop-ceffect[nr].bless.start);
+            case 9:
+                step=50-50*(ceffect[nr].bless.stop-tick)/(ceffect[nr].bless.stop-ceffect[nr].bless.start);
                 dd_push_clip();
-                dd_more_clip(0,0,800,119+430);
-                //if (step>=40 && (tick&4)) dd_copysprite(997,179+2*10,68+430+step,DDFX_BRIGHT,DD_NORMAL);
-
-                if (ceffect[nr].bless.stop-tick<24*30 && (tick&4)) dd_copysprite(997,179+2*10,68+430+step,DDFX_BRIGHT,DD_NORMAL);
-                else dd_copysprite(997,179+2*10,68+430+step,DDFX_NLIGHT,DD_NORMAL);
+                dd_more_clip(0,0,800,doty(DOT_BOT)+119);
+                if (ceffect[nr].bless.stop-tick<24*30 && (tick&4)) dd_copysprite(997,dotx(DOT_BOT)+179+2*10,doty(DOT_BOT)+68+step,DDFX_BRIGHT,DD_NORMAL);
+                else dd_copysprite(997,dotx(DOT_BOT)+179+2*10,doty(DOT_BOT)+68+step,DDFX_NLIGHT,DD_NORMAL);
                 dd_pop_clip();
                 sprintf(bless_text,"Bless: %ds to go",(ceffect[nr].bless.stop-tick)/24);
                 break;
-            case 11:	step=50-50*(ceffect[nr].freeze.stop-tick)/(ceffect[nr].freeze.stop-ceffect[nr].freeze.start);
+            case 11:
+                step=50-50*(ceffect[nr].freeze.stop-tick)/(ceffect[nr].freeze.stop-ceffect[nr].freeze.start);
                 dd_push_clip();
-                dd_more_clip(0,0,800,119+430);
-                dd_copysprite(997,179+1*10,68+430+step,DDFX_NLIGHT,DD_NORMAL);
+                dd_more_clip(0,0,800,doty(DOT_BOT)+119);
+                dd_copysprite(997,dotx(DOT_BOT)+179+1*10,doty(DOT_BOT)+68+step,DDFX_NLIGHT,DD_NORMAL);
                 dd_pop_clip();
                 sprintf(freeze_text,"Freeze: %ds to go",(ceffect[nr].freeze.stop-tick)/24);
                 break;
 
-            case 14:        step=50-50*(ceffect[nr].potion.stop-tick)/(ceffect[nr].potion.stop-ceffect[nr].potion.start);
+            case 14:
+                step=50-50*(ceffect[nr].potion.stop-tick)/(ceffect[nr].potion.stop-ceffect[nr].potion.start);
                 dd_push_clip();
-                dd_more_clip(0,0,800,119+430);
-                if (step>=40 && (tick&4)) dd_copysprite(997,179+0*10,68+430+step,DDFX_BRIGHT,DD_NORMAL);
-                else dd_copysprite(997,179+0*10,68+430+step,DDFX_NLIGHT,DD_NORMAL);
+                dd_more_clip(0,0,800,doty(DOT_BOT)+119);
+                if (step>=40 && (tick&4)) dd_copysprite(997,dotx(DOT_BOT)+179+0*10,doty(DOT_BOT)+68+step,DDFX_BRIGHT,DD_NORMAL);
+                else dd_copysprite(997,dotx(DOT_BOT)+179+0*10,doty(DOT_BOT)+68+step,DDFX_NLIGHT,DD_NORMAL);
                 dd_pop_clip();
                 sprintf(potion_text,"Potion: %ds to go",(ceffect[nr].potion.stop-tick)/24);
                 break;
@@ -1314,8 +1311,8 @@ static void display_exp(void) {
         }
 
         dd_push_clip();
-        dd_more_clip(0,0,31+100-100*step/total,8+7);
-        dd_copysprite(996,31,7,exp_ticker?DDFX_BRIGHT:DDFX_NLIGHT,DD_NORMAL);
+        dd_more_clip(0,0,dotx(DOT_TOP)+31+100-100*step/total,doty(DOT_TOP)+8+7);
+        dd_copysprite(996,dotx(DOT_TOP)+31,doty(DOT_TOP)+7,exp_ticker?DDFX_BRIGHT:DDFX_NLIGHT,DD_NORMAL);
         dd_pop_clip();
 
         if (exp_ticker) exp_ticker--;
@@ -1375,13 +1372,11 @@ static void display_military(void) {
     step=mil_exp-cost1;
     if (step>total) step=total;
 
-    //addline("total=%d, step=%d, cost1=%d, cost2=%d (%d)",total,step,cost1,cost2,mil_exp);
-
     if (mil_exp && total) {
         if (rank<24) {
             dd_push_clip();
-            dd_more_clip(0,0,31+100*step/total,8+24);
-            dd_copysprite(993,31,24,DDFX_NLIGHT,DD_NORMAL);
+            dd_more_clip(0,0,dotx(DOT_TOP)+31+100*step/total,doty(DOT_TOP)+8+24);
+            dd_copysprite(993,dotx(DOT_TOP)+31,doty(DOT_TOP)+24,DDFX_NLIGHT,DD_NORMAL);
             dd_pop_clip();
 
             sprintf(rank_text,"Rank: '%s' to '%s'",rankname[rank],rankname[rank+1]);
@@ -1398,8 +1393,8 @@ static void display_rage(void) {
 
     step=50-50*rage/value[0][V_RAGE];
     dd_push_clip();
-    dd_more_clip(0,0,800,119+430);
-    dd_copysprite(997,179+3*10,68+430+step,DDFX_NLIGHT,DD_NORMAL);
+    dd_more_clip(0,0,800,doty(DOT_TXT)+119);
+    dd_copysprite(997,dotx(DOT_TXT)+179+3*10,doty(DOT_TXT)+68+step,DDFX_NLIGHT,DD_NORMAL);
     dd_pop_clip();
 
     sprintf(rage_text,"Rage: %d%%",100*rage/value[0][V_RAGE]);
@@ -1412,6 +1407,10 @@ void display_game_special(void) {
     if (!display_gfx) return;
 
     switch (display_gfx) {
+        // TODO: these are the ugly tutorial arrows
+        // since we want to re-write the input parts of the
+        // GUI there's no point in updating them now
+        // so: Make a new tutorial. Eventually.
         case 1:		dd_copysprite(50473,343,540,14,0); break;
         case 2:		dd_copysprite(50473,423,167,14,0); break;
         case 3:		dx=(tick-display_time)*450/120;
@@ -1445,52 +1444,57 @@ void display_game_special(void) {
 
         case 17:	dd_copysprite(50473,722,382,14,0); dd_copysprite(50475,257,60,14,0); break;
 
-        default:	dd_copysprite(display_gfx,550,250,14,0); break;
+        // TODO: this is used to display the maps in earth underground
+        // needs testing.
+        default:	dd_copysprite(display_gfx,550,210,14,0); break;
     }
 }
 
 char perf_text[256];
+static void set_cmd_states(void);
 
 static void display(void) {
     extern int socktimeout,kicked_out;
-    extern int mirror;
     extern int memptrs[MAX_MEM];
     extern int memsize[MAX_MEM];
     extern int memused;
     extern int memptrused;
+    extern long long sdl_time_make,sdl_time_tex,sdl_time_text,sdl_time_blit;
     int t;
     long long start=SDL_GetTicks64();
 
+    // Performance for stuff happening during the actual tick only.
+    // So zero them now after preload is done.
+    sdl_time_make=0;
+    sdl_time_tex=0;
+    sdl_time_text=0;
+    sdl_time_blit=0;
+
+    if (mousey<40) gui_topoff=0;
+    else if (mousey<78) gui_topoff=-mousey+40;
+    else gui_topoff=-38;
+
+    set_cmd_states();
+
     if (sockstate<4 && ((t=time(NULL)-socktimeout)>10 || !originx)) {
-        dd_rect(0,0,800,600,blackcolor);
+        dd_rect(0,0,800,540,blackcolor);
         display_screen();
         display_text();
-        if ((now/1000)&1) dd_drawtext(800/2,600/2-60,redcolor,DD_CENTER|DD_LARGE,"not connected");
-        dd_copysprite(60,800/2,(600-240)/2,DDFX_NLIGHT,DD_CENTER);
+        if ((now/1000)&1) dd_drawtext(800/2,540/2-60,redcolor,DD_CENTER|DD_LARGE,"not connected");
+        dd_copysprite(60,800/2,(540-240)/2,DDFX_NLIGHT,DD_CENTER);
         dd_copysprite(1,mousex,mousey+5,DDFX_BRIGHT,DD_CENTER);
         if (!kicked_out) {
-            dd_drawtext_fmt(800/2,600/2-40,textcolor,DD_SMALL|DD_CENTER|DD_FRAME,"Trying to establish connection. %d seconds...",t);
+            dd_drawtext_fmt(800/2,540/2-40,textcolor,DD_SMALL|DD_CENTER|DD_FRAME,"Trying to establish connection. %d seconds...",t);
             if (t>15) {
-                dd_drawtext_fmt(800/2,600/2-20,textcolor,DD_LARGE|DD_CENTER|DD_FRAME,"If you have connection problems, please try a different connection in the lower left of the client startup screen.");
-                dd_drawtext_fmt(800/2,600/2-0,textcolor,DD_LARGE|DD_CENTER|DD_FRAME,"Additional information can be found at www.astonia.com.");
+                dd_drawtext_fmt(800/2,540/2-20,textcolor,DD_LARGE|DD_CENTER|DD_FRAME,"If you have connection problems, please try a different connection in the lower left of the client startup screen.");
+                dd_drawtext_fmt(800/2,540/2-0,textcolor,DD_LARGE|DD_CENTER|DD_FRAME,"Additional information can be found at www.astonia.com.");
             }
         }
-        /* TODO: remove font creation helper
-        for (int i=32; i<80; i++) {
-            dd_drawtext(i*10-320,80,0xffff,DD_SMALL|DD_LEFT,(char*)&i);
-            dd_drawtext(i*10-320,120,0xffff,DD_LARGE|DD_LEFT,(char*)&i);
-            dd_drawtext(i*10-320,160,0xffff,DD_BIG|DD_LEFT,(char*)&i);
-        }
-        for (int i=80; i<128; i++) {
-            dd_drawtext(i*10-800,100,0xffff,DD_SMALL|DD_LEFT,(char*)&i);
-            dd_drawtext(i*10-800,140,0xffff,DD_LARGE|DD_LEFT,(char*)&i);
-            dd_drawtext(i*10-800,180,0xffff,DD_BIG|DD_LEFT,(char*)&i);
-        }*/
         return;
     }
 
     dd_push_clip();
-    dd_more_clip(dot[DOT_MTL].x,dot[DOT_MTL].y,dot[DOT_MBR].x,dot[DOT_MBR].y);
+    dd_more_clip(dotx(DOT_MTL),doty(DOT_MTL),dotx(DOT_MBR),doty(DOT_MBR));
     display_game();
     dd_pop_clip();
 
@@ -1520,22 +1524,20 @@ static void display(void) {
 
     if (display_vc) {
         extern long long mem_tex,texc_miss,texc_pre;
-        extern long long sdl_time_make,sdl_time_tex,sdl_time_text,sdl_time_blit;
         extern int  pre_in,pre_out;
         static int dur=0,make=0,tex=0,text=0,blit=0,stay=0,size;
+        int px=800-80,py=45+gui_topoff;
 
-        dd_drawtext_fmt(650,5,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);
-        dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"skip %3.0f%%",100.0*skip/tota);
-        dd_drawtext_fmt(650,25,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"idle %3.0f%%",100.0*idle/tota);
-
-        dd_drawtext_fmt(650,44,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Tex: %5.2f MB",mem_tex/(1024.0*1024.0));
+        dd_drawtext_fmt(px,py,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"skip %3.0f%%",100.0*skip/tota);
+        dd_drawtext_fmt(px,py+10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"idle %3.0f%%",100.0*idle/tota);
+        dd_drawtext_fmt(px,py+20,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Tex: %5.2f MB",mem_tex/(1024.0*1024.0));
 
          if (pre_in>=pre_out) size=pre_in-pre_out;
          else size=16384+pre_in-pre_out;
 
-        dd_drawtext_fmt(650,54,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"PreC %d",size);
-        dd_drawtext_fmt(650,64,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Miss %lld",texc_miss);
-        dd_drawtext_fmt(650,74,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Prel %lld",texc_pre);
+        dd_drawtext_fmt(px,py+30,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"PreC %d",size);
+        dd_drawtext_fmt(px,py+40,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Miss %lld",texc_miss);
+        dd_drawtext_fmt(px,py+50,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Prel %lld",texc_pre);
 
         if (duration>10 && (!stay || duration>dur)) {
             dur=duration;
@@ -1552,20 +1554,17 @@ static void display(void) {
 
         if (stay>0) {
             stay--;
-            dd_drawtext_fmt(650,100,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Dur %dms (%.0f%%)",dur,100.0*(make+tex+text+blit)/dur);
-            dd_drawtext_fmt(650,110,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Make %dms (%.0f%%)",make,100.0*make/dur);
-            dd_drawtext_fmt(650,120,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Tex %dms (%.0f%%)",tex,100.0*tex/dur);
-            dd_drawtext_fmt(650,130,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Text %dms (%.0f%%)",text,100.0*text/dur);
-            dd_drawtext_fmt(650,140,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Blit %dms (%.0f%%)",blit,100.0*blit/dur);
+            dd_drawtext_fmt(px,py+70,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Dur %dms (%.0f%%)",dur,100.0*(make+tex+text+blit)/dur);
+            dd_drawtext_fmt(px,py+80,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Make %dms (%.0f%%)",make,100.0*make/dur);
+            dd_drawtext_fmt(px,py+90,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Tex %dms (%.0f%%)",tex,100.0*tex/dur);
+            dd_drawtext_fmt(px,py+100,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Text %dms (%.0f%%)",text,100.0*text/dur);
+            dd_drawtext_fmt(px,py+110,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Blit %dms (%.0f%%)",blit,100.0*blit/dur);
         }
-
-        //dd_shaded_rect(770,110,790,110+skip);
-    } else dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);
+    } //else dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);
 
     sprintf(perf_text,"mem usage=%.2f/%.2fMB, %.2f/%.2fKBlocks",
             memsize[0]/1024.0/1024.0,memused/1024.0/1024.0,
             memptrs[0]/1024.0,memptrused/1024.0);
-
 
     display_mouseover();
 }
@@ -1785,7 +1784,7 @@ static int get_near_button(int x,int y) {
 
         if (but[b].flags&BUTF_NOHIT) continue;
 
-        dist=(but[b].x-x)*(but[b].x-x)+(but[b].y-y)*(but[b].y-y);
+        dist=(butx(b)-x)*(butx(b)-x)+(buty(b)-y)*(buty(b)-y);
         if (dist>but[b].sqhitrad) continue;
 
         if (dist>ndist) continue;
@@ -1799,7 +1798,6 @@ static int get_near_button(int x,int y) {
 
 static void set_invoff(int bymouse,int ny) {
     if (bymouse) {
-        // invoff=(ny-(but[BUT_SCR_UP].y+10))*max_invoff/(but[BUT_SCR_DW].y-but[BUT_SCR_UP].y-20); // DIVISION BY ZERO can't happen
         invoff+=mousedy/LINEHEIGHT;
         mousedy=mousedy%LINEHEIGHT;
     } else invoff=ny;
@@ -1812,7 +1810,6 @@ static void set_invoff(int bymouse,int ny) {
 
 static void set_skloff(int bymouse,int ny) {
     if (bymouse) {
-        // skloff=(ny-(but[BUT_SCL_UP].y+10))*max_skloff/(but[BUT_SCL_DW].y-but[BUT_SCL_UP].y-20); // DIVISION BY ZERO can't happen
         skloff+=mousedy/LINEHEIGHT;
         mousedy=mousedy%LINEHEIGHT;
     } else skloff=ny;
@@ -1959,7 +1956,6 @@ static int get_skl_look(int x,int y) {
     for (b=BUT_SKL_BEG; b<=BUT_SKL_END; b++) {
         i=skloff+b-BUT_SKL_BEG;
         if (i>=skltab_cnt) continue;
-        //addline("i=%d, b=%d, x=%d (%d,%d), y=%d (%d,%d)",i,b,x,but[b].x+10,but[b].x+60,y,but[b].y,but[b].y+10);
         if (x>but[b].x-5 && x<but[b].x+70 && y>but[b].y-5 && y<but[b].y+5) return skltab[i].v;
     }
     return -1;
@@ -2005,8 +2001,9 @@ static void set_cmd_states(void) {
             (target_server>>0)&255,
             target_port);
     if (strcmp(title,buf)) {
-        // TODO: figure out how SDL would set the window title and do it
+        extern SDL_Window *sdlwnd;
         strcpy(title,buf);
+        SDL_SetWindowTitle(sdlwnd,title);
     }
 
     // update fkeyitem
@@ -2041,11 +2038,11 @@ static void set_cmd_states(void) {
     if (colsel!=-1) butsel=BUT_COLOR;
 
     if ((display_help || display_quest) && butsel==-1) {
-        if (mousex>=0 && mousex<=222 && mousey>=0+40 && mousey<=394+40) {
+        if (mousex>=0 && mousex<=222 && mousey>=doty(DOT_TOP)+40 && mousey<=374+2) {
             butsel=BUT_HELP_MISC;
 
-            if (display_help==1 && mousex>=7 && mousex<=136 && mousey>=234 && mousey<=234+MAXHELP*10) { // 312
-                helpsel=(mousey-234)/10+2;
+            if (display_help==1 && mousex>=7 && mousex<=136 && mousey>=234-40 && mousey<=234-40+MAXHELP*10) { // 312
+                helpsel=(mousey-234+40)/10+2;
                 if (mousex>110) helpsel+=12;
 
                 if (helpsel<2 || helpsel>MAXHELP) helpsel=-1;
@@ -2061,17 +2058,17 @@ static void set_cmd_states(void) {
                 }
             }
         }
-        if (mousex>=177 && mousex<=196 && mousey>=378+40 && mousey<=385+40) {
+        if (mousex>=177 && mousex<=196 && mousey>=378-20 && mousey<=385-20) {
             butsel=BUT_HELP_PREV;
         }
-        if (mousex>=200 && mousex<=219 && mousey>=378+40 && mousey<=385+40) {
+        if (mousex>=200 && mousex<=219 && mousey>=378-20 && mousey<=385-20) {
             butsel=BUT_HELP_NEXT;
         }
-        if (mousex>=211 && mousex<=218 && mousey>=3+40 && mousey<=10+40) {
+        if (mousex>=211 && mousex<=218+6 && mousey>=3+40 && mousey<=10+40+12) {
             butsel=BUT_HELP_CLOSE;
         }
-
     }
+
     if (mousex>=704 && mousex<=739 && mousey>=22 && mousey<=30) butsel=BUT_HELP;
     if (mousex>=741 && mousex<=775 && mousey>=22 && mousey<=30) butsel=BUT_QUEST;
     if (mousex>=704 && mousex<=723 && mousey>=7 && mousey<=18) butsel=BUT_EXIT;
@@ -2584,11 +2581,10 @@ void cmd_add_text(char *buf) {
     while (*buf) cmd_proc(*buf++);
 }
 
-void display_cmd(void) {
+void display_cmd(int px,int py) {
     int n,x,tmp;
 
     if (cmdcursor<cmddisplay) cmddisplay=0;
-
 
     for (x=0,n=cmdcursor; n>cmddisplay; n--) {
         x+=dd_char_len(cmdline[n]);
@@ -2599,13 +2595,13 @@ void display_cmd(void) {
     }
 
     for (x=0,n=cmddisplay; n<MAXCMDLINE; n++) {
-        tmp=dd_drawtext_char(230+x,587,cmdline[n],IRGB(31,31,31));
+        tmp=dd_drawtext_char(dotx(DOT_TXT)+x,doty(DOT_TXT)+149,cmdline[n],IRGB(31,31,31));
         if (n==cmdcursor) {
-            if (cmdline[n]) dd_shaded_rect(230+x-1,587,230+x+tmp+1,587+9);
-            else dd_shaded_rect(230+x,587,230+x+4,587+9);
+            if (cmdline[n]) dd_shaded_rect(dotx(DOT_TXT)+x-1,doty(DOT_TXT)+149,dotx(DOT_TXT)+x+tmp+1,doty(DOT_TXT)+149+9);
+            else dd_shaded_rect(dotx(DOT_TXT)+x,doty(DOT_TXT)+149,dotx(DOT_TXT)+x+4,doty(DOT_TXT)+149+9);
         }
         x+=tmp;
-        if (x>625-230) break;
+        if (x>dotx(DOT_TXT)+625-230) break;
     }
 }
 
@@ -2803,9 +2799,6 @@ void gui_sdl_mouseproc(int x,int y,int what) {
 int main_init(void) {
     int i,x,y;
 
-    // set_mapoff(400,270);
-    // set_mapadd(0,0);
-
     whitecolor=IRGB(31,31,31);
     lightgraycolor=IRGB(28,28,28);
     graycolor=IRGB(22,22,22);
@@ -2837,29 +2830,54 @@ int main_init(void) {
 
     // dots
     dot=xmalloc(MAX_DOT*sizeof(DOT),MEM_GUI);
+
+    // top left, bottom right of screen
     set_dot(DOT_TL,0,0,0);
     set_dot(DOT_BR,800,600,0);
-    set_dot(DOT_WEA,180,20,DOTF_H|DOTF_V);
-    set_dot(DOT_INV,660,458,DOTF_H|DOTF_V);
-    set_dot(DOT_CON,20,458,DOTF_H|DOTF_V);
-    set_dot(DOT_SCL,160+5,0,DOTF_V);
-    set_dot(DOT_SCR,640-5,0,DOTF_V);
-    set_dot(DOT_SCU,0,445,DOTF_H);
-    set_dot(DOT_SCD,0,590,DOTF_H);
-    set_dot(DOT_TXT,230,438,DOTF_H|DOTF_V);
-    set_dot(DOT_MTL,0,39,DOTF_H);
-    set_dot(DOT_MBR,800,437,DOTF_H);
-    set_dot(DOT_SKL,8,438+5,DOTF_V);
-    set_dot(DOT_GLD,195,580,DOTF_H|DOTF_V);
-    set_dot(DOT_JNK,610,580,DOTF_H|DOTF_V);
-    set_dot(DOT_MOD,181,438+15,DOTF_H|DOTF_V);
+
+    // equipment, inventory, container. center of first displayed item.
+    set_dot(DOT_WEA,180,20,DOTF_TOPOFF);
+    set_dot(DOT_INV,660,398,0);
+    set_dot(DOT_CON,20,398,0);
+
+    // top and bottom window
+    set_dot(DOT_TOP,0,  0,DOTF_TOPOFF);
+    set_dot(DOT_BOT,0,370,0);
+
+    // scroll bars
+    set_dot(DOT_SCL,160+5,0,0);
+    set_dot(DOT_SCR,640-5,0,0);
+    set_dot(DOT_SCU,0,385,0);
+    set_dot(DOT_SCD,0,530,0);
+
+    // chat text
+    set_dot(DOT_TXT,230,378,0);
+
+    // skill list
+    set_dot(DOT_SKL,8,384,0);
+
+    // gold
+    set_dot(DOT_GLD,195,520,0);
+
+    // trashcan
+    set_dot(DOT_JNK,610,520,0);
+
+    // speed options: stealth/normal/fast
+    set_dot(DOT_MOD,181,393,0);
+
+    // map top left, bottom right, center
+    set_dot(DOT_MTL,  0, 40,DOTF_TOPOFF);
+    set_dot(DOT_MBR,800,376,0);
+    set_dot(DOT_MCT,400,230,0);
 
     // buts
     but=xmalloc(MAX_BUT*sizeof(BUT),MEM_GUI);
 
     set_but(BUT_MAP,800/2,270,0,BUTID_MAP,0,BUTF_NOHIT);
 
-    for (i=0; i<12; i++) set_but(BUT_WEA_BEG+i,dot[DOT_WEA].x+i*FDX,dot[DOT_WEA].y+0,40,BUTID_WEA,0,0);
+    // note to self: do not use dotx(),doty() here because the moving top bar logic is built into the
+    // button flags as well
+    for (i=0; i<12; i++) set_but(BUT_WEA_BEG+i,dot[DOT_WEA].x+i*FDX,dot[DOT_WEA].y+0,40,BUTID_WEA,0,BUTF_TOPOFF);
     for (x=0; x<4; x++) for (y=0; y<4; y++) set_but(BUT_INV_BEG+x+y*4,dot[DOT_INV].x+x*FDX,dot[DOT_INV].y+y*FDX,40,BUTID_INV,0,0);
     for (x=0; x<4; x++) for (y=0; y<4; y++) set_but(BUT_CON_BEG+x+y*4,dot[DOT_CON].x+x*FDX,dot[DOT_CON].y+y*FDX,40,BUTID_CON,0,0);
     for (i=0; i<16; i++) set_but(BUT_SKL_BEG+i,dot[DOT_SKL].x,dot[DOT_SKL].y+i*LINEHEIGHT,40,BUTID_SKL,0,0);
@@ -2883,11 +2901,6 @@ int main_init(void) {
     set_but(BUT_MOD_COMB1,dot[DOT_MOD].x+0*10,dot[DOT_MOD].y+1*30,30,BUTID_MOD,0,0);
     set_but(BUT_MOD_COMB2,dot[DOT_MOD].x+2*10,dot[DOT_MOD].y+1*30,30,BUTID_MOD,0,0);
 
-    // tin
-    /*init_tin(TIN_TEXT,256,dot[DOT_TXT].x,dot[DOT_TXT].y+LINEHEIGHT*MAXLINESHOW,MAXLINEWIDTH,textcolor,DD_LARGE_CHARSET,64);
-    init_tin(TIN_GOLD,256,80,20,24,textcolor,"0123456789.",1);
-    curtin=TIN_TEXT;*/
-
     // other
     set_invoff(0,0);
     set_skloff(0,0);
@@ -2895,7 +2908,7 @@ int main_init(void) {
     capbut=-1;
 
     // more inits
-    init_game();
+    init_game(dotx(DOT_MCT),doty(DOT_MCT));
 
     return 0;
 }
@@ -2993,8 +3006,6 @@ int main_loop(void) {
 #endif
         {
             if (timediff>-MPT/2) {
-                set_cmd_states();
-
                 sdl_clear();
                 display();
 

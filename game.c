@@ -8,6 +8,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+
+#include "astonia.h"
+
 #define ISCLIENT
 #define WANTMAPMN
 #include "main.h"
@@ -31,6 +34,8 @@ extern int mapoffx,mapoffy;
 
 int fsprite_cnt=0,f2sprite_cnt=0,gsprite_cnt=0,g2sprite_cnt=0,isprite_cnt=0,csprite_cnt=0;
 int qs_time=0,dg_time=0,ds_time=0;
+
+int stom_off_x=0,stom_off_y=0;
 
 int get_sink(int mn,struct map *cmap);
 
@@ -1567,7 +1572,7 @@ void display_game_map(struct map *cmap) {
 }
 
 int do_display_help(int nr) {
-    int y=45,oldy;
+    int y=5,oldy;
 
     switch (nr) {
         case 1:
@@ -1787,11 +1792,12 @@ void display_pents(void) {
 
             default:	continue;
         }
-        dd_drawtext(600,350+n*10,col,DD_SMALL|DD_FRAME,pent_str[n]+1);
+        dd_drawtext(dotx(DOT_BOT)+600,doty(DOT_BOT)-370+350+n*10,col,DD_SMALL|DD_FRAME,pent_str[n]+1);
     }
 }
 
 int do_display_questlog(int nr);
+
 void display_game(void) {
     extern int x_offset;
     extern int display_help,display_quest;
@@ -1813,7 +1819,8 @@ void display_game(void) {
         x_offset-=110;
         dd_pop_clip();
 
-        dd_copysprite(opt_sprite(995),0,40,DDFX_NLIGHT,DD_NORMAL);
+        // Note: This used to be sprite 995 for the 800x600 resolution
+        dd_copysprite(opt_sprite(992),0,0,DDFX_NLIGHT,DD_NORMAL);
 
         if (display_help) do_display_help(display_help);
         if (display_quest) do_display_questlog(display_quest);
@@ -1835,14 +1842,13 @@ int quick_qcmp(const void *va,const void *vb) {
     return a->mapx-b->mapx;
 }
 
-void make_quick(int game) {
-    int t,cnt;
+void make_quick(int game,int mcx,int mcy) {
+    int cnt;
     int x,y,xs,xe,i,ii;
     int dist=DIST;
 
     if (game) {
-        note("make_quick: game");
-        set_mapoff(400,270,MAPDX,MAPDY);
+        set_mapoff(mcx,mcy,MAPDX,MAPDY);
         set_mapadd(0,0);
     }
 
@@ -1870,12 +1876,9 @@ void make_quick(int game) {
     }
 
     // sort quick in client order
-    t=GetTickCount();
     qsort(quick,maxquick,sizeof(QUICK),quick_qcmp);
-    note("quicktime sort=%.2f",(GetTickCount()-t)/1000.0);
 
     // set quick neighbours
-    t=GetTickCount();
     cnt=0;
     for (i=0; i<maxquick; i++) {
         for (y=-1; y<=1; y++) {
@@ -1892,9 +1895,6 @@ void make_quick(int game) {
                     ii=i;
                 }
 
-                // for (iii=0; iii<maxquick; iii++) if (quick[i].mapx+x==quick[iii].mapx && quick[i].mapy+y==quick[iii].mapy) break;
-                // if (iii!=ii) note("%d%+d=%d/%d",quick[i].mapx,x,ii==maxquick?-42:quick[ii].mapx,iii==maxquick?-42:quick[iii].mapx);
-
                 if (ii==maxquick) {
                     quick[i].mn[(x+1)+(y+1)*3]=0;
                     quick[i].qi[(x+1)+(y+1)*3]=maxquick;
@@ -1906,7 +1906,6 @@ void make_quick(int game) {
 
         }
     }
-    note("quicktime find=%.2f (cnt=%d)",(GetTickCount()-t)/1000.0,cnt);
 
     // set values for quick[maxquick]
     for (y=-1; y<=1; y++) {
@@ -1919,8 +1918,8 @@ void make_quick(int game) {
 
 // init, exit
 
-void init_game(void) {
-    make_quick(1);
+void init_game(int mcx,int mcy) {
+    make_quick(1,mcx,mcy);
 }
 
 void exit_game(void) {

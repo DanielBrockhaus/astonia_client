@@ -2,8 +2,8 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
-#define FDX             40
-#define FDY             20
+#define FDX             40      // width of a map tile
+#define FDY             20      // height of a map tile
 
 #define SPR_WALK        11
 
