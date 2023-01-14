@@ -72,3 +72,7 @@ int sdlt_xres(int stx);
 int sdlt_yres(int stx);
 
 uint32_t *sdl_load_png(char *filename,int *dx,int *dy);
+
+void sdl_bargraph_add(int dx,unsigned char *data,int val);
+void sdl_bargraph(int sx,int sy,int dx,unsigned char *data,int x_offset,int y_offset);
+

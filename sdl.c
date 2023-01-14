@@ -97,9 +97,13 @@ long long texc_hit=0,texc_miss=0,texc_pre=0;
 
 long long sdl_time_preload=0;
 long long sdl_time_make=0;
+long long sdl_time_load=0;
 long long sdl_time_tex=0;
 long long sdl_time_text=0;
 long long sdl_time_blit=0;
+long long sdl_time_pre1=0;
+long long sdl_time_pre2=0;
+long long sdl_time_pre3=0;
 
 int sdl_scale=1;
 int sdl_frames=0;
@@ -690,6 +694,9 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
 }
 
 int sdl_ic_load(int sprite) {
+    uint64_t start;
+
+    start=SDL_GetTicks64();
 
     if (sprite>=MAXSPRITE || sprite<0) {
         note("illegal sprite %d wanted in sdl_ic_load",sprite);
@@ -698,6 +705,8 @@ int sdl_ic_load(int sprite) {
     if (sdli[sprite].flags) return sprite;
 
     if (sdl_load_image(sdli+sprite,sprite)) return -1;
+
+    sdl_time_load+=SDL_GetTicks64()-start;
 
     return sprite;
 }
@@ -1281,9 +1290,13 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
 
         if (!preload && (sdlt[stx].flags&SF_SPRITE)) {
 
-            if (sdl_multi) SDL_LockMutex(premutex);
-            if (!(sdlt[stx].flags&SF_DIDMAKE)) sdl_make(sdlt+stx,sdli+sprite,2);
-            if (sdl_multi) SDL_UnlockMutex(premutex);
+            // this loads anything the preloader was too slow to get.
+            // slows things down a lot, but better than black sprites, I guess.
+            if (sdl_multi && !(sdlt[stx].flags&SF_DIDMAKE)) {
+                if (sdl_multi) SDL_LockMutex(premutex);
+                if (!(sdlt[stx].flags&SF_DIDMAKE)) sdl_make(sdlt+stx,sdli+sprite,2);
+                if (sdl_multi) SDL_UnlockMutex(premutex);
+            }
 
             if (!(sdlt[stx].flags&SF_DIDTEX)) sdl_make(sdlt+stx,sdli+sprite,3);
         }
@@ -2062,18 +2075,19 @@ struct prefetch {
 #define MAXPRE (16384)
 static struct prefetch pre[MAXPRE];
 int pre_in=0,pre_1=0,pre_2=0,pre_3=0;
+int pre_tick=0;
 
 void sdl_pre_add(int attick,int sprite,signed char sink,unsigned char freeze,unsigned char grid,unsigned char scale,char cr,char cg,char cb,char light,char sat,int c1,int c2,int c3,int shine,char ml,char ll,char rl,char ul,char dl) {
-    //int n;
-    //if ((pre_in+1)%MAXPRE==pre_out) return; // buffer is full
+    int n;
+    if ((pre_in+1)%MAXPRE==pre_3) return; // buffer is full
 
     if (sprite>MAXSPRITE || sprite<0) {
         note("illegal sprite %d wanted in pre_add",sprite);
         return;
     }
-#if 0
+#if 1
     // Don't add again
-    for (n=pre_out; n!=pre_in; n=(n+1)%MAXPRE) {
+    for (n=pre_3; n!=pre_in; n=(n+1)%MAXPRE) {
         if (pre[n].attick==attick &&
             pre[n].sprite==sprite &&
             pre[n].sink==sink &&
@@ -2158,6 +2172,13 @@ void sdl_pre_2(void) {
     if (pre[i].stx!=STX_NONE && !(sdlt[pre[i].stx].flags&SF_DIDMAKE))
         sdl_make(sdlt+pre[i].stx,sdli+pre[i].sprite,2);
 
+#ifdef TICKPRINT
+    static int lasttick=0;
+    if (pre[i].attick!=lasttick) {
+        lasttick=pre[i].attick;
+        printf("Preloading tick: %d\n",lasttick);
+    }
+#endif
     //note("pre 2: %d %d %d %d %d %d (%d %d %d)",pre[i].sprite,pre[i].ml,pre[i].ll,pre[i].rl,pre[i].ul,pre[i].dl,pre[i].stx,i,pre_in);
 
     pre_2=(pre_2+1)%MAXPRE;
@@ -2174,23 +2195,24 @@ void sdl_pre_3(void) {
 
     //note("pre 3: %d %d %d %d %d %d (%d %d %d)",pre[i].sprite,pre[i].ml,pre[i].ll,pre[i].rl,pre[i].ul,pre[i].dl,pre[i].stx,i,pre_in);
 
+    pre_tick=pre[i].attick;
     pre_3=(pre_3+1)%MAXPRE;
+
 }
 int sdl_pre_do(int curtick) {
+    uint64_t start;
 
+    start=SDL_GetTicks64();
     sdl_pre_1();
-    if (!sdl_multi) sdl_pre_2();
-    sdl_pre_3();
+    sdl_time_pre1+=SDL_GetTicks64()-start;
 
-#if 0
-    int n,r;
-    r=rand()%10;
-    for (n=0; n<r; n++) sdl_pre_1();
-    //r=rand()%10;
-    //for (n=0; n<r; n++) sdl_pre_2();
-    r=rand()%10;
-    for (n=0; n<r; n++) sdl_pre_3();
-#endif
+    start=SDL_GetTicks64();
+    if (!sdl_multi) sdl_pre_2();
+    sdl_time_pre2+=SDL_GetTicks64()-start;
+
+    start=SDL_GetTicks64();
+    sdl_pre_3();
+    sdl_time_pre3+=SDL_GetTicks64()-start;
 
     if (pre_in>=pre_3) return pre_in-pre_3;
     else return MAXPRE+pre_in-pre_3;
@@ -2216,6 +2238,21 @@ int sdl_pre_backgnd(void *ptr) {
     return 0;
 }
 
+void sdl_bargraph_add(int dx,unsigned char *data,int val) {
+    memmove(data+1,data,dx-1);
+    data[0]=val;
+}
+
+void sdl_bargraph(int sx,int sy,int dx,unsigned char *data,int x_offset,int y_offset) {
+    int n;
+
+    for (n=0; n<dx; n++) {
+        SDL_SetRenderDrawColor(sdlren,80,255,80,127);
+        SDL_RenderDrawLine(sdlren,
+                           (sx+n+x_offset)*sdl_scale,(sy+y_offset)*sdl_scale,
+                           (sx+n+x_offset)*sdl_scale,(sy-data[n]+y_offset)*sdl_scale);
+    }
+}
 
 
 /*

@@ -11,6 +11,7 @@
 #include <SDL2/SDL.h>
 
 #include "astonia.h"
+#include "engine.h"
 
 #define ISCLIENT
 #define WANTMAPMN
@@ -1544,24 +1545,90 @@ static void display(void) {
     int duration=SDL_GetTicks64()-start;
 
     if (display_vc) {
-        extern long long mem_tex,texc_miss,texc_pre;
-        extern uint64_t sdl_backgnd_wait,sdl_backgnd_work,sdl_time_preload;
-        extern int  pre_in,pre_3;
-        static int dur=0,make=0,tex=0,text=0,blit=0,stay=0,size;
-        int px=800-80,py=45+gui_topoff-10;
+        extern long long mem_tex; //,texc_miss,texc_pre;
+        extern uint64_t sdl_backgnd_wait,sdl_backgnd_work,sdl_time_preload,sdl_time_load,sdl_time_pre1,sdl_time_pre2,sdl_time_pre3;
+        extern int x_offset,y_offset; //pre_tick,pre_2,pre_in,pre_3,pre_1;
+        //static int dur=0,make=0,tex=0,text=0,blit=0,stay=0;
+        static int size;
+        static unsigned char dur_graph[100],load_graph[100],size1_graph[100]; //,size2_graph[100],size3_graph[100],size_graph[100];
+        static unsigned char pre1_graph[100]; //,pre2_graph[100],pre3_graph[100];
+        int px=800-110,py=45+gui_topoff-10;
 
-        dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"skip %3.0f%%",100.0*skip/tota);
-        dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"idle %3.0f%%",100.0*idle/tota);
-        dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Tex: %5.2f MB",mem_tex/(1024.0*1024.0));
+        //dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"skip %3.0f%%",100.0*skip/tota);
+        //dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"idle %3.0f%%",100.0*idle/tota);
+        dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Tex: %5.2f MB",mem_tex/(1024.0*1024.0));
 
+#if 0
         if (pre_in>=pre_3) size=pre_in-pre_3;
         else size=16384+pre_in-pre_3;
 
         dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"PreC %d",size);
+#endif
+        //dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Queue %d",pre_tick-tick);
         //dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Miss %lld",texc_miss);
         //dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Prel %lld",texc_pre);
 
-        dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"PreM %llums",sdl_time_preload);
+        py+=10;
+
+        dd_drawtext(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME,"Render");
+        sdl_bargraph_add(sizeof(dur_graph),dur_graph,duration<42?duration:42);
+        sdl_bargraph(px,py+=40,sizeof(dur_graph),dur_graph,x_offset,y_offset);
+
+        size=sdl_time_pre1+sdl_time_pre3;
+        dd_drawtext(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME,"Preload");
+        sdl_bargraph_add(sizeof(size1_graph),size1_graph,size/4<42?size/4:42);
+        sdl_bargraph(px,py+=40,sizeof(size1_graph),size1_graph,x_offset,y_offset);
+
+        dd_drawtext(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME,"Preload Bkgd");
+        sdl_bargraph_add(sizeof(pre1_graph),pre1_graph,sdl_backgnd_work<42?sdl_backgnd_work:42);
+        sdl_bargraph(px,py+=40,sizeof(pre1_graph),pre1_graph,x_offset,y_offset);
+
+        dd_drawtext(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME,"Loading");
+        sdl_bargraph_add(sizeof(size1_graph),load_graph,sdl_time_load/4<42?sdl_time_load/4:42);
+        sdl_bargraph(px,py+=40,sizeof(size1_graph),load_graph,x_offset,y_offset);
+
+
+#if 0
+        dd_drawtext(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME,"Pre-Queue Tot");
+        sdl_bargraph_add(sizeof(size_graph),size_graph,size/4<42?size/4:42);
+        sdl_bargraph(px,py+=40,sizeof(size_graph),size_graph,x_offset,y_offset);
+
+        dd_drawtext(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME,"Alloc");
+        sdl_bargraph_add(sizeof(pre1_graph),pre1_graph,sdl_time_pre1<42?sdl_time_pre1:42);
+        sdl_bargraph(px,py+=40,sizeof(pre1_graph),pre1_graph,x_offset,y_offset);
+
+        dd_drawtext(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME,"Pre2");
+        sdl_bargraph_add(sizeof(pre2_graph),pre2_graph,sdl_time_pre2<42?sdl_time_pre2:42);
+        sdl_bargraph(px,py+=40,sizeof(pre2_graph),pre2_graph,x_offset,y_offset);
+
+        dd_drawtext(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME,"Texture");
+        sdl_bargraph_add(sizeof(pre3_graph),pre3_graph,sdl_time_pre3<42?sdl_time_pre3:42);
+        sdl_bargraph(px,py+=40,sizeof(pre3_graph),pre3_graph,x_offset,y_offset);
+
+#endif
+#if 0
+        if (pre_in>=pre_1) size=pre_in-pre_1;
+        else size=16384+pre_in-pre_1;
+
+        dd_drawtext(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME,"Size Alloc");
+        sdl_bargraph_add(sizeof(size1_graph),size1_graph,size/4<42?size/4:42);
+        sdl_bargraph(px,py+=40,sizeof(size1_graph),size1_graph,x_offset,y_offset);
+
+        if (pre_1>=pre_2) size=pre_1-pre_2;
+        else size=16384+pre_1-pre_2;
+
+        dd_drawtext(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME,"Size Make");
+        sdl_bargraph_add(sizeof(size2_graph),size2_graph,size/4<42?size/4:42);
+        sdl_bargraph(px,py+=40,sizeof(size2_graph),size2_graph,x_offset,y_offset);
+#endif
+#if 0
+        if (pre_2>=pre_3) size=pre_2-pre_3;
+        else size=16384+pre_2-pre_3;
+
+        dd_drawtext(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME,"Size Tex");
+        sdl_bargraph_add(sizeof(size3_graph),size3_graph,size/4<42?size/4:42);
+        sdl_bargraph(px,py+=40,sizeof(size3_graph),size3_graph,x_offset,y_offset);
+
 
         if (duration>10 && (!stay || duration>dur)) {
             dur=duration;
@@ -1571,13 +1638,6 @@ static void display(void) {
             blit=sdl_time_blit;
             stay=24*6;
         }
-        sdl_time_preload=0;
-        sdl_time_make=0;
-        sdl_time_tex=0;
-        sdl_time_text=0;
-        sdl_time_blit=0;
-        sdl_backgnd_work=0;
-        sdl_backgnd_wait=0;
 
         if (stay>0) {
             stay--;
@@ -1587,6 +1647,18 @@ static void display(void) {
             dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Text %dms (%.0f%%)",text,100.0*text/dur);
             dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Blit %dms (%.0f%%)",blit,100.0*blit/dur);
         }
+#endif
+        sdl_time_preload=0;
+        sdl_time_make=0;
+        sdl_time_tex=0;
+        sdl_time_text=0;
+        sdl_time_blit=0;
+        sdl_backgnd_work=0;
+        sdl_backgnd_wait=0;
+        sdl_time_load=0;
+        sdl_time_pre1=0;
+        sdl_time_pre2=0;
+        sdl_time_pre3=0;
     } //else dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);
 
     sprintf(perf_text,"mem usage=%.2f/%.2fMB, %.2f/%.2fKBlocks",
@@ -3033,6 +3105,9 @@ int main_loop(void) {
 #endif
         {
             if (timediff>-MPT/2) {
+#ifdef TICKPRINT
+                printf("Display tick %d\n",tick);
+#endif
                 sdl_clear();
                 display();
 
@@ -3058,6 +3133,9 @@ int main_loop(void) {
 
                 flip_at(nextframe);
             } else {
+#ifdef TICKPRINT
+                printf("Skip tick %d\n",tick);
+#endif
                 skip-=timediff;
 
                 sdl_loop();
@@ -3090,7 +3168,7 @@ int main_loop(void) {
         if (lasttick+q_size>0) tmp=MPT*12/(lasttick+q_size);
         else tmp=MPT+MPT/10;
 
-        note("tmp=%d, size=%d (%d,%d)",tmp,lasttick+q_size,lasttick,q_size);
+        //note("tmp=%d, size=%d (%d,%d)",tmp,lasttick+q_size,lasttick,q_size);
 #endif
         nextframe+=tmp;
         tota+=tmp;

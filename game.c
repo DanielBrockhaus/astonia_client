@@ -10,6 +10,7 @@
 #include <math.h>
 
 #include "astonia.h"
+#include "engine.h"
 
 #define ISCLIENT
 #define WANTMAPMN
@@ -1941,5 +1942,9 @@ void prefetch_game(int attick) {
     set_map_values(map2,attick);
     display_game_map(map2);
     dl_prefetch(attick);
+
+#ifdef TICKPRINT
+    printf("Prefetch %d\n",attick);
+#endif
 }
 

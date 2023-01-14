@@ -20,6 +20,7 @@
 #include <zlib.h>
 
 #include "astonia.h"
+#include "engine.h"
 
 #define ISCLIENT
 #define WANTMAPMN

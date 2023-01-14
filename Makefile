@@ -11,11 +11,11 @@ OBJS	=	gui.o client.o skill.o dd.o font.o main.o sprite.o game.o\
 moac.exe:       $(OBJS)
 		$(CC) $(LDFLAGS) -o moac.exe $(OBJS)  $(LIBS)
 
-client.o:	client.c main.h client.h sound.h astonia.h
+client.o:	client.c main.h client.h sound.h astonia.h engine.h
 dd.o:		dd.c main.h dd.h client.h sdl.h engine.h
 font.o:		font.c dd.h
-game.o:       	game.c main.h dd.h client.h sprite.h gui.h sound.h astonia.h
-gui.o:		gui.c gui.h main.h dd.h client.h skill.h sprite.h sdl.h sound.h astonia.h
+game.o:       	game.c main.h dd.h client.h sprite.h gui.h sound.h astonia.h engine.h
+gui.o:		gui.c gui.h main.h dd.h client.h skill.h sprite.h sdl.h sound.h astonia.h engine.h
 main.o:		main.c main.h dd.h client.h sound.h gui.h sdl.h sprite.h astonia.h
 questlog.o:	questlog.c dd.h client.h sprite.h gui.h main.h sound.h astonia.h
 sdl.o:		sdl.c sdl.h main.h sound.h engine.h
