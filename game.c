@@ -1792,7 +1792,7 @@ void display_pents(void) {
 
             default:	continue;
         }
-        dd_drawtext(dotx(DOT_BOT)+600,doty(DOT_BOT)-370+350+n*10,col,DD_SMALL|DD_FRAME,pent_str[n]+1);
+        dd_drawtext(dotx(DOT_BOT)+600,doty(DOT_BOT)-80+n*10,col,DD_SMALL|DD_FRAME,pent_str[n]+1);
     }
 }
 

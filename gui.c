@@ -74,7 +74,7 @@ unsigned short int lightorangecolor,orangecolor,darkorangecolor;
 unsigned int now;
 
 int cur_cursor=0;
-int mousex,mousey,vk_shift,vk_control,vk_alt,vk_rbut,vk_lbut,shift_override=0,control_override=0;
+int mousex=XRES/2,mousey=YRES/2,vk_shift,vk_control,vk_alt,vk_rbut,vk_lbut,shift_override=0,control_override=0;
 int mousedx,mousedy;
 int vk_item,vk_char,vk_spell;
 
@@ -1393,8 +1393,8 @@ static void display_rage(void) {
 
     step=50-50*rage/value[0][V_RAGE];
     dd_push_clip();
-    dd_more_clip(0,0,800,doty(DOT_TXT)+119);
-    dd_copysprite(997,dotx(DOT_TXT)+179+3*10,doty(DOT_TXT)+68+step,DDFX_NLIGHT,DD_NORMAL);
+    dd_more_clip(0,0,800,doty(DOT_BOT)+119);
+    dd_copysprite(997,dotx(DOT_BOT)+179+3*10,doty(DOT_BOT)+68+step,DDFX_NLIGHT,DD_NORMAL);
     dd_pop_clip();
 
     sprintf(rage_text,"Rage: %d%%",100*rage/value[0][V_RAGE]);
@@ -1462,17 +1462,38 @@ static void display(void) {
     extern long long sdl_time_make,sdl_time_tex,sdl_time_text,sdl_time_blit;
     int t;
     long long start=SDL_GetTicks64();
+    static int top_opening=0,top_closing=1,top_open=0;
 
+#if 0
     // Performance for stuff happening during the actual tick only.
     // So zero them now after preload is done.
     sdl_time_make=0;
     sdl_time_tex=0;
     sdl_time_text=0;
     sdl_time_blit=0;
+#endif
 
+    if (mousey<23 && !top_opening && !top_open) { top_opening=1; top_closing=0; }
+    if (mousey>60 && !top_closing && top_open) { top_closing=1; top_opening=0; }
+
+    if (top_opening) {
+        gui_topoff=-38+top_opening; top_opening+=6;
+        if (top_opening>=38) { top_open=1; top_opening=0; }
+    }
+
+    if (top_open) gui_topoff=0;
+
+    if (top_closing) {
+        gui_topoff=-top_closing; top_closing+=6;
+        if (top_closing>=38) { top_open=0; top_closing=0; }
+    }
+
+
+#if 0
     if (mousey<40) gui_topoff=0;
     else if (mousey<78) gui_topoff=-mousey+40;
     else gui_topoff=-38;
+#endif
 
     set_cmd_states();
 
@@ -1524,20 +1545,23 @@ static void display(void) {
 
     if (display_vc) {
         extern long long mem_tex,texc_miss,texc_pre;
-        extern int  pre_in,pre_out;
+        extern uint64_t sdl_backgnd_wait,sdl_backgnd_work,sdl_time_preload;
+        extern int  pre_in,pre_3;
         static int dur=0,make=0,tex=0,text=0,blit=0,stay=0,size;
-        int px=800-80,py=45+gui_topoff;
+        int px=800-80,py=45+gui_topoff-10;
 
-        dd_drawtext_fmt(px,py,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"skip %3.0f%%",100.0*skip/tota);
-        dd_drawtext_fmt(px,py+10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"idle %3.0f%%",100.0*idle/tota);
-        dd_drawtext_fmt(px,py+20,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Tex: %5.2f MB",mem_tex/(1024.0*1024.0));
+        dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"skip %3.0f%%",100.0*skip/tota);
+        dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"idle %3.0f%%",100.0*idle/tota);
+        dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Tex: %5.2f MB",mem_tex/(1024.0*1024.0));
 
-         if (pre_in>=pre_out) size=pre_in-pre_out;
-         else size=16384+pre_in-pre_out;
+        if (pre_in>=pre_3) size=pre_in-pre_3;
+        else size=16384+pre_in-pre_3;
 
-        dd_drawtext_fmt(px,py+30,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"PreC %d",size);
-        dd_drawtext_fmt(px,py+40,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Miss %lld",texc_miss);
-        dd_drawtext_fmt(px,py+50,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Prel %lld",texc_pre);
+        dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"PreC %d",size);
+        //dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Miss %lld",texc_miss);
+        //dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Prel %lld",texc_pre);
+
+        dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"PreM %llums",sdl_time_preload);
 
         if (duration>10 && (!stay || duration>dur)) {
             dur=duration;
@@ -1545,20 +1569,23 @@ static void display(void) {
             tex=sdl_time_tex;
             text=sdl_time_text;
             blit=sdl_time_blit;
-            stay=24*4;
+            stay=24*6;
         }
+        sdl_time_preload=0;
         sdl_time_make=0;
         sdl_time_tex=0;
         sdl_time_text=0;
         sdl_time_blit=0;
+        sdl_backgnd_work=0;
+        sdl_backgnd_wait=0;
 
         if (stay>0) {
             stay--;
-            dd_drawtext_fmt(px,py+70,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Dur %dms (%.0f%%)",dur,100.0*(make+tex+text+blit)/dur);
-            dd_drawtext_fmt(px,py+80,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Make %dms (%.0f%%)",make,100.0*make/dur);
-            dd_drawtext_fmt(px,py+90,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Tex %dms (%.0f%%)",tex,100.0*tex/dur);
-            dd_drawtext_fmt(px,py+100,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Text %dms (%.0f%%)",text,100.0*text/dur);
-            dd_drawtext_fmt(px,py+110,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Blit %dms (%.0f%%)",blit,100.0*blit/dur);
+            dd_drawtext_fmt(px,py+=20,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Dur %dms (%.0f%%)",dur,100.0*(make+tex+text+blit)/dur);
+            dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Make %dms (%.0f%%)",make,100.0*make/dur);
+            dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Tex %dms (%.0f%%)",tex,100.0*tex/dur);
+            dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Text %dms (%.0f%%)",text,100.0*text/dur);
+            dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Blit %dms (%.0f%%)",blit,100.0*blit/dur);
         }
     } //else dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);
 
@@ -2075,7 +2102,7 @@ static void set_cmd_states(void) {
     if (mousex>=643 && mousex<=650 && mousey>=53 && mousey<=60) butsel=BUT_NOLOOK;
 
     // hit map
-    if (!hitsel[0] && butsel==-1 && mousex>=dot[DOT_MTL].x && mousey>=dot[DOT_MTL].y && mousex<dot[DOT_MBR].x && mousey<dot[DOT_MBR].y) {
+    if (!hitsel[0] && butsel==-1 && mousex>=dotx(DOT_MTL) && mousey>=doty(DOT_MTL) && doty(DOT_MBR) && mousey<doty(DOT_MBR)) {
         if (vk_char) chrsel=get_near_char(mousex,mousey);
         if (chrsel==-1 && vk_item) itmsel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,csprite);
         if (chrsel==-1 && itmsel==-1 && !vk_char && (!vk_item || csprite)) mapsel=get_near_ground(mousex,mousey);

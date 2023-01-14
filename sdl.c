@@ -36,9 +36,13 @@ SDL_Renderer *sdlren;
 #define SF_USED         (1<<0)
 #define SF_SPRITE       (1<<1)
 #define SF_TEXT         (1<<2)
+#define SF_DIDALLOC     (1<<3)
+#define SF_DIDMAKE      (1<<4)
+#define SF_DIDTEX       (1<<5)
 
 struct sdl_texture {
     SDL_Texture *tex;
+    uint32_t *pixel;
 
     int prev,next;
     int hprev,hnext;
@@ -84,11 +88,14 @@ struct sdl_image {
     int16_t xoff,yoff;
 };
 
+SDL_Cursor *curs[20];
+
 struct sdl_image *sdli=NULL;
 
 long long mem_png=0,mem_tex=0;
 long long texc_hit=0,texc_miss=0,texc_pre=0;
 
+long long sdl_time_preload=0;
 long long sdl_time_make=0;
 long long sdl_time_tex=0;
 long long sdl_time_text=0;
@@ -96,69 +103,18 @@ long long sdl_time_blit=0;
 
 int sdl_scale=1;
 int sdl_frames=0;
+int sdl_multi=1;
 
 zip_t *sdl_zip1=NULL;
 zip_t *sdl_zip2=NULL;
 
-/* This function is a hack. It can only load one specific type of
-   Windows cursor file: 32x32 pixels with 1 bit depth. */
-
-SDL_Cursor *sdl_create_cursor(char *filename) {
-    int handle;
-    unsigned char mask[128],data[128],buf[326];
-
-    handle=open(filename,O_RDONLY|O_BINARY);
-    if (handle==-1) {
-        warn("SDL Error: Could not open cursor file %s.\n",filename);
-        return NULL;
-    }
-
-    if (read(handle,buf,326)!=326) {
-        warn("SDL Error: Read cursor file failed.\n");
-        return NULL;
-    }
-    close(handle);
-
-    for (int i=0; i<32; i++) {
-        for (int j=0; j<4; j++) {
-            data[i*4+j]=(~buf[322-i*4+j])&(~buf[194-i*4+j]);
-            mask[i*4+j]=buf[194-i*4+j];
-        }
-    }
-    return SDL_CreateCursor(data,mask,32,32,6,6);
-}
-
-SDL_Cursor *curs[20];
-
-int sdl_create_cursors(void) {
-    curs[SDL_CUR_c_only]=sdl_create_cursor("cursor/c_only.cur");
-    curs[SDL_CUR_c_take]=sdl_create_cursor("cursor/c_take.cur");
-    curs[SDL_CUR_c_drop]=sdl_create_cursor("cursor/c_drop.cur");
-    curs[SDL_CUR_c_attack]=sdl_create_cursor("cursor/c_atta.cur");
-    curs[SDL_CUR_c_raise]=sdl_create_cursor("cursor/c_rais.cur");
-    curs[SDL_CUR_c_give]=sdl_create_cursor("cursor/c_give.cur");
-    curs[SDL_CUR_c_use]=sdl_create_cursor("cursor/c_use.cur");
-    curs[SDL_CUR_c_usewith]=sdl_create_cursor("cursor/c_usew.cur");
-    curs[SDL_CUR_c_swap]=sdl_create_cursor("cursor/c_swap.cur");
-    curs[SDL_CUR_c_sell]=sdl_create_cursor("cursor/c_sell.cur");
-    curs[SDL_CUR_c_buy]=sdl_create_cursor("cursor/c_buy.cur");
-    curs[SDL_CUR_c_look]=sdl_create_cursor("cursor/c_look.cur");
-    curs[SDL_CUR_c_set]=sdl_create_cursor("cursor/c_set.cur");
-    curs[SDL_CUR_c_spell]=sdl_create_cursor("cursor/c_spell.cur");
-    curs[SDL_CUR_c_pix]=sdl_create_cursor("cursor/c_pix.cur");
-    curs[SDL_CUR_c_say]=sdl_create_cursor("cursor/c_say.cur");
-    curs[SDL_CUR_c_junk]=sdl_create_cursor("cursor/c_junk.cur");
-    curs[SDL_CUR_c_get]=sdl_create_cursor("cursor/c_get.cur");
-
-    return 1;
-}
-
-void sdl_set_cursor(int cursor) {
-    if (cursor<SDL_CUR_c_only || cursor>SDL_CUR_c_get) return;
-    SDL_SetCursor(curs[cursor]);
-}
+int sdl_pre_backgnd(void *ptr);
+int sdl_create_cursors(void);
 
 SDL_Texture *sdltgt;
+
+SDL_sem *prework=NULL;
+SDL_mutex *premutex=NULL;
 
 int sdl_init(int width,int height,char *title) {
     extern float mouse_scale;
@@ -261,6 +217,12 @@ int sdl_init(int width,int height,char *title) {
         note("Allocated %d sound channels", number_of_sound_channels);
     }
 
+    if (sdl_multi) {
+        prework=SDL_CreateSemaphore(0);
+        premutex=SDL_CreateMutex();
+
+        SDL_CreateThread(sdl_pre_backgnd,"moac background worker 1",(void*)1);
+    }
 
     return 1;
 }
@@ -942,21 +904,14 @@ int is_non_wall(int sprite) {
     }
 }
 
-static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
-                     int sprite,
-                     signed char sink,unsigned char freeze,unsigned char grid,
-                     unsigned char scale,char cr,char cg,char cb,
-                     char light,char sat,
-                     unsigned short c1v,unsigned short c2v,unsigned short c3v,
-                     unsigned short shine,
-                     char ml,char ll,char rl,char ul,char dl) {
-    int x,y;
+static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
+    int x,y,scale;
     double ix,iy,low_x,low_y,high_x,high_y,dbr,dbg,dbb,dba;
     uint32_t irgb;
-    uint32_t *pixel;
-    long long start=SDL_GetTicks64();
+    long long start;
 
     if (si->xres==0 || si->yres==0) scale=100;    // !!! needs better handling !!!
+    else scale=st->scale;
 
     if (scale!=100) {
         st->xres=ceil((double)(si->xres-1)*scale/100.0);
@@ -971,197 +926,239 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,
         st->yoff=si->yoff;
     }
 
-    if (sink) sink=min(sink,max(0,st->yres-4));
+    if (st->sink) st->sink=min(st->sink,max(0,st->yres-4));
 
-    pixel=xcalloc(st->xres*st->yres*sizeof(uint32_t)*sdl_scale*sdl_scale,MEM_SDL_PIXEL);
+    if (!preload || preload==1) {
+        if (st->flags&SF_DIDALLOC) {
+            fail("double alloc for sprite %d (%s)",st->sprite,st->text);
+            note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->grid,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
+            return;
+        }
+        st->pixel=xcalloc(st->xres*st->yres*sizeof(uint32_t)*sdl_scale*sdl_scale,MEM_SDL_PIXEL);
 
-    for (y=0; y<st->yres*sdl_scale; y++) {
-        for (x=0; x<st->xres*sdl_scale; x++) {
+        st->flags|=SF_DIDALLOC;
+    }
 
-            if (scale!=100) {
-                ix=x*100.0/scale;
-                iy=y*100.0/scale;
+    if (!preload || preload==2) {
+        if (!(st->flags&SF_DIDALLOC)) {
+            fail("cannot make without alloc for sprite %d (%p)",st->sprite,st);
+            note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->grid,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
+            return;
+        }
+        if (st->flags&SF_DIDMAKE) {
+            fail("double make for sprite %d",st->sprite);
+            note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->grid,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
+            return;
+        }
 
-                high_x=ix-floor(ix);
-                high_y=iy-floor(iy);
-                low_x=1-high_x;
-                low_y=1-high_y;
+        start=SDL_GetTicks64();
 
-                irgb=si->pixel[(int)(floor(ix)+floor(iy)*si->xres*sdl_scale)];
+        for (y=0; y<st->yres*sdl_scale; y++) {
+            for (x=0; x<st->xres*sdl_scale; x++) {
 
-                if (c1v || c2v || c3v) irgb=sdl_colorize_pix(irgb,c1v,c2v,c3v);
-                dba=IGET_A(irgb)*low_x*low_y;
-                dbr=IGET_R(irgb)*low_x*low_y;
-                dbg=IGET_G(irgb)*low_x*low_y;
-                dbb=IGET_B(irgb)*low_x*low_y;
+                if (scale!=100) {
+                    ix=x*100.0/scale;
+                    iy=y*100.0/scale;
 
-                irgb=si->pixel[(int)(ceil(ix)+floor(iy)*si->xres*sdl_scale)];
+                    high_x=ix-floor(ix);
+                    high_y=iy-floor(iy);
+                    low_x=1-high_x;
+                    low_y=1-high_y;
 
-                if (c1v || c2v || c3v) irgb=sdl_colorize_pix(irgb,c1v,c2v,c3v);
-                dba+=IGET_A(irgb)*high_x*low_y;
-                dbr+=IGET_R(irgb)*high_x*low_y;
-                dbg+=IGET_G(irgb)*high_x*low_y;
-                dbb+=IGET_B(irgb)*high_x*low_y;
+                    irgb=si->pixel[(int)(floor(ix)+floor(iy)*si->xres*sdl_scale)];
 
-                irgb=si->pixel[(int)(floor(ix)+ceil(iy)*si->xres*sdl_scale)];
+                    if (st->c1 || st->c2 || st->c3) irgb=sdl_colorize_pix(irgb,st->c1,st->c2,st->c3);
+                    dba=IGET_A(irgb)*low_x*low_y;
+                    dbr=IGET_R(irgb)*low_x*low_y;
+                    dbg=IGET_G(irgb)*low_x*low_y;
+                    dbb=IGET_B(irgb)*low_x*low_y;
 
-                if (c1v || c2v || c3v) irgb=sdl_colorize_pix(irgb,c1v,c2v,c3v);
-                dba+=IGET_A(irgb)*low_x*high_y;
-                dbr+=IGET_R(irgb)*low_x*high_y;
-                dbg+=IGET_G(irgb)*low_x*high_y;
-                dbb+=IGET_B(irgb)*low_x*high_y;
+                    irgb=si->pixel[(int)(ceil(ix)+floor(iy)*si->xres*sdl_scale)];
 
-                irgb=si->pixel[(int)(ceil(ix)+ceil(iy)*si->xres*sdl_scale)];
+                    if (st->c1 || st->c2 || st->c3) irgb=sdl_colorize_pix(irgb,st->c1,st->c2,st->c3);
+                    dba+=IGET_A(irgb)*high_x*low_y;
+                    dbr+=IGET_R(irgb)*high_x*low_y;
+                    dbg+=IGET_G(irgb)*high_x*low_y;
+                    dbb+=IGET_B(irgb)*high_x*low_y;
 
-                if (c1v || c2v || c3v) irgb=sdl_colorize_pix(irgb,c1v,c2v,c3v);
-                dba+=IGET_A(irgb)*high_x*high_y;
-                dbr+=IGET_R(irgb)*high_x*high_y;
-                dbg+=IGET_G(irgb)*high_x*high_y;
-                dbb+=IGET_B(irgb)*high_x*high_y;
+                    irgb=si->pixel[(int)(floor(ix)+ceil(iy)*si->xres*sdl_scale)];
 
-                irgb=IRGBA(((int)dbr),((int)dbg),((int)dbb),((int)dba));
+                    if (st->c1 || st->c2 || st->c3) irgb=sdl_colorize_pix(irgb,st->c1,st->c2,st->c3);
+                    dba+=IGET_A(irgb)*low_x*high_y;
+                    dbr+=IGET_R(irgb)*low_x*high_y;
+                    dbg+=IGET_G(irgb)*low_x*high_y;
+                    dbb+=IGET_B(irgb)*low_x*high_y;
 
-            } else {
-                irgb=si->pixel[x+y*si->xres*sdl_scale];
-                if (c1v || c2v || c3v) irgb=sdl_colorize_pix(irgb,c1v,c2v,c3v);
-            }
+                    irgb=si->pixel[(int)(ceil(ix)+ceil(iy)*si->xres*sdl_scale)];
 
-            if (cr || cg || cb || light || sat) irgb=sdl_colorbalance(irgb,cr,cg,cb,light,sat);
-            if (shine) irgb=sdl_shine_pix(irgb,shine);
+                    if (st->c1 || st->c2 || st->c3) irgb=sdl_colorize_pix(irgb,st->c1,st->c2,st->c3);
+                    dba+=IGET_A(irgb)*high_x*high_y;
+                    dbr+=IGET_R(irgb)*high_x*high_y;
+                    dbg+=IGET_G(irgb)*high_x*high_y;
+                    dbb+=IGET_B(irgb)*high_x*high_y;
 
-            //ll=dl=rl=ul=ml;
-            if (ll!=ml || rl!=ml || ul!=ml || dl!=ml) {
-                int r,g,b,a;
-                int r1=0,r2=0,r3=0,r4=0,r5=0;
-                int g1=0,g2=0,g3=0,g4=0,g5=0;
-                int b1=0,b2=0,b3=0,b4=0,b5=0;
-                int v1,v2,v3,v4,v5=0;
-                int div;
+                    irgb=IRGBA(((int)dbr),((int)dbg),((int)dbb),((int)dba));
 
-                // TODO: This is actually just one direction a non-wall might be facing
-                // and needs to account for the other one as well.
-                if (is_non_wall(sprite)) {
-                    if (x<10*sdl_scale) {
-                        v2=(10*sdl_scale-x)*2-2;
-                        r2=IGET_R(sdl_light(ll,irgb));
-                        g2=IGET_G(sdl_light(ll,irgb));
-                        b2=IGET_B(sdl_light(ll,irgb));
-                    } else v2=0;
-                    if (x>10*sdl_scale && x<20*sdl_scale) {
-                        v3=(x-10*sdl_scale)*2-2;
-                        r3=IGET_R(sdl_light(ml,irgb));
-                        g3=IGET_G(sdl_light(ml,irgb));
-                        b3=IGET_B(sdl_light(ml,irgb));
-                    } else v3=0;
-                    if (x>20*sdl_scale && x<30*sdl_scale) {
-                        v5=(10*sdl_scale-(x-20*sdl_scale))*2-2;
-                        r5=IGET_R(sdl_light(ml,irgb));
-                        g5=IGET_G(sdl_light(ml,irgb));
-                        b5=IGET_B(sdl_light(ml,irgb));
-                    } else v5=0;
-                    if (x>30*sdl_scale && x<40*sdl_scale) {
-                        v4=(x-30*sdl_scale)*2-2;
-                        r4=IGET_R(sdl_light(rl,irgb));
-                        g4=IGET_G(sdl_light(rl,irgb));
-                        b4=IGET_B(sdl_light(rl,irgb));
-                    } else v4=0;
                 } else {
-                    if (y<10*sdl_scale+(20*sdl_scale-abs(20*sdl_scale-x))/2) {
+                    irgb=si->pixel[x+y*si->xres*sdl_scale];
+                    if (st->c1 || st->c2 || st->c3) irgb=sdl_colorize_pix(irgb,st->c1,st->c2,st->c3);
+                }
 
-                        // This part calculates a floor tile, or the top of a wall tile
-                        if (x/2<20*sdl_scale-y) {
-                            v2=-(x/2-(20*sdl_scale-y))+1;
-                            r2=IGET_R(sdl_light(ll,irgb));
-                            g2=IGET_G(sdl_light(ll,irgb));
-                            b2=IGET_B(sdl_light(ll,irgb));
-                        } else v2=0;
-                        if (x/2>20*sdl_scale-y) {
-                            v3=(x/2-(20*sdl_scale-y))+1;
-                            r3=IGET_R(sdl_light(rl,irgb));
-                            g3=IGET_G(sdl_light(rl,irgb));
-                            b3=IGET_B(sdl_light(rl,irgb));
-                        } else v3=0;
-                        if (x/2>y) {
-                            v4=(x/2-y)+1;
-                            r4=IGET_R(sdl_light(ul,irgb));
-                            g4=IGET_G(sdl_light(ul,irgb));
-                            b4=IGET_B(sdl_light(ul,irgb));
-                        } else v4=0;
-                        if (x/2<y) {
-                            v5=-(x/2-y)+1;
-                            r5=IGET_R(sdl_light(dl,irgb));
-                            g5=IGET_G(sdl_light(dl,irgb));
-                            b5=IGET_B(sdl_light(dl,irgb));
-                        } else v5=0;
-                    } else {
+                if (st->cr || st->cg || st->cb || st->light || st->sat) irgb=sdl_colorbalance(irgb,st->cr,st->cg,st->cb,st->light,st->sat);
+                if (st->shine) irgb=sdl_shine_pix(irgb,st->shine);
 
-                        // This is for the lower part (left side and front as seen on the screen)
+                if (st->ll!=st->ml || st->rl!=st->ml || st->ul!=st->ml || st->dl!=st->ml) {
+                    int r,g,b,a;
+                    int r1=0,r2=0,r3=0,r4=0,r5=0;
+                    int g1=0,g2=0,g3=0,g4=0,g5=0;
+                    int b1=0,b2=0,b3=0,b4=0,b5=0;
+                    int v1,v2,v3,v4,v5=0;
+                    int div;
+
+                    // TODO: This is actually just one direction a non-wall might be facing
+                    // and needs to account for the other one as well.
+                    if (is_non_wall(st->sprite)) {
                         if (x<10*sdl_scale) {
                             v2=(10*sdl_scale-x)*2-2;
-                            r2=IGET_R(sdl_light(ll,irgb));
-                            g2=IGET_G(sdl_light(ll,irgb));
-                            b2=IGET_B(sdl_light(ll,irgb));
+                            r2=IGET_R(sdl_light(st->ll,irgb));
+                            g2=IGET_G(sdl_light(st->ll,irgb));
+                            b2=IGET_B(sdl_light(st->ll,irgb));
                         } else v2=0;
                         if (x>10*sdl_scale && x<20*sdl_scale) {
                             v3=(x-10*sdl_scale)*2-2;
-                            r3=IGET_R(sdl_light(rl,irgb));
-                            g3=IGET_G(sdl_light(rl,irgb));
-                            b3=IGET_B(sdl_light(rl,irgb));
+                            r3=IGET_R(sdl_light(st->ml,irgb));
+                            g3=IGET_G(sdl_light(st->ml,irgb));
+                            b3=IGET_B(sdl_light(st->ml,irgb));
                         } else v3=0;
                         if (x>20*sdl_scale && x<30*sdl_scale) {
                             v5=(10*sdl_scale-(x-20*sdl_scale))*2-2;
-                            r5=IGET_R(sdl_light(dl,irgb));
-                            g5=IGET_G(sdl_light(dl,irgb));
-                            b5=IGET_B(sdl_light(dl,irgb));
+                            r5=IGET_R(sdl_light(st->ml,irgb));
+                            g5=IGET_G(sdl_light(st->ml,irgb));
+                            b5=IGET_B(sdl_light(st->ml,irgb));
                         } else v5=0;
                         if (x>30*sdl_scale && x<40*sdl_scale) {
                             v4=(x-30*sdl_scale)*2-2;
-                            r4=IGET_R(sdl_light(ul,irgb));
-                            g4=IGET_G(sdl_light(ul,irgb));
-                            b4=IGET_B(sdl_light(ul,irgb));
+                            r4=IGET_R(sdl_light(st->rl,irgb));
+                            g4=IGET_G(sdl_light(st->rl,irgb));
+                            b4=IGET_B(sdl_light(st->rl,irgb));
                         } else v4=0;
+                    } else {
+                        if (y<10*sdl_scale+(20*sdl_scale-abs(20*sdl_scale-x))/2) {
+
+                            // This part calculates a floor tile, or the top of a wall tile
+                            if (x/2<20*sdl_scale-y) {
+                                v2=-(x/2-(20*sdl_scale-y))+1;
+                                r2=IGET_R(sdl_light(st->ll,irgb));
+                                g2=IGET_G(sdl_light(st->ll,irgb));
+                                b2=IGET_B(sdl_light(st->ll,irgb));
+                            } else v2=0;
+                            if (x/2>20*sdl_scale-y) {
+                                v3=(x/2-(20*sdl_scale-y))+1;
+                                r3=IGET_R(sdl_light(st->rl,irgb));
+                                g3=IGET_G(sdl_light(st->rl,irgb));
+                                b3=IGET_B(sdl_light(st->rl,irgb));
+                            } else v3=0;
+                            if (x/2>y) {
+                                v4=(x/2-y)+1;
+                                r4=IGET_R(sdl_light(st->ul,irgb));
+                                g4=IGET_G(sdl_light(st->ul,irgb));
+                                b4=IGET_B(sdl_light(st->ul,irgb));
+                            } else v4=0;
+                            if (x/2<y) {
+                                v5=-(x/2-y)+1;
+                                r5=IGET_R(sdl_light(st->dl,irgb));
+                                g5=IGET_G(sdl_light(st->dl,irgb));
+                                b5=IGET_B(sdl_light(st->dl,irgb));
+                            } else v5=0;
+                        } else {
+
+                            // This is for the lower part (left side and front as seen on the screen)
+                            if (x<10*sdl_scale) {
+                                v2=(10*sdl_scale-x)*2-2;
+                                r2=IGET_R(sdl_light(st->ll,irgb));
+                                g2=IGET_G(sdl_light(st->ll,irgb));
+                                b2=IGET_B(sdl_light(st->ll,irgb));
+                            } else v2=0;
+                            if (x>10*sdl_scale && x<20*sdl_scale) {
+                                v3=(x-10*sdl_scale)*2-2;
+                                r3=IGET_R(sdl_light(st->rl,irgb));
+                                g3=IGET_G(sdl_light(st->rl,irgb));
+                                b3=IGET_B(sdl_light(st->rl,irgb));
+                            } else v3=0;
+                            if (x>20*sdl_scale && x<30*sdl_scale) {
+                                v5=(10*sdl_scale-(x-20*sdl_scale))*2-2;
+                                r5=IGET_R(sdl_light(st->dl,irgb));
+                                g5=IGET_G(sdl_light(st->dl,irgb));
+                                b5=IGET_B(sdl_light(st->dl,irgb));
+                            } else v5=0;
+                            if (x>30*sdl_scale && x<40*sdl_scale) {
+                                v4=(x-30*sdl_scale)*2-2;
+                                r4=IGET_R(sdl_light(st->ul,irgb));
+                                g4=IGET_G(sdl_light(st->ul,irgb));
+                                b4=IGET_B(sdl_light(st->ul,irgb));
+                            } else v4=0;
+                        }
                     }
+
+                    v1=20*sdl_scale-(v2+v3+v4+v5)/2;
+                    r1=IGET_R(sdl_light(st->ml,irgb));
+                    g1=IGET_G(sdl_light(st->ml,irgb));
+                    b1=IGET_B(sdl_light(st->ml,irgb));
+
+                    div=v1+v2+v3+v4+v5;
+
+                    a=IGET_A(irgb);
+                    r=(r1*v1+r2*v2+r3*v3+r4*v4+r5*v5)/div;
+                    g=(g1*v1+g2*v2+g3*v3+g4*v4+g5*v5)/div;
+                    b=(b1*v1+b2*v2+b3*v3+b4*v4+b5*v5)/div;
+
+                    irgb=IRGBA(r,g,b,a);
+
+                } else irgb=sdl_light(st->ml,irgb);
+
+                if (st->sink) {
+                    if (st->yres*sdl_scale-st->sink<y) irgb&=0xffffff;    // zero alpha to make it transparent
                 }
 
-                v1=20*sdl_scale-(v2+v3+v4+v5)/2;
-                r1=IGET_R(sdl_light(ml,irgb));
-                g1=IGET_G(sdl_light(ml,irgb));
-                b1=IGET_B(sdl_light(ml,irgb));
+                if (st->freeze) irgb=sdl_freeze(st->freeze,irgb);
 
-                div=v1+v2+v3+v4+v5;
+                if (st->grid==DDFX_LEFTGRID) { if ((st->xoff+x+st->yoff+y)&1) irgb&=0xffffff; }
+                if (st->grid==DDFX_RIGHTGRID) {  if ((st->xoff+x+st->yoff+y+1)&1) irgb&=0xffffff; }
 
-                a=IGET_A(irgb);
-                r=(r1*v1+r2*v2+r3*v3+r4*v4+r5*v5)/div;
-                g=(g1*v1+g2*v2+g3*v3+g4*v4+g5*v5)/div;
-                b=(b1*v1+b2*v2+b3*v3+b4*v4+b5*v5)/div;
-
-                irgb=IRGBA(r,g,b,a);
-
-            } else irgb=sdl_light(ml,irgb);
-
-            if (sink) {
-                if (st->yres*sdl_scale-sink<y) irgb&=0xffffff;    // zero alpha to make it transparent
+                st->pixel[x+y*st->xres*sdl_scale]=irgb;
             }
-
-            if (freeze) irgb=sdl_freeze(freeze,irgb);
-
-            if (grid==DDFX_LEFTGRID) { if ((st->xoff+x+st->yoff+y)&1) irgb&=0xffffff; }
-            if (grid==DDFX_RIGHTGRID) {  if ((st->xoff+x+st->yoff+y+1)&1) irgb&=0xffffff; }
-
-            pixel[x+y*st->xres*sdl_scale]=irgb;
         }
+        st->flags|=SF_DIDMAKE;
+
+        if (preload) sdl_time_preload+=SDL_GetTicks64()-start;
+        else sdl_time_make+=SDL_GetTicks64()-start;
     }
-    sdl_time_make+=SDL_GetTicks64()-start;
+    if (!preload || preload==3) {
+        if (!(st->flags&SF_DIDMAKE)) {
+            fail("cannot texture without make for sprite %d (%p)",st->sprite,st);
+            note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->grid,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
+            return;
+        }
+        if (st->flags&SF_DIDTEX) {
+            fail("double texture for sprite %d",st->sprite);
+            note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->grid,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
+            return;
+        }
 
-    start=SDL_GetTicks64();
-    SDL_Texture *texture = SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STATIC,st->xres*sdl_scale,st->yres*sdl_scale);
-    if (!texture) warn("SDL_texture Error: %s",SDL_GetError());
-    SDL_UpdateTexture(texture,NULL,pixel,st->xres*sizeof(uint32_t)*sdl_scale);
-    SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
-    xfree(pixel);
-    st->tex=texture;
+        start=SDL_GetTicks64();
 
-    sdl_time_tex+=SDL_GetTicks64()-start;
+        SDL_Texture *texture = SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STATIC,st->xres*sdl_scale,st->yres*sdl_scale);
+        if (!texture) warn("SDL_texture Error: %s in sprite %d (%s, %d,%d) preload=%d",SDL_GetError(),st->sprite,st->text,st->xres,st->yres,preload);
+        SDL_UpdateTexture(texture,NULL,st->pixel,st->xres*sizeof(uint32_t)*sdl_scale);
+        SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
+        xfree(st->pixel);
+        st->pixel=NULL;
+        st->tex=texture;
+
+        st->flags|=SF_DIDTEX;
+
+        sdl_time_tex+=SDL_GetTicks64()-start;
+    }
 }
 
 static void sdl_tx_best(int stx) {
@@ -1282,6 +1279,15 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
 
         if (panic>maxpanic) maxpanic=panic;
 
+        if (!preload && (sdlt[stx].flags&SF_SPRITE)) {
+
+            if (sdl_multi) SDL_LockMutex(premutex);
+            if (!(sdlt[stx].flags&SF_DIDMAKE)) sdl_make(sdlt+stx,sdli+sprite,2);
+            if (sdl_multi) SDL_UnlockMutex(premutex);
+
+            if (!(sdlt[stx].flags&SF_DIDTEX)) sdl_make(sdlt+stx,sdli+sprite,3);
+        }
+
         sdl_tx_best(stx);
 
         // remove from old pos
@@ -1361,8 +1367,6 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
     } else {
         sdl_ic_load(sprite);
 
-        sdl_make(sdlt+stx,sdli+sprite,sprite,sink,freeze,grid,scale,cr,cg,cb,light,sat,c1,c2,c3,shine,ml,ll,rl,ul,dl);
-
         // init
         sdlt[stx].flags=SF_USED|SF_SPRITE;
         sdlt[stx].sprite=sprite;
@@ -1384,6 +1388,8 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
         sdlt[stx].rl=rl;
         sdlt[stx].ul=ul;
         sdlt[stx].dl=dl;
+
+        sdl_make(sdlt+stx,sdli+sprite,preload);
     }
 
     mem_tex+=sdlt[stx].xres*sdlt[stx].yres*sizeof(uint32_t);
@@ -1979,8 +1985,67 @@ uint32_t *sdl_load_png(char *filename,int *dx,int *dy) {
     return pixel;
 }
 
+/* This function is a hack. It can only load one specific type of
+   Windows cursor file: 32x32 pixels with 1 bit depth. */
+
+SDL_Cursor *sdl_create_cursor(char *filename) {
+    int handle;
+    unsigned char mask[128],data[128],buf[326];
+
+    handle=open(filename,O_RDONLY|O_BINARY);
+    if (handle==-1) {
+        warn("SDL Error: Could not open cursor file %s.\n",filename);
+        return NULL;
+    }
+
+    if (read(handle,buf,326)!=326) {
+        warn("SDL Error: Read cursor file failed.\n");
+        return NULL;
+    }
+    close(handle);
+
+    for (int i=0; i<32; i++) {
+        for (int j=0; j<4; j++) {
+            data[i*4+j]=(~buf[322-i*4+j])&(~buf[194-i*4+j]);
+            mask[i*4+j]=buf[194-i*4+j];
+        }
+    }
+    return SDL_CreateCursor(data,mask,32,32,6,6);
+}
+
+int sdl_create_cursors(void) {
+    curs[SDL_CUR_c_only]=sdl_create_cursor("cursor/c_only.cur");
+    curs[SDL_CUR_c_take]=sdl_create_cursor("cursor/c_take.cur");
+    curs[SDL_CUR_c_drop]=sdl_create_cursor("cursor/c_drop.cur");
+    curs[SDL_CUR_c_attack]=sdl_create_cursor("cursor/c_atta.cur");
+    curs[SDL_CUR_c_raise]=sdl_create_cursor("cursor/c_rais.cur");
+    curs[SDL_CUR_c_give]=sdl_create_cursor("cursor/c_give.cur");
+    curs[SDL_CUR_c_use]=sdl_create_cursor("cursor/c_use.cur");
+    curs[SDL_CUR_c_usewith]=sdl_create_cursor("cursor/c_usew.cur");
+    curs[SDL_CUR_c_swap]=sdl_create_cursor("cursor/c_swap.cur");
+    curs[SDL_CUR_c_sell]=sdl_create_cursor("cursor/c_sell.cur");
+    curs[SDL_CUR_c_buy]=sdl_create_cursor("cursor/c_buy.cur");
+    curs[SDL_CUR_c_look]=sdl_create_cursor("cursor/c_look.cur");
+    curs[SDL_CUR_c_set]=sdl_create_cursor("cursor/c_set.cur");
+    curs[SDL_CUR_c_spell]=sdl_create_cursor("cursor/c_spell.cur");
+    curs[SDL_CUR_c_pix]=sdl_create_cursor("cursor/c_pix.cur");
+    curs[SDL_CUR_c_say]=sdl_create_cursor("cursor/c_say.cur");
+    curs[SDL_CUR_c_junk]=sdl_create_cursor("cursor/c_junk.cur");
+    curs[SDL_CUR_c_get]=sdl_create_cursor("cursor/c_get.cur");
+
+    return 1;
+}
+
+void sdl_set_cursor(int cursor) {
+    if (cursor<SDL_CUR_c_only || cursor>SDL_CUR_c_get) return;
+    SDL_SetCursor(curs[cursor]);
+}
+
+
 struct prefetch {
     int attick;
+
+    int stx;
 
     int32_t sprite;
     int8_t sink;
@@ -1996,16 +2061,17 @@ struct prefetch {
 
 #define MAXPRE (16384)
 static struct prefetch pre[MAXPRE];
-int pre_in=0,pre_out=0;
+int pre_in=0,pre_1=0,pre_2=0,pre_3=0;
 
 void sdl_pre_add(int attick,int sprite,signed char sink,unsigned char freeze,unsigned char grid,unsigned char scale,char cr,char cg,char cb,char light,char sat,int c1,int c2,int c3,int shine,char ml,char ll,char rl,char ul,char dl) {
-    int n;
-    if ((pre_in+1)%MAXPRE==pre_out) return; // buffer is full
+    //int n;
+    //if ((pre_in+1)%MAXPRE==pre_out) return; // buffer is full
 
     if (sprite>MAXSPRITE || sprite<0) {
         note("illegal sprite %d wanted in pre_add",sprite);
         return;
     }
+#if 0
     // Don't add again
     for (n=pre_out; n!=pre_in; n=(n+1)%MAXPRE) {
         if (pre[n].attick==attick &&
@@ -2029,28 +2095,9 @@ void sdl_pre_add(int attick,int sprite,signed char sink,unsigned char freeze,uns
             pre[n].dl==dl &&
             pre[n].ul==ul) return;
     }
+#endif
     // Don't add if already in cache
-    if (sdl_tx_load(sprite,
-                    sink,
-                    freeze,
-                    grid,
-                    scale,
-                    cr,
-                    cg,
-                    cb,
-                    light,
-                    sat,
-                    c1,
-                    c2,
-                    c3,
-                    shine,
-                    ml,
-                    ll,
-                    rl,
-                    ul,
-                    dl,
-                    NULL,0,0,NULL,1,0))
-        return;
+    if (sdl_tx_load(sprite,sink,freeze,grid,scale,cr,cg,cb,light,sat,c1,c2,c3,shine,ml,ll,rl,ul,dl,NULL,0,0,NULL,1,0)) return;
 
     pre[pre_in].attick=attick;
     pre[pre_in].sprite=sprite;
@@ -2087,39 +2134,89 @@ void sdl_pre_add(int attick,int sprite,signed char sink,unsigned char freeze,uns
     pre_in=(pre_in+1)%MAXPRE;
 }
 
-int sdl_pre_do(int curtick) {
-    while (pre[pre_out].attick<curtick && pre_in!=pre_out) pre_out=(pre_out+1)%MAXPRE;
+void sdl_pre_1(void) {
+    int i;
 
-    if (pre_in==pre_out) return 0;  // prefetch buffer is empty
+    if (pre_in==pre_1) return;  // prefetch buffer is empty
 
-    // load into systemcache
-    sdl_tx_load(pre[pre_out].sprite,
-            pre[pre_out].sink,
-            pre[pre_out].freeze,
-            pre[pre_out].grid,
-            pre[pre_out].scale,
-            pre[pre_out].cr,
-            pre[pre_out].cg,
-            pre[pre_out].cb,
-            pre[pre_out].light,
-            pre[pre_out].sat,
-            pre[pre_out].c1,
-            pre[pre_out].c2,
-            pre[pre_out].c3,
-            pre[pre_out].shine,
-            pre[pre_out].ml,
-            pre[pre_out].ll,
-            pre[pre_out].rl,
-            pre[pre_out].ul,
-            pre[pre_out].dl,
-                NULL,0,0,NULL,0,1);
-    //note("pre_do: %d %d %d %d %d %d",pre[pre_out].sprite,pre[pre_out].ml,pre[pre_out].ll,pre[pre_out].rl,pre[pre_out].ul,pre[pre_out].dl);
+    i=pre_1;
+    pre[i].stx=sdl_tx_load(pre[i].sprite,pre[i].sink,pre[i].freeze,pre[i].grid,pre[i].scale,pre[i].cr,pre[i].cg,pre[i].cb,pre[i].light,pre[i].sat,pre[i].c1,pre[i].c2,pre[i].c3,pre[i].shine,pre[i].ml,pre[i].ll,pre[i].rl,pre[i].ul,pre[i].dl,NULL,0,0,NULL,0,1);
 
-    pre_out=(pre_out+1)%MAXPRE;
+    //note("pre 1: %d %d %d %d %d %d (%d %d %d)",pre[i].sprite,pre[i].ml,pre[i].ll,pre[i].rl,pre[i].ul,pre[i].dl,pre[i].stx,i,pre_in);
 
-    if (pre_in>=pre_out) return pre_in-pre_out;
-    else return MAXPRE+pre_in-pre_out;
+    pre_1=(pre_1+1)%MAXPRE;
+
+    if (sdl_multi) SDL_SemPost(prework);
 }
+
+void sdl_pre_2(void) {
+    int i;
+
+    if (pre_1==pre_2) return;  // prefetch buffer is empty
+
+    i=pre_2;
+    if (pre[i].stx!=STX_NONE && !(sdlt[pre[i].stx].flags&SF_DIDMAKE))
+        sdl_make(sdlt+pre[i].stx,sdli+pre[i].sprite,2);
+
+    //note("pre 2: %d %d %d %d %d %d (%d %d %d)",pre[i].sprite,pre[i].ml,pre[i].ll,pre[i].rl,pre[i].ul,pre[i].dl,pre[i].stx,i,pre_in);
+
+    pre_2=(pre_2+1)%MAXPRE;
+}
+
+void sdl_pre_3(void) {
+    int i;
+
+    if (pre_2==pre_3) return;  // prefetch buffer is empty
+
+    i=pre_3;
+    if (pre[i].stx!=STX_NONE && !(sdlt[pre[i].stx].flags&SF_DIDTEX))
+        sdl_make(sdlt+pre[i].stx,sdli+pre[i].sprite,3);
+
+    //note("pre 3: %d %d %d %d %d %d (%d %d %d)",pre[i].sprite,pre[i].ml,pre[i].ll,pre[i].rl,pre[i].ul,pre[i].dl,pre[i].stx,i,pre_in);
+
+    pre_3=(pre_3+1)%MAXPRE;
+}
+int sdl_pre_do(int curtick) {
+
+    sdl_pre_1();
+    if (!sdl_multi) sdl_pre_2();
+    sdl_pre_3();
+
+#if 0
+    int n,r;
+    r=rand()%10;
+    for (n=0; n<r; n++) sdl_pre_1();
+    //r=rand()%10;
+    //for (n=0; n<r; n++) sdl_pre_2();
+    r=rand()%10;
+    for (n=0; n<r; n++) sdl_pre_3();
+#endif
+
+    if (pre_in>=pre_3) return pre_in-pre_3;
+    else return MAXPRE+pre_in-pre_3;
+}
+
+uint64_t sdl_backgnd_wait=0,sdl_backgnd_work=0;
+
+int sdl_pre_backgnd(void *ptr) {
+    uint64_t start;
+
+    while (!quit) {
+        start=SDL_GetTicks64();
+        SDL_SemWait(prework);
+        sdl_backgnd_wait+=SDL_GetTicks64()-start;
+
+        start=SDL_GetTicks64();
+        SDL_LockMutex(premutex);
+        sdl_pre_2();
+        SDL_UnlockMutex(premutex);
+        sdl_backgnd_work+=SDL_GetTicks64()-start;
+    }
+
+    return 0;
+}
+
+
 
 /*
 

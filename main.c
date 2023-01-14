@@ -525,10 +525,12 @@ unsigned int validate_intra(unsigned int ip) {
 }
 
 void display_usage(void) {
-    printf("Usage: moac -u playername -p password -d url [-w resolution] [-l largetextenable] [-s soundenable]\n\n");
+    printf("Usage: moac -u playername -p password -d url [-h height] [-w width] [-l largetextenable] [-s soundenable] [-m threads] [-o options]\n\n");
     printf("url being, for example, \"server.astonia.com\" (without the quotes).\n");
-    printf("resolution is one of 600p, 900p, 1200p, 1800p for 800x600, 1200x900, 1600x1200 or 2400x1800 pixels.\n");
+    printf("width and height are the desired window size. If this matches the desktop size the client will start in windowed borderless pseudo-fullscreen mode.\n");
     printf("largetextenable and soundenable can be either 0 or 1, for off or on.\n");
+    printf("threads is the number of background threads the game should use. Can be 0 or 1, larger numbers might be supported later.\n");
+    printf("options is a bitfield. Bit 0 (value of 1) enables the Dark GUI by Tegra.\n");
 }
 
 char server_url[256];
@@ -580,6 +582,11 @@ int parse_cmd(char *s) {
                     s++;
                     while (isspace(*s)) s++;
                     enable_sound=strtol(s,&end,10);
+                    s=end;
+            } else if (tolower(*s)=='m') { //Multi-Threaded
+                    s++;
+                    while (isspace(*s)) s++;
+                    sdl_multi=strtol(s,&end,10);
                     s=end;
             } else if (tolower(*s)=='o') { //option
                     s++;

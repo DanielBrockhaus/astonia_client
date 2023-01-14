@@ -14,7 +14,7 @@ Bugs
 Probably
 --------
 
-- Resize the client window to 800x540 to allow doubling the resolution on standard 2K displays.
+- Continue cleanup of GUI. Use DOTs instead of hardcoded pixel positions.
 
 - Find an up-scaling algorithm that works with floor and wall tiles without creating edges around the tiles.
 - ... or, add a list of all non-tile sprites to do_smoothify().
