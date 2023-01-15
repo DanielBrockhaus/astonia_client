@@ -29,8 +29,8 @@
 SDL_Window *sdlwnd;
 SDL_Renderer *sdlren;
 
-#define MAX_TEXCACHE    15000
-#define MAX_TEXHASH     10000
+#define MAX_TEXCACHE    3000
+#define MAX_TEXHASH     2000
 #define STX_NONE        (-1)
 
 #define SF_USED         (1<<0)
@@ -1144,13 +1144,13 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
     }
     if (!preload || preload==3) {
         if (!(st->flags&SF_DIDMAKE)) {
-            fail("cannot texture without make for sprite %d (%p)",st->sprite,st);
-            note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->grid,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
+            fail("cannot texture without make for sprite %d (%d)",st->sprite,preload);
+            //note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->grid,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
             return;
         }
         if (st->flags&SF_DIDTEX) {
-            fail("double texture for sprite %d",st->sprite);
-            note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->grid,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
+            fail("double texture for sprite %d (%d)",st->sprite,preload);
+            //note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->grid,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
             return;
         }
 
@@ -1290,12 +1290,17 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
 
         if (!preload && (sdlt[stx].flags&SF_SPRITE)) {
 
-            // this loads anything the preloader was too slow to get.
-            // slows things down a lot, but better than black sprites, I guess.
-            if (sdl_multi && !(sdlt[stx].flags&SF_DIDMAKE)) {
-                if (sdl_multi) SDL_LockMutex(premutex);
-                if (!(sdlt[stx].flags&SF_DIDMAKE)) sdl_make(sdlt+stx,sdli+sprite,2);
-                if (sdl_multi) SDL_UnlockMutex(premutex);
+            // wait for the background preloader?
+            while (sdl_multi) {
+
+                SDL_LockMutex(premutex);
+                if ((sdlt[stx].flags&SF_DIDMAKE)) {
+                    SDL_UnlockMutex(premutex);
+                    break;
+                }
+                SDL_UnlockMutex(premutex);
+                Sleep(1);
+                note("waiting for graphics");
             }
 
             if (!(sdlt[stx].flags&SF_DIDTEX)) sdl_make(sdlt+stx,sdli+sprite,3);
@@ -1355,8 +1360,12 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
             sdlt[ntx].hprev=sdlt[stx].hprev;
         }
 
-        mem_tex-=sdlt[stx].xres*sdlt[stx].yres*sizeof(uint32_t);
-        SDL_DestroyTexture(sdlt[stx].tex);
+        if (sdlt[stx].flags&SF_DIDMAKE) {
+            mem_tex-=sdlt[stx].xres*sdlt[stx].yres*sizeof(uint32_t);
+            SDL_DestroyTexture(sdlt[stx].tex);
+        } else {
+            warn("Delete unfinished texture?? stx=%d, sprite=%d",stx,sdlt[stx].sprite);
+        }
 
         if (sdlt[stx].flags&SF_TEXT) xfree(sdlt[stx].text);
 
@@ -1367,7 +1376,7 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
     if (text) {
         int w,h;
         sdlt[stx].tex=sdl_maketext(text,(struct ddfont *)text_font,text_color,text_flags);
-        sdlt[stx].flags=SF_USED|SF_TEXT;
+        sdlt[stx].flags=SF_USED|SF_TEXT|SF_DIDALLOC|SF_DIDMAKE|SF_DIDTEX;
         sdlt[stx].text_color=text_color;
         sdlt[stx].text_flags=text_flags;
         sdlt[stx].text_font=text_font;
