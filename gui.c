@@ -494,8 +494,10 @@ static void display_look(void) {
     for (b=BUT_WEA_BEG; b<=BUT_WEA_END; b++) {
         i=b-BUT_WEA_BEG;
 
-        x=butx(b);
-        y=buty(b)+50;
+        // Intentionally using the array directly here
+        // since we want the non-sliding Y
+        x=but[b].x;
+        y=but[b].y+50;
 
         dd_copysprite(SPR_ITPAD,x,y,DDFX_NLIGHT,DD_CENTER);
         if (lookinv[weatab[i]]) {
@@ -1574,19 +1576,21 @@ static void display(void) {
         sdl_bargraph_add(sizeof(dur_graph),dur_graph,duration<42?duration:42);
         sdl_bargraph(px,py+=40,sizeof(dur_graph),dur_graph,x_offset,y_offset);
 
-        size=sdl_time_pre1+sdl_time_pre3;
-        dd_drawtext(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME,"Preload");
-        sdl_bargraph_add(sizeof(size1_graph),size1_graph,size/4<42?size/4:42);
-        sdl_bargraph(px,py+=40,sizeof(size1_graph),size1_graph,x_offset,y_offset);
-
-        dd_drawtext(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME,"Preload Bkgd");
-        sdl_bargraph_add(sizeof(pre1_graph),pre1_graph,sdl_backgnd_work<42?sdl_backgnd_work:42);
-        sdl_bargraph(px,py+=40,sizeof(pre1_graph),pre1_graph,x_offset,y_offset);
-
         dd_drawtext(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME,"Loading");
         sdl_bargraph_add(sizeof(size1_graph),load_graph,sdl_time_load/4<42?sdl_time_load/4:42);
         sdl_bargraph(px,py+=40,sizeof(size1_graph),load_graph,x_offset,y_offset);
 
+        if (sdl_multi) size=sdl_time_pre1+sdl_time_pre3;
+        else size=sdl_time_pre1+sdl_time_pre2+sdl_time_pre3;
+        dd_drawtext(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME,"Preload");
+        sdl_bargraph_add(sizeof(size1_graph),size1_graph,size/4<42?size/4:42);
+        sdl_bargraph(px,py+=40,sizeof(size1_graph),size1_graph,x_offset,y_offset);
+
+        if (sdl_multi) {
+            dd_drawtext(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME,"Preload Bkgd");
+            sdl_bargraph_add(sizeof(pre1_graph),pre1_graph,sdl_backgnd_work/sdl_multi<42?sdl_backgnd_work/sdl_multi:42);
+            sdl_bargraph(px,py+=40,sizeof(pre1_graph),pre1_graph,x_offset,y_offset);
+        }
 
 #if 0
         dd_drawtext(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME,"Pre-Queue Tot");
