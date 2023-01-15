@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include <math.h>
 #include <stdio.h>
+#include <SDL2/SDL.h>
 
 #include "engine.h"
 

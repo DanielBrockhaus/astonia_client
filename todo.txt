@@ -10,6 +10,8 @@ Bugs
 
 - There was an instance of a failed memory tail check in SDL_MEM_PIXEL (before splitting it into PIXEL and PIXEL2).
 
+- originx and originy are not correctly set for prefetch.
+
 
 Probably
 --------

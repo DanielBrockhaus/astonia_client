@@ -6,7 +6,7 @@ LDFLAGS=-O3 -ggdb -Wl,-subsystem,windows
 LIBS = -lwsock32 -lws2_32 -lz -lpng -lsdl2 -lSDL2_mixer -lsdl2main -lzip
 
 OBJS	=	gui.o client.o skill.o dd.o font.o main.o sprite.o game.o\
-		sound.o questlog.o resource.o sdl.o
+		sound.o questlog.o resource.o sdl.o helper.o
 
 moac.exe:       $(OBJS)
 		$(CC) $(LDFLAGS) -o moac.exe $(OBJS)  $(LIBS)
@@ -16,6 +16,7 @@ dd.o:		dd.c main.h dd.h client.h sdl.h engine.h
 font.o:		font.c dd.h
 game.o:       	game.c main.h dd.h client.h sprite.h gui.h sound.h astonia.h engine.h
 gui.o:		gui.c gui.h main.h dd.h client.h skill.h sprite.h sdl.h sound.h astonia.h engine.h
+helper.o:	helper.c astonia.h engine.h
 main.o:		main.c main.h dd.h client.h sound.h gui.h sdl.h sprite.h astonia.h
 questlog.o:	questlog.c dd.h client.h sprite.h gui.h main.h sound.h astonia.h
 sdl.o:		sdl.c sdl.h main.h sound.h engine.h

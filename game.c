@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <SDL2/SDL.h>
 
 #include "astonia.h"
 #include "engine.h"
@@ -365,6 +366,9 @@ void draw_pixel(int x,int y,int color) {
 
 void dl_play(void) {
     int d,start;
+    void helper_cmp_dl(int attick,DL **dl,int dlused);
+
+    //helper_cmp_dl(tick,dlsort,dlused);
 
     start=GetTickCount();
     stat_dlsortcalls=0;
@@ -413,7 +417,10 @@ void dl_play(void) {
 void sdl_pre_add(int attick,int sprite,signed char sink,unsigned char freeze,unsigned char grid,unsigned char scale,char cr,char cg,char cb,char light,char sat,int c1,int c2,int c3,int shine,char ml,char ll,char rl,char ul,char dl);
 
 void dl_prefetch(int attick) {
+    void helper_add_dl(int attick,DL **dl,int dlused);
     int d;
+
+    //helper_add_dl(attick,dlsort,dlused);
 
     for (d=0; d<dlused && !quit; d++) {
         if (dlsort[d]->call==0) {
@@ -643,9 +650,6 @@ static void set_map_cut(struct map *cmap) {
 
     if (nocut) return;
     if (allcut) { set_map_cut_old(cmap); return; }
-
-    // set flags
-    //for (i=0; i<maxquick; i++) set_map_cut_fill(i,0,cmap);
 
     // change sprites
     for (i=0; i<maxquick; i++) {
@@ -1939,7 +1943,9 @@ void exit_game(void) {
 
 void prefetch_game(int attick) {
     extern struct map map2[];
+
     set_map_values(map2,attick);
+    set_mapadd(-map2[mapmn(MAPDX/2,MAPDY/2)].xadd,-map2[mapmn(MAPDX/2,MAPDY/2)].yadd);
     display_game_map(map2);
     dl_prefetch(attick);
 

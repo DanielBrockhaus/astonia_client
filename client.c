@@ -953,8 +953,9 @@ void process(unsigned char *buf,int size) {
     }
 }
 
-void prefetch(unsigned char *buf,int size) {
+int prefetch(unsigned char *buf,int size) {
     int len=0,panic=0,last=-1;
+    static int prefetch_tick=0;
 
     while (size>0 && panic++<20000) {
         if ((buf[0]&(64+128))==SV_MAP01) len=sv_map01(buf,&last,map2);  // ANKH
@@ -982,7 +983,7 @@ void prefetch(unsigned char *buf,int size) {
                 case SV_SETITEM:                len=10; break;
 
                 case SV_SETORIGIN:              len=5; break;
-                case SV_SETTICK:                len=5; break;
+                case SV_SETTICK:                prefetch_tick=*(unsigned int *)(buf+1); len=5; break;
                 case SV_SETCITEM:               len=9; break;
 
                 case SV_ACT:                    len=7; break;
@@ -1017,7 +1018,7 @@ void prefetch(unsigned char *buf,int size) {
                 case SV_REALTIME:               len=5; break;
                 case SV_SPEEDMODE:		        len=2; break;
                 case SV_FIGHTMODE:		        len=2; break;
-                case SV_LOGINDONE:		        len=1; break;
+                case SV_LOGINDONE:              bzero(map2,sizeof(map2)); len=1; break;
                 case SV_SPECIAL:		        len=13; break;
                 case SV_TELEPORT:		        len=13; break;
                 case SV_PROF:			        len=21; break;
@@ -1034,6 +1035,10 @@ void prefetch(unsigned char *buf,int size) {
     if (size) {
         printf("2 PANIC! size=%d",size); exit(1);
     }
+
+    prefetch_tick++;
+
+    return prefetch_tick;
 }
 
 void client_send(void *buf,int len) {
@@ -1681,7 +1686,7 @@ void auto_tick(struct map *cmap) {
 
 int next_tick(void) {
     int ticksize;
-    int size,ret;
+    int size,ret,attick;
 
     // no room for next tick, leave it in in-queue
     if (q_size==Q_SIZE) return 0;
@@ -1722,10 +1727,10 @@ int next_tick(void) {
         size=ticksize-indone;
         memcpy(queue[q_in].buf,inbuf+indone,size);
     }
-    queue[q_in].size=size;
+    attick=queue[q_in].size=size;
 
     auto_tick(map2);
-    prefetch(queue[q_in].buf,queue[q_in].size);
+    attick=prefetch(queue[q_in].buf,queue[q_in].size);
 
     q_in=(q_in+1)%Q_SIZE;
     q_size++;
@@ -1739,7 +1744,7 @@ int next_tick(void) {
     lasttick--;
     lastticksize-=ticksize;
 
-    return 1;
+    return attick;
 }
 
 int do_tick(void) {
