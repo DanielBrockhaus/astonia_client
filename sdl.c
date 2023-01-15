@@ -29,8 +29,14 @@
 SDL_Window *sdlwnd;
 SDL_Renderer *sdlren;
 
+#if 1
+#define MAX_TEXCACHE    1500
+#define MAX_TEXHASH     1000
+#else
 #define MAX_TEXCACHE    15000
 #define MAX_TEXHASH     10000
+#endif
+
 #define STX_NONE        (-1)
 
 #define SF_USED         (1<<0)
@@ -39,6 +45,7 @@ SDL_Renderer *sdlren;
 #define SF_DIDALLOC     (1<<3)
 #define SF_DIDMAKE      (1<<4)
 #define SF_DIDTEX       (1<<5)
+#define SF_BUSY         (1<<6)
 
 struct sdl_texture {
     SDL_Texture *tex;
@@ -107,7 +114,7 @@ long long sdl_time_pre3=0;
 
 int sdl_scale=1;
 int sdl_frames=0;
-int sdl_multi=1;
+int sdl_multi=4;
 
 zip_t *sdl_zip1=NULL;
 zip_t *sdl_zip2=NULL;
@@ -222,10 +229,16 @@ int sdl_init(int width,int height,char *title) {
     }
 
     if (sdl_multi) {
+        char buf[80];
+        int n;
+
         prework=SDL_CreateSemaphore(0);
         premutex=SDL_CreateMutex();
 
-        SDL_CreateThread(sdl_pre_backgnd,"moac background worker 1",(void*)1);
+        for (n=0; n<sdl_multi; n++) {
+            sprintf(buf,"moac background worker %d",n);
+            SDL_CreateThread(sdl_pre_backgnd,buf,(void *)(long long)n);
+        }
     }
 
     return 1;
@@ -1292,10 +1305,15 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
 
             // this loads anything the preloader was too slow to get.
             // slows things down a lot, but better than black sprites, I guess.
-            if (sdl_multi && !(sdlt[stx].flags&SF_DIDMAKE)) {
-                if (sdl_multi) SDL_LockMutex(premutex);
-                if (!(sdlt[stx].flags&SF_DIDMAKE)) sdl_make(sdlt+stx,sdli+sprite,2);
-                if (sdl_multi) SDL_UnlockMutex(premutex);
+            while (sdl_multi) {
+                SDL_LockMutex(premutex);
+                if (sdlt[stx].flags&SF_DIDMAKE) {
+                    SDL_UnlockMutex(premutex);
+                    break;
+                }
+                SDL_UnlockMutex(premutex);
+                warn("waiting for graphics...");
+                Sleep(1);
             }
 
             if (!(sdlt[stx].flags&SF_DIDTEX)) sdl_make(sdlt+stx,sdli+sprite,3);
@@ -1334,6 +1352,26 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
     if (sdlt[stx].flags) {
         int hash2;
 
+        if (sdlt[stx].flags&SF_SPRITE) {
+            if (sdl_multi) {
+                while (sdlt[stx].flags&(SF_BUSY)) {
+                    note("Delete: Busy");
+                    Sleep(1);
+                }
+                while (!(sdlt[stx].flags&(SF_DIDMAKE))) {
+                    note("Delete: Busy2");
+                    Sleep(1);
+                }
+
+            }
+            if (!(sdlt[stx].flags&(SF_DIDALLOC)))
+                warn("Delete: noalloc");
+            if (!(sdlt[stx].flags&(SF_DIDMAKE)))
+                warn("Delete: nomake");
+            if (!(sdlt[stx].flags&(SF_DIDTEX)))
+                warn("Delete: notex");
+        }
+
         if (sdlt[stx].flags&SF_SPRITE) hash2=hashfunc(sdlt[stx].sprite,sdlt[stx].ml,sdlt[stx].ll,sdlt[stx].rl,sdlt[stx].ul,sdlt[stx].dl);
         else if (sdlt[stx].flags&SF_TEXT) hash2=hashfunc_text(sdlt[stx].text,sdlt[stx].text_color,sdlt[stx].text_flags);
         else { hash2=0; warn("weird entry in texture cache!"); }
@@ -1355,8 +1393,10 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
             sdlt[ntx].hprev=sdlt[stx].hprev;
         }
 
-        mem_tex-=sdlt[stx].xres*sdlt[stx].yres*sizeof(uint32_t);
-        SDL_DestroyTexture(sdlt[stx].tex);
+        if (sdlt[stx].tex) {
+            mem_tex-=sdlt[stx].xres*sdlt[stx].yres*sizeof(uint32_t);
+            SDL_DestroyTexture(sdlt[stx].tex);
+        }
 
         if (sdlt[stx].flags&SF_TEXT) xfree(sdlt[stx].text);
 
@@ -2168,9 +2208,28 @@ void sdl_pre_2(void) {
 
     if (pre_1==pre_2) return;  // prefetch buffer is empty
 
-    i=pre_2;
-    if (pre[i].stx!=STX_NONE && !(sdlt[pre[i].stx].flags&SF_DIDMAKE))
-        sdl_make(sdlt+pre[i].stx,sdli+pre[i].sprite,2);
+    for (i=pre_2; i!=pre_1; i=(i+1)%MAXPRE) {
+        //printf("  %d\n",i);
+
+        if (sdl_multi) SDL_LockMutex(premutex);
+
+        if (pre[i].stx!=STX_NONE && !(sdlt[pre[i].stx].flags&(SF_DIDMAKE|SF_BUSY))) {
+
+            sdlt[pre[i].stx].flags|=SF_BUSY;
+            if (sdl_multi) SDL_UnlockMutex(premutex);
+
+            sdl_make(sdlt+pre[i].stx,sdli+pre[i].sprite,2);
+
+            if (sdl_multi) SDL_LockMutex(premutex);
+            sdlt[pre[i].stx].flags&=~SF_BUSY;
+            sdlt[pre[i].stx].flags|=SF_DIDMAKE;
+            if (sdl_multi) SDL_UnlockMutex(premutex);
+            break;
+
+        } else {
+            if (sdl_multi) SDL_UnlockMutex(premutex);
+        }
+    }
 
 #ifdef TICKPRINT
     static int lasttick=0;
@@ -2181,7 +2240,14 @@ void sdl_pre_2(void) {
 #endif
     //note("pre 2: %d %d %d %d %d %d (%d %d %d)",pre[i].sprite,pre[i].ml,pre[i].ll,pre[i].rl,pre[i].ul,pre[i].dl,pre[i].stx,i,pre_in);
 
-    pre_2=(pre_2+1)%MAXPRE;
+    //printf("Pre Do A\n"); fflush(stdout);
+    if (sdl_multi) SDL_LockMutex(premutex);
+    while (pre[pre_2].stx!=STX_NONE && (sdlt[pre[pre_2].stx].flags&SF_DIDMAKE) && pre_1!=pre_2) {
+        //printf("... %X %d %d\n",sdlt[pre[pre_2].stx].flags,pre_1,pre_2); fflush(stdout);
+        pre_2=(pre_2+1)%MAXPRE;
+    }
+    if (sdl_multi) SDL_UnlockMutex(premutex);
+    //printf("Pre Do B\n"); fflush(stdout);
 }
 
 void sdl_pre_3(void) {
@@ -2202,17 +2268,22 @@ void sdl_pre_3(void) {
 int sdl_pre_do(int curtick) {
     uint64_t start;
 
+    //printf("Pre Do 1\n"); fflush(stdout);
     start=SDL_GetTicks64();
     sdl_pre_1();
     sdl_time_pre1+=SDL_GetTicks64()-start;
 
+    //printf("Pre Do 2 (%d)\n",sdl_multi); fflush(stdout);
     start=SDL_GetTicks64();
     if (!sdl_multi) sdl_pre_2();
     sdl_time_pre2+=SDL_GetTicks64()-start;
 
+    //printf("Pre Do 3\n"); fflush(stdout);
     start=SDL_GetTicks64();
     sdl_pre_3();
     sdl_time_pre3+=SDL_GetTicks64()-start;
+
+    //printf("Pre Do Out\n"); fflush(stdout);
 
     if (pre_in>=pre_3) return pre_in-pre_3;
     else return MAXPRE+pre_in-pre_3;
@@ -2247,7 +2318,9 @@ void sdl_bargraph(int sx,int sy,int dx,unsigned char *data,int x_offset,int y_of
     int n;
 
     for (n=0; n<dx; n++) {
-        SDL_SetRenderDrawColor(sdlren,80,255,80,127);
+        if (data[n]>40) SDL_SetRenderDrawColor(sdlren,255,80,80,127);
+        else SDL_SetRenderDrawColor(sdlren,80,255,80,127);
+
         SDL_RenderDrawLine(sdlren,
                            (sx+n+x_offset)*sdl_scale,(sy+y_offset)*sdl_scale,
                            (sx+n+x_offset)*sdl_scale,(sy-data[n]+y_offset)*sdl_scale);
