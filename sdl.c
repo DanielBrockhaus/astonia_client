@@ -104,6 +104,7 @@ long long texc_hit=0,texc_miss=0,texc_pre=0;
 
 long long sdl_time_preload=0;
 long long sdl_time_make=0;
+long long sdl_time_make_main=0;
 long long sdl_time_load=0;
 long long sdl_time_alloc=0;
 long long sdl_time_tex=0;
@@ -957,10 +958,11 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
             note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->grid,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
             return;
         }
-        st->pixel=xcalloc(st->xres*st->yres*sizeof(uint32_t)*sdl_scale*sdl_scale,MEM_SDL_PIXEL);
 
+        st->pixel=xmalloc(st->xres*st->yres*sizeof(uint32_t)*sdl_scale*sdl_scale,MEM_SDL_PIXEL);
         st->flags|=SF_DIDALLOC;
     }
+
 
     if (!preload || preload==2) {
         if (!(st->flags&SF_DIDALLOC)) {
@@ -969,7 +971,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
             return;
         }
         if (st->flags&SF_DIDMAKE) {
-            fail("double make for sprite %d",st->sprite);
+            fail("double make for sprite %d (%d)",st->sprite,preload);
             note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->grid,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
             return;
         }
@@ -1156,6 +1158,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
         if (preload) sdl_time_preload+=SDL_GetTicks64()-start;
         else sdl_time_make+=SDL_GetTicks64()-start;
     }
+
     if (!preload || preload==3) {
         if (!(st->flags&SF_DIDMAKE)) {
             fail("cannot texture without make for sprite %d (%d)",st->sprite,preload);
@@ -1305,12 +1308,19 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
 
         if (!preload && (sdlt[stx].flags&SF_SPRITE)) {
 
-            // wait for the background preloader?
+            // wait for the background preloader if we have multiple threads
             while (sdl_multi) {
                 if ((sdlt[stx].flags&SF_DIDMAKE)) break;
 
                 //warn("waiting for graphics...");
                 SDL_Delay(1);
+            }
+
+            // if we are single threaded do it yourself
+            if (!sdl_multi && !(sdlt[stx].flags&SF_DIDMAKE)) {
+                long long start=SDL_GetTicks64();
+                sdl_make(sdlt+stx,sdli+sprite,2);
+                sdl_time_make_main+=SDL_GetTicks64()-start;
             }
 
             // make texture now if preload didn't finish it
@@ -1434,6 +1444,7 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
             sdlt[stx].yres=h;
         } else sdlt[stx].xres=sdlt[stx].yres=0;
     } else {
+
         sdl_ic_load(sprite);
 
         // init
@@ -1458,9 +1469,7 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
         sdlt[stx].ul=ul;
         sdlt[stx].dl=dl;
 
-        long long _start=SDL_GetTicks64(); extern long long gui_time_misc;
         sdl_make(sdlt+stx,sdli+sprite,preload);
-        if (!preload) gui_time_misc+=SDL_GetTicks64()-_start;
     }
 
     mem_tex+=sdlt[stx].xres*sdlt[stx].yres*sizeof(uint32_t);
@@ -2134,7 +2143,6 @@ struct prefetch {
 #define MAXPRE (16384)
 static struct prefetch pre[MAXPRE];
 int pre_in=0,pre_2=0,pre_3=0;
-int pre_tick=0;
 
 void sdl_pre_add(int attick,int sprite,signed char sink,unsigned char freeze,unsigned char grid,unsigned char scale,char cr,char cg,char cb,char light,char sat,int c1,int c2,int c3,int shine,char ml,char ll,char rl,char ul,char dl) {
     int n;
@@ -2202,7 +2210,7 @@ void sdl_lock(void *a){
 #define SDL_LockMutex(a)  sdl_lock(a)
 
 int sdl_pre_2(void) {
-    int i;
+    int i,work=0;
 
     if (pre_in==pre_2) return 0;  // prefetch buffer is empty
 
@@ -2221,6 +2229,7 @@ int sdl_pre_2(void) {
             sdlt[pre[i].stx].flags&=~SF_BUSY;
             sdlt[pre[i].stx].flags|=SF_DIDMAKE;
             if (sdl_multi) SDL_UnlockMutex(premutex);
+            work=1;
             break;
 
         } else {
@@ -2230,11 +2239,12 @@ int sdl_pre_2(void) {
 
     if (sdl_multi) SDL_LockMutex(premutex);
     while (pre[pre_2].stx!=STX_NONE && (sdlt[pre[pre_2].stx].flags&SF_DIDMAKE) && pre_in!=pre_2) {
+        work=1;
         pre_2=(pre_2+1)%MAXPRE;
     }
     if (sdl_multi) SDL_UnlockMutex(premutex);
 
-    return 1;
+    return work;
 }
 
 int sdl_pre_3(void) {
@@ -2246,7 +2256,6 @@ int sdl_pre_3(void) {
     if (pre[i].stx!=STX_NONE && !(sdlt[pre[i].stx].flags&SF_DIDTEX))
         sdl_make(sdlt+pre[i].stx,sdli+pre[i].sprite,3);
 
-    pre_tick=pre[i].attick;
     pre_3=(pre_3+1)%MAXPRE;
 
     return 1;
@@ -2257,15 +2266,15 @@ int sdl_pre_do(int curtick) {
     long long start;
 
     start=SDL_GetTicks64();
-    if (!sdl_multi) sdl_pre_2();
+    while (!sdl_multi && sdl_pre_2()) ;
     sdl_time_pre2+=SDL_GetTicks64()-start;
 
     start=SDL_GetTicks64();
     sdl_pre_3();
     sdl_time_pre3+=SDL_GetTicks64()-start;
 
-    if (pre_in>=pre_3) return pre_in-pre_3;
-    else return MAXPRE+pre_in-pre_3;
+    if (pre_2>=pre_3) return pre_2-pre_3;
+    else return MAXPRE+pre_2-pre_3;
 }
 
 uint64_t sdl_backgnd_wait=0,sdl_backgnd_work=0;
