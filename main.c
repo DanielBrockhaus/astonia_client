@@ -525,11 +525,11 @@ unsigned int validate_intra(unsigned int ip) {
 }
 
 void display_usage(void) {
-    printf("Usage: moac -u playername -p password -d url [-h height] [-w width] [-l largetextenable] [-s soundenable] [-m threads] [-o options]\n\n");
-    printf("url being, for example, \"server.astonia.com\" (without the quotes).\n");
+    printf("Usage: moac -u playername -p password -d url [-w width] [-h height] [-l largetextenable] [-s soundenable] [-m threads] [-o options]\n\n");
+    printf("url being, for example, \"server.astonia.com\" or \"192.168.77.132\" (without the quotes).\n");
     printf("width and height are the desired window size. If this matches the desktop size the client will start in windowed borderless pseudo-fullscreen mode.\n");
     printf("largetextenable and soundenable can be either 0 or 1, for off or on.\n");
-    printf("threads is the number of background threads the game should use. Can be 0 or 1, larger numbers might be supported later.\n");
+    printf("threads is the number of background threads the game should use. Use 0 to disable. Default is 4.\n");
     printf("options is a bitfield. Bit 0 (value of 1) enables the Dark GUI by Tegra.\n");
 }
 
@@ -539,8 +539,6 @@ int want_width=0,want_height=0;
 int parse_cmd(char *s) {
     int n;
     char *end;
-
-    note("command line: '%s'",s);
 
     while (isspace(*s)) s++;
 
@@ -629,7 +627,7 @@ void load_options(void) {
     close(handle);
 }
 
-// conver command line from unix style to windows style
+// convert command line from unix style to windows style
 void convert_cmd_line(char *d,int argc,char *args[],int maxsize) {
     int n;
     char *s;

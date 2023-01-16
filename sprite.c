@@ -2377,15 +2377,19 @@ int get_player_sprite(int nr,int zdir,int action,int step,int duration,int attic
         if (action==2 || action==3 || (action>=6 && action<=49) || action>60) action=4;
     }
 
+    // Note: fireball2, lightning ball2, bless2 and heal 2 are really the second half of the same animation
+    // and used by the server to be able to create the fireball effect (eg) in mid-cast
+    // attack1...3 are actually being used (randomly, just for variety)
+
     switch (action) {
-        case 0:  return base+0+zdir*1;                                // idle
-        case 1:  return base+8+zdir/1*8+step*8/duration;            // walk
+        case 0:  return base+  0+zdir*1;                              // idle
+        case 1:  return base+  8+zdir/1*8+step*8/duration;            // walk
         case 2:  return base+104+zdir/2*8+step*8/duration;            // take
         case 3:  return base+104+zdir/2*8+step*8/duration;            // drop
         case 4:  return base+136+zdir/2*8+step*8/duration;            // attack1
         case 5:  return base+168+zdir/2*8+step*8/duration;            // attack2
         case 6:  return base+200+zdir/2*8+step*8/duration;            // attack3
-        case 7:  return base+72+zdir/2*8+step*8/duration;            // use
+        case 7:  return base+ 72+zdir/2*8+step*8/duration;            // use
 
         case 10: return base+232+zdir/1*8+step*4/duration;            // fireball 1
         case 11: return base+236+zdir/1*8+step*4/duration;            // fireball 2
@@ -2403,7 +2407,7 @@ int get_player_sprite(int nr,int zdir,int action,int step,int duration,int attic
         case 21:  return base+236+zdir/1*8+step*4/duration;           // heal 2
         case 22:  return base+296+zdir/2*8+step*8/duration;           // freeze
         case 23:  return base+296+zdir/2*8+step*8/duration;           // warcry
-        case 24:  return base+72+zdir/2*8+step*8/duration;           // give
+        case 24:  return base+ 72+zdir/2*8+step*8/duration;           // give
         case 25:  return base+296+zdir/2*8+step*8/duration;           // earth command
         case 26:  return base+296+zdir/2*8+step*8/duration;           // earth mud
         case 27:  return base+296+zdir/2*8+step*8/duration;           // pulse

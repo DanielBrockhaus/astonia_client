@@ -683,29 +683,33 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         return -1;
     }
 
+    // get high res from archive
     if (sdl_zip2) {
         sprintf(filename,"%08d.png",sprite);
         if (sdl_load_image_png(si,filename,sdl_zip2,do_smoothify(sprite))==0) return 0;
     }
 
-#if 0
+#if 1
+    // get high res from png folder
     if (sdl_scale>1) {
         sprintf(filename,"../gfx/x%d/%08d/%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
         if (sdl_load_image_png_(si,filename,NULL)==0) return 0;
     }
 #endif
 
+    // get standard from archive
     if (sdl_zip1) {
         sprintf(filename,"%08d.png",sprite);
         if (sdl_load_image_png(si,filename,sdl_zip1,do_smoothify(sprite))==0) return 0;
     }
 
 #if 0
+    // get standard from png folder
     sprintf(filename,"../gfx/x1/%08d/%08d.png",(sprite/1000)*1000,sprite);
     if (sdl_load_image_png(si,filename,NULL,do_smoothify(sprite))==0) return 0;
 #endif
     fail("%s not found",filename);
-    exit(42);
+    return -1;
 }
 
 int sdl_ic_load(int sprite) {

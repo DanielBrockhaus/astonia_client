@@ -1,8 +1,9 @@
-all: moac.exe
+all: moac.exe anicopy.exe
 
 CC=gcc
 CFLAGS=-O3 -ggdb -Wall -Wno-pointer-sign -Wno-char-subscripts
-LDFLAGS=-O3 -ggdb -Wl,-subsystem,windows
+LDFLAGS=-O3 -ggdb
+#-Wl,-subsystem,windows
 LIBS = -lwsock32 -lws2_32 -lz -lpng -lsdl2 -lSDL2_mixer -lsdl2main -lzip
 
 OBJS	=	gui.o client.o skill.o dd.o font.o main.o sprite.o game.o\
@@ -10,6 +11,9 @@ OBJS	=	gui.o client.o skill.o dd.o font.o main.o sprite.o game.o\
 
 moac.exe:       $(OBJS)
 		$(CC) $(LDFLAGS) -o moac.exe $(OBJS)  $(LIBS)
+
+anicopy.exe:	anicopy.c
+		$(CC) -O3 -ggdb -Wall -o anicopy.exe anicopy.c
 
 client.o:	client.c main.h client.h sound.h astonia.h engine.h
 dd.o:		dd.c main.h dd.h client.h sdl.h engine.h
