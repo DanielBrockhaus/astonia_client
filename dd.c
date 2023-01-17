@@ -121,7 +121,6 @@ int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry) {
     stx=sdl_tx_load(ddfx->sprite,
                  ddfx->sink,
                  ddfx->freeze,
-                 ddfx->grid,
                  ddfx->scale,
                  ddfx->cr,
                  ddfx->cg,
@@ -166,14 +165,13 @@ int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry) {
     return 1;
 }
 
-void dd_copysprite_callfx(int sprite,int scrx,int scry,int light,int ml,int grid,int align) {
+void dd_copysprite_callfx(int sprite,int scrx,int scry,int light,int ml,int align) {
     DDFX ddfx;
 
     bzero(&ddfx,sizeof(DDFX));
 
     ddfx.sprite=sprite;
     if (light<1000) ddfx.light=DDFX_NLIGHT;
-    ddfx.grid=grid;
     ddfx.align=align;
 
     ddfx.ml=ddfx.ll=ddfx.rl=ddfx.ul=ddfx.dl=ml;

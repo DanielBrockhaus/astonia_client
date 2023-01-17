@@ -310,31 +310,6 @@ DL* dl_call_number(int layer,int x,int y,int nr) {
     return dl;
 }
 
-DL* dl_autogrid(void) {
-    DL*dllast,*dl;
-
-    PARANOIA(if (dlused<2) paranoia("dl_grid_last(): we have no last"); )
-
-    dl=dl_next();
-
-    dllast=dlsort[dlused-1];
-    if (dllast->call==DLC_DUMMY) dllast=dlsort[dlused-2];
-
-    memcpy(dl,dllast,sizeof(DL));
-
-    if ((mapaddx+mapaddy+dllast->x+dllast->y)&1) {
-        dl->ddfx.grid=DDFX_RIGHTGRID;
-        dllast->ddfx.grid=DDFX_LEFTGRID;
-    } else {
-        dl->ddfx.grid=DDFX_LEFTGRID;
-        dllast->ddfx.grid=DDFX_RIGHTGRID;
-    }
-
-    dl->layer+=GMEGRD_LAYADD;
-
-    return dl;
-}
-
 int dl_qcmp(const void *ca,const void *cb) {
     DL*a,*b;
     int diff;
@@ -414,7 +389,7 @@ void dl_play(void) {
     dlused=0;
 }
 
-void sdl_pre_add(int attick,int sprite,signed char sink,unsigned char freeze,unsigned char grid,unsigned char scale,char cr,char cg,char cb,char light,char sat,int c1,int c2,int c3,int shine,char ml,char ll,char rl,char ul,char dl);
+void sdl_pre_add(int attick,int sprite,signed char sink,unsigned char freeze,unsigned char scale,char cr,char cg,char cb,char light,char sat,int c1,int c2,int c3,int shine,char ml,char ll,char rl,char ul,char dl);
 
 void dl_prefetch(int attick) {
     void helper_add_dl(int attick,DL **dl,int dlused);
@@ -428,7 +403,6 @@ void dl_prefetch(int attick) {
                     dlsort[d]->ddfx.sprite,
                     dlsort[d]->ddfx.sink,
                     dlsort[d]->ddfx.freeze,
-                    dlsort[d]->ddfx.grid,
                     dlsort[d]->ddfx.scale,
                     dlsort[d]->ddfx.cr,
                     dlsort[d]->ddfx.cg,
@@ -1225,10 +1199,8 @@ static void display_game_act(void) {
         mapx=mn%MAPDX;
         mapy=mn/MAPDX;
         mtos(mapx,mapy,&scrx,&scry);
-        if (acttyp==0) {
-            dl_next_set(GNDSEL_LAY,5,scrx,scry,DDFX_NLIGHT);
-            dl_autogrid();
-        } else dd_drawtext(scrx,scry,textcolor,DD_CENTER|DD_SMALL|DD_FRAME,actstr);
+        if (acttyp==0) dl_next_set(GNDSEL_LAY,5,scrx,scry,DDFX_NLIGHT);
+        else dd_drawtext(scrx,scry,textcolor,DD_CENTER|DD_SMALL|DD_FRAME,actstr);
     }
 }
 
@@ -1532,20 +1504,16 @@ void display_game_map(struct map *cmap) {
                 dl->ddfx.clight=-80;
                 dl->ddfx.shine=50;
                 dl->ddfx.ml=dl->ddfx.ll=dl->ddfx.rl=dl->ddfx.ul=dl->ddfx.dl=chrsel==mn?DDFX_BRIGHT:DDFX_NLIGHT;
-                //dl->ddfx.grid=DDFX_RIGHTGRID;
             } else if (cmap[mn].gsprite==51067) {
                 dl->ddfx.sat=20;
                 dl->ddfx.cb=80;
                 dl->ddfx.clight=-80;
                 dl->ddfx.shine=50;
                 dl->ddfx.ml=dl->ddfx.ll=dl->ddfx.rl=dl->ddfx.ul=dl->ddfx.dl=chrsel==mn?DDFX_BRIGHT:DDFX_NLIGHT;
-                //dl->ddfx.grid=DDFX_RIGHTGRID;
             } else {
                 if (cmap[mn].flags&CMF_INFRA) { dl->ddfx.cr=min(120,dl->ddfx.cr+80); dl->ddfx.sat=min(20,dl->ddfx.sat+15); }
                 if (cmap[mn].flags&CMF_UNDERWATER) { dl->ddfx.cb=min(120,dl->ddfx.cb+80); dl->ddfx.sat=min(20,dl->ddfx.sat+10); }
             }
-
-            if (nocut) dl_autogrid();
 
             csprite_cnt++;
         }
@@ -1564,7 +1532,6 @@ void display_game_map(struct map *cmap) {
             else sprite=SPR_FIELD;
             dl=dl_next_set(GNDSEL_LAY,sprite,scrx,scry,DDFX_NLIGHT);
             if (!dl) note("error in game #10");
-            dl_autogrid();
         }
         // act (field) quick and dirty
         if (act==PAC_MOVE) display_game_act();

@@ -65,7 +65,6 @@ struct sdl_texture {
     uint16_t c1,c2,c3,shine;
 
     uint8_t freeze;
-    uint8_t grid;
 
     // light
     int8_t ml,ll,rl,ul,dl;      // light in middle, left, right, up, down
@@ -730,9 +729,6 @@ int sdl_ic_load(int sprite) {
     return sprite;
 }
 
-#define DDFX_LEFTGRID           1       // NOGRID(?) has to be zero, so bzero on the structures default NOGRID(?)
-#define DDFX_RIGHTGRID          2
-
 #define DDFX_MAX_FREEZE         8
 
 static inline uint32_t sdl_light(int light,uint32_t irgb) {
@@ -959,7 +955,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
     if (!preload || preload==1) {
         if (st->flags&SF_DIDALLOC) {
             fail("double alloc for sprite %d (%s)",st->sprite,st->text);
-            note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->grid,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
+            note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
             return;
         }
 
@@ -971,12 +967,12 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
     if (!preload || preload==2) {
         if (!(st->flags&SF_DIDALLOC)) {
             fail("cannot make without alloc for sprite %d (%p)",st->sprite,st);
-            note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->grid,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
+            note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
             return;
         }
         if (st->flags&SF_DIDMAKE) {
             fail("double make for sprite %d (%d)",st->sprite,preload);
-            note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->grid,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
+            note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
             return;
         }
 
@@ -1151,9 +1147,6 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
 
                 if (st->freeze) irgb=sdl_freeze(st->freeze,irgb);
 
-                if (st->grid==DDFX_LEFTGRID) { if ((st->xoff+x+st->yoff+y)&1) irgb&=0xffffff; }
-                if (st->grid==DDFX_RIGHTGRID) {  if ((st->xoff+x+st->yoff+y+1)&1) irgb&=0xffffff; }
-
                 st->pixel[x+y*st->xres*sdl_scale]=irgb;
             }
         }
@@ -1166,12 +1159,12 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
     if (!preload || preload==3) {
         if (!(st->flags&SF_DIDMAKE)) {
             fail("cannot texture without make for sprite %d (%d)",st->sprite,preload);
-            //note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->grid,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
+            //note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
             return;
         }
         if (st->flags&SF_DIDTEX) {
             fail("double texture for sprite %d (%d)",st->sprite,preload);
-            //note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->grid,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
+            //note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
             return;
         }
 
@@ -1252,7 +1245,7 @@ static inline unsigned int hashfunc_text(const char *text,int color,int flags) {
 
 SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,int flags);
 
-int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,int cb,int light,int sat,int c1,int c2,int c3,int shine,int ml,int ll,int rl,int ul,int dl,
+int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,int light,int sat,int c1,int c2,int c3,int shine,int ml,int ll,int rl,int ul,int dl,
                 const char *text,int text_color,int text_flags,void *text_font,int checkonly,int preload) {
     int stx,ptx,ntx,panic=0;
     int hash;
@@ -1268,8 +1261,8 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
     for (stx=sdlt_cache[hash]; stx!=STX_NONE; stx=sdlt[stx].hnext,panic++) {
 
         if (panic>999) {
-            warn("%04d: stx=%d, hprev=%d, hnext=%d sprite=%d (%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d), PANIC\n",panic,stx,sdlt[stx].hprev,sdlt[stx].hnext,sprite,
-                   sdlt[stx].sink,sdlt[stx].freeze,sdlt[stx].grid,sdlt[stx].scale,
+            warn("%04d: stx=%d, hprev=%d, hnext=%d sprite=%d (%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d), PANIC\n",panic,stx,sdlt[stx].hprev,sdlt[stx].hnext,sprite,
+                   sdlt[stx].sink,sdlt[stx].freeze,sdlt[stx].scale,
                    sdlt[stx].cr,sdlt[stx].cg,sdlt[stx].cb,sdlt[stx].light,
                    sdlt[stx].sat,sdlt[stx].c1,sdlt[stx].c2,sdlt[stx].c3,
                    sdlt[stx].shine,sdlt[stx].ml,sdlt[stx].ll,sdlt[stx].rl,
@@ -1287,7 +1280,6 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
             if (sdlt[stx].sprite!=sprite) continue;
             if (sdlt[stx].sink!=sink) continue;
             if (sdlt[stx].freeze!=freeze) continue;
-            if (sdlt[stx].grid!=grid) continue;
             if (sdlt[stx].scale!=scale) continue;
             if (sdlt[stx].cr!=cr) continue;
             if (sdlt[stx].cg!=cg) continue;
@@ -1357,9 +1349,9 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
         sdlt_cache[hash]=stx;
 #if 0
         if (!preload && sdl_frames>10 && sprite) {    // wait for things to stabilize before reporting misses
-            printf("hit  sprite=%5d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d) M\n",
+            printf("hit  sprite=%5d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d) M\n",
                    sprite,
-                   sdlt[stx].sink,sdlt[stx].freeze,sdlt[stx].grid,sdlt[stx].scale,
+                   sdlt[stx].sink,sdlt[stx].freeze,sdlt[stx].scale,
                    sdlt[stx].cr,sdlt[stx].cg,sdlt[stx].cb,sdlt[stx].light,
                    sdlt[stx].sat,sdlt[stx].c1,sdlt[stx].c2,sdlt[stx].c3,
                    sdlt[stx].shine,sdlt[stx].ml,sdlt[stx].ll,sdlt[stx].rl,
@@ -1456,7 +1448,6 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
         sdlt[stx].sprite=sprite;
         sdlt[stx].sink=sink;
         sdlt[stx].freeze=freeze;
-        sdlt[stx].grid=grid;
         sdlt[stx].scale=scale;
         sdlt[stx].cr=cr;
         sdlt[stx].cg=cg;
@@ -1494,9 +1485,9 @@ int sdl_tx_load(int sprite,int sink,int freeze,int grid,int scale,int cr,int cg,
         texc_miss++;
 #if 0
         if (sdl_frames>10) {    // wait for things to stabilize before reporting misses
-            printf("miss sprite=%5d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d) M\n",
+            printf("miss sprite=%5d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d) M\n",
                    sprite,
-                   sdlt[stx].sink,sdlt[stx].freeze,sdlt[stx].grid,sdlt[stx].scale,
+                   sdlt[stx].sink,sdlt[stx].freeze,sdlt[stx].scale,
                    sdlt[stx].cr,sdlt[stx].cg,sdlt[stx].cb,sdlt[stx].light,
                    sdlt[stx].sat,sdlt[stx].c1,sdlt[stx].c2,sdlt[stx].c3,
                    sdlt[stx].shine,sdlt[stx].ml,sdlt[stx].ll,sdlt[stx].rl,
@@ -1663,7 +1654,7 @@ void sdl_dump_spritechache(void) {
         }
 
         if (sdlt[n].flags&SF_SPRITE)
-            fprintf(fp,"Sprite: %6d, Lights: %2d,%2d,%2d,%2d,%2d, Light: %3d, Colors: %3d,%3d,%3d, Colors: %4X,%4X,%4X, Sink: %2d, Freeze: %2d, Grid: %2d, Scale: %3d, Sat: %3d, Shine: %3d, %dx%d\n",
+            fprintf(fp,"Sprite: %6d, Lights: %2d,%2d,%2d,%2d,%2d, Light: %3d, Colors: %3d,%3d,%3d, Colors: %4X,%4X,%4X, Sink: %2d, Freeze: %2d, Scale: %3d, Sat: %3d, Shine: %3d, %dx%d\n",
                    sdlt[n].sprite,
                    sdlt[n].ml,
                    sdlt[n].ll,
@@ -1679,7 +1670,6 @@ void sdl_dump_spritechache(void) {
                    sdlt[n].c3,
                    sdlt[n].sink,
                    sdlt[n].freeze,
-                   sdlt[n].grid,
                    sdlt[n].scale,
                    sdlt[n].sat,
                    sdlt[n].shine,
@@ -1729,7 +1719,7 @@ int sdl_drawtext(int sx,int sy,unsigned short int color,int flags,const char *te
     if (flags&DD_NOCACHE) {
         tex=sdl_maketext(text,font,IRGBA(r,g,b,a),flags);
     } else {
-        stx=sdl_tx_load(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,text,IRGBA(r,g,b,a),flags,font,0,0);
+        stx=sdl_tx_load(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,text,IRGBA(r,g,b,a),flags,font,0,0);
         tex=sdlt[stx].tex;
     }
 
@@ -2133,7 +2123,6 @@ struct prefetch {
     uint16_t c1,c2,c3,shine;
 
     uint8_t freeze;
-    uint8_t grid;
 
     int8_t ml,ll,rl,ul,dl;
 };
@@ -2142,7 +2131,7 @@ struct prefetch {
 static struct prefetch pre[MAXPRE];
 int pre_in=0,pre_2=0,pre_3=0;
 
-void sdl_pre_add(int attick,int sprite,signed char sink,unsigned char freeze,unsigned char grid,unsigned char scale,char cr,char cg,char cb,char light,char sat,int c1,int c2,int c3,int shine,char ml,char ll,char rl,char ul,char dl) {
+void sdl_pre_add(int attick,int sprite,signed char sink,unsigned char freeze,unsigned char scale,char cr,char cg,char cb,char light,char sat,int c1,int c2,int c3,int shine,char ml,char ll,char rl,char ul,char dl) {
     int n;
     long long start;
 
@@ -2156,7 +2145,7 @@ void sdl_pre_add(int attick,int sprite,signed char sink,unsigned char freeze,uns
     // Find in texture cache
     // Will allocate a new entry if not found, or return -1 if already in cache
     start=SDL_GetTicks64();
-    n=sdl_tx_load(sprite,sink,freeze,grid,scale,cr,cg,cb,light,sat,c1,c2,c3,shine,ml,ll,rl,ul,dl,NULL,0,0,NULL,0,1);
+    n=sdl_tx_load(sprite,sink,freeze,scale,cr,cg,cb,light,sat,c1,c2,c3,shine,ml,ll,rl,ul,dl,NULL,0,0,NULL,0,1);
     sdl_time_alloc+=SDL_GetTicks64()-start;
     if (n==-1) return;
 
@@ -2165,7 +2154,6 @@ void sdl_pre_add(int attick,int sprite,signed char sink,unsigned char freeze,uns
     pre[pre_in].sprite=sprite;
     pre[pre_in].sink=sink;
     pre[pre_in].freeze=freeze;
-    pre[pre_in].grid=grid;
     pre[pre_in].scale=scale;
     pre[pre_in].cr=cr;
     pre[pre_in].cg=cg;
@@ -2186,7 +2174,7 @@ void sdl_pre_add(int attick,int sprite,signed char sink,unsigned char freeze,uns
     if (1) {
         printf("add  sprite=%5d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d) A\n",
                    sprite,
-                   pre[pre_in].sink,pre[pre_in].freeze,pre[pre_in].grid,pre[pre_in].scale,
+                   pre[pre_in].sink,pre[pre_in].freeze,pre[pre_in].scale,
                    pre[pre_in].cr,pre[pre_in].cg,pre[pre_in].cb,pre[pre_in].light,
                    pre[pre_in].sat,pre[pre_in].c1,pre[pre_in].c2,pre[pre_in].c3,
                    pre[pre_in].shine,pre[pre_in].ml,pre[pre_in].ll,pre[pre_in].rl,

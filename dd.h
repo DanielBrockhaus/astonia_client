@@ -46,10 +46,6 @@ void dd_set_textfont(int nr);
 #define DD_CENTER               1       // also used in dd_drawtext
 #define DD_NORMAL               2
 
-#define DDFX_LEFTGRID           1       // NOGRID(?) has to be zero, so bzero on the structures default NOGRID(?)
-#define DDFX_RIGHTGRID          2
-//#define DLFX_AUTOGRID           3       // not really used by blitting functions, but by dl (you must not call copysprite with this value)
-
 #define DDFX_NLIGHT             15
 #define DDFX_BRIGHT             0
 
@@ -66,8 +62,6 @@ struct ddfx {
 
     char light;             // videocache_fx:       0=bright(DDFX_BRIGHT) 1=almost black; 15=normal (DDFX_NLIGHT)
     char freeze;            // videocache_fx:       0 to DDFX_MAX_FREEZE-1  !!! exclusive DDFX_MAX_FREEZE
-
-    char grid;              // videocache_fx:       0, DDFX_LEFTGRID, DDFX_RIGHTGRID
 
     char ml,ll,rl,ul,dl;
 
@@ -104,7 +98,7 @@ extern unsigned short **rgbfx_light;
 
 int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry);
 void dd_copysprite(int sprite,int scrx,int scry,int light,int align);
-void dd_copysprite_callfx(int sprite,int scrx,int scry,int light,int mli,int grid,int align);
+void dd_copysprite_callfx(int sprite,int scrx,int scry,int light,int mli,int align);
 
 void dd_darken_rect(int sx,int sy,int ex,int ey);
 void dd_rect(int sx,int sy,int ex,int ey,unsigned short int color);
