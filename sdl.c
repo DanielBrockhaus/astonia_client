@@ -485,13 +485,20 @@ int sdl_load_image_png_(struct sdl_image *si,char *filename,zip_t *zip) {
         }
     }
 
+    // Make sure the new found borders of the image are on multiples
+    // of sd_scale. And never shrink the visible portion to do that.
+    sx=(sx/sdl_scale)*sdl_scale;
+    sy=(sy/sdl_scale)*sdl_scale;
+    ex=((ex+sdl_scale-1)/sdl_scale)*sdl_scale;
+    ey=((ey+sdl_scale-1)/sdl_scale)*sdl_scale;
+
     if (ex<sx) ex=sx-1;
     if (ey<sy) ey=sy-1;
 
     // write
     si->flags=1;
-    si->xres=((ex-sx+sdl_scale-1)/sdl_scale)*sdl_scale;
-    si->yres=((ey-sy+sdl_scale-1)/sdl_scale)*sdl_scale;;
+    si->xres=ex-sx;
+    si->yres=ey-sy;
     si->xoff=-(p.xres/2)+sx;
     si->yoff=-(p.yres/2)+sy;
 
@@ -685,7 +692,7 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
     // get high res from archive
     if (sdl_zip2) {
         sprintf(filename,"%08d.png",sprite);
-        if (sdl_load_image_png(si,filename,sdl_zip2,do_smoothify(sprite))==0) return 0;
+        if (sdl_load_image_png_(si,filename,sdl_zip2)==0) return 0;
     }
 
 #if 1

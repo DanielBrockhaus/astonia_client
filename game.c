@@ -30,7 +30,6 @@ extern int chrsel;
 extern unsigned int now;
 
 extern int nocut;
-extern int allcut;
 
 extern int mapoffx,mapoffy;
 
@@ -602,28 +601,11 @@ void set_map_sprites(struct map *cmap,int attick) {
     }
 }
 
-static void set_map_cut_old(struct map *cmap) {
-    int i;
-    unsigned int tmp;
-
-    for (i=0; i<maxquick; i++) {
-        tmp=abs(is_cut_sprite(cmap[quick[i].mn[4]].rf.sprite));
-        if (tmp!=cmap[quick[i].mn[4]].rf.sprite) cmap[quick[i].mn[4]].rf.sprite=tmp;
-
-        tmp=abs(is_cut_sprite(cmap[quick[i].mn[4]].rf2.sprite));
-        if (tmp!=cmap[quick[i].mn[4]].rf2.sprite) cmap[quick[i].mn[4]].rf2.sprite=tmp;
-
-        tmp=abs(is_cut_sprite(cmap[quick[i].mn[4]].ri.sprite));
-        if (tmp!=cmap[quick[i].mn[4]].ri.sprite) cmap[quick[i].mn[4]].ri.sprite=tmp;
-    }
-}
-
 static void set_map_cut(struct map *cmap) {
     int i,mn,mn2,i2;
     unsigned int tmp;
 
     if (nocut) return;
-    if (allcut) { set_map_cut_old(cmap); return; }
 
     // change sprites
     for (i=0; i<maxquick; i++) {
@@ -644,7 +626,7 @@ static void set_map_cut(struct map *cmap) {
         cmap[quick[i].mn[4]].mmf|=MMF_CUT;
     }
     for (i=0; i<maxquick; i++) {
-        if (!allcut && !(cmap[quick[i].mn[4]].mmf&MMF_CUT)) continue;
+        if (!(cmap[quick[i].mn[4]].mmf&MMF_CUT)) continue;
 
         if (is_cut_sprite(cmap[quick[i].mn[4]].rf.sprite)<0 &&
             ((!(cmap[quick[i].mn[1]].mmf&MMF_CUT) && is_cut_sprite(cmap[quick[i].mn[1]].rf.sprite)) ||

@@ -48,7 +48,6 @@ int socktimeout=0;
 int change_area=0;
 int kicked_out=0;
 int target_port=5556;
-int backup_server=0;
 unsigned int unique=0;
 unsigned int usum=0;
 
@@ -134,7 +133,6 @@ char look_desc[1024];
 char pent_str[7][80];
 
 int pspeed=0;   // 0=normal   1=fast      2=stealth     - like the server
-int pcombat=0;  // 0=balanced 1=offensive 2=defensive   - i dunno
 
 int may_teleport[64+32];
 
@@ -401,8 +399,8 @@ void sv_speedmode(unsigned char *buf) {
     pspeed=buf[1];
 }
 
+// unused in vanilla server
 void sv_fightmode(unsigned char *buf) {
-    pcombat=buf[1];
 }
 
 void sv_setcitem(unsigned char *buf) {
@@ -769,13 +767,14 @@ void sv_lookinv(unsigned char *buf) {
     show_look=1;
 }
 
-void sv_server_old(unsigned char *buf) {
-    change_area=1;
-    target_port=*(unsigned short *)(buf+5);
-}
-
 void sv_server(unsigned char *buf) {
     change_area=1;
+    // TODO: The following line is needed if the area servers are not all on the same IP
+    // address. BUT the vanilla server has a wrong IP hardcoded and this breaks the clients
+    // for the most common case of a single host running all areas. So. Commented out:
+
+    //target_server=*(unsigned int *)(buf+1);
+
     target_port=*(unsigned short *)(buf+5);
 }
 
@@ -1158,14 +1157,6 @@ void cmd_speed(int mode) {
     client_send(buf,2);
 }
 
-void cmd_combat(int mode) {
-    char buf[16];
-
-    buf[0]=CL_FIGHTMODE;
-    buf[1]=mode;
-    client_send(buf,2);
-}
-
 void cmd_teleport(int nr) {
     char buf[64];
 
@@ -1410,7 +1401,6 @@ void bzero_client(int part) {
         show_look=0;
 
         pspeed=0;
-        pcombat=0;
         pent_str[0][0]=pent_str[1][0]=pent_str[2][0]=pent_str[3][0]=pent_str[4][0]=pent_str[5][0]=pent_str[6][0]=0;
 
         bzero(may_teleport,sizeof(may_teleport));

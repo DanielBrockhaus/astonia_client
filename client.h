@@ -321,7 +321,7 @@ union ceffect {
 #define SV_UEFFECT		35
 #define SV_REALTIME		36
 #define SV_SPEEDMODE		37
-#define SV_FIGHTMODE		38
+#define SV_FIGHTMODE		38      // unused in vanilla server
 #define SV_CONTYPE		39
 #define SV_CONNAME		40
 #define SV_LS 		  	41
@@ -377,7 +377,7 @@ union ceffect {
 #define CL_DROP_GOLD		29
 #define CL_JUNK_ITEM		30
 #define CL_CLIENTINFO		31
-#define CL_FIGHTMODE		32
+
 #define CL_TICKER		33
 #define CL_CONTAINER_FAST	34
 #define CL_FASTSELL		35
@@ -514,7 +514,6 @@ void cmd_look_char(int cn);
 void cmd_use(int x,int y);
 void cmd_drop(int x,int y);
 void cmd_speed(int mode);
-void cmd_combat(int mode);
 void cmd_log(char *text);
 void cmd_stop(void);
 void cmd_kill(int cn);
@@ -593,7 +592,6 @@ extern int lookinv[12];
 extern int looklevel;
 
 extern int pspeed;   // 0=ill 1=stealth 2=normal 3=fast
-extern int pcombat;  // 0=ill 1=defensive 2=balanced 3=offensive
 
 #endif
 

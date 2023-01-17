@@ -2340,7 +2340,8 @@ int get_player_sprite(int nr,int zdir,int action,int step,int duration,int attic
     base=100000+nr*1000;
 
     // translate idle action 0 to 60, this runs the idle animation instead of showing the single idle image
-    if (action==0) switch (nr) {
+    if (action==0) {
+        switch (nr) {
             case 45: // !!!
             case 63:
             case 64:
@@ -2371,8 +2372,15 @@ int get_player_sprite(int nr,int zdir,int action,int step,int duration,int attic
                 step=attick%16;
                 duration=16;
                 break;
+            case 120:   // 120 is our test slot, to be kept empty. It is also used to showcase slower idle animations
+                action=60;
+                step=attick%32;
+                duration=32;
+                break;
+
             default: break;
         }
+    }
 
     if (nr==21) { // spiders action override
         if (action==2 || action==3 || (action>=6 && action<=49) || action>60) action=4;

@@ -15,16 +15,12 @@ it is easier...
 
 /* DAZ3D Animation Track:
 
-TODO: move all 8X animation to the front of the track
-so we can stop rendering at an earlier frame for the
-extra directions
-
 00      Standing Still (0)      8X
 01-08   Walking (8)             8X
 09      (reference frame)
 10-17   Directed Magic (232)    8X
 18      (reference frame)
-18-26   Idle (800)              8X
+19-26   Idle (800)              8X
 27      (reference frame)
 28-35   Use / Give (72)         4X
 36      (reference frame)

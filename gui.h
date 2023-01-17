@@ -52,7 +52,7 @@ extern unsigned short int textcolor;
 #define DOT_SKL         12      // skill list
 #define DOT_GLD         13      // gold
 #define DOT_JNK         14      // trashcan
-#define DOT_MOD         15      // combat and walk(?)
+#define DOT_MOD         15      // speed mode
 #define DOT_MCT         16      // map center
 #define DOT_TOP         17      // top left corner of equipment bar
 #define DOT_BOT         18      // top left corner of bottom window holding skills, chat, etc.
@@ -105,21 +105,19 @@ typedef struct dot DOT;         // dot 0 is top left, dot 1 is bottom right of t
 #define BUT_MOD_WALK0   69
 #define BUT_MOD_WALK1   70
 #define BUT_MOD_WALK2   71
-#define BUT_MOD_COMB0   72
-#define BUT_MOD_COMB1   73
-#define BUT_MOD_COMB2   74
-#define BUT_TEL		75
-#define BUT_HELP_NEXT	76
-#define BUT_HELP_PREV	77
-#define BUT_HELP_MISC	78
-#define BUT_HELP_CLOSE	79
-#define BUT_EXIT	80
-#define BUT_HELP	81
-#define BUT_NOLOOK	82
-#define BUT_COLOR	83
-#define BUT_SKL_LOOK	84
-#define BUT_QUEST	85
-#define MAX_BUT         86
+
+#define BUT_TEL		    72
+#define BUT_HELP_NEXT	73
+#define BUT_HELP_PREV	74
+#define BUT_HELP_MISC	75
+#define BUT_HELP_CLOSE	76
+#define BUT_EXIT	    77
+#define BUT_HELP	    78
+#define BUT_NOLOOK	    79
+#define BUT_COLOR	    80
+#define BUT_SKL_LOOK	81
+#define BUT_QUEST	    82
+#define MAX_BUT         83
 
 #define BUTF_NOHIT      (1<<1)  // button is ignored int hit processing
 #define BUTF_CAPTURE    (1<<2)  // button captures mouse on lclick

@@ -59,7 +59,6 @@ int display_help=0,display_quest=0;
 
 int playersprite_override=0;
 int nocut=0;
-int allcut=0;
 
 int update_skltab=0;
 int show_look=0;
@@ -296,9 +295,6 @@ int curspell_r=6;               // index into spelltab
 #define CMD_SPEED0              55
 #define CMD_SPEED1              56
 #define CMD_SPEED2              57
-#define CMD_COMBAT0             58
-#define CMD_COMBAT1             59
-#define CMD_COMBAT2             60
 
 #define CMD_CON_FASTTAKE	    61
 #define CMD_CON_FASTBUY		    62
@@ -1749,10 +1745,7 @@ static void set_cmd_cursor(int cmd) {
 
         case CMD_SPEED0:
         case CMD_SPEED1:
-        case CMD_SPEED2:
-        case CMD_COMBAT0:
-        case CMD_COMBAT1:
-        case CMD_COMBAT2:       cursor=SDL_CUR_c_set; break;
+        case CMD_SPEED2:        cursor=SDL_CUR_c_set; break;
 
         case CMD_TELEPORT:	    cursor=SDL_CUR_c_take; break;
 
@@ -2286,7 +2279,6 @@ static void set_cmd_states(void) {
         if (vk_item && butsel==BUT_JNK) lcmd=CMD_JUNK_ITEM;
 
         if (butsel>=BUT_MOD_WALK0 && butsel<=BUT_MOD_WALK2) lcmd=CMD_SPEED0+butsel-BUT_MOD_WALK0;
-        if (butsel>=BUT_MOD_COMB0 && butsel<=BUT_MOD_COMB2) lcmd=CMD_COMBAT0+butsel-BUT_MOD_COMB0;
 
         if (butsel==BUT_HELP_MISC) lcmd=CMD_HELP_MISC;
         if (butsel==BUT_HELP_PREV) lcmd=CMD_HELP_PREV;
@@ -2411,9 +2403,6 @@ static void exec_cmd(int cmd,int a) {
         case CMD_SPEED0:        if (pspeed!=0) cmd_speed(0); return;
         case CMD_SPEED1:        if (pspeed!=1) cmd_speed(1); return;
         case CMD_SPEED2:        if (pspeed!=2) cmd_speed(2); return;
-        case CMD_COMBAT0:       if (pcombat!=0) cmd_combat(0); return;
-        case CMD_COMBAT1:       if (pcombat!=1) cmd_combat(1); return;
-        case CMD_COMBAT2:       if (pcombat!=2) cmd_combat(2); return;
 
         case CMD_TELEPORT:	if (telsel==1042) clan_offset=16-clan_offset;
             else {
@@ -3024,9 +3013,6 @@ int main_init(void) {
     set_but(BUT_MOD_WALK0,dot[DOT_MOD].x+1*14,dot[DOT_MOD].y+0*30,30,BUTID_MOD,0,0);
     set_but(BUT_MOD_WALK1,dot[DOT_MOD].x+0*14,dot[DOT_MOD].y+0*30,30,BUTID_MOD,0,0);
     set_but(BUT_MOD_WALK2,dot[DOT_MOD].x+2*14,dot[DOT_MOD].y+0*30,30,BUTID_MOD,0,0);
-    set_but(BUT_MOD_COMB0,dot[DOT_MOD].x+1*10,dot[DOT_MOD].y+1*30,30,BUTID_MOD,0,0);
-    set_but(BUT_MOD_COMB1,dot[DOT_MOD].x+0*10,dot[DOT_MOD].y+1*30,30,BUTID_MOD,0,0);
-    set_but(BUT_MOD_COMB2,dot[DOT_MOD].x+2*10,dot[DOT_MOD].y+1*30,30,BUTID_MOD,0,0);
 
     // other
     set_invoff(0,0);
