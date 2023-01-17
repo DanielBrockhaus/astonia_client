@@ -656,7 +656,7 @@ int dd_char_len(char c) {
 
 #define TEXTDISPLAYLINES	(TEXTDISPLAY_SY/TEXTDISPLAY_DY)
 
-int textnextline=0,textdisplayline=0;
+int textnextline=0,textdisplayline=0,textlines=0;
 
 struct letter {
     char c;
@@ -699,7 +699,7 @@ void dd_set_textfont(int nr) {
         case 1:	textfont=fontc; textdisplay_dy=12; break;
     }
     bzero(text,MAXTEXTLINES*MAXTEXTLETTERS*sizeof(struct letter));
-    textnextline=textdisplayline=0;
+    textnextline=textdisplayline=textlines=0;
 }
 
 void dd_display_text(void) {
@@ -758,8 +758,6 @@ void dd_add_text(char *ptr) {
     bzero(text+pos,sizeof(struct letter)*MAXTEXTLETTERS);
 
     while (*ptr) {
-
-
         while (*ptr==' ') ptr++;
         while (*ptr=='°') {
             ptr++;
@@ -820,6 +818,7 @@ void dd_add_text(char *ptr) {
 
     textnextline=(textnextline+1)%MAXTEXTLINES;
     if (textnextline==textdisplayline) textdisplayline=(textdisplayline+1)%MAXTEXTLINES;
+    textlines++;
 }
 
 int dd_text_init_done(void) {
@@ -869,34 +868,33 @@ int dd_scantext(int x,int y,char *hit) {
 void dd_text_lineup(void) {
     int tmp;
 
+    if (textlines<=TEXTDISPLAYLINES) return;
+
     tmp=(textdisplayline+MAXTEXTLINES-1)%MAXTEXTLINES;
+    if (textlines<MAXTEXTLETTERS && tmp>textlines) return;
     if (tmp!=textnextline) textdisplayline=tmp;
-}
-
-void dd_text_pageup(void) {
-    int n,tmp;
-
-    for (n=0; n<TEXTDISPLAYLINES; n++) {
-        tmp=(textdisplayline+MAXTEXTLINES-1)%MAXTEXTLINES;
-        if (tmp==textnextline) break;
-        textdisplayline=tmp;
-    }
 }
 
 void dd_text_linedown(void) {
     int tmp;
 
+    if (textlines<=TEXTDISPLAYLINES) return;
+
     tmp=(textdisplayline+1)%MAXTEXTLINES;
     if (tmp!=(textnextline+MAXTEXTLINES-TEXTDISPLAYLINES+1)%MAXTEXTLINES) textdisplayline=tmp;
 }
 
-void dd_text_pagedown(void) {
-    int n,tmp;
+void dd_text_pageup(void) {
+    int n;
 
-    for (n=0; n<TEXTDISPLAYLINES; n++) {
-        tmp=(textdisplayline+1)%MAXTEXTLINES;
-        if (tmp==(textnextline+MAXTEXTLINES-TEXTDISPLAYLINES+1)%MAXTEXTLINES) break;
-        textdisplayline=tmp;
-    }
+    for (n=0; n<TEXTDISPLAYLINES; n++)
+        dd_text_lineup();
+}
+
+void dd_text_pagedown(void) {
+    int n;
+
+    for (n=0; n<TEXTDISPLAYLINES; n++)
+        dd_text_linedown();
 }
 

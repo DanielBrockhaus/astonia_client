@@ -2339,6 +2339,7 @@ int get_player_sprite(int nr,int zdir,int action,int step,int duration,int attic
 
     base=100000+nr*1000;
 
+    // translate idle action 0 to 60, this runs the idle animation instead of showing the single idle image
     if (action==0) switch (nr) {
             case 45: // !!!
             case 63:

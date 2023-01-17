@@ -56,7 +56,11 @@ extern unsigned short int textcolor;
 #define DOT_MCT         16      // map center
 #define DOT_TOP         17      // top left corner of equipment bar
 #define DOT_BOT         18      // top left corner of bottom window holding skills, chat, etc.
-#define MAX_DOT         19
+#define DOT_TX2         19      // chat window bottom right
+#define DOT_SK2         20      // skill list window bottom right
+#define DOT_IN1         21      // inventory top left
+#define DOT_IN2         22      // inventory bottom right
+#define MAX_DOT         23
 
 #define DOTF_TOPOFF     (1<<0)  // dot moves with top bar
 

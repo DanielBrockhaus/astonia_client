@@ -2834,76 +2834,86 @@ void gui_sdl_keyproc(int wparam) {
     }
 }
 
-#define SDL_MOUM_NONE       0
-#define SDL_MOUM_LUP        1
-#define SDL_MOUM_LDOWN      2
-#define SDL_MOUM_RUP        3
-#define SDL_MOUM_RDOWN      4
-#define SDL_MOUM_MUP        5
-#define SDL_MOUM_MDOWN      6
-
 void gui_sdl_mouseproc(int x,int y,int what) {
     extern int x_offset,y_offset;
+    int delta;
 
     switch (what) {
         case SDL_MOUM_NONE:
-                mousex=x;
-                mousey=y;
+            mousex=x;
+            mousey=y;
 
-                if (capbut!=-1) {
-                    if (mousex!=XRES/2 || mousey!=YRES/2) {
-                        mousedx+=mousex-(XRES/2);
-                        mousedy+=mousey-(YRES/2);
-                        sdl_set_cursor_pos(XRES/2,YRES/2);
-                    }
-                }
-
-                mousex/=mouse_scale;
-                mousey/=mouse_scale;
-                mousex-=x_offset;
-                mousey-=y_offset;
-
-                if (butsel!=-1 && vk_lbut && (but[butsel].flags&BUTF_MOVEEXEC)) exec_cmd(lcmd,0);
-                break;
-
-            case SDL_MOUM_LDOWN:
-                vk_lbut=1;
-
-                if (butsel!=-1 && capbut==-1 && (but[butsel].flags&BUTF_CAPTURE)) {
-                    sdl_show_cursor(0);
-                    sdl_capture_mouse(1);
-                    mousedx=0;
-                    mousedy=0;
+            if (capbut!=-1) {
+                if (mousex!=XRES/2 || mousey!=YRES/2) {
+                    mousedx+=mousex-(XRES/2);
+                    mousedy+=mousey-(YRES/2);
                     sdl_set_cursor_pos(XRES/2,YRES/2);
-                    capbut=butsel;
                 }
-                break;
+            }
+
+            mousex/=mouse_scale;
+            mousey/=mouse_scale;
+            mousex-=x_offset;
+            mousey-=y_offset;
+
+            if (butsel!=-1 && vk_lbut && (but[butsel].flags&BUTF_MOVEEXEC)) exec_cmd(lcmd,0);
+            break;
+
+        case SDL_MOUM_LDOWN:
+            vk_lbut=1;
+
+            if (butsel!=-1 && capbut==-1 && (but[butsel].flags&BUTF_CAPTURE)) {
+                sdl_show_cursor(0);
+                sdl_capture_mouse(1);
+                mousedx=0;
+                mousedy=0;
+                sdl_set_cursor_pos(XRES/2,YRES/2);
+                capbut=butsel;
+            }
+            break;
 
 
-            case SDL_MOUM_LUP:
-                vk_lbut=0;
-                if (capbut!=-1) {
-                    sdl_set_cursor_pos(but[capbut].x*mouse_scale+x_offset,but[capbut].y*mouse_scale+y_offset);
-                    sdl_capture_mouse(0);
-                    sdl_show_cursor(1);
-                    if (!(but[capbut].flags&BUTF_MOVEEXEC)) exec_cmd(lcmd,0);
-                    capbut=-1;
-                } else
-                exec_cmd(lcmd,0);
-                break;
+        case SDL_MOUM_LUP:
+            vk_lbut=0;
+            if (capbut!=-1) {
+                sdl_set_cursor_pos(but[capbut].x*mouse_scale+x_offset,but[capbut].y*mouse_scale+y_offset);
+                sdl_capture_mouse(0);
+                sdl_show_cursor(1);
+                if (!(but[capbut].flags&BUTF_MOVEEXEC)) exec_cmd(lcmd,0);
+                capbut=-1;
+            } else exec_cmd(lcmd,0);
+            break;
 
-            case SDL_MOUM_RDOWN:
-                vk_rbut=1;
-                break;
+        case SDL_MOUM_RDOWN:
+            vk_rbut=1;
+            break;
 
-            case SDL_MOUM_RUP:
-                vk_rbut=0;
-                exec_cmd(rcmd,0);
-                break;
+        case SDL_MOUM_RUP:
+            vk_rbut=0;
+            exec_cmd(rcmd,0);
+            break;
 
-//          TODO: change mousewheel to scroll windows instead of the command list
-//          TODO: check if removing the middle mouse button causes any problems; remove related variables
+        case SDL_MOUM_WHEEL:
+            delta=y;
 
+            if (mousex>=dotx(DOT_SKL) && mousex<dotx(DOT_SK2) && mousey>=doty(DOT_SKL) && mousey<doty(DOT_SK2)) {	// skill / depot / merchant
+				while (delta>0) { if (!con_cnt) set_skloff(0,skloff-1); else set_conoff(0,conoff-1); delta--; }
+				while (delta<0) { if (!con_cnt) set_skloff(0,skloff+1); else set_conoff(0,conoff+1); delta++; }
+				break;
+			}
+
+			if (mousex>=dotx(DOT_TXT) && mousex<dotx(DOT_TX2) && mousey>=doty(DOT_TXT) && mousey<doty(DOT_TX2)) {	// chat
+				while (delta>0) { dd_text_lineup(); dd_text_lineup(); dd_text_lineup(); delta--; }
+				while (delta<0) { dd_text_linedown(); dd_text_linedown(); dd_text_linedown(); delta++; }
+				break;
+			}
+
+			if (mousex>=dotx(DOT_IN1) && mousex<dotx(DOT_IN2) && mousey>=doty(DOT_IN1) && mousey<doty(DOT_IN2)) {	// inventory
+				while (delta>0) { set_invoff(0,invoff-1); delta--; }
+				while (delta<0) { set_invoff(0,invoff+1); delta++; }
+				break;
+			}
+            break;
     }
 }
 
@@ -2951,6 +2961,10 @@ int main_init(void) {
     set_dot(DOT_INV,660,398,0);
     set_dot(DOT_CON,20,398,0);
 
+    // inventory top left and bottom right
+    set_dot(DOT_IN1,645,378,0);
+    set_dot(DOT_IN2,795,538,0);
+
     // top and bottom window
     set_dot(DOT_TOP,0,  0,DOTF_TOPOFF);
     set_dot(DOT_BOT,0,370,0);
@@ -2963,9 +2977,11 @@ int main_init(void) {
 
     // chat text
     set_dot(DOT_TXT,230,378,0);
+    set_dot(DOT_TX2,624,538,0);
 
     // skill list
     set_dot(DOT_SKL,8,384,0);
+    set_dot(DOT_SK2,156,538,0);
 
     // gold
     set_dot(DOT_GLD,195,520,0);

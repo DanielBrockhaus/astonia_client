@@ -1906,14 +1906,6 @@ void gui_sdl_keyproc(int wparam);
 void gui_sdl_mouseproc(int x,int y,int but);
 void cmd_proc(int key);
 
-#define SDL_MOUM_NONE       0
-#define SDL_MOUM_LUP        1
-#define SDL_MOUM_LDOWN      2
-#define SDL_MOUM_RUP        3
-#define SDL_MOUM_RDOWN      4
-#define SDL_MOUM_MUP        5
-#define SDL_MOUM_MDOWN      6
-
 void sdl_loop(void) {
     SDL_Event event;
 
@@ -1941,7 +1933,9 @@ void sdl_loop(void) {
                 if (event.button.button==SDL_BUTTON_MIDDLE) gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_MUP);
                 if (event.button.button==SDL_BUTTON_RIGHT) gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_RUP);
                 break;
-
+            case SDL_MOUSEWHEEL:
+                gui_sdl_mouseproc(event.wheel.x,event.wheel.y,SDL_MOUM_WHEEL);
+                break;
         }
     }
 }
