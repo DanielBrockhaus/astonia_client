@@ -32,7 +32,7 @@ it is easier...
 63      (reference frame)
 64-71   Attack 3 (200)          4X
 72      (reference frame)
-73-80   Freeze / Warcry (296)   4X  (+heal)
+73-80   Freeze / Warcry (296)   4X  (+ Heal, Bless)
 81      (reference frame)
 82-89   Die (328)               4X
 90      (reference frame)

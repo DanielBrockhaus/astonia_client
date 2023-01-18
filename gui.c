@@ -974,17 +974,17 @@ char tutor_text[1024]={""};
 int show_tutor=0;
 
 void display_tutor(void) {
-    int x,y,n,mx=dotx(DOT_BOT)+626,my=doty(DOT_BOT)-370+416;
+    int x,y,n,mx=dotx(DOT_BOT)+626,my=doty(DOT_BOT)-370+416-80;
     char *ptr,buf[80];
 
     if (!show_tutor) return;
 
     // TODO: test me
-    dd_rect(dotx(DOT_BOT)+220,doty(DOT_BOT)-370+350-20,dotx(DOT_BOT)+630,doty(DOT_BOT)-370+426-20,IRGB(24,22,16));
-    dd_line(dotx(DOT_BOT)+220,doty(DOT_BOT)-370+350-20,dotx(DOT_BOT)+630,doty(DOT_BOT)-370+350-20,IRGB(12,10,4));
-    dd_line(dotx(DOT_BOT)+630,doty(DOT_BOT)-370+350-20,dotx(DOT_BOT)+630,doty(DOT_BOT)-370+426-20,IRGB(12,10,4));
-    dd_line(dotx(DOT_BOT)+220,doty(DOT_BOT)-370+426-20,dotx(DOT_BOT)+360,doty(DOT_BOT)-370+426-20,IRGB(12,10,4));
-    dd_line(dotx(DOT_BOT)+220,doty(DOT_BOT)-370+350-20,dotx(DOT_BOT)+220,doty(DOT_BOT)-370+426-20,IRGB(12,10,4));
+    dd_rect(dotx(DOT_BOT)+220,doty(DOT_BOT)-370+350-100,dotx(DOT_BOT)+630,doty(DOT_BOT)-370+426-100,IRGB(24,22,16));
+    dd_line(dotx(DOT_BOT)+220,doty(DOT_BOT)-370+350-100,dotx(DOT_BOT)+630,doty(DOT_BOT)-370+350-100,IRGB(12,10,4));
+    dd_line(dotx(DOT_BOT)+630,doty(DOT_BOT)-370+350-100,dotx(DOT_BOT)+630,doty(DOT_BOT)-370+426-100,IRGB(12,10,4));
+    dd_line(dotx(DOT_BOT)+220,doty(DOT_BOT)-370+426-100,dotx(DOT_BOT)+360,doty(DOT_BOT)-370+426-100,IRGB(12,10,4));
+    dd_line(dotx(DOT_BOT)+220,doty(DOT_BOT)-370+350-100,dotx(DOT_BOT)+220,doty(DOT_BOT)-370+426-100,IRGB(12,10,4));
 
     x=dotx(DOT_BOT)+224; y=doty(DOT_BOT)-370+354-20; ptr=tutor_text;
     while (*ptr) {

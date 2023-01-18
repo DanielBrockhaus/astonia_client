@@ -117,6 +117,9 @@ int sdl_cache_size=5000;
 zip_t *sdl_zip1=NULL;
 zip_t *sdl_zip2=NULL;
 
+zip_t *sdl_zip1p=NULL;
+zip_t *sdl_zip2p=NULL;
+
 int sdl_pre_backgnd(void *ptr);
 int sdl_create_cursors(void);
 
@@ -210,12 +213,22 @@ int sdl_init(int width,int height,char *title) {
     }
 
     sdl_zip1=zip_open("gx1.zip",ZIP_RDONLY,NULL);
-    switch (sdl_scale) {
-        case 2:     sdl_zip2=zip_open("gx2.zip",ZIP_RDONLY,NULL);
-        case 3:     sdl_zip2=zip_open("gx3.zip",ZIP_RDONLY,NULL);
-        case 4:     sdl_zip2=zip_open("gx4.zip",ZIP_RDONLY,NULL);
-    }
+    sdl_zip1p=zip_open("gx1_patch.zip",ZIP_RDONLY,NULL);
 
+    switch (sdl_scale) {
+        case 2:
+            sdl_zip2=zip_open("gx2.zip",ZIP_RDONLY,NULL);
+            sdl_zip2p=zip_open("gx2_patch.zip",ZIP_RDONLY,NULL);
+            break;
+        case 3:
+            sdl_zip2=zip_open("gx3.zip",ZIP_RDONLY,NULL);
+            sdl_zip2p=zip_open("gx3_patch.zip",ZIP_RDONLY,NULL);
+            break;
+        case 4:
+            sdl_zip2=zip_open("gx4.zip",ZIP_RDONLY,NULL);
+            sdl_zip2p=zip_open("gx4_patch.zip",ZIP_RDONLY,NULL);
+            break;
+    }
 
     if (enable_sound && Mix_OpenAudio(44100,MIX_DEFAULT_FORMAT,2,2048)<0) {
         warn("initializing audio failed");
@@ -696,12 +709,13 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
     }
 
     // get high res from archive
-    if (sdl_zip2) {
+    if (sdl_zip2 || sdl_zip2p) {
         sprintf(filename,"%08d.png",sprite);
-        if (sdl_load_image_png_(si,filename,sdl_zip2)==0) return 0;
+        if (sdl_zip2p && sdl_load_image_png_(si,filename,sdl_zip2p)==0) return 0;    // check patch archive first
+        if (sdl_zip2 && sdl_load_image_png_(si,filename,sdl_zip2)==0) return 0;
     }
 
-#if 1
+#if 0
     // get high res from png folder
     if (sdl_scale>1) {
         sprintf(filename,"../gfx/x%d/%08d/%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
@@ -710,10 +724,18 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
 #endif
 
     // get standard from archive
-    if (sdl_zip1) {
+    if (sdl_zip1 || sdl_zip2p) {
         sprintf(filename,"%08d.png",sprite);
-        if (sdl_load_image_png(si,filename,sdl_zip1,do_smoothify(sprite))==0) return 0;
+        if (sdl_zip1p && sdl_load_image_png(si,filename,sdl_zip1p,do_smoothify(sprite))==0) return 0;
+        if (sdl_zip1 && sdl_load_image_png(si,filename,sdl_zip1,do_smoothify(sprite))==0) return 0;
     }
+
+#if 0
+    // get standard from png folder
+    sprintf(filename,"../gfx/x%d/%08d/%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
+    if (sdl_load_image_png_(si,filename,NULL)==0) return 0;
+#endif
+
 
 #if 0
     // get standard from png folder
