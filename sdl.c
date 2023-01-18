@@ -29,13 +29,8 @@
 SDL_Window *sdlwnd;
 SDL_Renderer *sdlren;
 
-#if 1
-#define MAX_TEXCACHE    4000
-#define MAX_TEXHASH     2500
-#else
-#define MAX_TEXCACHE    15000
-#define MAX_TEXHASH     10000
-#endif
+#define MAX_TEXCACHE    (sdl_cache_size)
+#define MAX_TEXHASH     (sdl_cache_size)    // Note: MAX_TEXCACHE and MAX_TEXHASH do not have to be the same value. It just turned out to work well if they are.
 
 #define STX_NONE        (-1)
 
@@ -116,6 +111,8 @@ long long sdl_time_pre3=0;
 int sdl_scale=1;
 int sdl_frames=0;
 int sdl_multi=4;
+int sdl_fullscreen=0;
+int sdl_cache_size=5000;
 
 zip_t *sdl_zip1=NULL;
 zip_t *sdl_zip2=NULL;
@@ -146,9 +143,10 @@ int sdl_init(int width,int height,char *title) {
 	    return 0;
     }
 
-    if (DM.w==width && DM.h==height) {
-        //SDL_SetWindowFullscreen(sdlwnd,SDL_WINDOW_FULLSCREEN);  // true full screen
-        SDL_SetWindowFullscreen(sdlwnd,SDL_WINDOW_FULLSCREEN_DESKTOP); // borderless windowed
+    if (sdl_fullscreen) {
+        SDL_SetWindowFullscreen(sdlwnd,SDL_WINDOW_FULLSCREEN);          // true full screen
+    } else if (DM.w==width && DM.h==height) {
+        SDL_SetWindowFullscreen(sdlwnd,SDL_WINDOW_FULLSCREEN_DESKTOP);  // borderless windowed
     }
 
     sdlren=SDL_CreateRenderer(sdlwnd, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -502,7 +500,11 @@ int sdl_load_image_png_(struct sdl_image *si,char *filename,zip_t *zip) {
     si->xoff=-(p.xres/2)+sx;
     si->yoff=-(p.yres/2)+sy;
 
+#ifdef SDL_FAST_MALLOC
+    si->pixel=malloc(si->xres*si->yres*sizeof(uint32_t));
+#else
     si->pixel=xmalloc(si->xres*si->yres*sizeof(uint32_t),MEM_SDL_PNG);
+#endif
     mem_png+=si->xres*si->yres*sizeof(uint32_t);
 
     for (y=0; y<si->yres; y++) {
@@ -584,7 +586,11 @@ int sdl_load_image_png(struct sdl_image *si,char *filename,zip_t *zip,int smooth
     si->xoff=-(p.xres/2)+sx;
     si->yoff=-(p.yres/2)+sy;
 
+#ifdef SDL_FAST_MALLOC
+    si->pixel=malloc(si->xres*si->yres*sizeof(uint32_t)*sdl_scale*sdl_scale);
+#else
     si->pixel=xmalloc(si->xres*si->yres*sizeof(uint32_t)*sdl_scale*sdl_scale,MEM_SDL_PNG);
+#endif
     mem_png+=si->xres*si->yres*sizeof(uint32_t);
 
     for (y=0; y<si->yres; y++) {
@@ -965,8 +971,11 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
             note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
             return;
         }
-
+#ifdef SDL_FAST_MALLOC
+        st->pixel=malloc(st->xres*st->yres*sizeof(uint32_t)*sdl_scale*sdl_scale);
+#else
         st->pixel=xmalloc(st->xres*st->yres*sizeof(uint32_t)*sdl_scale*sdl_scale,MEM_SDL_PIXEL);
+#endif
         st->flags|=SF_DIDALLOC;
     }
 
@@ -1181,7 +1190,11 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
         if (!texture) warn("SDL_texture Error: %s in sprite %d (%s, %d,%d) preload=%d",SDL_GetError(),st->sprite,st->text,st->xres,st->yres,preload);
         SDL_UpdateTexture(texture,NULL,st->pixel,st->xres*sizeof(uint32_t)*sdl_scale);
         SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
+#ifdef SDL_FAST_MALLOC
+        free(st->pixel);
+#else
         xfree(st->pixel);
+#endif
         st->pixel=NULL;
         st->tex=texture;
 
@@ -1427,7 +1440,11 @@ int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,in
             warn("Delete unfinished texture?? stx=%d, sprite=%d",stx,sdlt[stx].sprite);
         }
 
+#ifdef SDL_FAST_MALLOC
+        if (sdlt[stx].flags&SF_TEXT) free(sdlt[stx].text);
+#else
         if (sdlt[stx].flags&SF_TEXT) xfree(sdlt[stx].text);
+#endif
 
         sdlt[stx].flags=0;
     }
@@ -1440,7 +1457,11 @@ int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,in
         sdlt[stx].text_color=text_color;
         sdlt[stx].text_flags=text_flags;
         sdlt[stx].text_font=text_font;
+#ifdef SDL_FAST_MALLOC
+        sdlt[stx].text=strdup(text);
+#else
         sdlt[stx].text=xstrdup(text,MEM_TEMP7);
+#endif
         if (sdlt[stx].tex) {
             SDL_QueryTexture(sdlt[stx].tex,NULL,NULL,&w,&h);
             sdlt[stx].xres=w;
@@ -1566,7 +1587,11 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
 
     if (flags&(DD__FRAMEFONT|DD__SHADEFONT)) sizex+=sdl_scale*2;
 
+#ifdef SDL_FAST_MALLOC
+    pixel=calloc(sizex*MAXFONTHEIGHT,sizeof(uint32_t));
+#else
     pixel=xcalloc(sizex*MAXFONTHEIGHT*sizeof(uint32_t),MEM_SDL_PIXEL2);
+#endif
     if (pixel==NULL) return NULL;
 
     while (*text && *text!=DDT) {
@@ -1601,7 +1626,11 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
     }
 
     if (sizex<1 || sizey<1) {
+#ifdef SDL_FAST_MALLOC
+        free(pixel);
+#else
         xfree(pixel);
+#endif
         return NULL;
     }
     sizey++;
@@ -1612,7 +1641,11 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
     if (!texture) warn("SDL_texture Error: %s",SDL_GetError());
     SDL_UpdateTexture(texture,NULL,pixel,sizex*sizeof(uint32_t));
     SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
+#ifdef SDL_FAST_MALLOC
+    free(pixel);
+#else
     xfree(pixel);
+#endif
     sdl_time_tex+=SDL_GetTicks64()-start;
 
     return texture;
@@ -1697,7 +1730,6 @@ void sdl_dump_spritechache(void) {
     fprintf(fp,"\n%d unique sprites, %d sprites + %d texts of %d used. %.2fM texture memory.\n",uni,cnt,text,MAX_TEXCACHE,size/(1024.0*1024.0));
     fclose(fp);
     xfree(dumpidx);
-
 }
 #endif
 
@@ -2021,7 +2053,11 @@ uint32_t *sdl_load_png(char *filename,int *dx,int *dy) {
     if (dx) *dx=xres;
     if (dy) *dy=yres;
 
+#ifdef SDL_FAST_MALLOC
+    pixel=malloc(xres*yres*sizeof(uint32_t));
+#else
     pixel=xmalloc(xres*yres*sizeof(uint32_t),MEM_TEMP8);
+#endif
 
     if (format==4) {
         for (y=0; y<yres; y++) {

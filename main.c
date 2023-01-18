@@ -13,6 +13,7 @@
 #include <SDL2/SDL.h>
 
 #include "astonia.h"
+#include "engine.h"
 
 #define ISCLIENT
 #include "main.h"
@@ -483,10 +484,6 @@ void rrandomize(void) {
     srand(time(NULL));
 }
 
-void rseed(int seed) {
-    srand(seed);
-}
-
 int rrand(int range) {
     int r;
 
@@ -510,27 +507,15 @@ int net_exit(void) {
 
 // parsing command line
 
-char with_cmd;
-int with_nr;
-
-char filmfilename[1024];
-
-unsigned int validate_intra(unsigned int ip) {
-    if ((ip&0xff000000)==0x7f000000) return ip;
-    if ((ip&0xff000000)==0x0a000000) return ip;
-    if ((ip&0xffff0000)==0xac100000) return ip;
-    if ((ip&0xffff0000)==0xc0a80000) return ip;
-
-    return 0;
-}
-
 void display_usage(void) {
-    printf("Usage: moac -u playername -p password -d url [-w width] [-h height] [-l largetextenable] [-s soundenable] [-m threads] [-o options]\n\n");
+    printf("Usage: moac -u playername -p password -d url [-w width] [-h height] [-l largetextenable] [-s soundenable]\n");
+    printf(" ... [-m threads] [-o options] [-f fullscreen] [-c cachesize]\n\n");
     printf("url being, for example, \"server.astonia.com\" or \"192.168.77.132\" (without the quotes).\n");
     printf("width and height are the desired window size. If this matches the desktop size the client will start in windowed borderless pseudo-fullscreen mode.\n");
-    printf("largetextenable and soundenable can be either 0 or 1, for off or on.\n");
+    printf("fullscreen, largetextenable and soundenable can be either 0 or 1, for off or on.\n");
     printf("threads is the number of background threads the game should use. Use 0 to disable. Default is 4.\n");
     printf("options is a bitfield. Bit 0 (value of 1) enables the Dark GUI by Tegra.\n");
+    printf("cachesize is the size of the texture cache. Default is 5000. Very low numbers will crash!\n");
 }
 
 char server_url[256];
@@ -556,41 +541,51 @@ int parse_cmd(char *s) {
                 while (isspace(*s)) s++;
                 n=0; while (n<16 && *s && !isspace(*s)) password[n++]=*s++;
                 password[n]=0;
-            } else if (tolower(*s)=='d') {
+            } else if (tolower(*s)=='d') { // -d <server url>
                 s++;
                 while (isspace(*s)) s++;
                 n=0; while (n<250 && *s && !isspace(*s)) server_url[n++]=*s++;
-            } else if (tolower(*s)=='h') {    // -h horizontal_resolution
-                    s++;
-                    while (isspace(*s)) s++;
-                    want_height=strtol(s,&end,10);
-                    s=end;
-                    if (*s=='p') s++;
-            } else if (tolower(*s)=='w') {    // -w vertical_resolution
-                    s++;
-                    while (isspace(*s)) s++;
-                    want_width=strtol(s,&end,10);
-                    s=end;
-            } else if (tolower(*s)=='l') { //Large Text
-                    s++;
-                    while (isspace(*s)) s++;
-                    largetext=strtol(s,&end,10);
-                    s=end;
-            } else if (tolower(*s)=='s') { //Sound
-                    s++;
-                    while (isspace(*s)) s++;
-                    enable_sound=strtol(s,&end,10);
-                    s=end;
-            } else if (tolower(*s)=='m') { //Multi-Threaded
-                    s++;
-                    while (isspace(*s)) s++;
-                    sdl_multi=strtol(s,&end,10);
-                    s=end;
-            } else if (tolower(*s)=='o') { //option
-                    s++;
-                    while (isspace(*s)) s++;
-                    sprite_options=strtoull(s,&end,10);
-                    s=end;
+            } else if (tolower(*s)=='h') {    // -h <horizontal_resolution>
+                s++;
+                while (isspace(*s)) s++;
+                want_height=strtol(s,&end,10);
+                s=end;
+                if (*s=='p') s++;
+            } else if (tolower(*s)=='w') {    // -w <vertical_resolution>
+                s++;
+                while (isspace(*s)) s++;
+                want_width=strtol(s,&end,10);
+                s=end;
+            } else if (tolower(*s)=='l') { // -l Large Text
+                s++;
+                while (isspace(*s)) s++;
+                largetext=strtol(s,&end,10);
+                s=end;
+            } else if (tolower(*s)=='s') { // -s Sound
+                s++;
+                while (isspace(*s)) s++;
+                enable_sound=strtol(s,&end,10);
+                s=end;
+            } else if (tolower(*s)=='m') { // -m Multi-Threaded
+                s++;
+                while (isspace(*s)) s++;
+                sdl_multi=strtol(s,&end,10);
+                s=end;
+            } else if (tolower(*s)=='o') { // -o option
+                s++;
+                while (isspace(*s)) s++;
+                sprite_options=strtoull(s,&end,10);
+                s=end;
+            } else if (tolower(*s)=='f') { // -f fullscreen
+                s++;
+                while (isspace(*s)) s++;
+                sdl_fullscreen=strtol(s,&end,10);
+                s=end;
+            } else if (tolower(*s)=='c') { // -c cachesize
+                s++;
+                while (isspace(*s)) s++;
+                sdl_cache_size=strtol(s,&end,10);
+                s=end;
             } else { display_usage(); return -1; }
         } else { display_usage(); return -2; }
         while (isspace(*s)) s++;

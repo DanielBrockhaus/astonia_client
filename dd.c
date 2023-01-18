@@ -603,8 +603,11 @@ void dd_create_font(void) {
         dd_create_font_png(fonta,pixel,dx,dy,40*sdl_scale,sdl_scale);
         dd_create_font_png(fontb,pixel,dx,dy,0,sdl_scale);
         dd_create_font_png(fontc,pixel,dx,dy,80*sdl_scale,sdl_scale);
-
+#ifdef SDL_FAST_MALLOC
+        free(pixel);
+#else
         xfree(pixel);
+#endif
     }
 
     fonta_shaded=xmalloc(sizeof(DDFONT)*128,MEM_GLOB); create_shade_font(fonta,fonta_shaded);

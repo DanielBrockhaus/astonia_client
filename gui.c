@@ -3,6 +3,7 @@
  */
 
 #include <windows.h>
+#include <psapi.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <math.h>
@@ -1545,18 +1546,22 @@ static void display(void) {
     int duration=SDL_GetTicks64()-start;
 
     if (display_vc) {
-        extern long long mem_tex,texc_miss,texc_pre;
+        extern long long texc_miss,texc_pre; //mem_tex,
         extern uint64_t sdl_backgnd_wait,sdl_backgnd_work,sdl_time_preload,sdl_time_load,sdl_time_pre2,sdl_time_pre3,sdl_time_mutex,sdl_time_alloc,sdl_time_make_main;
         extern int x_offset,y_offset; //pre_2,pre_in,pre_3;
         //static int dur=0,make=0,tex=0,text=0,blit=0,stay=0;
         static int size;
-        static unsigned char dur_graph[100],load_graph[100],size1_graph[100],size2_graph[100]; //,size3_graph[100]; //,size_graph[100];
+        static unsigned char dur_graph[100],size1_graph[100],size2_graph[100]; //,size3_graph[100]; //,size_graph[100];load_graph[100],
         static unsigned char pre1_graph[100]; //,pre2_graph[100]; //,pre3_graph[100];
         int px=800-110,py=45+gui_topoff-10;
+        PROCESS_MEMORY_COUNTERS mi;
+
+        GetProcessMemoryInfo(GetCurrentProcess(),&mi,sizeof(mi));
 
         //dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"skip %3.0f%%",100.0*skip/tota);
         //dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"idle %3.0f%%",100.0*idle/tota);
-        dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME|DD_NOCACHE,"Tex: %5.2f MB",mem_tex/(1024.0*1024.0));
+        //dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME|DD_NOCACHE,"Tex: %5.2f MB",mem_tex/(1024.0*1024.0));
+        dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME|DD_NOCACHE,"Mem: %5.2f MB",mi.WorkingSetSize/(1024.0*1024.0));
 
 #if 0
         if (pre_in>=pre_3) size=pre_in-pre_3;
@@ -1569,8 +1574,9 @@ static void display(void) {
 
         py+=10;
 
+        size=duration+sdl_time_alloc;
         dd_drawtext(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME,"Render");
-        sdl_bargraph_add(sizeof(dur_graph),dur_graph,duration<42?duration:42);
+        sdl_bargraph_add(sizeof(dur_graph),dur_graph,size<42?size:42);
         sdl_bargraph(px,py+=40,sizeof(dur_graph),dur_graph,x_offset,y_offset);
 
 #if 0
@@ -1578,11 +1584,12 @@ static void display(void) {
         dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME,"misc");
         sdl_bargraph_add(sizeof(pre2_graph),pre2_graph,size<42?size:42);
         sdl_bargraph(px,py+=40,sizeof(pre2_graph),pre2_graph,x_offset,y_offset);
-#endif
+
         size=sdl_time_alloc;
         dd_drawtext(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME,"Alloc");
         sdl_bargraph_add(sizeof(size1_graph),load_graph,size<42?size:42);
         sdl_bargraph(px,py+=40,sizeof(size1_graph),load_graph,x_offset,y_offset);
+#endif
 
         size=sdl_time_tex_main+sdl_time_pre3;
         dd_drawtext(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME,"Texture");
@@ -3074,8 +3081,7 @@ int main_loop(void) {
         if (sockstate>2) {
 
             // decode as many ticks as we can
-            //while (next_tick())
-            //    prefetch_game(tick+q_size);     // and add their contents to the prefetch queue
+            // and add their contents to the prefetch queue
             while ((attick=next_tick()))
                 prefetch_game(attick);
 

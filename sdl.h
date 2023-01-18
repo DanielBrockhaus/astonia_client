@@ -15,8 +15,6 @@ struct ddfont {
 };
 #endif
 
-extern int sdl_multi;
-
 #define DDT             '°' // draw text terminator - (zero stays one, too)
 
 int sdl_init(int width,int height,char *title);
