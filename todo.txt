@@ -29,6 +29,9 @@ Probably
 
 - Move all resources to a single resources folder. Duh.
 
+- Go back on prefetch_game() calling sdl_tx_load() directly to it putting stuff in a queue so it can run during several ticks?
+- ... or finally accept that loading should happen during client startup / area change and not on-the-fly?
+
 
 Possibly
 --------

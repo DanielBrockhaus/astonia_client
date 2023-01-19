@@ -694,8 +694,16 @@ int sdl_load_image_png(struct sdl_image *si,char *filename,zip_t *zip,int smooth
 int do_smoothify(int sprite) {
 
     // TODO: add more to this list
-    if (sprite<=1000) return 1; // GUI
-    if (sprite>=100000) return 1;   // all character sprites
+    if (sprite<=1000) return 1;                     // GUI
+    if (sprite>=10000 && sprite<11000) return 1;    // items
+    if (sprite>=11000 && sprite<12000) return 1;    // coffin, berries, farn, ...
+    if (sprite>=13000 && sprite<14000) return 1;    // bones and towers, ...
+    if (sprite>=16000 && sprite<17000) return 1;    // cameron doors, carts, ...
+    if (sprite>=20025 && sprite<20034) return 1;    // torches
+    if (sprite>=20042 && sprite<20082) return 1;    // torches
+    if (sprite>=20086 && sprite<20119) return 1;    // chests, chairs
+
+    if (sprite>=100000) return 1;                   // all character sprites
 
     return 0;
 }
