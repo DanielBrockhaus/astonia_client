@@ -1547,7 +1547,8 @@ static void display(void) {
 
     if (display_vc) {
         extern long long texc_miss,texc_pre; //mem_tex,
-        extern uint64_t sdl_backgnd_wait,sdl_backgnd_work,sdl_time_preload,sdl_time_load,sdl_time_pre2,sdl_time_pre3,sdl_time_mutex,sdl_time_alloc,sdl_time_make_main;
+        extern uint64_t sdl_backgnd_wait,sdl_backgnd_work,sdl_time_preload,sdl_time_load,gui_time_network;
+        extern uint64_t sdl_time_pre1,sdl_time_pre2,sdl_time_pre3,sdl_time_mutex,sdl_time_alloc,sdl_time_make_main;
         extern int x_offset,y_offset; //pre_2,pre_in,pre_3;
         //static int dur=0,make=0,tex=0,text=0,blit=0,stay=0;
         static int size;
@@ -1574,10 +1575,21 @@ static void display(void) {
 
         py+=10;
 
-        size=duration+sdl_time_alloc;
+        size=duration+gui_time_network;
         dd_drawtext(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME,"Render");
         sdl_bargraph_add(sizeof(dur_graph),dur_graph,size<42?size:42);
         sdl_bargraph(px,py+=40,sizeof(dur_graph),dur_graph,x_offset,y_offset);
+#if 0
+        size=gui_time_network;
+        dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME,"Network");
+        sdl_bargraph_add(sizeof(pre2_graph),pre2_graph,size<42?size:42);
+        sdl_bargraph(px,py+=40,sizeof(pre2_graph),pre2_graph,x_offset,y_offset);
+
+        size=sdl_time_pre1;
+        dd_drawtext(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME,"Alloc");
+        sdl_bargraph_add(sizeof(size1_graph),size3_graph,size<42?size:42);
+        sdl_bargraph(px,py+=40,sizeof(size1_graph),size3_graph,x_offset,y_offset);
+#endif
 
 #if 0
         size=gui_time_misc;
@@ -1591,19 +1603,16 @@ static void display(void) {
         sdl_bargraph(px,py+=40,sizeof(size1_graph),load_graph,x_offset,y_offset);
 #endif
 
-        size=sdl_time_tex_main+sdl_time_pre3;
-        dd_drawtext(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME,"Texture");
+        size=sdl_time_pre1+sdl_time_pre3;
+        dd_drawtext(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME,"Pre-Main");
         sdl_bargraph_add(sizeof(size1_graph),size2_graph,size<42?size:42);
         sdl_bargraph(px,py+=40,sizeof(size1_graph),size2_graph,x_offset,y_offset);
 #if 0
-        size=sdl_time_pre3;
-        dd_drawtext(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME,"Texture B");
-        sdl_bargraph_add(sizeof(size1_graph),size3_graph,size<42?size:42);
-        sdl_bargraph(px,py+=40,sizeof(size1_graph),size3_graph,x_offset,y_offset);
+
 #endif
         if (sdl_multi) {
             size=sdl_backgnd_work/sdl_multi;
-            dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME,"Make (%d)",sdl_multi);
+            dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME,"Pre-Back (%d)",sdl_multi);
         } else {
             size=sdl_time_pre2;
             dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME,"Make",sdl_multi);
@@ -1664,6 +1673,7 @@ static void display(void) {
         sdl_backgnd_work=0;
         sdl_backgnd_wait=0;
         sdl_time_load=0;
+        sdl_time_pre1=0;
         sdl_time_pre2=0;
         sdl_time_pre3=0;
         sdl_time_mutex=0;
@@ -1673,6 +1683,7 @@ static void display(void) {
         texc_miss=0;
         texc_pre=0;
         sdl_time_make_main=0;
+        gui_time_network=0;
 
     } //else dd_drawtext_fmt(650,15,0xffff,DD_SMALL|DD_FRAME,"Mirror %d",mirror);
 
@@ -3063,11 +3074,13 @@ void flip_at(unsigned int t) {
 }
 
 unsigned int nextframe;
+uint64_t gui_time_network=0;
 
 int main_loop(void) {
     void prefetch_game(int attick);
     int tmp,timediff,ltick=0,attick;
     extern int q_size;
+    long long start;
 
     nextframe=GetTickCount()+MPT;
 
@@ -3075,6 +3088,7 @@ int main_loop(void) {
 
         now=GetTickCount();
 
+        start=SDL_GetTicks64();
         poll_network();
 
         // check if we can go on
@@ -3105,6 +3119,7 @@ int main_loop(void) {
 
         if (sockstate==4) timediff=nextframe-GetTickCount();
         else timediff=1;
+        gui_time_network+=SDL_GetTicks64()-start;
 
         if (timediff>-MPT/2) {
 #ifdef TICKPRINT

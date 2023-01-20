@@ -105,6 +105,7 @@ long long sdl_time_tex=0;
 long long sdl_time_tex_main=0;
 long long sdl_time_text=0;
 long long sdl_time_blit=0;
+long long sdl_time_pre1=0;
 long long sdl_time_pre2=0;
 long long sdl_time_pre3=0;
 
@@ -997,7 +998,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
 
     if (!preload || preload==1) {
         if (st->flags&SF_DIDALLOC) {
-            fail("double alloc for sprite %d (%s)",st->sprite,st->text);
+            fail("double alloc for sprite %d (%d)",st->sprite,preload);
             note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
             return;
         }
@@ -1354,16 +1355,59 @@ int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,in
 
         if (!preload && (sdlt[stx].flags&SF_SPRITE)) {
 
+            // load image and allocate memory if preload didn't do it yet
+            if (!(sdlt[stx].flags&SF_DIDALLOC)) {
+                //long long start=SDL_GetTicks64();
+                //printf("main-making alloc and make for sprite %d (%d)\n",sprite,preload);
+                sdl_ic_load(sprite);
+                sdl_make(sdlt+stx,sdli+sprite,1);
+                sdl_make(sdlt+stx,sdli+sprite,2);
+                //sdl_time_tex_main+=SDL_GetTicks64()-start; TODO
+            }
+
+            // Make make in main if not busy
+            if (sdl_multi) SDL_LockMutex(premutex);
+
+            if (!(sdlt[stx].flags&(SF_DIDMAKE|SF_BUSY))) {
+
+                sdlt[stx].flags|=SF_BUSY;
+
+                if (sdl_multi) SDL_UnlockMutex(premutex);
+
+                sdl_make(sdlt+stx,sdli+sprite,2);
+
+                if (sdl_multi) SDL_LockMutex(premutex);
+
+                sdlt[stx].flags&=~SF_BUSY;
+                sdlt[stx].flags|=SF_DIDMAKE;
+
+                if (sdl_multi) SDL_UnlockMutex(premutex);
+            } else {
+                if (sdl_multi) SDL_UnlockMutex(premutex);
+            }
+
             // wait for the background preloader if we have multiple threads
+            panic=0;
             while (sdl_multi) {
                 if ((sdlt[stx].flags&SF_DIDMAKE)) break;
 
                 //warn("waiting for graphics...");
                 SDL_Delay(1);
+
+                if (panic++>100) {
+                    fail("graphics not being made for sprite %d (flags=%s %s %s %s)",
+                         sdlt[stx].sprite,
+                         (sdlt[stx].flags&SF_DIDALLOC)?"didalloc":"",
+                         (sdlt[stx].flags&SF_DIDMAKE)?"didmake":"",
+                         (sdlt[stx].flags&SF_DIDTEX)?"didtex":"",
+                         (sdlt[stx].flags&SF_BUSY)?"busy":"");
+                    exit(42);
+                }
             }
 
             // if we are single threaded do it yourself
             if (!sdl_multi && !(sdlt[stx].flags&SF_DIDMAKE)) {
+                //printf("main-making make for sprite %d\n",sprite);
                 long long start=SDL_GetTicks64();
                 sdl_make(sdlt+stx,sdli+sprite,2);
                 sdl_time_make_main+=SDL_GetTicks64()-start;
@@ -1371,6 +1415,7 @@ int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,in
 
             // make texture now if preload didn't finish it
             if (!(sdlt[stx].flags&SF_DIDTEX)) {
+                //printf("main-making texture for sprite %d\n",sprite);
                 long long start=SDL_GetTicks64();
                 sdl_make(sdlt+stx,sdli+sprite,3);
                 sdl_time_tex_main+=SDL_GetTicks64()-start;
@@ -1499,7 +1544,7 @@ int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,in
         } else sdlt[stx].xres=sdlt[stx].yres=0;
     } else {
 
-        sdl_ic_load(sprite);
+        if (preload!=1) sdl_ic_load(sprite);
 
         // init
         sdlt[stx].flags=SF_USED|SF_SPRITE;
@@ -1522,7 +1567,7 @@ int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,in
         sdlt[stx].ul=ul;
         sdlt[stx].dl=dl;
 
-        sdl_make(sdlt+stx,sdli+sprite,preload);
+        if (preload!=1) sdl_make(sdlt+stx,sdli+sprite,preload);
     }
 
     mem_tex+=sdlt[stx].xres*sdlt[stx].yres*sizeof(uint32_t);
@@ -2202,7 +2247,7 @@ struct prefetch {
 
 #define MAXPRE (16384)
 static struct prefetch pre[MAXPRE];
-int pre_in=0,pre_2=0,pre_3=0;
+int pre_in=0,pre_1=0,pre_2=0,pre_3=0;
 
 void sdl_pre_add(int attick,int sprite,signed char sink,unsigned char freeze,unsigned char scale,char cr,char cg,char cb,char light,char sat,int c1,int c2,int c3,int shine,char ml,char ll,char rl,char ul,char dl) {
     int n;
@@ -2255,8 +2300,6 @@ void sdl_pre_add(int attick,int sprite,signed char sink,unsigned char freeze,uns
     }
 #endif
     pre_in=(pre_in+1)%MAXPRE;
-
-    if (sdl_multi) SDL_SemPost(prework);
 }
 
 long long sdl_time_mutex=0;
@@ -2268,16 +2311,40 @@ void sdl_lock(void *a){
 
 #define SDL_LockMutex(a)  sdl_lock(a)
 
+int sdl_pre_1(void) {
+
+    if (pre_in==pre_1) return 0;  // prefetch buffer is empty
+
+    //printf("Preload1: Slot %d, sprite %d (%d, %d, %d, %d)\n",pre_1,pre[pre_1].sprite,pre_in,pre_1,pre_2,pre_3); fflush(stdout);
+
+    if (!(sdlt[pre[pre_1].stx].flags&SF_DIDALLOC)) {
+
+        sdl_ic_load(pre[pre_1].sprite);
+
+        sdl_make(sdlt+pre[pre_1].stx,sdli+pre[pre_1].sprite,1);
+
+        if (sdl_multi) SDL_SemPost(prework);
+    }
+    pre_1=(pre_1+1)%MAXPRE;
+
+    //printf("Preload1: done.\n"); fflush(stdout);
+
+    return 1;
+
+}
+
 int sdl_pre_2(void) {
     int i,work=0;
 
-    if (pre_in==pre_2) return 0;  // prefetch buffer is empty
+    if (pre_1==pre_2) return 0;  // prefetch buffer is empty
 
-    for (i=pre_2; i!=pre_in; i=(i+1)%MAXPRE) {
+    for (i=pre_2; i!=pre_1; i=(i+1)%MAXPRE) {
 
         if (sdl_multi) SDL_LockMutex(premutex);
 
+        //printf("Preload2: Slot %d, STX %d, flags %X\n",i,pre[i].stx,pre[i].stx!=-1 ? sdlt[pre[i].stx].flags : 0);
         if (pre[i].stx!=STX_NONE && !(sdlt[pre[i].stx].flags&(SF_DIDMAKE|SF_BUSY))) {
+            //printf("Preload2: Slot %d, sprite %d (%d, %d, %d, %d)\n",i,pre[i].sprite,pre_in,pre_1,pre_2,pre_3); fflush(stdout);
 
             sdlt[pre[i].stx].flags|=SF_BUSY;
             if (sdl_multi) SDL_UnlockMutex(premutex);
@@ -2297,25 +2364,27 @@ int sdl_pre_2(void) {
     }
 
     if (sdl_multi) SDL_LockMutex(premutex);
-    while (pre[pre_2].stx!=STX_NONE && (sdlt[pre[pre_2].stx].flags&SF_DIDMAKE) && pre_in!=pre_2) {
+    while (pre[pre_2].stx!=STX_NONE && (sdlt[pre[pre_2].stx].flags&SF_DIDMAKE) && pre_1!=pre_2) {
         work=1;
         pre_2=(pre_2+1)%MAXPRE;
     }
     if (sdl_multi) SDL_UnlockMutex(premutex);
 
+    //printf("Preload2: done.\n"); fflush(stdout);
+
     return work;
 }
 
 int sdl_pre_3(void) {
-    int i;
 
     if (pre_2==pre_3) return 0;  // prefetch buffer is empty
 
-    i=pre_3;
-    if (pre[i].stx!=STX_NONE && !(sdlt[pre[i].stx].flags&SF_DIDTEX))
-        sdl_make(sdlt+pre[i].stx,sdli+pre[i].sprite,3);
-
+    //printf("Preload3: Slot %d, sprite %d (%d, %d, %d, %d)\n",pre_3,pre[pre_3].sprite,pre_in,pre_1,pre_2,pre_3); fflush(stdout);
+    if (!(sdlt[pre[pre_3].stx].flags&SF_DIDTEX))
+        sdl_make(sdlt+pre[pre_3].stx,sdli+pre[pre_3].sprite,3);
     pre_3=(pre_3+1)%MAXPRE;
+
+    //printf("Preload3: done.\n"); fflush(stdout);
 
     return 1;
 
@@ -2323,17 +2392,34 @@ int sdl_pre_3(void) {
 
 int sdl_pre_do(int curtick) {
     long long start;
+    int size;
+
+    //printf("Pre Do In\n"); fflush(stdout);
 
     start=SDL_GetTicks64();
-    while (!sdl_multi && sdl_pre_2()) ;
+    sdl_pre_1();
+    sdl_time_pre1+=SDL_GetTicks64()-start;
+
+    start=SDL_GetTicks64();
+    if (!sdl_multi) sdl_pre_2();
     sdl_time_pre2+=SDL_GetTicks64()-start;
 
     start=SDL_GetTicks64();
     sdl_pre_3();
     sdl_time_pre3+=SDL_GetTicks64()-start;
 
-    if (pre_2>=pre_3) return pre_2-pre_3;
-    else return MAXPRE+pre_2-pre_3;
+    if (pre_in>=pre_1) size=pre_in-pre_1;
+    else size=MAXPRE+pre_in-pre_1;
+
+    if (pre_1>=pre_2) size+=pre_1-pre_2;
+    else size+=MAXPRE+pre_1-pre_2;
+
+    if (pre_2>=pre_3) size+=pre_2-pre_3;
+    else size+=MAXPRE+pre_2-pre_3;
+
+    //printf("Pre Do Out\n"); fflush(stdout);
+
+    return size;
 }
 
 uint64_t sdl_backgnd_wait=0,sdl_backgnd_work=0;
