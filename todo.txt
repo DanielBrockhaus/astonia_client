@@ -6,11 +6,11 @@ Astonia To-Do List
 Bugs
 ----
 
-- Invisible floor tiles in Ice Pents show an outline. Lighting? Scaling?
-
 - There was an instance of a failed memory tail check in SDL_MEM_PIXEL (before splitting it into PIXEL and PIXEL2).
 
 - originx and originy are not correctly set for prefetch.
+
+- Full Screen mode fails when tabbed out
 
 
 Probably
@@ -28,9 +28,6 @@ Probably
 - Lighting calculations have been wrong all the time. This really becomes apparent in the higher resolutions. Fix them.
 
 - Move all resources to a single resources folder. Duh.
-
-- Go back on prefetch_game() calling sdl_tx_load() directly to it putting stuff in a queue so it can run during several ticks?
-- ... or finally accept that loading should happen during client startup / area change and not on-the-fly?
 
 
 Possibly

@@ -18,6 +18,7 @@
 #include <errno.h>
 #include <math.h>
 #include <zlib.h>
+#include <SDL2/SDL.h>
 
 #include "astonia.h"
 #include "engine.h"
@@ -135,6 +136,8 @@ char pent_str[7][80];
 int pspeed=0;   // 0=normal   1=fast      2=stealth     - like the server
 
 int may_teleport[64+32];
+
+int frames_per_second=TICKS;
 
 // ------------------------- client end --------------------------------
 
@@ -287,7 +290,7 @@ int svl_ping(char *buf) {
     int t,diff;
 
     t=*(unsigned int *)(buf+1);
-    diff=GetTickCount()-t;
+    diff=SDL_GetTicks()-t;
     addline("RTT1: %.2fms",diff/1000.0);
 
     return 5;
@@ -297,7 +300,7 @@ int sv_ping(char *buf) {
     int t,diff;
 
     t=*(unsigned int *)(buf+1);
-    diff=GetTickCount()-t;
+    diff=SDL_GetTicks()-t;
     addline("RTT2: %.2fms",diff/1000.0);
 
     return 5;
@@ -1060,7 +1063,7 @@ void cmd_ping(void) {
     char buf[16];
 
     buf[0]=CL_PING;
-    *(unsigned int *)(buf+1)=GetTickCount();
+    *(unsigned int *)(buf+1)=SDL_GetTicks();
     client_send(buf,5);
 }
 
@@ -1470,7 +1473,7 @@ int poll_network(void) {
         struct sockaddr_in addr;
         unsigned long one=1;
 
-        if (GetTickCount()<socktime) return 0;
+        if (SDL_GetTicks()<socktime) return 0;
 
         //note("create nonblocking socket");
 
@@ -1526,7 +1529,7 @@ int poll_network(void) {
         struct fd_set outset,errset;
         struct timeval timeout;
 
-        if (GetTickCount()<socktime) return 0;
+        if (SDL_GetTicks()<socktime) return 0;
 
 
         FD_ZERO(&outset);
@@ -1539,14 +1542,14 @@ int poll_network(void) {
         n=select(sock+1,NULL,&outset,&errset,&timeout);
         if (n==0) {
             // timed out
-            socktime=GetTickCount()+50;
+            socktime=SDL_GetTicks()+50;
             return 0;
         }
 
         if (FD_ISSET(sock,&errset)) {
             note("select connect failed (%d)",WSAGetLastError());
             sockstate=0;
-            socktime=GetTickCount()+5000;
+            socktime=SDL_GetTicks()+5000;
             return -1;
         }
 

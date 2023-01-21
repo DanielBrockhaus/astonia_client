@@ -695,7 +695,7 @@ int sdl_load_image_png(struct sdl_image *si,char *filename,zip_t *zip,int smooth
 int do_smoothify(int sprite) {
 
     // TODO: add more to this list
-    if (sprite<=1000) return 1;                     // GUI
+    if (sprite>0 && sprite<=1000) return 1;         // GUI
     if (sprite>=10000 && sprite<11000) return 1;    // items
     if (sprite>=11000 && sprite<12000) return 1;    // coffin, berries, farn, ...
     if (sprite>=13000 && sprite<14000) return 1;    // bones and towers, ...

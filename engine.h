@@ -19,4 +19,5 @@ extern int sdl_scale;
 extern int sdl_frames;
 extern int sdl_multi;
 extern int sdl_fullscreen;
+extern int frames_per_second;
 

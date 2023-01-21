@@ -2,10 +2,10 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
-#define TICKS           24              // ticks (game data updates) per second
-#define FRAMES          60              // frames (display updates) per second
-#define MPT             (1000/TICKS)    // milliseconds per tick
-#define MPF             (1000/FRAMES)   // milliseconds per frame
+#define TICKS           24                      // ticks (game data updates) per second
+#define FRAMES          (frames_per_second)     // frames (display updates) per second
+#define MPT             (1000/TICKS)            // milliseconds per tick
+#define MPF             (1000/FRAMES)           // milliseconds per frame
 
 #define DIST		25
 #define MAXCHARS	2048

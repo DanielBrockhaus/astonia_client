@@ -509,13 +509,14 @@ int net_exit(void) {
 
 void display_usage(void) {
     printf("Usage: moac -u playername -p password -d url [-w width] [-h height] [-l largetextenable] [-s soundenable]\n");
-    printf(" ... [-m threads] [-o options] [-f fullscreen] [-c cachesize]\n\n");
+    printf(" ... [-m threads] [-o options] [-f fullscreen] [-c cachesize] [-k framespersecond]\n\n");
     printf("url being, for example, \"server.astonia.com\" or \"192.168.77.132\" (without the quotes).\n");
     printf("width and height are the desired window size. If this matches the desktop size the client will start in windowed borderless pseudo-fullscreen mode.\n");
     printf("fullscreen, largetextenable and soundenable can be either 0 or 1, for off or on.\n");
     printf("threads is the number of background threads the game should use. Use 0 to disable. Default is 4.\n");
     printf("options is a bitfield. Bit 0 (value of 1) enables the Dark GUI by Tegra.\n");
     printf("cachesize is the size of the texture cache. Default is 5000. Very low numbers will crash!\n");
+    printf("framespersecond will set the display rate in frames per second.\n");
 }
 
 char server_url[256];
@@ -585,6 +586,11 @@ int parse_cmd(char *s) {
                 s++;
                 while (isspace(*s)) s++;
                 sdl_cache_size=strtol(s,&end,10);
+                s=end;
+            } else if (tolower(*s)=='k') { // -k frames per second
+                s++;
+                while (isspace(*s)) s++;
+                frames_per_second=strtol(s,&end,10);
                 s=end;
             } else { display_usage(); return -1; }
         } else { display_usage(); return -2; }

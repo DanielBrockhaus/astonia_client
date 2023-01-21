@@ -344,11 +344,11 @@ void dl_play(void) {
 
     //helper_cmp_dl(tick,dlsort,dlused);
 
-    start=GetTickCount();
+    start=SDL_GetTicks();
     stat_dlsortcalls=0;
     stat_dlused=dlused;
     qsort(dlsort,dlused,sizeof(DL *),dl_qcmp);
-    qs_time+=GetTickCount()-start;
+    qs_time+=SDL_GetTicks()-start;
 
     for (d=0; d<dlused && !quit; d++) {
         if (dlsort[d]->call==0) {
@@ -726,7 +726,7 @@ static void display_game_spells(void) {
     int light;
     float alpha;
 
-    start=GetTickCount();
+    start=SDL_GetTicks();
 
     for (i=0; i<maxquick; i++) {
 
@@ -953,7 +953,7 @@ static void display_game_spells(void) {
         }
     }
 
-    ds_time=GetTickCount()-start;
+    ds_time=SDL_GetTicks()-start;
 }
 
 static void display_game_spells2(void) {
@@ -1220,7 +1220,7 @@ void display_game_map(struct map *cmap) {
     DL *dl;
     int heightadd;
 
-    start=GetTickCount();
+    start=SDL_GetTicks();
 
     for (i=0; i<maxquick; i++) {
 
@@ -1501,7 +1501,7 @@ void display_game_map(struct map *cmap) {
         }
     }
     show_bubbles();
-    dg_time+=GetTickCount()-start;
+    dg_time+=SDL_GetTicks()-start;
 
     if (cmap==map) {            // avoid acting on prefetch
         // selection on ground
