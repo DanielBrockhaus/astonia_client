@@ -3073,7 +3073,7 @@ void flip_at(unsigned int t) {
     sdl_render();
 }
 
-unsigned int nextframe;
+int nextframe,nexttick;
 uint64_t gui_time_network=0;
 
 int main_loop(void) {
@@ -3081,8 +3081,10 @@ int main_loop(void) {
     int tmp,timediff,ltick=0,attick;
     extern int q_size;
     long long start;
+    int do_one_tick=1;
 
-    nextframe=GetTickCount()+MPT;
+    nexttick=GetTickCount()+MPT;
+    nextframe=GetTickCount()+MPF;
 
     while (!quit) {
 
@@ -3099,21 +3101,26 @@ int main_loop(void) {
             while ((attick=next_tick()))
                 prefetch_game(attick);
 
-            // get one tick to display
-            do_tick(); ltick++;
+            // get one tick to display?
+            timediff=nexttick-GetTickCount();
+            if (timediff<MPT/4) {  // do ticks slightly early
+                do_one_tick=1;
+                do_tick();
+                ltick++;
 
-            if (ltick==TICKS*10) {
-                void dd_get_client_info(struct client_info *ci);
-                struct client_info ci;
+                if (ltick==TICKS*10) {
+                    void dd_get_client_info(struct client_info *ci);
+                    struct client_info ci;
 
-                dd_get_client_info(&ci);
-                ci.idle=100*idle/tota;
-                ci.skip=100*skip/tota;
-                cl_client_info(&ci);
-            }
+                    dd_get_client_info(&ci);
+                    ci.idle=100*idle/tota;
+                    ci.skip=100*skip/tota;
+                    cl_client_info(&ci);
+                }
 
-            if (sockstate==4 && ltick%TICKS==0) {
-                cl_ticker();
+                if (sockstate==4 && ltick%TICKS==0) {
+                    cl_ticker();
+                }
             }
         }
 
@@ -3121,9 +3128,9 @@ int main_loop(void) {
         else timediff=1;
         gui_time_network+=SDL_GetTicks64()-start;
 
-        if (timediff>-MPT/2) {
+        if (timediff>-MPF/2) {
 #ifdef TICKPRINT
-            printf("Display tick %d\n",tick);
+            printf("Display tick %d, Frame %d\n",tick,frame);
 #endif
             sdl_clear();
             display();
@@ -3137,17 +3144,15 @@ int main_loop(void) {
             flip_at(nextframe);
         } else {
 #ifdef TICKPRINT
-            printf("Skip tick %d\n",tick);
+            printf("Skip tick %d, Frame %d\n",tick,frame);
 #endif
             skip-=timediff;
 
             sdl_loop();
         }
-// More aggressive queue / latency management. Leaving the old in as an option.
-#if 1
-        {
-            int size=lasttick+q_size;
-            switch (size) {
+
+        if (do_one_tick) {
+            switch (lasttick+q_size) {
                 case 0:     tmp=MPT*2.00; break;
                 case 1:     tmp=MPT*1.50; break;
                 case 2:     tmp=MPT*1.40; break;
@@ -3162,19 +3167,15 @@ int main_loop(void) {
                 case 11:    tmp=MPT*0.60; break;
                 case 12:    tmp=MPT*0.50; break;
                 default:    tmp=MPT*0.25; break;
-
-
             }
-        }
-#else
-        if (lasttick+q_size>0) tmp=MPT*12/(lasttick+q_size);
-        else tmp=MPT+MPT/10;
+            nexttick+=tmp;
+            tota+=tmp;
+            if (tick%24==0) { tota/=2; skip/=2; idle/=2; frames/=2; }
 
-        //note("tmp=%d, size=%d (%d,%d)",tmp,lasttick+q_size,lasttick,q_size);
-#endif
-        nextframe+=tmp;
-        tota+=tmp;
-        if (tick%24==0) { tota/=2; skip/=2; idle/=2; frames/=2; } //{ tota=2; skip=idle=1; }
+            do_one_tick=0;
+        }
+
+        nextframe+=MPF;
     }
 
     close_client();
