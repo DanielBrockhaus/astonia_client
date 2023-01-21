@@ -10,8 +10,6 @@ Bugs
 
 - originx and originy are not correctly set for prefetch.
 
-- Full Screen mode fails when tabbed out
-
 
 Probably
 --------

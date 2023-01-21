@@ -695,6 +695,7 @@ int sdl_load_image_png(struct sdl_image *si,char *filename,zip_t *zip,int smooth
 int do_smoothify(int sprite) {
 
     // TODO: add more to this list
+    if (sprite>=50 && sprite<=56) return 0;
     if (sprite>0 && sprite<=1000) return 1;         // GUI
     if (sprite>=10000 && sprite<11000) return 1;    // items
     if (sprite>=11000 && sprite<12000) return 1;    // coffin, berries, farn, ...
@@ -1218,7 +1219,10 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
         start=SDL_GetTicks64();
 
         SDL_Texture *texture = SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STATIC,st->xres*sdl_scale,st->yres*sdl_scale);
-        if (!texture) warn("SDL_texture Error: %s in sprite %d (%s, %d,%d) preload=%d",SDL_GetError(),st->sprite,st->text,st->xres,st->yres,preload);
+        if (!texture) {
+            warn("SDL_texture Error: %s in sprite %d (%s, %d,%d) preload=%d",SDL_GetError(),st->sprite,st->text,st->xres,st->yres,preload);
+            return;
+        }
         SDL_UpdateTexture(texture,NULL,st->pixel,st->xres*sizeof(uint32_t)*sdl_scale);
         SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
 #ifdef SDL_FAST_MALLOC
@@ -1312,16 +1316,17 @@ int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,in
     for (stx=sdlt_cache[hash]; stx!=STX_NONE; stx=sdlt[stx].hnext,panic++) {
 
         if (panic>999) {
-            warn("%04d: stx=%d, hprev=%d, hnext=%d sprite=%d (%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d), PANIC\n",panic,stx,sdlt[stx].hprev,sdlt[stx].hnext,sprite,
+            warn("%04d: stx=%d, hprev=%d, hnext=%d sprite=%d (%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d,%p) PANIC\n",panic,stx,sdlt[stx].hprev,sdlt[stx].hnext,sprite,
                    sdlt[stx].sink,sdlt[stx].freeze,sdlt[stx].scale,
                    sdlt[stx].cr,sdlt[stx].cg,sdlt[stx].cb,sdlt[stx].light,
                    sdlt[stx].sat,sdlt[stx].c1,sdlt[stx].c2,sdlt[stx].c3,
                    sdlt[stx].shine,sdlt[stx].ml,sdlt[stx].ll,sdlt[stx].rl,
-                   sdlt[stx].ul,sdlt[stx].dl);
+                   sdlt[stx].ul,sdlt[stx].dl,sdlt[stx].text);
             if (panic>1099) exit(42);
         }
         if (text) {
             if (!(sdlt[stx].flags&SF_TEXT)) continue;
+            if (!(sdlt[stx].tex)) continue;     // text does not go through the preloader, so if the texture is empty maketext failed earlier.
             if (!sdlt[stx].text || strcmp(sdlt[stx].text,text)) continue;
             if (sdlt[stx].text_flags!=text_flags) continue;
             if (sdlt[stx].text_color!=text_color) continue;
@@ -1516,9 +1521,15 @@ int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,in
         }
 
 #ifdef SDL_FAST_MALLOC
-        if (sdlt[stx].flags&SF_TEXT) free(sdlt[stx].text);
+        if (sdlt[stx].flags&SF_TEXT) {
+            free(sdlt[stx].text);
+            sdlt[stx].text=NULL;
+        }
 #else
-        if (sdlt[stx].flags&SF_TEXT) xfree(sdlt[stx].text);
+        if (sdlt[stx].flags&SF_TEXT) {
+            xfree(sdlt[stx].text);
+            sdlt[stx].text=NULL;
+        }
 #endif
 
         sdlt[stx].flags=0;
@@ -1713,9 +1724,12 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
 
     start=SDL_GetTicks64();
     SDL_Texture *texture = SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STATIC,sizex,sizey);
-    if (!texture) warn("SDL_texture Error: %s",SDL_GetError());
-    SDL_UpdateTexture(texture,NULL,pixel,sizex*sizeof(uint32_t));
-    SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
+    if (texture) {
+        SDL_UpdateTexture(texture,NULL,pixel,sizex*sizeof(uint32_t));
+        SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
+    } else {
+        warn("SDL_texture Error: %s maketext",SDL_GetError());
+    }
 #ifdef SDL_FAST_MALLOC
     free(pixel);
 #else
@@ -1824,6 +1838,8 @@ int sdl_drawtext(int sx,int sy,unsigned short int color,int flags,const char *te
     SDL_Texture *tex;
     int r,g,b,a;
     const char *c;
+
+    if (!*text) return sx;
 
     r=R16TO32(color);
     g=G16TO32(color);
@@ -2456,6 +2472,17 @@ void sdl_bargraph(int sx,int sy,int dx,unsigned char *data,int x_offset,int y_of
                            (sx+n+x_offset)*sdl_scale,(sy+y_offset)*sdl_scale,
                            (sx+n+x_offset)*sdl_scale,(sy-data[n]+y_offset)*sdl_scale);
     }
+}
+
+int sdl_has_focus(void) {
+    uint32_t flags;
+
+    flags=SDL_GetWindowFlags(sdlwnd);
+
+    if (flags&SDL_WINDOW_HIDDEN) return 0;
+    if (flags&SDL_WINDOW_MINIMIZED) return 0;
+
+    return 1;
 }
 
 
