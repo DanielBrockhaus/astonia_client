@@ -5,7 +5,10 @@
 #define MAXSPRITE 250000
 
 #define XRES    800
-#define YRES    540
+#define YRES    (__yres)
+#define YRES0   600
+#define YRES1   540
+#define YRES2   500
 
 #ifndef HAVE_DDFONT
 #define HAVE_DDFONT
@@ -17,6 +20,7 @@ struct ddfont {
 
 #define DDT             '°' // draw text terminator - (zero stays one, too)
 
+extern int __yres;
 int sdl_init(int width,int height,char *title);
 void sdl_exit(void);
 void sdl_loop(void);

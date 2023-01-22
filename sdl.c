@@ -129,6 +129,8 @@ SDL_Texture *sdltgt;
 SDL_sem *prework=NULL;
 SDL_mutex *premutex=NULL;
 
+int __yres=YRES0;
+
 int sdl_init(int width,int height,char *title) {
     extern float mouse_scale;
     int len,i;
@@ -202,10 +204,23 @@ int sdl_init(int width,int height,char *title) {
     // decide on screen format
     if (width!=XRES) {
         extern int x_offset,y_offset;
+        int tmp_scale=0;
 
-        if (width/XRES>=4 && height/YRES>=4) sdl_scale=4;
-        else if (width/XRES>=3 && height/YRES>=3) sdl_scale=3;
-        else if (width/XRES>=2 && height/YRES>=2) sdl_scale=2;
+        if (width/XRES>=4 && height/YRES0>=4) sdl_scale=4;
+        else if (width/XRES>=3 && height/YRES0>=3) sdl_scale=3;
+        else if (width/XRES>=2 && height/YRES0>=2) sdl_scale=2;
+
+        if (width/XRES>=4 && height/YRES1>=4) tmp_scale=4;
+        else if (width/XRES>=3 && height/YRES1>=3) tmp_scale=3;
+        else if (width/XRES>=2 && height/YRES1>=2) tmp_scale=2;
+
+        if (tmp_scale>sdl_scale || height<YRES0) { sdl_scale=tmp_scale; YRES=YRES1; }
+
+        if (width/XRES>=4 && height/YRES2>=4) tmp_scale=4;
+        else if (width/XRES>=3 && height/YRES2>=3) tmp_scale=3;
+        else if (width/XRES>=2 && height/YRES2>=2) tmp_scale=2;
+
+        if (tmp_scale>sdl_scale || height<YRES1) { sdl_scale=tmp_scale; YRES=YRES2; }
 
         mouse_scale=sdl_scale;
 

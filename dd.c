@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
 
+#include "astonia.h"
 #include "engine.h"
 
 #include "main.h"
@@ -647,9 +648,6 @@ int dd_char_len(char c) {
 #define MAXTEXTLINES		256
 #define MAXTEXTLETTERS		256
 
-#define TEXTDISPLAY_X		230
-#define TEXTDISPLAY_Y		378
-
 #define TEXTDISPLAY_DY		(textdisplay_dy)
 
 #define TEXTDISPLAY_SX		396
@@ -708,10 +706,10 @@ void dd_display_text(void) {
     char buf[256],*bp;
     unsigned short lastcolor=-1;
 
-    for (n=textdisplayline,y=TEXTDISPLAY_Y; y<=TEXTDISPLAY_Y+TEXTDISPLAY_SY-TEXTDISPLAY_DY; n++,y+=TEXTDISPLAY_DY) {
+    for (n=textdisplayline,y=doty(DOT_TXT); y<=doty(DOT_TXT)+TEXTDISPLAY_SY-TEXTDISPLAY_DY; n++,y+=TEXTDISPLAY_DY) {
         rn=n%MAXTEXTLINES;
 
-        x=TEXTDISPLAY_X;
+        x=dotx(DOT_TXT);
         pos=rn*MAXTEXTLETTERS;
 
         bp=buf;
@@ -730,7 +728,7 @@ void dd_display_text(void) {
             if (text[pos].c<32) {
 				int i;
 
-				x=((int)text[pos].c)*12+TEXTDISPLAY_X;
+				x=((int)text[pos].c)*12+dotx(DOT_TXT);
 
 				// better display for numbers
 				for (i=pos+1; isdigit(text[i].c) || text[i].c=='-'; i++) {
@@ -830,19 +828,19 @@ int dd_scantext(int x,int y,char *hit) {
     int n,m,pos,panic=0,tmp=0;
     int dx;
 
-    if (x<TEXTDISPLAY_X || y<TEXTDISPLAY_Y) return 0;
-    if (x>TEXTDISPLAY_X+TEXTDISPLAY_SX) return 0;
-    if (y>TEXTDISPLAY_Y+TEXTDISPLAY_SY) return 0;
+    if (x<dotx(DOT_TXT) || y<doty(DOT_TXT)) return 0;
+    if (x>dotx(DOT_TXT)+TEXTDISPLAY_SX) return 0;
+    if (y>doty(DOT_TXT)+TEXTDISPLAY_SY) return 0;
 
-    n=(y-TEXTDISPLAY_Y)/TEXTDISPLAY_DY;
+    n=(y-doty(DOT_TXT))/TEXTDISPLAY_DY;
     n=(n+textdisplayline)%MAXTEXTLINES;
 
     for (pos=n*MAXTEXTLETTERS,dx=m=0; m<MAXTEXTLETTERS && text[pos].c; m++,pos++) {
-        if (text[pos].c>0 && text[pos].c<32) { dx=((int)text[pos].c)*12+TEXTDISPLAY_X; continue; }
+        if (text[pos].c>0 && text[pos].c<32) { dx=((int)text[pos].c)*12+dotx(DOT_TXT); continue; }
 
         dx+=textfont[text[pos].c].dim;
 
-        if (dx+TEXTDISPLAY_X>x) {
+        if (dx+dotx(DOT_TXT)>x) {
             if (text[pos].link) {   // link palette color
                 while ((text[pos].link || text[pos].c==0) && panic++<5000) {
                     pos--;

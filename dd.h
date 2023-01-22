@@ -2,11 +2,6 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
-#define MAXSPRITE 250000
-
-#define XRES    800
-#define YRES    540
-
 extern float mouse_scale;   // mouse input needs to be scaled by this factor because the display window is stretched
 
 extern int dd_gamma;

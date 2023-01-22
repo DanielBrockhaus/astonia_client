@@ -15,6 +15,8 @@
 #include "gui.h"
 #include "sound.h"
 
+#include "astonia.h"
+
 #define QLF_REPEATABLE	(1u<<0)
 #define QLF_XREPEAT	(1u<<1)
 
@@ -136,7 +138,7 @@ int questcmp(const void *a,const void *b) {
 }
 
 int do_display_random(void) {
-    int y=15,x,n,idx,bit,m;
+    int y=doty(DOT_HLP)+15,x,n,idx,bit,m;
     static short indec[10]={0,11,24,38,43,57,64,76,83,96};
     static short bribes[10]={0,15,22,34,48,54,67,78,86,93};
     static short welding[10]={0,18,27,32,46,52,62,72,81,98};
@@ -145,11 +147,11 @@ int do_display_random(void) {
     static short jobless[10]={0,20,45,61,82,97};
     static short security[10]={0,10,29,41,58,69,75,85,94};
 
-    dd_drawtext((10+204)/2,y,whitecolor,DD_CENTER,"Random Dungeon"); y+=24;
+    dd_drawtext(dotx(DOT_HLP)+(10+204)/2,y,whitecolor,DD_CENTER,"Random Dungeon"); y+=24;
 
-    dd_drawtext_fmt(10,y,graycolor,0,"Continuity: %d",shrine.continuity); y+=12;
+    dd_drawtext_fmt(dotx(DOT_HLP)+10,y,graycolor,0,"Continuity: %d",shrine.continuity); y+=12;
 
-    x=dd_drawtext(10,y,graycolor,0,"Indecisiveness: ");
+    x=dd_drawtext(dotx(DOT_HLP)+10,y,graycolor,0,"Indecisiveness: ");
     for (n=1; n<10; n++) {
         idx=n/32;
         bit=1<<(n&31);
@@ -161,7 +163,7 @@ int do_display_random(void) {
     }
     y+=12;
 
-    x=dd_drawtext(10,y,graycolor,0,"Bribes: ");
+    x=dd_drawtext(dotx(DOT_HLP)+10,y,graycolor,0,"Bribes: ");
     for (n=1; n<10; n++) {
         m=n+10;
         idx=m/32;
@@ -174,7 +176,7 @@ int do_display_random(void) {
     }
     y+=12;
 
-    x=dd_drawtext(10,y,graycolor,0,"Welding: ");
+    x=dd_drawtext(dotx(DOT_HLP)+10,y,graycolor,0,"Welding: ");
     for (n=1; n<10; n++) {
         m=n+20;
         idx=m/32;
@@ -187,7 +189,7 @@ int do_display_random(void) {
     }
     y+=12;
 
-    x=dd_drawtext(10,y,graycolor,0,"LOE: ");
+    x=dd_drawtext(dotx(DOT_HLP)+10,y,graycolor,0,"LOE: ");
     for (n=1; n<10; n++) {
         m=n+30;
         idx=m/32;
@@ -200,7 +202,7 @@ int do_display_random(void) {
     }
     y+=12;
 
-    x=dd_drawtext(10,y,graycolor,0,"Kindness: ");
+    x=dd_drawtext(dotx(DOT_HLP)+10,y,graycolor,0,"Kindness: ");
     for (n=1; n<3; n++) {
         m=n+40;
         idx=m/32;
@@ -213,7 +215,7 @@ int do_display_random(void) {
     }
     y+=12;
 
-    x=dd_drawtext(10,y,graycolor,0,"Security: ");
+    x=dd_drawtext(dotx(DOT_HLP)+10,y,graycolor,0,"Security: ");
     for (n=1; n<9; n++) {
         m=n+53;
         idx=m/32;
@@ -226,7 +228,7 @@ int do_display_random(void) {
     }
     y+=12;
 
-    x=dd_drawtext(10,y,graycolor,0,"Jobless: ");
+    x=dd_drawtext(dotx(DOT_HLP)+10,y,graycolor,0,"Jobless: ");
     for (n=1; n<6; n++) {
         m=n+63;
         idx=m/32;
@@ -239,29 +241,29 @@ int do_display_random(void) {
     }
     y+=12;
 
-    x=dd_drawtext(10,y,graycolor,0,"Vitality: ");
+    x=dd_drawtext(dotx(DOT_HLP)+10,y,graycolor,0,"Vitality: ");
     if (shrine.used[50/32]&(1<<(50&31))) dd_drawtext(x,y,graycolor,0,"- ");
     else if (30<shrine.continuity) dd_drawtext(x,y,graycolor,0,"30");
     y+=12;
 
-    x=dd_drawtext(10,y,graycolor,0,"Death: ");
+    x=dd_drawtext(dotx(DOT_HLP)+10,y,graycolor,0,"Death: ");
     if (shrine.used[51/32]&(1<<(51&31))) dd_drawtext(x,y,graycolor,0,"- ");
     else if (37<shrine.continuity) dd_drawtext(x,y,graycolor,0,"37");
     y+=12;
 
-    x=dd_drawtext(10,y,graycolor,0,"Braveness: ");
+    x=dd_drawtext(dotx(DOT_HLP)+10,y,graycolor,0,"Braveness: ");
     if (shrine.used[52/32]&(1<<(52&31))) dd_drawtext(x,y,graycolor,0,"- ");
     else if (51<shrine.continuity) dd_drawtext(x,y,graycolor,0,"51");
     y+=12;
 
     y+=12;
-    y=dd_drawtext_break(10,y,204,graycolor,0,"Only shrines in dungeons you have already solved (used the continuity shrine), but not yet used, are shown. The continuity shrine shown is the first one you haven't used yet.");
+    y=dd_drawtext_break(dotx(DOT_HLP)+10,y,dotx(DOT_HLP)+204,graycolor,0,"Only shrines in dungeons you have already solved (used the continuity shrine), but not yet used, are shown. The continuity shrine shown is the first one you haven't used yet.");
 
     return y;
 }
 
 int do_display_questlog(int nr) {
-    int y=15,off,n,cnt,pass,m;
+    int y=doty(DOT_HLP)+15,off,n,cnt,pass,m;
     char buf[256];
 
     if (!questinit) {
@@ -286,20 +288,20 @@ int do_display_questlog(int nr) {
 
             if ((pass==0 && (quest[n].flags)==QF_OPEN && quest[n].done<10) || (pass==1 && (quest[n].flags)==QF_DONE)) {
                 if (cnt>=off) {
-                    if ((questlog[n].flags&QLF_REPEATABLE) && (quest[n].flags&QF_DONE) && quest[n].done<10) dd_drawtext(200,y,lightbluecolor,DD_RIGHT,"Re-Open");
-                    if ((questlog[n].flags&QLF_XREPEAT) && (quest[n].flags&QF_DONE)) dd_drawtext(200,y,graycolor,DD_RIGHT,"(Junk Item)");
+                    if ((questlog[n].flags&QLF_REPEATABLE) && (quest[n].flags&QF_DONE) && quest[n].done<10) dd_drawtext(dotx(DOT_HLP)+200,y,lightbluecolor,DD_RIGHT,"Re-Open");
+                    if ((questlog[n].flags&QLF_XREPEAT) && (quest[n].flags&QF_DONE)) dd_drawtext(dotx(DOT_HLP)+200,y,graycolor,DD_RIGHT,"(Junk Item)");
                     sprintf(buf,"Quest: %s",questlog[n].name);
-                    dd_drawtext(10,y,whitecolor,0,buf); y+=10;
+                    dd_drawtext(dotx(DOT_HLP)+10,y,whitecolor,0,buf); y+=10;
 
                     sprintf(buf,"From: %s in %s.",questlog[n].giver,questlog[n].area);
-                    dd_drawtext(10,y,graycolor,0,buf); y+=10;
+                    dd_drawtext(dotx(DOT_HLP)+10,y,graycolor,0,buf); y+=10;
 
                     if (questlog[n].flags&(QLF_REPEATABLE|QLF_XREPEAT)) {
                         sprintf(buf,"Done: %d time%s (%d%% exp). %s.",quest[n].done,quest[n].done!=1?"s":"",questproz(quest[n].done),(quest[n].flags&QF_DONE)?"Done":"Open");
-                        dd_drawtext(10,y,graycolor,0,buf); y+=10;
+                        dd_drawtext(dotx(DOT_HLP)+10,y,graycolor,0,buf); y+=10;
                     } else {
                         sprintf(buf,"Done: %d time. (not repeatable). %s.",quest[n].done,(quest[n].flags&QF_DONE)?"Done":"Open");
-                        dd_drawtext(10,y,graycolor,0,buf); y+=10;
+                        dd_drawtext(dotx(DOT_HLP)+10,y,graycolor,0,buf); y+=10;
                     }
                     y+=10;
                 }
@@ -312,7 +314,7 @@ int do_display_questlog(int nr) {
     }
     if (cnt==0) {
         y+=50;
-        y=dd_drawtext((10+202)/2,y,whitecolor,DD_CENTER,"Your questlog is empty.");
+        y=dd_drawtext(dotx(DOT_HLP)+(10+202)/2,y,whitecolor,DD_CENTER,"Your questlog is empty.");
     }
 
     return y;
