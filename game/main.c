@@ -12,17 +12,16 @@
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 
-#include "astonia.h"
-#include "engine.h"
+#include "../astonia.h"
 
 #define ISCLIENT
-#include "main.h"
-#include "client.h"
-#include "dd.h"
-#include "sound.h"
-#include "gui.h"
-#include "sdl.h"
-#include "sprite.h"
+#include "../game/main.h"
+#include "../client/client.h"
+#include "../game/dd.h"
+#include "../sdl/sound.h"
+#include "../gui/gui.h"
+#include "../sdl/sdl.h"
+#include "../game/sprite.h"
 
 // extern
 
@@ -610,16 +609,7 @@ void save_options(void) {
 }
 
 void load_options(void) {
-    int handle,len;
-    char buf[80];
-
-    handle=open("vendor.dat",O_RDONLY|O_BINARY);
-    if (handle!=-1) {
-        len=read(handle,buf,sizeof(buf)-1);
-        buf[len]=0;
-        vendor=atoi(buf);
-        close(handle);
-    }
+    int handle;
 
     handle=open("moac.dat",O_RDONLY|O_BINARY);
     if (handle==-1) return;

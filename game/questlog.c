@@ -7,15 +7,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#define ISCLIENT
-#include "main.h"
-#include "dd.h"
-#include "client.h"
-#include "sprite.h"
-#include "gui.h"
-#include "sound.h"
 
-#include "astonia.h"
+#include "../astonia.h"
+
+#define ISCLIENT
+#include "../game/main.h"
+#include "../game/dd.h"
+#include "../client/client.h"
+#include "../game/sprite.h"
+#include "../gui/gui.h"
+#include "../sdl/sound.h"
 
 #define QLF_REPEATABLE	(1u<<0)
 #define QLF_XREPEAT	(1u<<1)

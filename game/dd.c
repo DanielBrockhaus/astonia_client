@@ -10,13 +10,12 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
 
-#include "astonia.h"
-#include "engine.h"
+#include "../astonia.h"
 
-#include "main.h"
-#include "dd.h"
-#include "client.h"
-#include "sdl.h"
+#include "../game/main.h"
+#include "../game/dd.h"
+#include "../client/client.h"
+#include "../sdl/sdl.h"
 
 DDFONT *fonta_shaded=NULL;
 DDFONT *fonta_framed=NULL;
@@ -595,9 +594,9 @@ void dd_create_font(void) {
     if (fonta_shaded) return;
 
     if (sdl_scale>1) {
-        if (sdl_scale==2) pixel=sdl_load_png("font/font2x.png",&dx,&dy);
-        else if (sdl_scale==3) pixel=sdl_load_png("font/font3x.png",&dx,&dy);
-        else if (sdl_scale==4) pixel=sdl_load_png("font/font4x.png",&dx,&dy);
+        if (sdl_scale==2) pixel=sdl_load_png("res/font2x.png",&dx,&dy);
+        else if (sdl_scale==3) pixel=sdl_load_png("res/font3x.png",&dx,&dy);
+        else if (sdl_scale==4) pixel=sdl_load_png("res/font4x.png",&dx,&dy);
         else { fail("Scale not supported in dd_create_font!"); pixel=NULL; }
         if (!pixel) return;
 

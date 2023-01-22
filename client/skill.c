@@ -6,12 +6,12 @@
 
 #define max(a,b)    ((a)>(b)?(a):(b))
 
-#include "astonia.h"
+#include "../astonia.h"
 
 #define ISCLIENT
-#include "main.h"
-#include "client.h"
-#include "skill.h"
+#include "../game/main.h"
+#include "../client/client.h"
+#include "../client/skill.h"
 
 struct skill skill[V_MAX]={
     //  Bases          Cost W M (0=not raisable, 1=skill, 2=attribute, 3=power)

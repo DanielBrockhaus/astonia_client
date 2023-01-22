@@ -4,13 +4,13 @@
 
 #include <stdint.h>
 
-#include "astonia.h"
+#include "../astonia.h"
 
 #define ISCLIENT
 #define WANTMAPMN
-#include "main.h"
-#include "client.h"
-#include "sprite.h"
+#include "../game/main.h"
+#include "../client/client.h"
+#include "../game/sprite.h"
 
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define max(a,b) ((a) > (b) ? (a) : (b))

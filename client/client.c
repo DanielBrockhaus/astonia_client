@@ -20,14 +20,13 @@
 #include <zlib.h>
 #include <SDL2/SDL.h>
 
-#include "astonia.h"
-#include "engine.h"
+#include "../astonia.h"
 
 #define ISCLIENT
 #define WANTMAPMN
-#include "main.h"
-#include "client.h"
-#include "sound.h"
+#include "../game/main.h"
+#include "../client/client.h"
+#include "../sdl/sound.h"
 
 int display_gfx=0,display_time=0;
 

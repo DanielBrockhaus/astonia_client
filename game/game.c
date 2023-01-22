@@ -10,18 +10,17 @@
 #include <math.h>
 #include <SDL2/SDL.h>
 
-#include "astonia.h"
-#include "engine.h"
+#include "../astonia.h"
 
 #define ISCLIENT
 #define WANTMAPMN
-#include "main.h"
-#include "dd.h"
-#include "client.h"
-#include "sprite.h"
-#include "gui.h"
-#include "sound.h"
-#include "sdl.h"
+#include "../game/main.h"
+#include "../game/dd.h"
+#include "../client/client.h"
+#include "../game/sprite.h"
+#include "../gui/gui.h"
+#include "../sdl/sound.h"
+#include "../sdl/sdl.h"
 
 // extern
 

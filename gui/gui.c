@@ -11,19 +11,18 @@
 #include <time.h>
 #include <SDL2/SDL.h>
 
-#include "astonia.h"
-#include "engine.h"
+#include "../astonia.h"
 
 #define ISCLIENT
 #define WANTMAPMN
-#include "main.h"
-#include "dd.h"
-#include "client.h"
-#include "skill.h"
-#include "sprite.h"
-#include "gui.h"
-#include "sound.h"
-#include "sdl.h"
+#include "../game/main.h"
+#include "../game/dd.h"
+#include "../client/client.h"
+#include "../client/skill.h"
+#include "../game/sprite.h"
+#include "../gui/gui.h"
+#include "../sdl/sound.h"
+#include "../sdl/sdl.h"
 
 // extern
 
@@ -3116,8 +3115,8 @@ void gui_sdl_mouseproc(int x,int y,int what) {
 
             if (capbut!=-1) {
                 if (mousex!=XRES/2 || mousey!=YRES/2) {
-                    mousedx+=mousex-(XRES/2);
-                    mousedy+=mousey-(YRES/2);
+                    mousedx+=(mousex-(XRES/2))/mouse_scale;
+                    mousedy+=(mousey-(YRES/2))/mouse_scale;
                     sdl_set_cursor_pos(XRES/2,YRES/2);
                 }
             }

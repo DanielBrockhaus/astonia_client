@@ -10,11 +10,11 @@
 #include <png.h>
 #include <zip.h>
 
-#include "engine.h"
+#include "../astonia.h"
 
-#include "main.h"
-#include "sdl.h"
-#include "sound.h"
+#include "../game/main.h"
+#include "../sdl/sdl.h"
+#include "../sdl/sound.h"
 
 #define max(a,b)    ((a)>(b)?(a):(b))
 #define min(a,b)    ((a)<(b)?(a):(b))
@@ -228,21 +228,21 @@ int sdl_init(int width,int height,char *title) {
         y_offset=(height/sdl_scale-YRES)/2;
     }
 
-    sdl_zip1=zip_open("gx1.zip",ZIP_RDONLY,NULL);
-    sdl_zip1p=zip_open("gx1_patch.zip",ZIP_RDONLY,NULL);
+    sdl_zip1=zip_open("res/gx1.zip",ZIP_RDONLY,NULL);
+    sdl_zip1p=zip_open("res/gx1_patch.zip",ZIP_RDONLY,NULL);
 
     switch (sdl_scale) {
         case 2:
-            sdl_zip2=zip_open("gx2.zip",ZIP_RDONLY,NULL);
-            sdl_zip2p=zip_open("gx2_patch.zip",ZIP_RDONLY,NULL);
+            sdl_zip2=zip_open("res/gx2.zip",ZIP_RDONLY,NULL);
+            sdl_zip2p=zip_open("res/gx2_patch.zip",ZIP_RDONLY,NULL);
             break;
         case 3:
-            sdl_zip2=zip_open("gx3.zip",ZIP_RDONLY,NULL);
-            sdl_zip2p=zip_open("gx3_patch.zip",ZIP_RDONLY,NULL);
+            sdl_zip2=zip_open("res/gx3.zip",ZIP_RDONLY,NULL);
+            sdl_zip2p=zip_open("res/gx3_patch.zip",ZIP_RDONLY,NULL);
             break;
         case 4:
-            sdl_zip2=zip_open("gx4.zip",ZIP_RDONLY,NULL);
-            sdl_zip2p=zip_open("gx4_patch.zip",ZIP_RDONLY,NULL);
+            sdl_zip2=zip_open("res/gx4.zip",ZIP_RDONLY,NULL);
+            sdl_zip2p=zip_open("res/gx4_patch.zip",ZIP_RDONLY,NULL);
             break;
     }
 
@@ -2232,24 +2232,24 @@ SDL_Cursor *sdl_create_cursor(char *filename) {
 }
 
 int sdl_create_cursors(void) {
-    curs[SDL_CUR_c_only]=sdl_create_cursor("cursor/c_only.cur");
-    curs[SDL_CUR_c_take]=sdl_create_cursor("cursor/c_take.cur");
-    curs[SDL_CUR_c_drop]=sdl_create_cursor("cursor/c_drop.cur");
-    curs[SDL_CUR_c_attack]=sdl_create_cursor("cursor/c_atta.cur");
-    curs[SDL_CUR_c_raise]=sdl_create_cursor("cursor/c_rais.cur");
-    curs[SDL_CUR_c_give]=sdl_create_cursor("cursor/c_give.cur");
-    curs[SDL_CUR_c_use]=sdl_create_cursor("cursor/c_use.cur");
-    curs[SDL_CUR_c_usewith]=sdl_create_cursor("cursor/c_usew.cur");
-    curs[SDL_CUR_c_swap]=sdl_create_cursor("cursor/c_swap.cur");
-    curs[SDL_CUR_c_sell]=sdl_create_cursor("cursor/c_sell.cur");
-    curs[SDL_CUR_c_buy]=sdl_create_cursor("cursor/c_buy.cur");
-    curs[SDL_CUR_c_look]=sdl_create_cursor("cursor/c_look.cur");
-    curs[SDL_CUR_c_set]=sdl_create_cursor("cursor/c_set.cur");
-    curs[SDL_CUR_c_spell]=sdl_create_cursor("cursor/c_spell.cur");
-    curs[SDL_CUR_c_pix]=sdl_create_cursor("cursor/c_pix.cur");
-    curs[SDL_CUR_c_say]=sdl_create_cursor("cursor/c_say.cur");
-    curs[SDL_CUR_c_junk]=sdl_create_cursor("cursor/c_junk.cur");
-    curs[SDL_CUR_c_get]=sdl_create_cursor("cursor/c_get.cur");
+    curs[SDL_CUR_c_only]=sdl_create_cursor("res/cursor/c_only.cur");
+    curs[SDL_CUR_c_take]=sdl_create_cursor("res/cursor/c_take.cur");
+    curs[SDL_CUR_c_drop]=sdl_create_cursor("res/cursor/c_drop.cur");
+    curs[SDL_CUR_c_attack]=sdl_create_cursor("res/cursor/c_atta.cur");
+    curs[SDL_CUR_c_raise]=sdl_create_cursor("res/cursor/c_rais.cur");
+    curs[SDL_CUR_c_give]=sdl_create_cursor("res/cursor/c_give.cur");
+    curs[SDL_CUR_c_use]=sdl_create_cursor("res/cursor/c_use.cur");
+    curs[SDL_CUR_c_usewith]=sdl_create_cursor("res/cursor/c_usew.cur");
+    curs[SDL_CUR_c_swap]=sdl_create_cursor("res/cursor/c_swap.cur");
+    curs[SDL_CUR_c_sell]=sdl_create_cursor("res/cursor/c_sell.cur");
+    curs[SDL_CUR_c_buy]=sdl_create_cursor("res/cursor/c_buy.cur");
+    curs[SDL_CUR_c_look]=sdl_create_cursor("res/cursor/c_look.cur");
+    curs[SDL_CUR_c_set]=sdl_create_cursor("res/cursor/c_set.cur");
+    curs[SDL_CUR_c_spell]=sdl_create_cursor("res/cursor/c_spell.cur");
+    curs[SDL_CUR_c_pix]=sdl_create_cursor("res/cursor/c_pix.cur");
+    curs[SDL_CUR_c_say]=sdl_create_cursor("res/cursor/c_say.cur");
+    curs[SDL_CUR_c_junk]=sdl_create_cursor("res/cursor/c_junk.cur");
+    curs[SDL_CUR_c_get]=sdl_create_cursor("res/cursor/c_get.cur");
 
     return 1;
 }

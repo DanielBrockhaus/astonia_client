@@ -13,11 +13,11 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 
-#include "engine.h"
+#include "../astonia.h"
 
-#include "main.h"
-#include "dd.h"
-#include "sound.h"
+#include "../game/main.h"
+#include "../game/dd.h"
+#include "../sdl/sound.h"
 
 int enable_sound=0;
 int sound_volume=128;
@@ -37,7 +37,7 @@ int init_sound(void) {
 
     if (!enable_sound) return -1;
 
-    sz=zip_open("sx.zip",ZIP_RDONLY,&err);
+    sz=zip_open("res/sx.zip",ZIP_RDONLY,&err);
     if (!sz) {
         warn("Opening sx.zip failed with error code %d.",err);
         enable_sound=0;

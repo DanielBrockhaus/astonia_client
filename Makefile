@@ -2,36 +2,40 @@ all: moac.exe anicopy.exe
 
 CC=gcc
 CFLAGS=-O3 -ggdb -Wall -Wno-pointer-sign -Wno-char-subscripts
-LDFLAGS=-O3 -ggdb
+LDFLAGS=-O3 -ggdb -Wl,-subsystem,windows
 #-Wl,-subsystem,windows
 LIBS = -lwsock32 -lws2_32 -lz -lpng -lsdl2 -lSDL2_mixer -lsdl2main -lzip
 
-OBJS	=	gui.o client.o skill.o dd.o font.o main.o sprite.o game.o\
-		sound.o questlog.o resource.o sdl.o helper.o
+OBJS	=		gui/gui.o client/client.o client/skill.o game/dd.o game/font.o\
+			game/main.o game/sprite.o game/game.o\
+			sdl/sound.o game/questlog.o game/resource.o sdl/sdl.o helper/helper.o
 
-moac.exe:       $(OBJS)
-		$(CC) $(LDFLAGS) -o moac.exe $(OBJS)  $(LIBS)
+moac.exe:       	$(OBJS)
+			$(CC) $(LDFLAGS) -o moac.exe $(OBJS)  $(LIBS)
 
-anicopy.exe:	anicopy.c
-		$(CC) -O3 -ggdb -Wall -o anicopy.exe anicopy.c
+anicopy.exe:		helper/anicopy.c
+			$(CC) -O3 -ggdb -Wall -o anicopy.exe helper/anicopy.c
 
-client.o:	client.c main.h client.h sound.h astonia.h engine.h
-dd.o:		dd.c main.h dd.h client.h sdl.h engine.h
-font.o:		font.c dd.h
-game.o:       	game.c main.h dd.h client.h sprite.h gui.h sound.h astonia.h engine.h
-gui.o:		gui.c gui.h main.h dd.h client.h skill.h sprite.h sdl.h sound.h astonia.h engine.h
-helper.o:	helper.c astonia.h engine.h
-main.o:		main.c main.h dd.h client.h sound.h gui.h sdl.h sprite.h astonia.h
-questlog.o:	questlog.c dd.h client.h sprite.h gui.h main.h sound.h astonia.h
-sdl.o:		sdl.c sdl.h main.h sound.h engine.h
-skill.o:      	skill.c main.h skill.h client.h astonia.h
-sound.o:      	sound.c main.h sound.h dd.h engine.h
-sprite.o:	sprite.c main.h sprite.h client.h astonia.h
+client/client.o:	client/client.c astonia.h
+game/dd.o:		game/dd.c astonia.h
+game/font.o:		game/font.c astonia.h
+game/game.o:    	game/game.c astonia.h
+gui/gui.o:		gui/gui.c astonia.h
+helper.o:		helper/helper.c astonia.h
+game/main.o:		game/main.c astonia.h
+game/questlog.o:	game/questlog.c astonia.h
+sdl/sdl.o:		sdl/sdl.c astonia.h
+game/skill.o:      	game/skill.c astonia.h
+sdl/sound.o:      	sdl/sound.c astonia.h
+game/sprite.o:		game/sprite.c astonia.h
 
-resource.o:	resource.rc
-		windres -F pe-x86-64 resource.rc resource.o
+game/resource.o:	game/resource.rc
+			windres -F pe-x86-64 game/resource.rc game/resource.o
 
 clean:
 		rm *.o
 		rm moac.exe
+
+dlls:
+	ldd moac.exe | grep mingw
 
