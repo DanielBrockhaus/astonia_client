@@ -314,6 +314,7 @@ int curspell_r=6;               // index into spelltab
 #define CMD_COLOR		        73
 #define CMD_SKL_LOOK		    74
 #define CMD_QUEST		        75
+#define CMD_HELP_DRAG           76
 
 // dot and but helpers
 
@@ -2052,10 +2053,8 @@ void set_cmd_key_states(void) {
 
 static int get_near_ground(int x,int y) {
     int mapx,mapy;
-    extern int display_help,display_quest;
 
-    if (display_help || display_quest) stom(x-110,y,&mapx,&mapy);
-    else stom(x,y,&mapx,&mapy);
+    stom(x,y,&mapx,&mapy);
 
     if (mapx<0 || mapy<0 || mapx>=MAPDX || mapy>=MAPDY) return -1;
 
@@ -2065,10 +2064,8 @@ static int get_near_ground(int x,int y) {
 static int get_near_item(int x,int y,int flag,int small) {
     int mapx,mapy,sx,sy,ex,ey,mn,scrx,scry,nearest=-1,look;
     double dist,nearestdist=100000000;
-    extern int display_help,display_quest;
 
-    if (display_help || display_quest) stom(mousex-110,mousey,&mapx,&mapy);
-    else stom(mousex,mousey,&mapx,&mapy);
+    stom(mousex,mousey,&mapx,&mapy);
 
     if (small) look=0;
     else look=MAPDX;
@@ -2088,7 +2085,6 @@ static int get_near_item(int x,int y,int flag,int small) {
             if (!(map[mn].isprite)) continue;
 
             mtos(mapx,mapy,&scrx,&scry);
-            if (display_help || display_quest) scrx+=110;
 
             dist=(x-scrx)*(x-scrx)+(y-scry)*(y-scry);
 
@@ -2105,10 +2101,8 @@ static int get_near_item(int x,int y,int flag,int small) {
 static int get_near_char(int x,int y) {
     int mapx,mapy,sx,sy,ex,ey,mn,scrx,scry,nearest=-1,look;
     double dist,nearestdist=100000000;
-    extern int display_help,display_quest;
 
-    if (display_help || display_quest) stom(mousex-110,mousey,&mapx,&mapy);
-    else stom(mousex,mousey,&mapx,&mapy);
+    stom(mousex,mousey,&mapx,&mapy);
 
     look=MAPDX;
 
@@ -2126,7 +2120,6 @@ static int get_near_char(int x,int y) {
             if (!(map[mn].csprite)) continue;
 
             mtos(mapx,mapy,&scrx,&scry);
-            if (display_help || display_quest) scrx+=110;
 
             dist=(x-scrx)*(x-scrx)+(y-scry)*(y-scry);
 
@@ -2403,6 +2396,9 @@ static void set_cmd_states(void) {
     colsel=get_color(mousex,mousey);
     if (colsel!=-1) butsel=BUT_COLOR;
 
+    if ((display_help || display_quest) && mousex>=dotx(DOT_HLP) && mousex<=dotx(DOT_HL2)-40 && mousey>=doty(DOT_HLP) && mousey<=doty(DOT_HLP)+12)
+        butsel=BUT_HELP_DRAG;
+
     if ((display_help || display_quest) && butsel==-1) {
         if (mousex>=dotx(DOT_HLP) && mousex<=dotx(DOT_HL2) && mousey>=doty(DOT_HLP) && mousey<=doty(DOT_HL2)) {
             butsel=BUT_HELP_MISC;
@@ -2417,8 +2413,8 @@ static void set_cmd_states(void) {
             if (display_quest && mousex>=dotx(DOT_HLP)+165 && mousex<=dotx(DOT_HLP)+199) {
                 int tmp,y;
 
-                tmp=(mousey-(dotx(DOT_HLP)+52))/40;
-                y=tmp*40+doty(DOT_HLP)+14;
+                tmp=(mousey-(doty(DOT_HLP)+54))/40;
+                y=tmp*40+doty(DOT_HLP)+54;
                 if (tmp>=0 && tmp<=8 && mousey>=y && mousey<=y+10) {
                     questsel=tmp;
                 }
@@ -2546,6 +2542,7 @@ static void set_cmd_states(void) {
         if (butsel==BUT_HELP_PREV) lcmd=CMD_HELP_PREV;
         if (butsel==BUT_HELP_NEXT) lcmd=CMD_HELP_NEXT;
         if (butsel==BUT_HELP_CLOSE) lcmd=CMD_HELP_CLOSE;
+        if (butsel==BUT_HELP_DRAG) lcmd=CMD_HELP_DRAG;
         if (butsel==BUT_EXIT) lcmd=CMD_EXIT;
         if (butsel==BUT_HELP) lcmd=CMD_HELP;
         if (butsel==BUT_QUEST) lcmd=CMD_QUEST;
@@ -2577,6 +2574,28 @@ static void set_cmd_states(void) {
 
     if (vk_rbut) set_cmd_cursor(rcmd);
     else set_cmd_cursor(lcmd);
+}
+
+void help_drag(void) {
+    int x,y;
+
+    x=dot[DOT_HLP].x+mousedx;
+    y=dot[DOT_HLP].y+mousedy;
+
+    if (x<dotx(DOT_TL)) mousedx+=dotx(DOT_TL)-x;
+    if (y<doty(DOT_TL)) mousedy+=doty(DOT_TL)-y;
+
+    if (x>dotx(DOT_BR)+dotx(DOT_HLP)-dotx(DOT_HL2)) mousedx+=dotx(DOT_BR)+dotx(DOT_HLP)-dotx(DOT_HL2)-x;
+    if (y>doty(DOT_BR)-20) mousedy+=doty(DOT_BR)-20-y;
+
+    dot[DOT_HLP].x+=mousedx;
+    dot[DOT_HLP].y+=mousedy;
+    dot[DOT_HL2].x+=mousedx;
+    dot[DOT_HL2].y+=mousedy;
+    but[BUT_HELP_DRAG].x+=mousedx;
+    but[BUT_HELP_DRAG].y+=mousedy;
+
+    mousedx=mousedy=0;
 }
 
 static void exec_cmd(int cmd,int a) {
@@ -2685,6 +2704,7 @@ static void exec_cmd(int cmd,int a) {
         case CMD_HELP_MISC:	if (helpsel>0 && helpsel<=MAXHELP && display_help) display_help=helpsel;
             if (questsel!=-1) quest_select(questsel);
             return;
+        case CMD_HELP_DRAG:     help_drag(); return;
         case CMD_HELP:		if (display_help) display_help=0;
             else { display_help=1; display_quest=0; }
             return;
@@ -3279,6 +3299,7 @@ int main_init(void) {
     set_but(BUT_MOD_WALK0,dot[DOT_MOD].x+1*14,dot[DOT_MOD].y+0*30,30,BUTID_MOD,0,0);
     set_but(BUT_MOD_WALK1,dot[DOT_MOD].x+0*14,dot[DOT_MOD].y+0*30,30,BUTID_MOD,0,0);
     set_but(BUT_MOD_WALK2,dot[DOT_MOD].x+2*14,dot[DOT_MOD].y+0*30,30,BUTID_MOD,0,0);
+    set_but(BUT_HELP_DRAG,(dotx(DOT_HLP)+dotx(DOT_HL2))/2,doty(DOT_HLP)+6,0,0,0,BUTF_CAPTURE|BUTF_MOVEEXEC);
 
     // other
     set_invoff(0,0);

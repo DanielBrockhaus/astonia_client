@@ -91,7 +91,8 @@ typedef struct dot DOT;         // dot 0 is top left, dot 1 is bottom right of t
 #define BUT_COLOR	    80
 #define BUT_SKL_LOOK	81
 #define BUT_QUEST	    82
-#define MAX_BUT         83
+#define BUT_HELP_DRAG   83
+#define MAX_BUT         84
 
 #define BUTF_NOHIT      (1<<1)  // button is ignored int hit processing
 #define BUTF_CAPTURE    (1<<2)  // button captures mouse on lclick

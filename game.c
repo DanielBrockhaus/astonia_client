@@ -1544,26 +1544,10 @@ void display_pents(void) {
 }
 
 void display_game(void) {
-    extern int x_offset;
-    extern int display_help,display_quest;
-    int do_display_questlog(int nr);
-
-    if (display_help || display_quest) {
-        dd_push_clip();
-        dd_more_clip(110,0,800-110,600);
-        x_offset+=110;
-    }
-
-
     display_game_spells();
     display_game_spells2();
     display_game_map(map);
     display_game_names();
-
-    if (display_help || display_quest) {
-        x_offset-=110;
-        dd_pop_clip();
-    }
     display_pents();
 }
 
