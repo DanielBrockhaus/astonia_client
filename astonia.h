@@ -24,6 +24,7 @@ extern int quit;
 
 #define PARANOIA(a) a
 
+void addline(const char *format,...) __attribute__((format(printf, 1, 2)));
 int  note(const char *format,...) __attribute__((format(printf, 1, 2)));
 int  warn(const char *format,...) __attribute__((format(printf, 1, 2)));
 int  fail(const char *format,...) __attribute__((format(printf, 1, 2)));
@@ -116,3 +117,4 @@ int doty(int didx);
 int butx(int bidx);
 int buty(int bidx);
 
+void dd_set_offset(int x,int y);

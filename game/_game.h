@@ -66,6 +66,8 @@ void dd_display_pulseback(int fx,int fy,int tx,int ty);
 int dd_text_init_done(void);
 void dd_add_text(char *ptr);
 void dd_set_textfont(int nr);
+void dd_create_font(void);
+void dd_init_text(void);
 
 #define DDFX_MAX_FREEZE         8
 
@@ -122,3 +124,28 @@ extern DDFONT fontc[];
 extern DDFONT *fontc_shaded;
 extern DDFONT *fontc_framed;
 
+#define DL_STEP 128
+
+#define DLC_STRIKE      1
+#define DLC_NUMBER	2
+#define DLC_DUMMY	3       // used to get space in the list to reduce compares ;-)
+#define DLC_PIXEL	4
+#define DLC_BLESS	5
+#define DLC_POTION	6
+#define DLC_RAIN	7
+#define DLC_PULSE	8
+#define DLC_PULSEBACK	9
+
+struct dl {
+    int layer;
+    int x,y,h;      // scrx=x scry=y-h sorted bye x,y ;) normally used for height, but also misused to place doors right
+    // int movy;
+
+    DDFX ddfx;
+
+    // functions to call
+    char call;
+    int call_x1,call_y1,call_x2,call_y2,call_x3;
+};
+
+typedef struct dl DL;

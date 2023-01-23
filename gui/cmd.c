@@ -8,7 +8,6 @@
 
 #include <stdint.h>
 #include <string.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 
@@ -19,13 +18,11 @@
 #include "../client.h"
 #include "../game.h"
 
-
 #define MAXCMDLINE	199
 #define MAXHIST		20
 static char cmdline[MAXCMDLINE+1]={""};
 static char *history[MAXHIST];
 static int cmdcursor=0,cmddisplay=0,histpos=-1;
-extern char user_keys[];
 
 void update_user_keys(void) {
     int n;
@@ -289,3 +286,4 @@ void display_cmd(void) {
         if (x>dotx(DOT_TXT)+625-230) break;
     }
 }
+

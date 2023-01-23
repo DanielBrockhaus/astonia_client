@@ -4,9 +4,6 @@
 
 #include <windows.h>
 #include <stdint.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <io.h>
 #include <fcntl.h>
 #include <time.h>
 #define SDL_MAIN_HANDLED
@@ -19,22 +16,12 @@
 #include "../gui.h"
 #include "../client.h"
 
-// extern
-
-extern int main_init(void);
-extern void main_exit(void);
-
-int main_loop(void);
-
-// globs
-
 int quit=0;
 int quickstart=0;
 int panic_reached=0;
 int xmemcheck_failed=0;
 int largetext=0;
 int vendor=1;
-extern int newlight;
 char user_keys[10]={'Q','W','E','A','S','D','Z','X','C','V'};
 
 char memcheck_failed_str[]={"TODO: memcheck failed"};  // TODO
@@ -700,8 +687,6 @@ int main(int argc,char *args[]) {
     init_sound();
 
     if (largetext) {
-        extern int namesize;
-
         namesize=0;
         dd_set_textfont(1);
     }

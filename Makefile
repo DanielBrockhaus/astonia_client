@@ -17,25 +17,29 @@ moac.exe:       	$(OBJS)
 anicopy.exe:		helper/anicopy.c
 			$(CC) -O3 -ggdb -Wall -o anicopy.exe helper/anicopy.c
 
-client/client.o:	client/client.c astonia.h
-game/dd.o:		game/dd.c astonia.h
-game/font.o:		game/font.c astonia.h
-game/game.o:    	game/game.c astonia.h
-gui/gui.o:		gui/gui.c astonia.h
-gui/cmd.o:		gui/cmd.c astonia.h
-gui/dots.o:		gui/dots.c astonia.h
-gui/display.o:		gui/display.c astonia.h
-gui/teleport.o:		gui/teleport.c astonia.h
-gui/color.o:		gui/color.c astonia.h
-helper.o:		helper/helper.c astonia.h
-game/main.o:		game/main.c astonia.h
-game/questlog.o:	game/questlog.c astonia.h
-sdl/sdl.o:		sdl/sdl.c astonia.h
-game/skill.o:      	game/skill.c astonia.h
-sdl/sound.o:      	sdl/sound.c astonia.h
-game/sprite.o:		game/sprite.c astonia.h
+client/client.o:	client/client.c astonia.h client.h client/_client.h sdl.h
 
-game/resource.o:	game/resource.rc
+game/dd.o:		game/dd.c astonia.h game.h game/_game.h client.h sdl.h
+game/font.o:		game/font.c game.h game/_game.h
+game/game.o:    	game/game.c astonia.h game.h game/_game.h client.h gui.h
+game/main.o:		game/main.c astonia.h game.h game/_game.h client.h gui.h sdl.h
+game/skill.o:      	game/skill.c astonia.h game.h game/_game.h client.h
+game/sprite.o:		game/sprite.c astonia.h game.h game/_game.h client.h gui.h
+
+gui/color.o:		gui/color.c astonia.h gui.h gui/_gui.h client.h game.h
+gui/cmd.o:		gui/cmd.c astonia.h gui.h gui/_gui.h client.h game.h sdl.h
+gui/dots.o:		gui/dots.c astonia.h gui.h gui/_gui.h
+gui/display.o:		gui/display.c astonia.h gui.h gui/_gui.h client.h game.h
+gui/gui.o:		gui/gui.c astonia.h gui.h gui/_gui.h client.h game.h gui.h sdl.h
+gui/teleport.o:		gui/teleport.c astonia.h gui.h gui/_gui.h client.h game.h
+gui/questlog.o:		gui/questlog.c astonia.h gui.h gui/_gui.h client.h game.h
+
+helper/helper.o:	helper/helper.c astonia.h
+
+sdl/sdl.o:		sdl/sdl.c astonia.h sdl.h sdl/_sdl.h
+sdl/sound.o:      	sdl/sound.c astonia.h sdl.h sdl/_sdl.h
+
+game/resource.o:	game/resource.rc game/resource.h
 			windres -F pe-x86-64 game/resource.rc game/resource.o
 
 clean:

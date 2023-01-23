@@ -447,6 +447,7 @@ struct client_info {
 };
 
 extern struct map map[MAPDX*MAPDY];
+extern struct map map2[MAPDX*MAPDY];
 
 extern int value[2][V_MAX];
 extern int item[INVENTORYSIZE];
@@ -461,6 +462,7 @@ extern int experience_used;
 extern int gold;
 extern int tick;
 extern int lasttick;                    // ticks in inbuf
+extern int q_size;
 
 extern unsigned int cflags;     // current item flags
 extern unsigned int csprite;        // and sprite
@@ -499,6 +501,18 @@ extern struct skill skill[];
 extern int act;
 extern int actx;
 extern int acty;
+
+extern int lookinv[12];
+extern int looksprite,lookc1,lookc2,lookc3;
+extern char look_name[80];
+extern char look_desc[1024];
+
+extern int realtime;
+extern int mil_exp;
+extern int display_gfx;
+extern int display_time;
+
+extern char pent_str[7][80];
 
 
 void cmd_text(char *text);

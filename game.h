@@ -71,6 +71,8 @@ extern int dd_lighteffect;
 extern int largetext;
 extern float mouse_scale;   // mouse input needs to be scaled by this factor because the display window is stretched
 extern uint64_t sprite_options;
+extern char user_keys[10];
+extern int namesize;
 
 int dd_textlength(int flags,const char *text);
 int dd_textlen(int flags,const char *text,int n);
@@ -96,7 +98,8 @@ int dd_drawtext_char(int sx,int sy,int c,unsigned short int color);
 void dd_shaded_rect(int sx,int sy,int ex,int ey);
 void dd_text_lineup(void);
 void dd_text_linedown(void);
-
+int dd_offset_x(void);
+int dd_offset_y(void);
 
 int trans_asprite(int mn,int sprite,int attick,
                   unsigned char *pscale,
@@ -113,10 +116,10 @@ int trans_asprite(int mn,int sprite,int attick,
 int trans_charno(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,int *psat,int *pc1,int *pc2,int *pc3,int *pshine,int attick);
 int additional_sprite(int sprite,int attick);
 int get_player_sprite(int nr,int zdir,int action,int step,int duration,int attick);
-
-void addline(const char *format,...) __attribute__((format(printf, 1, 2)));
 void save_options(void);
 int opt_sprite(int sprite);
+struct map;
+int get_sink(int mn,struct map *cmap);
 
 void list_mem(void);
 

@@ -2,9 +2,11 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
-#include <stdlib.h>
+#include <stdint.h>
 
 #include "../astonia.h"
+#include "../game.h"
+#include "../game/_game.h"
 #include "../client.h"
 
 struct skill skill[V_MAX]={

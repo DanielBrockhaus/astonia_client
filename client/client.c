@@ -3,20 +3,7 @@
  */
 
 #include <winsock2.h>
-#include <stdio.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <string.h>
 #include <time.h>
-#include <io.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <dirent.h>
-#include <ctype.h>
-#include <stdarg.h>
-#include <errno.h>
-#include <math.h>
 #include <zlib.h>
 #include <SDL2/SDL.h>
 
@@ -24,22 +11,12 @@
 #include "../client.h"
 #include "../client/_client.h"
 #include "../sdl.h"
-#include "../game.h"
+#include "../gui.h"
 
 int display_gfx=0,display_time=0;
-
-void bzero_client(int part);
-
 int rec_bytes=0;
 int sent_bytes=0;
-
-// extern
-
-extern int update_skltab;
-
-// socket
-
-int sock=-1;            // -1 is important -
+int sock=-1;
 int sockstate=0;
 unsigned int socktime=0;
 int socktimeout=0;
@@ -48,22 +25,12 @@ int kicked_out=0;
 int target_port=5556;
 unsigned int unique=0;
 unsigned int usum=0;
-
 int target_server=0;
-
 char username[40];
 char password[16];
-
 int zsinit;
 struct z_stream_s zs;
 
-#define Q_SIZE	16
-struct queue {
-    unsigned char buf[16384];
-    int size;
-};
-
-// ------------------------- client start --------------------------------
 
 int tick;
 int mirror=0,newmirror=0;
@@ -135,10 +102,6 @@ int pspeed=0;   // 0=normal   1=fast      2=stealth     - like the server
 int may_teleport[64+32];
 
 int frames_per_second=TICKS;
-
-// ------------------------- client end --------------------------------
-
-// end of struct client
 
 int sv_map01(unsigned char *buf,int *last,struct map *cmap) {
     int p,c;
@@ -409,7 +372,6 @@ void sv_setcitem(unsigned char *buf) {
 }
 
 void sv_act(unsigned char *buf) {
-    extern int teleporter;
 
     act=*(unsigned short int *)(buf+1);
     actx=*(unsigned short int *)(buf+3);
@@ -421,8 +383,6 @@ void sv_act(unsigned char *buf) {
 int sv_text(unsigned char *buf) {
     int len;
     char line[1024];
-    extern char tutor_text[];
-    extern int show_tutor;
 
     len=*(unsigned short *)(buf+1);
     if (len<1000) {
@@ -745,7 +705,6 @@ void sv_mil_exp(unsigned char *buf) {
 }
 
 void sv_cycles(unsigned char *buf) {
-    extern int server_cycles;
     int c;
 
     c=*(unsigned long *)(buf+1);
@@ -755,7 +714,6 @@ void sv_cycles(unsigned char *buf) {
 
 void sv_lookinv(unsigned char *buf) {
     int n;
-    extern int show_look;
 
     looksprite=*(unsigned int *)(buf+1);
     lookc1=*(unsigned int *)(buf+5);
@@ -799,7 +757,6 @@ void sv_special(unsigned char *buf) {
 
 void sv_teleport(unsigned char *buf) {
     int n,i,b;
-    extern int teleporter;
 
     for (n=0; n<64+32; n++) {
         i=n/8;
@@ -1159,8 +1116,6 @@ void cmd_teleport(int nr) {
     char buf[64];
 
     if (nr>100) {   // ouch
-        extern int newmirror;
-
         newmirror=nr-100;
         return;
     }
@@ -1337,7 +1292,6 @@ void cmd_reopen_quest(int nr) {
 }
 
 void bzero_client(int part) {
-    extern int show_look;
     if (part==0) {
         lasttick=0;
         lastticksize=0;
@@ -1455,7 +1409,6 @@ void send_info(int sock) {
 
 int poll_network(void) {
     int n;
-    extern int vendor;
 
     // something fatal failed (sockstate will somewhen tell you what)
     if (sockstate<0) {

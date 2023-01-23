@@ -3,7 +3,6 @@
  */
 
 #include <stdint.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
@@ -127,7 +126,6 @@ SDL_mutex *premutex=NULL;
 int __yres=YRES0;
 
 int sdl_init(int width,int height,char *title) {
-    extern float mouse_scale;
     int len,i;
     SDL_DisplayMode DM;
 
@@ -198,7 +196,6 @@ int sdl_init(int width,int height,char *title) {
 
     // decide on screen format
     if (width!=XRES) {
-        extern int x_offset,y_offset;
         int tmp_scale=0;
 
         if (width/XRES>=4 && height/YRES0>=4) sdl_scale=4;
@@ -217,10 +214,7 @@ int sdl_init(int width,int height,char *title) {
 
         if (tmp_scale>sdl_scale || height<YRES1) { sdl_scale=tmp_scale; YRES=YRES2; }
 
-        mouse_scale=sdl_scale;
-
-        x_offset=(width/sdl_scale-XRES)/2;
-        y_offset=(height/sdl_scale-YRES)/2;
+        dd_set_offset((width/sdl_scale-XRES)/2,(height/sdl_scale-YRES)/2);
     }
 
     sdl_zip1=zip_open("res/gx1.zip",ZIP_RDONLY,NULL);
@@ -2495,6 +2489,10 @@ int sdl_has_focus(void) {
     if (flags&SDL_WINDOW_MINIMIZED) return 0;
 
     return 1;
+}
+
+void sdl_set_title(char *title) {
+    SDL_SetWindowTitle(sdlwnd,title);
 }
 
 

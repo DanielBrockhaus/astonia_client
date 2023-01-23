@@ -67,17 +67,19 @@
 #define MAX_INBUF	        0xFFFFF
 #define MAX_OUTBUF	        0xFFFFF
 
+#define Q_SIZE	16
+
+struct queue {
+    unsigned char buf[16384];
+    int size;
+};
+
 int record_client(char *filename);
 int open_client(char *username,char *password);
 
 int init_network(void);
 void exit_network(void);
-
-extern int sock;
-extern unsigned int socktime;
-extern unsigned int unique;
-
-
+void bzero_client(int part);
 
 
 

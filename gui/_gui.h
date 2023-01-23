@@ -292,9 +292,6 @@ void cmd_color(int nr);
 // globals cmd
 
 extern int plrmn;                      // mn of player
-extern int mapsel;                     // mn
-extern int itmsel;                     // mn
-extern int chrsel;                     // mn
 extern int invsel;                     // index into item
 extern int weasel;                     // index into weatab
 extern int consel;                     // index into item
@@ -336,11 +333,10 @@ extern KEYTAB keytab[];
 extern int max_keytab;
 
 extern int clan_offset;
-extern int teleporter;
-extern int show_tutor;
 
 extern int show_color,show_cur;
 extern int show_color_c[];
 extern int show_cx;
 extern char hitsel[];
 
+extern int stom_off_x,stom_off_y;

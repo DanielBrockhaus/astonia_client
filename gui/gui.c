@@ -4,10 +4,6 @@
 
 #include <windows.h>
 #include <psapi.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <math.h>
-#include <ctype.h>
 #include <time.h>
 #include <SDL2/SDL.h>
 
@@ -18,13 +14,10 @@
 #include "../game.h"
 #include "../sdl.h"
 
-// extern
 void set_map_values(struct map *cmap,int attick);
 void init_game(int mcx,int mcy);
-extern void exit_game(void);
+void exit_game(void);
 void quest_select(int nr);
-extern int gfx_force_png;
-extern int gfx_force_dh;
 
 uint64_t gui_time_misc=0;
 
@@ -179,7 +172,6 @@ void mtos(int mapx,int mapy,int *scrx,int *scry) {
 
 // screen to map
 void stom(int scrx,int scry,int *mapx,int *mapy) {
-    extern int stom_off_x,stom_off_y;
     scrx-=stom_off_x;
     scry-=stom_off_y;
     scrx-=(mapoffx+mapaddx);
@@ -1082,7 +1074,6 @@ static void cmd_look_skill(int nr) {
 static void set_cmd_states(void) {
     int i,c;
     static int oldconcnt=0; // ;-)
-    extern int display_help,display_quest;
     static char title[256];
     char buf[256];
 
@@ -1113,9 +1104,8 @@ static void set_cmd_states(void) {
             (target_server>>0)&255,
             target_port);
     if (strcmp(title,buf)) {
-        extern SDL_Window *sdlwnd;
         strcpy(title,buf);
-        SDL_SetWindowTitle(sdlwnd,title);
+        sdl_set_title(title);
     }
 
     // update fkeyitem
@@ -1352,8 +1342,6 @@ void help_drag(void) {
 }
 
 static void exec_cmd(int cmd,int a) {
-    extern int display_help,display_quest;
-
     switch (cmd) {
         case CMD_NONE:          return;
 
@@ -1474,8 +1462,6 @@ static void exec_cmd(int cmd,int a) {
 
 void gui_sdl_keyproc(int wparam) {
     int i;
-    extern int display_gfx;
-    extern int display_help,display_quest;
 
     switch (wparam) {
 
@@ -1591,7 +1577,6 @@ void gui_sdl_keyproc(int wparam) {
 }
 
 void gui_sdl_mouseproc(int x,int y,int what) {
-    extern int x_offset,y_offset;
     int delta;
 
     switch (what) {
@@ -1601,16 +1586,16 @@ void gui_sdl_mouseproc(int x,int y,int what) {
 
             if (capbut!=-1) {
                 if (mousex!=XRES/2 || mousey!=YRES/2) {
-                    mousedx+=(mousex-(XRES/2))/mouse_scale;
-                    mousedy+=(mousey-(YRES/2))/mouse_scale;
+                    mousedx+=(mousex-(XRES/2))/sdl_scale;
+                    mousedy+=(mousey-(YRES/2))/sdl_scale;
                     sdl_set_cursor_pos(XRES/2,YRES/2);
                 }
             }
 
-            mousex/=mouse_scale;
-            mousey/=mouse_scale;
-            mousex-=x_offset;
-            mousey-=y_offset;
+            mousex/=sdl_scale;
+            mousey/=sdl_scale;
+            mousex-=dd_offset_x();
+            mousey-=dd_offset_y();
 
             if (butsel!=-1 && vk_lbut && (but[butsel].flags&BUTF_MOVEEXEC)) exec_cmd(lcmd,0);
             break;
@@ -1632,7 +1617,7 @@ void gui_sdl_mouseproc(int x,int y,int what) {
         case SDL_MOUM_LUP:
             vk_lbut=0;
             if (capbut!=-1) {
-                sdl_set_cursor_pos(but[capbut].x*mouse_scale+x_offset,but[capbut].y*mouse_scale+y_offset);
+                sdl_set_cursor_pos(but[capbut].x*sdl_scale+dd_offset_x(),but[capbut].y*sdl_scale+dd_offset_y());
                 sdl_capture_mouse(0);
                 sdl_show_cursor(1);
                 if (!(but[capbut].flags&BUTF_MOVEEXEC)) exec_cmd(lcmd,0);
@@ -1753,7 +1738,6 @@ uint64_t gui_ticktime=0;
 int main_loop(void) {
     void prefetch_game(int attick);
     int tmp,timediff,ltick=0,attick;
-    extern int q_size;
     long long start;
     int do_one_tick=1;
     uint64_t gui_last_frame=0,gui_last_tick=0;

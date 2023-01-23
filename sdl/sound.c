@@ -3,12 +3,6 @@
  */
 
 #include <stdio.h>
-#include <fcntl.h>
-#include <io.h>
-#include <stdlib.h>
-#include <process.h>
-#include <errno.h>
-#include <math.h>
 #include <zip.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>

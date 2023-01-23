@@ -16,11 +16,13 @@
 #include "../game.h"
 #include "../client.h"
 
+char tutor_text[1024]={""};
+int show_tutor=0;
+
 static void dx_drawtext_gold(int x,int y,unsigned short int color,int amount) {
     if (amount>99) dd_drawtext_fmt(x,y,color,DD_CENTER|DD_FRAME|DD_SMALL,"%d.%02dG",amount/100,amount%100);
     else dd_drawtext_fmt(x,y,color,DD_CENTER|DD_FRAME|DD_SMALL,"%ds",amount);
 }
-
 
 void display_wear(void) {
     int b,i,x,y,yt;
@@ -90,8 +92,6 @@ void display_look(void) {
     unsigned short c1,c2,c3,shine;
     unsigned char scale,cr,cg,cb,light,sat;
     DDFX fx;
-    extern char look_name[],look_desc[];
-    extern int looksprite,lookc1,lookc2,lookc3;
     static int look_anim=4,look_step=0,look_dir=0;
 
     dd_copysprite(opt_sprite(994),151,50,DDFX_NLIGHT,DD_NORMAL);
@@ -445,9 +445,6 @@ void display_keys(void) {
     }
 }
 
-char tutor_text[1024]={""};
-int show_tutor=0;
-
 void display_tutor(void) {
     int x,y,n,mx=dotx(DOT_BOT)+626,my=doty(DOT_BOT)-370+416-80;
     char *ptr,buf[80];
@@ -499,7 +496,6 @@ void display_screen(void) {
     int h,m;
     int h1,h2,m1,m2;
     static int rh1=0,rh2=0,rm1=0,rm2=0;
-    extern int realtime;
 
     dd_copysprite(opt_sprite(999),dotx(DOT_TOP),doty(DOT_TOP),DDFX_NLIGHT,DD_NORMAL);
 
@@ -703,7 +699,6 @@ static int mil_rank(int exp) {
 
 void display_military(void) {
     int step,total,rank,cost1,cost2;
-    extern int mil_exp;
 
     sprintf(rank_text,"Rank: none or unknown");
 
@@ -744,7 +739,6 @@ void display_rage(void) {
 }
 
 void display_game_special(void) {
-    extern int display_gfx,display_time;
     int dx;
 
     if (!display_gfx) return;

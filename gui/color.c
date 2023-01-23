@@ -9,7 +9,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 #include "../astonia.h"
 #include "../gui.h"

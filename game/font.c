@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 
+#include "../game.h"
 #include "../game/_game.h"
 
 unsigned char fontb_000[] = /*   */ {255};
