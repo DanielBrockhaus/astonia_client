@@ -13,15 +13,11 @@
 #include <SDL2/SDL.h>
 
 #include "../astonia.h"
-
-#define ISCLIENT
-#include "../game/main.h"
-#include "../client/client.h"
-#include "../game/dd.h"
-#include "../sdl/sound.h"
-#include "../gui/gui.h"
-#include "../sdl/sdl.h"
-#include "../game/sprite.h"
+#include "../game.h"
+#include "../game/_game.h"
+#include "../sdl.h"
+#include "../gui.h"
+#include "../client.h"
 
 // extern
 
@@ -701,11 +697,7 @@ int main(int argc,char *args[]) {
         return -1;
     }
 
-
-
-#ifdef DOSOUND
     init_sound();
-#endif
 
     if (largetext) {
         extern int namesize;

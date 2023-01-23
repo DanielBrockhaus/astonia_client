@@ -21,12 +21,10 @@
 #include <SDL2/SDL.h>
 
 #include "../astonia.h"
-
-#define ISCLIENT
-#define WANTMAPMN
-#include "../game/main.h"
-#include "../client/client.h"
-#include "../sdl/sound.h"
+#include "../client.h"
+#include "../client/_client.h"
+#include "../sdl.h"
+#include "../game.h"
 
 int display_gfx=0,display_time=0;
 
@@ -794,10 +792,8 @@ void sv_special(unsigned char *buf) {
 
     switch (type) {
         case 0:		display_gfx=opt1; display_time=tick; break;
-#ifdef DOSOUND
         default:	if (type>0 && type<1000) play_sound(type,opt1,opt2);
             break;
-#endif
     }
 }
 
@@ -1786,5 +1782,12 @@ int exp2level(int val) {
 // to reach level X you need Y exp
 int level2exp(int level) {
     return pow(level,4);
+}
+
+int mapmn(int x,int y) {
+    if (x<0 || y<0 || x>=MAPDX || y>=MAPDY) {
+        return -1;
+    }
+    return (x+y*MAPDX);
 }
 

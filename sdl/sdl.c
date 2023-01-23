@@ -11,13 +11,8 @@
 #include <zip.h>
 
 #include "../astonia.h"
-
-#include "../game/main.h"
-#include "../sdl/sdl.h"
-#include "../sdl/sound.h"
-
-#define max(a,b)    ((a)>(b)?(a):(b))
-#define min(a,b)    ((a)<(b)?(a):(b))
+#include "../sdl.h"
+#include "../sdl/_sdl.h"
 
 #define IGET_A(c)       ((((uint32_t)(c))>>24)&0xFF)
 #define IGET_R(c)       ((((uint32_t)(c))>>16)&0xFF)
@@ -1337,7 +1332,14 @@ int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,in
                    sdlt[stx].sat,sdlt[stx].c1,sdlt[stx].c2,sdlt[stx].c3,
                    sdlt[stx].shine,sdlt[stx].ml,sdlt[stx].ll,sdlt[stx].rl,
                    sdlt[stx].ul,sdlt[stx].dl,sdlt[stx].text);
-            if (panic>1099) exit(42);
+            if (panic>1099) {
+#ifdef DEVELOPER
+                void sdl_dump_spritechache(void);
+
+                sdl_dump_spritechache();
+#endif
+                exit(42);
+            }
         }
         if (text) {
             if (!(sdlt[stx].flags&SF_TEXT)) continue;
@@ -1726,14 +1728,9 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
         sx+=font[*text++].dim*sdl_scale;
     }
 
-    if (sizex<1 || sizey<1) {
-#ifdef SDL_FAST_MALLOC
-        free(pixel);
-#else
-        xfree(pixel);
-#endif
-        return NULL;
-    }
+    if (sizex<1) sizex=1;
+    if (sizey<1) sizey=1;
+
     sizey++;
     sdl_time_text+=SDL_GetTicks64()-start;
 
@@ -1755,6 +1752,7 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
     return texture;
 }
 
+#ifdef DEVELOPER
 int *dumpidx;
 
 int dump_cmp(const void *ca,const void *cb) {
@@ -1772,7 +1770,6 @@ int dump_cmp(const void *ca,const void *cb) {
     return sdlt[a].sprite-sdlt[b].sprite;
 }
 
-#ifdef DEVELOPER
 void sdl_dump_spritechache(void) {
     int i,n,cnt=0,uni=0,text=0;
     long long size=0;

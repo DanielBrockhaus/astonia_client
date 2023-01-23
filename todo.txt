@@ -10,6 +10,8 @@ Bugs
 
 - originx and originy are not correctly set for prefetch.
 
+- Shaded text in 2X has single pixel gaps.
+
 
 Probably
 --------
@@ -26,6 +28,8 @@ Probably
 - Lighting calculations have been wrong all the time. This really becomes apparent in the higher resolutions. Fix them.
 
 - Move all resources to a single resources folder. Duh.
+
+- Create mod for V3.5.
 
 
 Possibly

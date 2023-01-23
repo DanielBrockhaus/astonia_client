@@ -11,11 +11,10 @@
 #include <SDL2/SDL.h>
 
 #include "../astonia.h"
-
-#include "../game/main.h"
-#include "../game/dd.h"
-#include "../client/client.h"
-#include "../sdl/sdl.h"
+#include "../game.h"
+#include "../game/_game.h"
+#include "../client.h"
+#include "../sdl.h"
 
 DDFONT *fonta_shaded=NULL;
 DDFONT *fonta_framed=NULL;

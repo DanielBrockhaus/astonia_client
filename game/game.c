@@ -11,16 +11,11 @@
 #include <SDL2/SDL.h>
 
 #include "../astonia.h"
-
-#define ISCLIENT
-#define WANTMAPMN
-#include "../game/main.h"
-#include "../game/dd.h"
-#include "../client/client.h"
-#include "../game/sprite.h"
-#include "../gui/gui.h"
-#include "../sdl/sound.h"
-#include "../sdl/sdl.h"
+#include "../game.h"
+#include "../game/_game.h"
+#include "../gui.h"
+#include "../client.h"
+#include "../sdl.h"
 
 // extern
 

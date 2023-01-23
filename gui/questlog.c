@@ -9,14 +9,10 @@
 #include <math.h>
 
 #include "../astonia.h"
-
-#define ISCLIENT
-#include "../game/main.h"
-#include "../game/dd.h"
-#include "../client/client.h"
-#include "../game/sprite.h"
-#include "../gui/gui.h"
-#include "../sdl/sound.h"
+#include "../gui.h"
+#include "../gui/_gui.h"
+#include "../game.h"
+#include "../client.h"
 
 #define QLF_REPEATABLE	(1u<<0)
 #define QLF_XREPEAT	(1u<<1)

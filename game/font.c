@@ -1,4 +1,11 @@
-#include "dd.h"
+/*
+ * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ */
+
+#include <stdint.h>
+
+#include "../game/_game.h"
+
 unsigned char fontb_000[] = /*   */ {255};
 unsigned char fontb_001[] = /*   */ {255};
 unsigned char fontb_002[] = /*   */ {255};

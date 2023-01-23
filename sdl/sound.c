@@ -14,10 +14,8 @@
 #include <SDL2/SDL_mixer.h>
 
 #include "../astonia.h"
-
-#include "../game/main.h"
-#include "../game/dd.h"
-#include "../sdl/sound.h"
+#include "../sdl.h"
+#include "../sdl/_sdl.h"
 
 int enable_sound=0;
 int sound_volume=128;
