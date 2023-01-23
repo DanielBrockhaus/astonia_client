@@ -14,43 +14,42 @@
 #include "../gui.h"
 
 int display_gfx=0,display_time=0;
-int rec_bytes=0;
-int sent_bytes=0;
-int sock=-1;
+static int rec_bytes=0;
+static int sent_bytes=0;
+static int sock=-1;
 int sockstate=0;
-unsigned int socktime=0;
+static unsigned int socktime=0;
 int socktimeout=0;
-int change_area=0;
+static int change_area=0;
 int kicked_out=0;
+static unsigned int unique=0;
+static unsigned int usum=0;
 int target_port=5556;
-unsigned int unique=0;
-unsigned int usum=0;
 int target_server=0;
 char username[40];
 char password[16];
-int zsinit;
-struct z_stream_s zs;
-
+static int zsinit;
+static struct z_stream_s zs;
 
 int tick;
 int mirror=0,newmirror=0;
 int lasttick;           // ticks in inbuf
-int lastticksize;       // size inbuf must reach to get the last tick complete in the queue
+static int lastticksize;       // size inbuf must reach to get the last tick complete in the queue
 int realtime;
 
-struct queue queue[Q_SIZE];
+static struct queue queue[Q_SIZE];
 int q_in,q_out,q_size;
 
-int server_cycles;
+static int server_cycles;
 
-int ticksize;
-int inused;
-int indone;
-int login_done;
-unsigned char inbuf[MAX_INBUF];
+static int ticksize;
+static int inused;
+static int indone;
+static int login_done;
+static unsigned char inbuf[MAX_INBUF];
 
-int outused;
-unsigned char outbuf[MAX_OUTBUF];
+static int outused;
+static unsigned char outbuf[MAX_OUTBUF];
 
 int act;
 int actx;

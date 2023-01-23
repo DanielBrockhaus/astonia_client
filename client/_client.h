@@ -76,10 +76,7 @@ struct queue {
 
 int record_client(char *filename);
 int open_client(char *username,char *password);
-
 int init_network(void);
 void exit_network(void);
 void bzero_client(int part);
-
-
 

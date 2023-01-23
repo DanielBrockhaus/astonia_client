@@ -11,14 +11,14 @@
 #include "../gui.h"
 #include "../client.h"
 
-int fsprite_cnt=0,f2sprite_cnt=0,gsprite_cnt=0,g2sprite_cnt=0,isprite_cnt=0,csprite_cnt=0;
-int qs_time=0,dg_time=0,ds_time=0;
+static int fsprite_cnt=0,f2sprite_cnt=0,gsprite_cnt=0,g2sprite_cnt=0,isprite_cnt=0,csprite_cnt=0;
+static int qs_time=0,dg_time=0,ds_time=0;
 int stom_off_x=0,stom_off_y=0;
 
-DL *dllist=NULL;
-DL **dlsort=NULL;
-int dlused=0,dlmax=0;
-int stat_dlsortcalls,stat_dlused;
+static DL *dllist=NULL;
+static DL **dlsort=NULL;
+static int dlused=0,dlmax=0;
+static int stat_dlsortcalls,stat_dlused;
 int namesize=DD_SMALL;
 
 DL* dl_next(void) {

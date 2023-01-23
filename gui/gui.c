@@ -14,11 +14,6 @@
 #include "../game.h"
 #include "../sdl.h"
 
-void set_map_values(struct map *cmap,int attick);
-void init_game(int mcx,int mcy);
-void exit_game(void);
-void quest_select(int nr);
-
 uint64_t gui_time_misc=0;
 
 #define MAXHELP		24
@@ -418,7 +413,6 @@ char perf_text[256];
 static void set_cmd_states(void);
 
 static void display(void) {
-    extern int socktimeout,kicked_out;
     extern int memptrs[MAX_MEM];
     extern int memsize[MAX_MEM];
     extern int memused;

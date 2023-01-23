@@ -5,9 +5,19 @@
 #define DEVELOPER               // this one will compile the developer version - comment me out for the final release
 
 //#define TICKPRINT
+
 #define SDL_FAST_MALLOC     // will use the C library instead of the error-checking client version
 
 #define MAXSPRITE 250000
+
+#define TICKS           24                      // ticks (game data updates) per second
+#define FRAMES          (frames_per_second)     // frames (display updates) per second
+#define MPT             (1000/TICKS)            // milliseconds per tick
+#define MPF             (1000/FRAMES)           // milliseconds per frame
+
+#define DIST		25
+#define FDX             40      // width of a map tile
+#define FDY             20      // height of a map tile
 
 #define XRES    800
 #define YRES    (__yres)
@@ -15,27 +25,7 @@
 #define YRES1   540
 #define YRES2   500
 
-extern int __yres;
-
-#define FDX             40      // width of a map tile
-#define FDY             20      // height of a map tile
-
-extern int quit;
-
 #define PARANOIA(a) a
-
-void addline(const char *format,...) __attribute__((format(printf, 1, 2)));
-int  note(const char *format,...) __attribute__((format(printf, 1, 2)));
-int  warn(const char *format,...) __attribute__((format(printf, 1, 2)));
-int  fail(const char *format,...) __attribute__((format(printf, 1, 2)));
-void paranoia(const char *format,...) __attribute__((format(printf, 1, 2)));
-
-void* xmalloc(int size,int ID);
-void* xcalloc(int size,int ID);
-void* xrealloc(void *ptr,int size,int ID);
-void* xrecalloc(void *ptr,int size,int ID);
-void xfree(void *ptr);
-char* xstrdup(const char *src,int ID);
 
 #define bzero(ptr,size) memset(ptr,0,size)
 
@@ -111,6 +101,24 @@ char* xstrdup(const char *src,int ID);
 #define DOT_COL         26      // color picker top left
 #define MAX_DOT         27
 
+extern int __yres;
+extern int quit;
+extern int frames_per_second;
+
+void addline(const char *format,...) __attribute__((format(printf, 1, 2)));
+int  note(const char *format,...) __attribute__((format(printf, 1, 2)));
+int  warn(const char *format,...) __attribute__((format(printf, 1, 2)));
+int  fail(const char *format,...) __attribute__((format(printf, 1, 2)));
+void paranoia(const char *format,...) __attribute__((format(printf, 1, 2)));
+
+void* xmalloc(int size,int ID);
+void* xcalloc(int size,int ID);
+void* xrealloc(void *ptr,int size,int ID);
+void* xrecalloc(void *ptr,int size,int ID);
+void xfree(void *ptr);
+char* xstrdup(const char *src,int ID);
+
+
 void init_dots(void);
 int dotx(int didx);
 int doty(int didx);
@@ -118,3 +126,4 @@ int butx(int bidx);
 int buty(int bidx);
 
 void dd_set_offset(int x,int y);
+

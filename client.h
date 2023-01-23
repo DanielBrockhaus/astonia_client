@@ -2,12 +2,6 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
-#define TICKS           24                      // ticks (game data updates) per second
-#define FRAMES          (frames_per_second)     // frames (display updates) per second
-#define MPT             (1000/TICKS)            // milliseconds per tick
-#define MPF             (1000/FRAMES)           // milliseconds per frame
-
-#define DIST		25
 #define MAXCHARS	2048
 
 #define MAXQUEST	100
@@ -79,7 +73,6 @@
 #define V_PROFBASE	43
 #define P_MAX		20
 #define V_MAX	       	(V_PROFBASE+P_MAX)
-
 
 #define CL_NOP			1
 #define CL_MOVE			2
@@ -162,6 +155,21 @@
 #define MAPDX			(DIST*2+1)
 #define MAPDY			(DIST*2+1)
 #define MAXMN           (MAPDX*MAPDY)
+
+#define QF_OPEN		1
+#define QF_DONE		2
+
+#define MAXSHRINE	256
+
+struct quest {
+    unsigned char done:6;
+    unsigned char flags:2;
+};
+
+struct shrine_ppd {
+    unsigned int used[MAXSHRINE/32];
+    unsigned char continuity;
+};
 
 struct player {
     char name[80];
@@ -407,7 +415,6 @@ struct map {
     int value;                      // testing purposes only
     int mmf;                        // more flags
     char rlight;                    // real client light - 0=invisible 1=dark, 14=normal (15=bright can't happen)
-    //char dim; 	what?
     struct complex_sprite rc;
 
     struct complex_sprite ri;
@@ -492,8 +499,10 @@ extern int originx;
 extern int originy;
 
 extern int sockstate;
+extern int socktimeout;
 extern int target_server;
 extern int target_port;
+extern int kicked_out;
 
 extern char *skilldesc[];
 extern struct skill skill[];
@@ -514,6 +523,8 @@ extern int display_time;
 
 extern char pent_str[7][80];
 
+extern struct quest quest[];
+extern struct shrine_ppd shrine;
 
 void cmd_text(char *text);
 int mapmn(int x,int y);
@@ -557,19 +568,4 @@ void cl_client_info(struct client_info *ci);
 void cl_ticker(void);
 int close_client(void);
 int is_char_ceffect(int type);
-
-#define QF_OPEN		1
-#define QF_DONE		2
-struct quest {
-    unsigned char done:6;
-    unsigned char flags:2;
-};
-extern struct quest quest[];
-
-#define MAXSHRINE	256
-struct shrine_ppd {
-    unsigned int used[MAXSHRINE/32];
-    unsigned char continuity;
-};
-extern struct shrine_ppd shrine;
 

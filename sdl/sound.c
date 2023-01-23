@@ -13,7 +13,7 @@
 
 int enable_sound=0;
 int sound_volume=128;
-uint64_t time_play_sound=0;
+static uint64_t time_play_sound=0;
 
 static char *sfx_name[];
 static int sfx_name_cnt;

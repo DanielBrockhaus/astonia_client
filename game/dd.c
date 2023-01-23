@@ -30,9 +30,8 @@ int dd_gamma=8;
 int dd_lighteffect=16;
 int newlight=0;
 int x_offset,y_offset;
-int x_max,y_max;
-int clipsx,clipsy,clipex,clipey;
-int clipstore[32][4],clippos=0;
+static int clipsx,clipsy,clipex,clipey;
+static int clipstore[32][4],clippos=0;
 
 void dd_push_clip(void) {
     if (clippos>=32) return;

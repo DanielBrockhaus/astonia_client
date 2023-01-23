@@ -187,3 +187,4 @@ char *skilldesc[]={
     "prof19: write me!",
     "prof20: write me!"
 };
+

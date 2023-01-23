@@ -20,6 +20,7 @@
 
 #define MAXCMDLINE	199
 #define MAXHIST		20
+
 static char cmdline[MAXCMDLINE+1]={""};
 static char *history[MAXHIST];
 static int cmdcursor=0,cmddisplay=0,histpos=-1;

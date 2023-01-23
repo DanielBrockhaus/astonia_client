@@ -17,19 +17,17 @@
 #include "../client.h"
 
 int quit=0;
-int quickstart=0;
-int panic_reached=0;
-int xmemcheck_failed=0;
+static int quickstart=0;
+static int panic_reached=0;
+static int xmemcheck_failed=0;
 int largetext=0;
 int vendor=1;
 char user_keys[10]={'Q','W','E','A','S','D','Z','X','C','V'};
 
-char memcheck_failed_str[]={"TODO: memcheck failed"};  // TODO
-char panic_reached_str[]={"TODO: panic failure"}; // TODO
+static char memcheck_failed_str[]={"TODO: memcheck failed"};  // TODO
+static char panic_reached_str[]={"TODO: panic failure"}; // TODO
 
-int MAXLINESHOW=15;
-
-FILE *errorfp;
+static FILE *errorfp;
 
 // note, warn, fail, paranoia, addline
 

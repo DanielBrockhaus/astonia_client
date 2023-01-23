@@ -20,72 +20,16 @@
 #define IRGB(r,g,b)     (((r)<<0)|((g)<<8)|((b)<<16))
 #define IRGBA(r,g,b,a)  (((a)<<24)|((r)<<16)|((g)<<8)|((b)<<0))
 
-SDL_Window *sdlwnd;
-SDL_Renderer *sdlren;
+static SDL_Window *sdlwnd;
+static SDL_Renderer *sdlren;
 
-#define MAX_TEXCACHE    (sdl_cache_size)
-#define MAX_TEXHASH     (sdl_cache_size)    // Note: MAX_TEXCACHE and MAX_TEXHASH do not have to be the same value. It just turned out to work well if they are.
+static struct sdl_texture *sdlt=NULL;
+static int sdlt_best,sdlt_last;
+static int *sdlt_cache;
 
-#define STX_NONE        (-1)
+static SDL_Cursor *curs[20];
 
-#define SF_USED         (1<<0)
-#define SF_SPRITE       (1<<1)
-#define SF_TEXT         (1<<2)
-#define SF_DIDALLOC     (1<<3)
-#define SF_DIDMAKE      (1<<4)
-#define SF_DIDTEX       (1<<5)
-#define SF_BUSY         (1<<6)
-
-struct sdl_texture {
-    SDL_Texture *tex;
-    uint32_t *pixel;
-
-    int prev,next;
-    int hprev,hnext;
-
-    uint16_t flags;
-
-    // ---------- sprites ------------
-    // fx
-    int32_t sprite;
-    int8_t sink;
-    uint8_t scale;
-    int16_t cr,cg,cb,light,sat;
-    uint16_t c1,c2,c3,shine;
-
-    uint8_t freeze;
-
-    // light
-    int8_t ml,ll,rl,ul,dl;      // light in middle, left, right, up, down
-
-    // primary
-    uint16_t xres;              // x resolution in pixels
-    uint16_t yres;              // y resolution in pixels
-    int16_t xoff;               // offset to blit position
-    int16_t yoff;               // offset to blit position
-
-    // ---------- text --------------
-    uint16_t text_flags;
-    uint32_t text_color;
-    char *text;
-    void *text_font;
-};
-
-struct sdl_texture *sdlt=NULL;
-int sdlt_best,sdlt_last;
-int *sdlt_cache;
-
-struct sdl_image {
-    uint32_t *pixel;
-
-    uint16_t flags;
-    int16_t xres,yres;
-    int16_t xoff,yoff;
-};
-
-SDL_Cursor *curs[20];
-
-struct sdl_image *sdli=NULL;
+static struct sdl_image *sdli=NULL;
 
 long long mem_png=0,mem_tex=0;
 long long texc_hit=0,texc_miss=0,texc_pre=0;
@@ -109,21 +53,18 @@ int sdl_multi=4;
 int sdl_fullscreen=0;
 int sdl_cache_size=5000;
 
-zip_t *sdl_zip1=NULL;
-zip_t *sdl_zip2=NULL;
+static zip_t *sdl_zip1=NULL;
+static zip_t *sdl_zip2=NULL;
 
-zip_t *sdl_zip1p=NULL;
-zip_t *sdl_zip2p=NULL;
+static zip_t *sdl_zip1p=NULL;
+static zip_t *sdl_zip2p=NULL;
 
-int sdl_pre_backgnd(void *ptr);
-int sdl_create_cursors(void);
-
-SDL_Texture *sdltgt;
-
-SDL_sem *prework=NULL;
-SDL_mutex *premutex=NULL;
+static SDL_sem *prework=NULL;
+static SDL_mutex *premutex=NULL;
 
 int __yres=YRES0;
+
+//struct sdl sdl = { .flag = true, .value = 123, .stuff = 0.456 };
 
 int sdl_init(int width,int height,char *title) {
     int len,i;
@@ -1919,7 +1860,6 @@ void sdl_shaded_rect(int sx,int sy,int ex,int ey,unsigned short int color,int cl
     SDL_SetRenderDrawBlendMode(sdlren,SDL_BLENDMODE_BLEND);
     SDL_RenderFillRect(sdlren,&rc);
 }
-
 
 void sdl_pixel(int x,int y,unsigned short color,int x_offset,int y_offset) {
     int r,g,b,a,i;

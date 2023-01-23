@@ -12,19 +12,7 @@
 
 #define FX_ITEMLIGHT            DDFX_NLIGHT
 #define FX_ITEMBRIGHT           DDFX_BRIGHT
-
-extern int gui_topoff;
-
 #define DOTF_TOPOFF     (1<<0)  // dot moves with top bar
-
-struct dot {
-    int flags;
-
-    int x;
-    int y;
-};
-
-typedef struct dot DOT;         // dot 0 is top left, dot 1 is bottom right of the screen
 
 #define BUTID_MAP       0
 #define BUTID_WEA       1
@@ -79,29 +67,6 @@ typedef struct dot DOT;         // dot 0 is top left, dot 1 is bottom right of t
 #define BUTF_RECT       (1<<4)  // editor - button is a rectangle
 #define BUTF_TOPOFF     (1<<5)  // button moves with top bar
 
-struct but {
-    int flags;      // flags
-
-    int id;         // something an application can give a button, but it need not ;-)
-    int val;        // something an application can give a button, but it need not ;-)
-
-    int x;          // center x coordinate - or left if button is a RECT
-    int y;          // center y coordinate - or top if button is a RECT
-    int dx;         // width of a rect button
-    int dy;         // height of a rect button
-
-    int sqhitrad;   // hit (square) radius of this button
-};
-
-typedef struct but BUT;
-
-extern int winxres,winyres;
-
-extern DOT *dot;
-extern BUT *but;
-
-void cmd_proc(int key);
-
 #define CMD_RETURN	256
 #define CMD_DELETE	257
 #define CMD_BACK	258
@@ -112,8 +77,6 @@ void cmd_proc(int key);
 #define CMD_UP		263
 #define CMD_DOWN	264
 
-
-/* ------------------ GUI internals --------------------- */
 
 #define CMD_NONE                0
 #define CMD_MAP_MOVE            1
@@ -218,7 +181,29 @@ void cmd_proc(int key);
 #define TGT_CHR 3
 #define TGT_SLF 4
 
-// structs
+struct dot {
+    int flags;
+
+    int x;
+    int y;
+};
+typedef struct dot DOT;
+
+struct but {
+    int flags;      // flags
+
+    int id;         // something an application can give a button, but it need not ;-)
+    int val;        // something an application can give a button, but it need not ;-)
+
+    int x;          // center x coordinate - or left if button is a RECT
+    int y;          // center y coordinate - or top if button is a RECT
+    int dx;         // width of a rect button
+    int dy;         // height of a rect button
+
+    int sqhitrad;   // hit (square) radius of this button
+};
+
+typedef struct but BUT;
 
 struct skltab {
     int v;                          // negative v-values indicate a special display (empty lines, negative exp, etc...)
@@ -252,44 +237,10 @@ struct spell {
 
 typedef struct spell SPELL;
 
-// functions
-
-// gui.c
-void dx_copysprite_emerald(int scrx,int scry,int emx,int emy);
-void display_cmd(void);
-
-// display.c
-void display_wear(void);
-void display_look(void);
-void display_citem(void);
-void display_gold(void);
-void display_container(void);
-void display_inventory(void);
-void display_keys(void);
-void display_skill(void);
-void display_scrollbars(void);
-void display_tutor(void);
-void display_screen(void);
-void display_text(void);
-void display_mode(void);
-void display_mouseover(void);
-void display_selfspells(void);
-void display_exp(void);
-void display_military(void);
-void display_rage(void);
-void display_game_special(void);
-int do_display_questlog(int nr);
-
-// teleport.c
-void display_teleport(void);
-int get_teleport(int x,int y);
-
-// color.c
-void display_color(void);
-int get_color(int x,int y);
-void cmd_color(int nr);
-
-// globals cmd
+extern int winxres,winyres;
+extern int gui_topoff;
+extern DOT *dot;
+extern BUT *but;
 
 extern int plrmn;                      // mn of player
 extern int invsel;                     // index into item
@@ -339,4 +290,36 @@ extern int show_color_c[];
 extern int show_cx;
 extern char hitsel[];
 
-extern int stom_off_x,stom_off_y;
+void dx_copysprite_emerald(int scrx,int scry,int emx,int emy);
+void display_cmd(void);
+
+void display_wear(void);
+void display_look(void);
+void display_citem(void);
+void display_gold(void);
+void display_container(void);
+void display_inventory(void);
+void display_keys(void);
+void display_skill(void);
+void display_scrollbars(void);
+void display_tutor(void);
+void display_screen(void);
+void display_text(void);
+void display_mode(void);
+void display_mouseover(void);
+void display_selfspells(void);
+void display_exp(void);
+void display_military(void);
+void display_rage(void);
+void display_game_special(void);
+int do_display_questlog(int nr);
+
+void display_teleport(void);
+int get_teleport(int x,int y);
+
+void display_color(void);
+int get_color(int x,int y);
+void cmd_color(int nr);
+
+void cmd_proc(int key);
+

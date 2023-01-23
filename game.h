@@ -73,6 +73,7 @@ extern float mouse_scale;   // mouse input needs to be scaled by this factor bec
 extern uint64_t sprite_options;
 extern char user_keys[10];
 extern int namesize;
+extern int stom_off_x,stom_off_y;
 
 int dd_textlength(int flags,const char *text);
 int dd_textlen(int flags,const char *text,int n);
@@ -124,3 +125,9 @@ int get_sink(int mn,struct map *cmap);
 void list_mem(void);
 
 void display_game(void);
+
+void set_map_values(struct map *cmap,int attick);
+void quest_select(int nr);
+void init_game(int mcx,int mcy);
+void exit_game(void);
+
