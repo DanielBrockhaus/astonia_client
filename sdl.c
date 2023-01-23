@@ -1726,14 +1726,9 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
         sx+=font[*text++].dim*sdl_scale;
     }
 
-    if (sizex<1 || sizey<1) {
-#ifdef SDL_FAST_MALLOC
-        free(pixel);
-#else
-        xfree(pixel);
-#endif
-        return NULL;
-    }
+    if (sizex<1) sizex=1;
+    if (sizey<1) sizey=1;
+
     sizey++;
     sdl_time_text+=SDL_GetTicks64()-start;
 
