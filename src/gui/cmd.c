@@ -11,12 +11,12 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#include "../astonia.h"
-#include "../gui.h"
-#include "../gui/_gui.h"
-#include "../sdl.h"
-#include "../client.h"
-#include "../game.h"
+#include "../../src/astonia.h"
+#include "../../src/gui.h"
+#include "../../src/gui/_gui.h"
+#include "../../src/sdl.h"
+#include "../../src/client.h"
+#include "../../src/game.h"
 
 #define MAXCMDLINE	199
 #define MAXHIST		20

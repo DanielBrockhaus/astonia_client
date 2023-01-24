@@ -1,5 +1,10 @@
 /*
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ *
+ * Display Helper
+ *
+ * System independent graphics functions. Currently calling SDL2 via sdl.c
+ *
  */
 
 #include <windows.h>
@@ -10,11 +15,11 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
 
-#include "../astonia.h"
-#include "../game.h"
-#include "../game/_game.h"
-#include "../client.h"
-#include "../sdl.h"
+#include "../../src/astonia.h"
+#include "../../src/game.h"
+#include "../../src/game/_game.h"
+#include "../../src/client.h"
+#include "../../src/sdl.h"
 
 DDFONT *fonta_shaded=NULL;
 DDFONT *fonta_framed=NULL;

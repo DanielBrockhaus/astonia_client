@@ -1,14 +1,20 @@
 /*
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ *
+ * Sprites
+ *
+ * Various lists dealing with sprites. Defining attributes and changing
+ * behaviour.
+ *
  */
 
 #include <stdint.h>
 
-#include "../astonia.h"
-#include "../game.h"
-#include "../game/_game.h"
-#include "../gui.h"
-#include "../client.h"
+#include "../../src/astonia.h"
+#include "../../src/game.h"
+#include "../../src/game/_game.h"
+#include "../../src/gui.h"
+#include "../../src/client.h"
 
 // is_..._sprite
 

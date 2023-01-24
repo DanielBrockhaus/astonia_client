@@ -1,5 +1,11 @@
 /*
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ *
+ * Startup And Command Line
+ *
+ * Contains the startup stuff and the parsing of the command line. Plus a
+ * bunch of generic helper for memory allocation and error display.
+ *
  */
 
 #include <windows.h>
@@ -9,12 +15,12 @@
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 
-#include "../astonia.h"
-#include "../game.h"
-#include "../game/_game.h"
-#include "../sdl.h"
-#include "../gui.h"
-#include "../client.h"
+#include "../../src/astonia.h"
+#include "../../src/game.h"
+#include "../../src/game/_game.h"
+#include "../../src/sdl.h"
+#include "../../src/gui.h"
+#include "../../src/client.h"
 
 int quit=0;
 static int quickstart=0;

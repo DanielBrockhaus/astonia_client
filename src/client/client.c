@@ -1,5 +1,10 @@
 /*
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ *
+ * Client/Server Communication
+ *
+ * Parses server commands and sends back player input
+ *
  */
 
 #include <winsock2.h>
@@ -7,11 +12,11 @@
 #include <zlib.h>
 #include <SDL2/SDL.h>
 
-#include "../astonia.h"
-#include "../client.h"
-#include "../client/_client.h"
-#include "../sdl.h"
-#include "../gui.h"
+#include "../../src/astonia.h"
+#include "../../src/client.h"
+#include "../../src/client/_client.h"
+#include "../../src/sdl.h"
+#include "../../src/gui.h"
 
 int display_gfx=0,display_time=0;
 static int rec_bytes=0;
@@ -1705,8 +1710,6 @@ int do_tick(void) {
 
     return 0;
 }
-
-//----------
 
 void cl_client_info(struct client_info *ci) {
     char buf[256];

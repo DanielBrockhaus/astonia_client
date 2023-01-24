@@ -10,11 +10,11 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "../astonia.h"
-#include "../gui.h"
-#include "../gui/_gui.h"
-#include "../client.h"
-#include "../game.h"
+#include "../../src/astonia.h"
+#include "../../src/gui.h"
+#include "../../src/gui/_gui.h"
+#include "../../src/client.h"
+#include "../../src/game.h"
 
 int show_color=0,show_cur=0;
 int show_color_c[3]={1,1,1};

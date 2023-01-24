@@ -10,11 +10,11 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "../astonia.h"
-#include "../gui.h"
-#include "../gui/_gui.h"
-#include "../game.h"
-#include "../client.h"
+#include "../../src/astonia.h"
+#include "../../src/gui.h"
+#include "../../src/gui/_gui.h"
+#include "../../src/game.h"
+#include "../../src/client.h"
 
 char tutor_text[1024]={""};
 int show_tutor=0;

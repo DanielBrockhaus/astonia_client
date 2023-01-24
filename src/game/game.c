@@ -1,15 +1,21 @@
 /*
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ *
+ * Display Game Map
+ *
+ * Displays the actual game map by putting everything that is happening on-screen
+ * into an array, then sorting that array by layer and depth and displaying it
+ * via the stuff in dd.c.
  */
 
 #include <stdint.h>
 #include <SDL2/SDL.h>
 
-#include "../astonia.h"
-#include "../game.h"
-#include "../game/_game.h"
-#include "../gui.h"
-#include "../client.h"
+#include "../../src/astonia.h"
+#include "../../src/game.h"
+#include "../../src/game/_game.h"
+#include "../../src/gui.h"
+#include "../../src/client.h"
 
 static int fsprite_cnt=0,f2sprite_cnt=0,gsprite_cnt=0,g2sprite_cnt=0,isprite_cnt=0,csprite_cnt=0;
 static int qs_time=0,dg_time=0,ds_time=0;

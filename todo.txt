@@ -27,9 +27,9 @@ Probably
 
 - Lighting calculations have been wrong all the time. This really becomes apparent in the higher resolutions. Fix them.
 
-- Move all resources to a single resources folder. Duh.
-
 - Create mod for V3.5.
+
+- Redo the part of the character sprite tutorial that use the discontinued keyMate. Use the standard timeline instead.
 
 
 Possibly

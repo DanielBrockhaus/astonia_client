@@ -1,5 +1,11 @@
 /*
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ *
+ * SDL
+ *
+ * Translates called from dd.c into SDL2 library calls. Also has the software
+ * shader and texture cache.
+ *
  */
 
 #include <stdint.h>
@@ -9,9 +15,9 @@
 #include <png.h>
 #include <zip.h>
 
-#include "../astonia.h"
-#include "../sdl.h"
-#include "../sdl/_sdl.h"
+#include "../../src/astonia.h"
+#include "../../src/sdl.h"
+#include "../../src/sdl/_sdl.h"
 
 #define IGET_A(c)       ((((uint32_t)(c))>>24)&0xFF)
 #define IGET_R(c)       ((((uint32_t)(c))>>16)&0xFF)

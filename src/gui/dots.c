@@ -10,9 +10,9 @@
 
 #include <stdint.h>
 
-#include "../astonia.h"
-#include "../gui.h"
-#include "../gui/_gui.h"
+#include "../../src/astonia.h"
+#include "../../src/gui.h"
+#include "../../src/gui/_gui.h"
 
 DOT *dot=NULL;
 BUT *but=NULL;

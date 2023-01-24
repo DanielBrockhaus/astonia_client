@@ -1,5 +1,11 @@
 /*
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ *
+ * Graphical User Interface
+ *
+ * Processing user input and calling the other GUI functions mostly in display.c.
+ * Also contains the main loop.
+ *
  */
 
 #include <windows.h>
@@ -7,12 +13,12 @@
 #include <time.h>
 #include <SDL2/SDL.h>
 
-#include "../astonia.h"
-#include "../gui.h"
-#include "../gui/_gui.h"
-#include "../client.h"
-#include "../game.h"
-#include "../sdl.h"
+#include "../../src/astonia.h"
+#include "../../src/gui.h"
+#include "../../src/gui/_gui.h"
+#include "../../src/client.h"
+#include "../../src/game.h"
+#include "../../src/sdl.h"
 
 uint64_t gui_time_misc=0;
 

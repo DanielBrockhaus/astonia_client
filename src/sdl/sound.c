@@ -1,5 +1,9 @@
 /*
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ *
+ * Sound
+ *
+ * Loads and plays sounds via SDL2 library.
  */
 
 #include <stdio.h>
@@ -7,9 +11,9 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 
-#include "../astonia.h"
-#include "../sdl.h"
-#include "../sdl/_sdl.h"
+#include "../../src/astonia.h"
+#include "../../src/sdl.h"
+#include "../../src/sdl/_sdl.h"
 
 int enable_sound=0;
 int sound_volume=128;

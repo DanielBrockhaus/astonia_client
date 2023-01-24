@@ -6,44 +6,44 @@ LDFLAGS=-O3 -ggdb -Wl,-subsystem,windows
 #-Wl,-subsystem,windows
 LIBS = -lwsock32 -lws2_32 -lz -lpng -lsdl2 -lSDL2_mixer -lsdl2main -lzip
 
-OBJS	=		gui/gui.o client/client.o client/skill.o game/dd.o game/font.o\
-			game/main.o game/sprite.o game/game.o\
-			sdl/sound.o game/resource.o sdl/sdl.o helper/helper.o\
-			gui/dots.o gui/display.o gui/teleport.o gui/color.o gui/cmd.o gui/questlog.o
+OBJS	=		src/gui/gui.o src/client/client.o src/client/skill.o src/game/dd.o src/game/font.o\
+			src/game/main.o src/game/sprite.o src/game/game.o\
+			src/sdl/sound.o src/game/resource.o src/sdl/sdl.o src/helper/helper.o\
+			src/gui/dots.o src/gui/display.o src/gui/teleport.o src/gui/color.o src/gui/cmd.o src/gui/questlog.o
 
 moac.exe:       	$(OBJS)
 			$(CC) $(LDFLAGS) -o moac.exe $(OBJS)  $(LIBS)
 
-anicopy.exe:		helper/anicopy.c
-			$(CC) -O3 -ggdb -Wall -o anicopy.exe helper/anicopy.c
+anicopy.exe:		src/helper/anicopy.c
+			$(CC) -O3 -ggdb -Wall -o anicopy.exe src/helper/anicopy.c
 
-client/client.o:	client/client.c astonia.h client.h client/_client.h sdl.h
+src/client/client.o:	src/client/client.c src/astonia.h src/client.h src/client/_client.h src/sdl.h
 
-game/dd.o:		game/dd.c astonia.h game.h game/_game.h client.h sdl.h
-game/font.o:		game/font.c game.h game/_game.h
-game/game.o:    	game/game.c astonia.h game.h game/_game.h client.h gui.h
-game/main.o:		game/main.c astonia.h game.h game/_game.h client.h gui.h sdl.h
-game/skill.o:      	game/skill.c astonia.h game.h game/_game.h client.h
-game/sprite.o:		game/sprite.c astonia.h game.h game/_game.h client.h gui.h
+src/game/dd.o:		src/game/dd.c src/astonia.h src/game.h src/game/_game.h src/client.h src/sdl.h
+src/game/font.o:	src/game/font.c src/game.h src/game/_game.h
+src/game/game.o:    	src/game/game.c src/astonia.h src/game.h src/game/_game.h src/client.h src/gui.h
+src/game/main.o:	src/game/main.c src/astonia.h src/game.h src/game/_game.h src/client.h src/gui.h src/sdl.h
+src/game/skill.o:      	src/game/skill.c src/astonia.h src/game.h src/game/_game.h src/client.h
+src/game/sprite.o:	src/game/sprite.c src/astonia.h src/game.h src/game/_game.h src/client.h src/gui.h
 
-gui/color.o:		gui/color.c astonia.h gui.h gui/_gui.h client.h game.h
-gui/cmd.o:		gui/cmd.c astonia.h gui.h gui/_gui.h client.h game.h sdl.h
-gui/dots.o:		gui/dots.c astonia.h gui.h gui/_gui.h
-gui/display.o:		gui/display.c astonia.h gui.h gui/_gui.h client.h game.h
-gui/gui.o:		gui/gui.c astonia.h gui.h gui/_gui.h client.h game.h gui.h sdl.h
-gui/teleport.o:		gui/teleport.c astonia.h gui.h gui/_gui.h client.h game.h
-gui/questlog.o:		gui/questlog.c astonia.h gui.h gui/_gui.h client.h game.h
+src/gui/color.o:	src/gui/color.c src/astonia.h src/gui.h src/gui/_gui.h src/client.h src/game.h
+src/gui/cmd.o:		src/gui/cmd.c src/astonia.h src/gui.h src/gui/_gui.h src/client.h src/game.h src/sdl.h
+src/gui/dots.o:		src/gui/dots.c src/astonia.h src/gui.h src/gui/_gui.h
+src/gui/display.o:	src/gui/display.c src/astonia.h src/gui.h src/gui/_gui.h src/client.h src/game.h
+src/gui/gui.o:		src/gui/gui.c src/astonia.h src/gui.h src/gui/_gui.h src/client.h src/game.h src/gui.h src/sdl.h
+src/gui/teleport.o:	src/gui/teleport.c src/astonia.h src/gui.h src/gui/_gui.h src/client.h src/game.h
+src/gui/questlog.o:	src/gui/questlog.c src/astonia.h src/gui.h src/gui/_gui.h src/client.h src/game.h
 
-helper/helper.o:	helper/helper.c astonia.h
+src/helper/helper.o:	src/helper/helper.c src/astonia.h
 
-sdl/sdl.o:		sdl/sdl.c astonia.h sdl.h sdl/_sdl.h
-sdl/sound.o:      	sdl/sound.c astonia.h sdl.h sdl/_sdl.h
+src/sdl/sdl.o:		src/sdl/sdl.c src/astonia.h src/sdl.h src/sdl/_sdl.h
+src/sdl/sound.o:      	src/sdl/sound.c src/astonia.h src/sdl.h src/sdl/_sdl.h
 
-game/resource.o:	game/resource.rc game/resource.h
-			windres -F pe-x86-64 game/resource.rc game/resource.o
+src/game/resource.o:	src/game/resource.rc src/game/resource.h
+			windres -F pe-x86-64 src/game/resource.rc src/game/resource.o
 
 clean:
-		rm client/*.o game/*.o gui/*.o helper/*.o sdl/*.o
+		rm src/client/*.o src/game/*.o src/gui/*.o helper/*.o src/sdl/*.o
 		rm moac.exe
 
 dlls:
