@@ -142,8 +142,8 @@ int sdl_init(int width,int height,char *title) {
     sdl_create_cursors();
 
     // decide on screen format
-    if (width!=XRES) {
-        int tmp_scale=0;
+    if (width!=XRES || height!=YRES) {
+        int tmp_scale=1;
 
         if (width/XRES>=4 && height/YRES0>=4) sdl_scale=4;
         else if (width/XRES>=3 && height/YRES0>=3) sdl_scale=3;
@@ -163,6 +163,7 @@ int sdl_init(int width,int height,char *title) {
 
         dd_set_offset((width/sdl_scale-XRES)/2,(height/sdl_scale-YRES)/2);
     }
+    note("SDL using %dx%d scale %d",XRES,YRES,sdl_scale);
 
     sdl_zip1=zip_open("res/gx1.zip",ZIP_RDONLY,NULL);
     sdl_zip1p=zip_open("res/gx1_patch.zip",ZIP_RDONLY,NULL);

@@ -674,7 +674,6 @@ int main(int argc,char *args[]) {
         if (!want_height) want_height=540;
         want_width=want_height*16/9;
     }
-    note("Screen: %dx%d",want_width,want_height);
 
     sprintf(buf,"Astonia 3 v%d.%d.%d",(VERSION>>16)&255,(VERSION>>8)&255,(VERSION)&255);
     if (!sdl_init(want_width,want_height,buf)) {
@@ -682,15 +681,8 @@ int main(int argc,char *args[]) {
         net_exit();
         return -1;
     }
-    if (dd_init()==-1) {
-        dd_exit();
 
-        MessageBox(NULL,"Can't Initialize SDL\nPlease make sure you have DirectX and the latest drivers\nfor your graphics card installed.","Error",MB_APPLMODAL|MB_OK|MB_ICONSTOP);
-
-        net_exit();
-        return -1;
-    }
-
+    dd_init();
     init_sound();
 
     if (largetext) {
@@ -698,12 +690,7 @@ int main(int argc,char *args[]) {
         dd_set_textfont(1);
     }
 
-    if (main_init()==-1) {
-        dd_exit();
-        net_exit();
-        MessageBox(NULL,"Can't Initialize Program","Error",MB_APPLMODAL|MB_OK|MB_ICONSTOP);
-        return -1;
-    }
+    main_init();
     update_user_keys();
 
     main_loop();

@@ -53,6 +53,6 @@ clean:
 		rm src/client/*.o src/game/*.o src/gui/*.o helper/*.o src/sdl/*.o
 		rm moac.exe
 
-dlls:
-	ldd moac.exe | grep mingw
+distrib:
+	ldd bin/moac.exe | grep mingw | awk 'NF == 4 { system("cp " $3 " bin") }'
 

@@ -127,7 +127,7 @@ int questsel;
 int colsel;
 int skl_look_sel;
 
-int capbut;                     // the button capturing the mouse
+int capbut=-1;                  // the button capturing the mouse
 
 int takegold;                   // the amout of gold to take
 
@@ -1659,8 +1659,7 @@ void gui_sdl_mouseproc(int x,int y,int what) {
     }
 }
 
-int main_init(void) {
-
+void init_colors(void) {
     whitecolor=IRGB(31,31,31);
     lightgraycolor=IRGB(28,28,28);
     graycolor=IRGB(22,22,22);
@@ -1689,16 +1688,17 @@ int main_init(void) {
     manacolor=lightbluecolor;
     endurancecolor=IRGB(31,31,5);
     shieldcolor=IRGB(31,15,5);
+}
 
+int main_init(void) {
+
+    init_colors();
     init_dots();
 
-    // other
     set_invoff(0,0);
     set_skloff(0,0);
     set_conoff(0,0);
-    capbut=-1;
 
-    // more inits
     init_game(dotx(DOT_MCT),doty(DOT_MCT));
 
     return 0;
