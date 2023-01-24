@@ -1,92 +1,60 @@
 /*
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ *
+ * Client/Server Communication
+ *
+ * Parses server commands and sends back player input
+ *
  */
 
 #include <winsock2.h>
-#include <stdio.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <string.h>
 #include <time.h>
-#include <io.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <dirent.h>
-#include <ctype.h>
-#include <stdarg.h>
-#include <errno.h>
-#include <math.h>
 #include <zlib.h>
 #include <SDL2/SDL.h>
 
-#include "astonia.h"
-#include "engine.h"
-
-#define ISCLIENT
-#define WANTMAPMN
-#include "main.h"
-#include "client.h"
-#include "sound.h"
+#include "../../src/astonia.h"
+#include "../../src/client.h"
+#include "../../src/client/_client.h"
+#include "../../src/sdl.h"
+#include "../../src/gui.h"
 
 int display_gfx=0,display_time=0;
-
-void bzero_client(int part);
-
-int rec_bytes=0;
-int sent_bytes=0;
-
-// extern
-
-extern int update_skltab;
-
-// socket
-
-int sock=-1;            // -1 is important -
+static int rec_bytes=0;
+static int sent_bytes=0;
+static int sock=-1;
 int sockstate=0;
-unsigned int socktime=0;
+static unsigned int socktime=0;
 int socktimeout=0;
-int change_area=0;
+static int change_area=0;
 int kicked_out=0;
+static unsigned int unique=0;
+static unsigned int usum=0;
 int target_port=5556;
-unsigned int unique=0;
-unsigned int usum=0;
-
 int target_server=0;
-
 char username[40];
 char password[16];
-
-int zsinit;
-struct z_stream_s zs;
-
-#define Q_SIZE	16
-struct queue {
-    unsigned char buf[16384];
-    int size;
-};
-
-// ------------------------- client start --------------------------------
+static int zsinit;
+static struct z_stream_s zs;
 
 int tick;
 int mirror=0,newmirror=0;
 int lasttick;           // ticks in inbuf
-int lastticksize;       // size inbuf must reach to get the last tick complete in the queue
+static int lastticksize;       // size inbuf must reach to get the last tick complete in the queue
 int realtime;
 
-struct queue queue[Q_SIZE];
+static struct queue queue[Q_SIZE];
 int q_in,q_out,q_size;
 
-int server_cycles;
+static int server_cycles;
 
-int ticksize;
-int inused;
-int indone;
-int login_done;
-unsigned char inbuf[MAX_INBUF];
+static int ticksize;
+static int inused;
+static int indone;
+static int login_done;
+static unsigned char inbuf[MAX_INBUF];
 
-int outused;
-unsigned char outbuf[MAX_OUTBUF];
+static int outused;
+static unsigned char outbuf[MAX_OUTBUF];
 
 int act;
 int actx;
@@ -138,10 +106,6 @@ int pspeed=0;   // 0=normal   1=fast      2=stealth     - like the server
 int may_teleport[64+32];
 
 int frames_per_second=TICKS;
-
-// ------------------------- client end --------------------------------
-
-// end of struct client
 
 int sv_map01(unsigned char *buf,int *last,struct map *cmap) {
     int p,c;
@@ -412,7 +376,6 @@ void sv_setcitem(unsigned char *buf) {
 }
 
 void sv_act(unsigned char *buf) {
-    extern int teleporter;
 
     act=*(unsigned short int *)(buf+1);
     actx=*(unsigned short int *)(buf+3);
@@ -424,8 +387,6 @@ void sv_act(unsigned char *buf) {
 int sv_text(unsigned char *buf) {
     int len;
     char line[1024];
-    extern char tutor_text[];
-    extern int show_tutor;
 
     len=*(unsigned short *)(buf+1);
     if (len<1000) {
@@ -748,7 +709,6 @@ void sv_mil_exp(unsigned char *buf) {
 }
 
 void sv_cycles(unsigned char *buf) {
-    extern int server_cycles;
     int c;
 
     c=*(unsigned long *)(buf+1);
@@ -758,7 +718,6 @@ void sv_cycles(unsigned char *buf) {
 
 void sv_lookinv(unsigned char *buf) {
     int n;
-    extern int show_look;
 
     looksprite=*(unsigned int *)(buf+1);
     lookc1=*(unsigned int *)(buf+5);
@@ -795,16 +754,13 @@ void sv_special(unsigned char *buf) {
 
     switch (type) {
         case 0:		display_gfx=opt1; display_time=tick; break;
-#ifdef DOSOUND
         default:	if (type>0 && type<1000) play_sound(type,opt1,opt2);
             break;
-#endif
     }
 }
 
 void sv_teleport(unsigned char *buf) {
     int n,i,b;
-    extern int teleporter;
 
     for (n=0; n<64+32; n++) {
         i=n/8;
@@ -1164,8 +1120,6 @@ void cmd_teleport(int nr) {
     char buf[64];
 
     if (nr>100) {   // ouch
-        extern int newmirror;
-
         newmirror=nr-100;
         return;
     }
@@ -1342,7 +1296,6 @@ void cmd_reopen_quest(int nr) {
 }
 
 void bzero_client(int part) {
-    extern int show_look;
     if (part==0) {
         lasttick=0;
         lastticksize=0;
@@ -1460,7 +1413,6 @@ void send_info(int sock) {
 
 int poll_network(void) {
     int n;
-    extern int vendor;
 
     // something fatal failed (sockstate will somewhen tell you what)
     if (sockstate<0) {
@@ -1759,8 +1711,6 @@ int do_tick(void) {
     return 0;
 }
 
-//----------
-
 void cl_client_info(struct client_info *ci) {
     char buf[256];
 
@@ -1787,5 +1737,12 @@ int exp2level(int val) {
 // to reach level X you need Y exp
 int level2exp(int level) {
     return pow(level,4);
+}
+
+int mapmn(int x,int y) {
+    if (x<0 || y<0 || x>=MAPDX || y>=MAPDY) {
+        return -1;
+    }
+    return (x+y*MAPDX);
 }
 

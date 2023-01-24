@@ -1,53 +1,39 @@
 /*
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ *
+ * Startup And Command Line
+ *
+ * Contains the startup stuff and the parsing of the command line. Plus a
+ * bunch of generic helper for memory allocation and error display.
+ *
  */
 
 #include <windows.h>
 #include <stdint.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <io.h>
 #include <fcntl.h>
 #include <time.h>
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 
-#include "astonia.h"
-#include "engine.h"
-
-#define ISCLIENT
-#include "main.h"
-#include "client.h"
-#include "dd.h"
-#include "sound.h"
-#include "gui.h"
-#include "sdl.h"
-#include "sprite.h"
-
-// extern
-
-extern int main_init(void);
-extern void main_exit(void);
-
-int main_loop(void);
-
-// globs
+#include "../../src/astonia.h"
+#include "../../src/game.h"
+#include "../../src/game/_game.h"
+#include "../../src/sdl.h"
+#include "../../src/gui.h"
+#include "../../src/client.h"
 
 int quit=0;
-int quickstart=0;
-int panic_reached=0;
-int xmemcheck_failed=0;
+static int quickstart=0;
+static int panic_reached=0;
+static int xmemcheck_failed=0;
 int largetext=0;
 int vendor=1;
-extern int newlight;
 char user_keys[10]={'Q','W','E','A','S','D','Z','X','C','V'};
 
-char memcheck_failed_str[]={"TODO: memcheck failed"};  // TODO
-char panic_reached_str[]={"TODO: panic failure"}; // TODO
+static char memcheck_failed_str[]={"TODO: memcheck failed"};  // TODO
+static char panic_reached_str[]={"TODO: panic failure"}; // TODO
 
-int MAXLINESHOW=15;
-
-FILE *errorfp;
+static FILE *errorfp;
 
 // note, warn, fail, paranoia, addline
 
@@ -602,7 +588,7 @@ int parse_cmd(char *s) {
 void save_options(void) {
     int handle;
 
-    handle=open("moac.dat",O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,0666);
+    handle=open("bin/data/moac.dat",O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,0666);
     if (handle==-1) return;
 
     write(handle,&user_keys,sizeof(user_keys));
@@ -610,18 +596,9 @@ void save_options(void) {
 }
 
 void load_options(void) {
-    int handle,len;
-    char buf[80];
+    int handle;
 
-    handle=open("vendor.dat",O_RDONLY|O_BINARY);
-    if (handle!=-1) {
-        len=read(handle,buf,sizeof(buf)-1);
-        buf[len]=0;
-        vendor=atoi(buf);
-        close(handle);
-    }
-
-    handle=open("moac.dat",O_RDONLY|O_BINARY);
+    handle=open("bin/data/moac.dat",O_RDONLY|O_BINARY);
     if (handle==-1) return;
 
     read(handle,&user_keys,sizeof(user_keys));
@@ -648,7 +625,7 @@ int main(int argc,char *args[]) {
     char buf[80],buffer[1024];
     struct hostent *he;
 
-    errorfp=fopen("moac.log","a");
+    errorfp=fopen("bin/data/moac.log","a");
     if (!errorfp) errorfp=stderr;
 
     load_options();
@@ -711,15 +688,9 @@ int main(int argc,char *args[]) {
         return -1;
     }
 
-
-
-#ifdef DOSOUND
     init_sound();
-#endif
 
     if (largetext) {
-        extern int namesize;
-
         namesize=0;
         dd_set_textfont(1);
     }

@@ -1,5 +1,10 @@
 /*
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ *
+ * Display Helper
+ *
+ * System independent graphics functions. Currently calling SDL2 via sdl.c
+ *
  */
 
 #include <windows.h>
@@ -10,13 +15,11 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
 
-#include "astonia.h"
-#include "engine.h"
-
-#include "main.h"
-#include "dd.h"
-#include "client.h"
-#include "sdl.h"
+#include "../../src/astonia.h"
+#include "../../src/game.h"
+#include "../../src/game/_game.h"
+#include "../../src/client.h"
+#include "../../src/sdl.h"
 
 DDFONT *fonta_shaded=NULL;
 DDFONT *fonta_framed=NULL;
@@ -27,24 +30,13 @@ DDFONT *fontb_framed=NULL;
 DDFONT *fontc_shaded=NULL;
 DDFONT *fontc_framed=NULL;
 
-void dd_create_font(void);
-void dd_init_text(void);
-
-
-// direct x basics //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 // TODO: these should get used again for light calculations!
 int dd_gamma=8;
 int dd_lighteffect=16;
 int newlight=0;
-
-float mouse_scale=1.0f;      // mouse input needs to be scaled by this factor because the display window is stretched
-
 int x_offset,y_offset;
-int x_max,y_max;
-
-int clipsx,clipsy,clipex,clipey;
-int clipstore[32][4],clippos=0;
+static int clipsx,clipsy,clipex,clipey;
+static int clipstore[32][4],clippos=0;
 
 void dd_push_clip(void) {
     if (clippos>=32) return;
@@ -506,7 +498,6 @@ void dd_create_letter(unsigned char *rawrun,int sx,int sy,int val,char letter[64
 char* dd_create_rawrun(char letter[64][64]) {
     char *ptr,*fon,*last;
     int x,y,step;
-    extern int sdl_scale;
 
     last=fon=ptr=xmalloc(8192,MEM_TEMP);
 
@@ -530,7 +521,6 @@ char* dd_create_rawrun(char letter[64][64]) {
 void create_shade_font(DDFONT *src,DDFONT *dst) {
     char letter[64][64];
     int c;
-    extern int sdl_scale;
 
     for (c=0; c<128; c++) {
         bzero(letter,sizeof(letter));
@@ -545,7 +535,6 @@ void create_shade_font(DDFONT *src,DDFONT *dst) {
 void create_frame_font(DDFONT *src,DDFONT *dst) {
     char letter[64][64];
     int c,x,y;
-    extern int sdl_scale;
 
     for (c=0; c<128; c++) {
         bzero(letter,sizeof(letter));
@@ -563,7 +552,6 @@ void create_frame_font(DDFONT *src,DDFONT *dst) {
 int dd_create_font_png(DDFONT *dst,uint32_t *pixel,int dx,int dy,int yoff,int scale) {
     int c,x,y,sx,sy;
     char letter[64][64];
-    extern int sdl_scale;
 
     for (c=32; c<128; c++) {
         if (c<80) {
@@ -590,14 +578,13 @@ int dd_create_font_png(DDFONT *dst,uint32_t *pixel,int dx,int dy,int yoff,int sc
 void dd_create_font(void) {
     uint32_t *pixel;
     int dx,dy;
-    extern int sdl_scale;
 
     if (fonta_shaded) return;
 
     if (sdl_scale>1) {
-        if (sdl_scale==2) pixel=sdl_load_png("font/font2x.png",&dx,&dy);
-        else if (sdl_scale==3) pixel=sdl_load_png("font/font3x.png",&dx,&dy);
-        else if (sdl_scale==4) pixel=sdl_load_png("font/font4x.png",&dx,&dy);
+        if (sdl_scale==2) pixel=sdl_load_png("res/font2x.png",&dx,&dy);
+        else if (sdl_scale==3) pixel=sdl_load_png("res/font3x.png",&dx,&dy);
+        else if (sdl_scale==4) pixel=sdl_load_png("res/font4x.png",&dx,&dy);
         else { fail("Scale not supported in dd_create_font!"); pixel=NULL; }
         if (!pixel) return;
 
@@ -895,5 +882,17 @@ void dd_text_pagedown(void) {
 
     for (n=0; n<TEXTDISPLAYLINES; n++)
         dd_text_linedown();
+}
+
+void dd_set_offset(int x,int y) {
+    x_offset=x;
+    y_offset=y;
+}
+
+int dd_offset_x(void) {
+    return x_offset;
+}
+int dd_offset_y(void) {
+    return y_offset;
 }
 

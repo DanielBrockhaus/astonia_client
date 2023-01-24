@@ -1,24 +1,20 @@
 /*
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ *
+ * Sprites
+ *
+ * Various lists dealing with sprites. Defining attributes and changing
+ * behaviour.
+ *
  */
 
 #include <stdint.h>
 
-#include "astonia.h"
-
-#define ISCLIENT
-#define WANTMAPMN
-#include "main.h"
-#include "client.h"
-#include "sprite.h"
-
-#define min(a,b) ((a) < (b) ? (a) : (b))
-#define max(a,b) ((a) > (b) ? (a) : (b))
-#define abs(a)	((a)<0 ? (-(a)) : (a))
-
-// extern
-
-extern int playersprite_override;
+#include "../../src/astonia.h"
+#include "../../src/game.h"
+#include "../../src/game/_game.h"
+#include "../../src/gui.h"
+#include "../../src/client.h"
 
 // is_..._sprite
 
@@ -2534,43 +2530,6 @@ int get_offset_sprite(int sprite,int *px,int *py) {
 
     if ((x || y)) return 1;
     else return 0;
-}
-
-int no_alpha_sprite(int sprite) {
-    if (sprite>=21430 && sprite<=21710) return 31;  // ice area, ice palace
-
-    switch (sprite) {
-        case 21350:
-        case 21351:
-        case 21352:
-        case 21353:
-        case 21354:
-        case 21355:
-        case 21356:
-        case 21357:
-
-        case 21410:
-        case 21411:
-        case 21412:
-        case 21413:
-        case 21414:
-        case 21415:
-        case 21416:
-        case 21417:
-        case 21418:
-        case 21419:
-        case 21420:
-        case 21421:
-        case 21422:
-        case 21423:
-        case 21424:
-        case 21425:
-        case 21426:
-        case 21427:	return 16;
-
-        default:	return 0;
-    }
-
 }
 
 int additional_sprite(int sprite,int attick) {

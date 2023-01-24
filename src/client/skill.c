@@ -1,17 +1,18 @@
 /*
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ *
+ * Skills
+ *
+ * The game's skill list.
+ *
  */
 
-#include <stdlib.h>
+#include <stdint.h>
 
-#define max(a,b)    ((a)>(b)?(a):(b))
-
-#include "astonia.h"
-
-#define ISCLIENT
-#include "main.h"
-#include "client.h"
-#include "skill.h"
+#include "../../src/astonia.h"
+#include "../../src/game.h"
+#include "../../src/game/_game.h"
+#include "../../src/client.h"
 
 struct skill skill[V_MAX]={
     //  Bases          Cost W M (0=not raisable, 1=skill, 2=attribute, 3=power)
@@ -191,3 +192,4 @@ char *skilldesc[]={
     "prof19: write me!",
     "prof20: write me!"
 };
+

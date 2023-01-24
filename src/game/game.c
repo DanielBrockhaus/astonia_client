@@ -1,78 +1,31 @@
 /*
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ *
+ * Display Game Map
+ *
+ * Displays the actual game map by putting everything that is happening on-screen
+ * into an array, then sorting that array by layer and depth and displaying it
+ * via the stuff in dd.c.
  */
 
 #include <stdint.h>
-#include <windows.h>
-#include <memory.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
 #include <SDL2/SDL.h>
 
-#include "astonia.h"
-#include "engine.h"
+#include "../../src/astonia.h"
+#include "../../src/game.h"
+#include "../../src/game/_game.h"
+#include "../../src/gui.h"
+#include "../../src/client.h"
 
-#define ISCLIENT
-#define WANTMAPMN
-#include "main.h"
-#include "dd.h"
-#include "client.h"
-#include "sprite.h"
-#include "gui.h"
-#include "sound.h"
-#include "sdl.h"
-
-// extern
-
-extern int mapsel;
-extern int itmsel;
-extern int chrsel;
-extern unsigned int now;
-
-extern int nocut;
-
-extern int mapoffx,mapoffy;
-
-int fsprite_cnt=0,f2sprite_cnt=0,gsprite_cnt=0,g2sprite_cnt=0,isprite_cnt=0,csprite_cnt=0;
-int qs_time=0,dg_time=0,ds_time=0;
-
+static int fsprite_cnt=0,f2sprite_cnt=0,gsprite_cnt=0,g2sprite_cnt=0,isprite_cnt=0,csprite_cnt=0;
+static int qs_time=0,dg_time=0,ds_time=0;
 int stom_off_x=0,stom_off_y=0;
 
-int get_sink(int mn,struct map *cmap);
-
-// dl_copysprite
-
-#define DL_STEP 128
-
-#define DLC_STRIKE      1
-#define DLC_NUMBER	2
-#define DLC_DUMMY	3       // used to get space in the list to reduce compares ;-)
-#define DLC_PIXEL	4
-#define DLC_BLESS	5
-#define DLC_POTION	6
-#define DLC_RAIN	7
-#define DLC_PULSE	8
-#define DLC_PULSEBACK	9
-
-struct dl {
-    int layer;
-    int x,y,h;      // scrx=x scry=y-h sorted bye x,y ;) normally used for height, but also misused to place doors right
-    // int movy;
-
-    DDFX ddfx;
-
-    // functions to call
-    char call;
-    int call_x1,call_y1,call_x2,call_y2,call_x3;
-};
-
-typedef struct dl DL;
-
-DL *dllist=NULL;
-DL **dlsort=NULL;
-int dlused=0,dlmax=0;
-int stat_dlsortcalls,stat_dlused;
+static DL *dllist=NULL;
+static DL **dlsort=NULL;
+static int dlused=0,dlmax=0;
+static int stat_dlsortcalls,stat_dlused;
+int namesize=DD_SMALL;
 
 DL* dl_next(void) {
     int d,diff;
@@ -1048,8 +1001,6 @@ static char* roman(int nr) {
     return buf;
 }
 
-int namesize=DD_SMALL;
-
 static void display_game_names(void) {
     int i,mn,scrx,scry,x,y,col;
     char *sign;
@@ -1527,7 +1478,6 @@ void display_game_map(struct map *cmap) {
 }
 
 void display_pents(void) {
-    extern char pent_str[7][80];
     int n,col;
 
     for (n=0; n<7; n++) {
@@ -1660,7 +1610,6 @@ void exit_game(void) {
 }
 
 void prefetch_game(int attick) {
-    extern struct map map2[];
 
     set_map_values(map2,attick);
     set_mapadd(-map2[mapmn(MAPDX/2,MAPDY/2)].xadd,-map2[mapmn(MAPDX/2,MAPDY/2)].yadd);

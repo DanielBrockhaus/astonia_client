@@ -1,27 +1,23 @@
 /*
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ *
+ * Sound
+ *
+ * Loads and plays sounds via SDL2 library.
  */
 
 #include <stdio.h>
-#include <fcntl.h>
-#include <io.h>
-#include <stdlib.h>
-#include <process.h>
-#include <errno.h>
-#include <math.h>
 #include <zip.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 
-#include "engine.h"
-
-#include "main.h"
-#include "dd.h"
-#include "sound.h"
+#include "../../src/astonia.h"
+#include "../../src/sdl.h"
+#include "../../src/sdl/_sdl.h"
 
 int enable_sound=0;
 int sound_volume=128;
-uint64_t time_play_sound=0;
+static uint64_t time_play_sound=0;
 
 static char *sfx_name[];
 static int sfx_name_cnt;
@@ -37,7 +33,7 @@ int init_sound(void) {
 
     if (!enable_sound) return -1;
 
-    sz=zip_open("sx.zip",ZIP_RDONLY,&err);
+    sz=zip_open("res/sx.zip",ZIP_RDONLY,&err);
     if (!sz) {
         warn("Opening sx.zip failed with error code %d.",err);
         enable_sound=0;

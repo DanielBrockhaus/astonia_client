@@ -1,21 +1,21 @@
 /*
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ *
+ * Questlog
+ *
+ * Displays the quest log and parses clicks on the quest log window.
+ *
  */
 
 #include <stdint.h>
-#include <memory.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
-#define ISCLIENT
-#include "main.h"
-#include "dd.h"
-#include "client.h"
-#include "sprite.h"
-#include "gui.h"
-#include "sound.h"
 
-#include "astonia.h"
+#include "../../src/astonia.h"
+#include "../../src/gui.h"
+#include "../../src/gui/_gui.h"
+#include "../../src/game.h"
+#include "../../src/client.h"
 
 #define QLF_REPEATABLE	(1u<<0)
 #define QLF_XREPEAT	(1u<<1)

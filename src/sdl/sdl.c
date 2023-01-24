@@ -1,23 +1,23 @@
 /*
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ *
+ * SDL
+ *
+ * Translates called from dd.c into SDL2 library calls. Also has the software
+ * shader and texture cache.
+ *
  */
 
 #include <stdint.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 #include <png.h>
 #include <zip.h>
 
-#include "engine.h"
-
-#include "main.h"
-#include "sdl.h"
-#include "sound.h"
-
-#define max(a,b)    ((a)>(b)?(a):(b))
-#define min(a,b)    ((a)<(b)?(a):(b))
+#include "../../src/astonia.h"
+#include "../../src/sdl.h"
+#include "../../src/sdl/_sdl.h"
 
 #define IGET_A(c)       ((((uint32_t)(c))>>24)&0xFF)
 #define IGET_R(c)       ((((uint32_t)(c))>>16)&0xFF)
@@ -26,72 +26,16 @@
 #define IRGB(r,g,b)     (((r)<<0)|((g)<<8)|((b)<<16))
 #define IRGBA(r,g,b,a)  (((a)<<24)|((r)<<16)|((g)<<8)|((b)<<0))
 
-SDL_Window *sdlwnd;
-SDL_Renderer *sdlren;
+static SDL_Window *sdlwnd;
+static SDL_Renderer *sdlren;
 
-#define MAX_TEXCACHE    (sdl_cache_size)
-#define MAX_TEXHASH     (sdl_cache_size)    // Note: MAX_TEXCACHE and MAX_TEXHASH do not have to be the same value. It just turned out to work well if they are.
+static struct sdl_texture *sdlt=NULL;
+static int sdlt_best,sdlt_last;
+static int *sdlt_cache;
 
-#define STX_NONE        (-1)
+static SDL_Cursor *curs[20];
 
-#define SF_USED         (1<<0)
-#define SF_SPRITE       (1<<1)
-#define SF_TEXT         (1<<2)
-#define SF_DIDALLOC     (1<<3)
-#define SF_DIDMAKE      (1<<4)
-#define SF_DIDTEX       (1<<5)
-#define SF_BUSY         (1<<6)
-
-struct sdl_texture {
-    SDL_Texture *tex;
-    uint32_t *pixel;
-
-    int prev,next;
-    int hprev,hnext;
-
-    uint16_t flags;
-
-    // ---------- sprites ------------
-    // fx
-    int32_t sprite;
-    int8_t sink;
-    uint8_t scale;
-    int16_t cr,cg,cb,light,sat;
-    uint16_t c1,c2,c3,shine;
-
-    uint8_t freeze;
-
-    // light
-    int8_t ml,ll,rl,ul,dl;      // light in middle, left, right, up, down
-
-    // primary
-    uint16_t xres;              // x resolution in pixels
-    uint16_t yres;              // y resolution in pixels
-    int16_t xoff;               // offset to blit position
-    int16_t yoff;               // offset to blit position
-
-    // ---------- text --------------
-    uint16_t text_flags;
-    uint32_t text_color;
-    char *text;
-    void *text_font;
-};
-
-struct sdl_texture *sdlt=NULL;
-int sdlt_best,sdlt_last;
-int *sdlt_cache;
-
-struct sdl_image {
-    uint32_t *pixel;
-
-    uint16_t flags;
-    int16_t xres,yres;
-    int16_t xoff,yoff;
-};
-
-SDL_Cursor *curs[20];
-
-struct sdl_image *sdli=NULL;
+static struct sdl_image *sdli=NULL;
 
 long long mem_png=0,mem_tex=0;
 long long texc_hit=0,texc_miss=0,texc_pre=0;
@@ -115,24 +59,20 @@ int sdl_multi=4;
 int sdl_fullscreen=0;
 int sdl_cache_size=5000;
 
-zip_t *sdl_zip1=NULL;
-zip_t *sdl_zip2=NULL;
+static zip_t *sdl_zip1=NULL;
+static zip_t *sdl_zip2=NULL;
 
-zip_t *sdl_zip1p=NULL;
-zip_t *sdl_zip2p=NULL;
+static zip_t *sdl_zip1p=NULL;
+static zip_t *sdl_zip2p=NULL;
 
-int sdl_pre_backgnd(void *ptr);
-int sdl_create_cursors(void);
-
-SDL_Texture *sdltgt;
-
-SDL_sem *prework=NULL;
-SDL_mutex *premutex=NULL;
+static SDL_sem *prework=NULL;
+static SDL_mutex *premutex=NULL;
 
 int __yres=YRES0;
 
+//struct sdl sdl = { .flag = true, .value = 123, .stuff = 0.456 };
+
 int sdl_init(int width,int height,char *title) {
-    extern float mouse_scale;
     int len,i;
     SDL_DisplayMode DM;
 
@@ -203,7 +143,6 @@ int sdl_init(int width,int height,char *title) {
 
     // decide on screen format
     if (width!=XRES) {
-        extern int x_offset,y_offset;
         int tmp_scale=0;
 
         if (width/XRES>=4 && height/YRES0>=4) sdl_scale=4;
@@ -222,27 +161,24 @@ int sdl_init(int width,int height,char *title) {
 
         if (tmp_scale>sdl_scale || height<YRES1) { sdl_scale=tmp_scale; YRES=YRES2; }
 
-        mouse_scale=sdl_scale;
-
-        x_offset=(width/sdl_scale-XRES)/2;
-        y_offset=(height/sdl_scale-YRES)/2;
+        dd_set_offset((width/sdl_scale-XRES)/2,(height/sdl_scale-YRES)/2);
     }
 
-    sdl_zip1=zip_open("gx1.zip",ZIP_RDONLY,NULL);
-    sdl_zip1p=zip_open("gx1_patch.zip",ZIP_RDONLY,NULL);
+    sdl_zip1=zip_open("res/gx1.zip",ZIP_RDONLY,NULL);
+    sdl_zip1p=zip_open("res/gx1_patch.zip",ZIP_RDONLY,NULL);
 
     switch (sdl_scale) {
         case 2:
-            sdl_zip2=zip_open("gx2.zip",ZIP_RDONLY,NULL);
-            sdl_zip2p=zip_open("gx2_patch.zip",ZIP_RDONLY,NULL);
+            sdl_zip2=zip_open("res/gx2.zip",ZIP_RDONLY,NULL);
+            sdl_zip2p=zip_open("res/gx2_patch.zip",ZIP_RDONLY,NULL);
             break;
         case 3:
-            sdl_zip2=zip_open("gx3.zip",ZIP_RDONLY,NULL);
-            sdl_zip2p=zip_open("gx3_patch.zip",ZIP_RDONLY,NULL);
+            sdl_zip2=zip_open("res/gx3.zip",ZIP_RDONLY,NULL);
+            sdl_zip2p=zip_open("res/gx3_patch.zip",ZIP_RDONLY,NULL);
             break;
         case 4:
-            sdl_zip2=zip_open("gx4.zip",ZIP_RDONLY,NULL);
-            sdl_zip2p=zip_open("gx4_patch.zip",ZIP_RDONLY,NULL);
+            sdl_zip2=zip_open("res/gx4.zip",ZIP_RDONLY,NULL);
+            sdl_zip2p=zip_open("res/gx4_patch.zip",ZIP_RDONLY,NULL);
             break;
     }
 
@@ -1337,7 +1273,14 @@ int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,in
                    sdlt[stx].sat,sdlt[stx].c1,sdlt[stx].c2,sdlt[stx].c3,
                    sdlt[stx].shine,sdlt[stx].ml,sdlt[stx].ll,sdlt[stx].rl,
                    sdlt[stx].ul,sdlt[stx].dl,sdlt[stx].text);
-            if (panic>1099) exit(42);
+            if (panic>1099) {
+#ifdef DEVELOPER
+                void sdl_dump_spritechache(void);
+
+                sdl_dump_spritechache();
+#endif
+                exit(42);
+            }
         }
         if (text) {
             if (!(sdlt[stx].flags&SF_TEXT)) continue;
@@ -1750,6 +1693,7 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
     return texture;
 }
 
+#ifdef DEVELOPER
 int *dumpidx;
 
 int dump_cmp(const void *ca,const void *cb) {
@@ -1767,7 +1711,6 @@ int dump_cmp(const void *ca,const void *cb) {
     return sdlt[a].sprite-sdlt[b].sprite;
 }
 
-#ifdef DEVELOPER
 void sdl_dump_spritechache(void) {
     int i,n,cnt=0,uni=0,text=0;
     long long size=0;
@@ -1923,7 +1866,6 @@ void sdl_shaded_rect(int sx,int sy,int ex,int ey,unsigned short int color,int cl
     SDL_SetRenderDrawBlendMode(sdlren,SDL_BLENDMODE_BLEND);
     SDL_RenderFillRect(sdlren,&rc);
 }
-
 
 void sdl_pixel(int x,int y,unsigned short color,int x_offset,int y_offset) {
     int r,g,b,a,i;
@@ -2227,24 +2169,24 @@ SDL_Cursor *sdl_create_cursor(char *filename) {
 }
 
 int sdl_create_cursors(void) {
-    curs[SDL_CUR_c_only]=sdl_create_cursor("cursor/c_only.cur");
-    curs[SDL_CUR_c_take]=sdl_create_cursor("cursor/c_take.cur");
-    curs[SDL_CUR_c_drop]=sdl_create_cursor("cursor/c_drop.cur");
-    curs[SDL_CUR_c_attack]=sdl_create_cursor("cursor/c_atta.cur");
-    curs[SDL_CUR_c_raise]=sdl_create_cursor("cursor/c_rais.cur");
-    curs[SDL_CUR_c_give]=sdl_create_cursor("cursor/c_give.cur");
-    curs[SDL_CUR_c_use]=sdl_create_cursor("cursor/c_use.cur");
-    curs[SDL_CUR_c_usewith]=sdl_create_cursor("cursor/c_usew.cur");
-    curs[SDL_CUR_c_swap]=sdl_create_cursor("cursor/c_swap.cur");
-    curs[SDL_CUR_c_sell]=sdl_create_cursor("cursor/c_sell.cur");
-    curs[SDL_CUR_c_buy]=sdl_create_cursor("cursor/c_buy.cur");
-    curs[SDL_CUR_c_look]=sdl_create_cursor("cursor/c_look.cur");
-    curs[SDL_CUR_c_set]=sdl_create_cursor("cursor/c_set.cur");
-    curs[SDL_CUR_c_spell]=sdl_create_cursor("cursor/c_spell.cur");
-    curs[SDL_CUR_c_pix]=sdl_create_cursor("cursor/c_pix.cur");
-    curs[SDL_CUR_c_say]=sdl_create_cursor("cursor/c_say.cur");
-    curs[SDL_CUR_c_junk]=sdl_create_cursor("cursor/c_junk.cur");
-    curs[SDL_CUR_c_get]=sdl_create_cursor("cursor/c_get.cur");
+    curs[SDL_CUR_c_only]=sdl_create_cursor("res/cursor/c_only.cur");
+    curs[SDL_CUR_c_take]=sdl_create_cursor("res/cursor/c_take.cur");
+    curs[SDL_CUR_c_drop]=sdl_create_cursor("res/cursor/c_drop.cur");
+    curs[SDL_CUR_c_attack]=sdl_create_cursor("res/cursor/c_atta.cur");
+    curs[SDL_CUR_c_raise]=sdl_create_cursor("res/cursor/c_rais.cur");
+    curs[SDL_CUR_c_give]=sdl_create_cursor("res/cursor/c_give.cur");
+    curs[SDL_CUR_c_use]=sdl_create_cursor("res/cursor/c_use.cur");
+    curs[SDL_CUR_c_usewith]=sdl_create_cursor("res/cursor/c_usew.cur");
+    curs[SDL_CUR_c_swap]=sdl_create_cursor("res/cursor/c_swap.cur");
+    curs[SDL_CUR_c_sell]=sdl_create_cursor("res/cursor/c_sell.cur");
+    curs[SDL_CUR_c_buy]=sdl_create_cursor("res/cursor/c_buy.cur");
+    curs[SDL_CUR_c_look]=sdl_create_cursor("res/cursor/c_look.cur");
+    curs[SDL_CUR_c_set]=sdl_create_cursor("res/cursor/c_set.cur");
+    curs[SDL_CUR_c_spell]=sdl_create_cursor("res/cursor/c_spell.cur");
+    curs[SDL_CUR_c_pix]=sdl_create_cursor("res/cursor/c_pix.cur");
+    curs[SDL_CUR_c_say]=sdl_create_cursor("res/cursor/c_say.cur");
+    curs[SDL_CUR_c_junk]=sdl_create_cursor("res/cursor/c_junk.cur");
+    curs[SDL_CUR_c_get]=sdl_create_cursor("res/cursor/c_get.cur");
 
     return 1;
 }
@@ -2493,6 +2435,10 @@ int sdl_has_focus(void) {
     if (flags&SDL_WINDOW_MINIMIZED) return 0;
 
     return 1;
+}
+
+void sdl_set_title(char *title) {
+    SDL_SetWindowTitle(sdlwnd,title);
 }
 
 
