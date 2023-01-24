@@ -588,7 +588,7 @@ int parse_cmd(char *s) {
 void save_options(void) {
     int handle;
 
-    handle=open("moac.dat",O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,0666);
+    handle=open("bin/data/moac.dat",O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,0666);
     if (handle==-1) return;
 
     write(handle,&user_keys,sizeof(user_keys));
@@ -598,7 +598,7 @@ void save_options(void) {
 void load_options(void) {
     int handle;
 
-    handle=open("moac.dat",O_RDONLY|O_BINARY);
+    handle=open("bin/data/moac.dat",O_RDONLY|O_BINARY);
     if (handle==-1) return;
 
     read(handle,&user_keys,sizeof(user_keys));
@@ -625,7 +625,7 @@ int main(int argc,char *args[]) {
     char buf[80],buffer[1024];
     struct hostent *he;
 
-    errorfp=fopen("moac.log","a");
+    errorfp=fopen("bin/data/moac.log","a");
     if (!errorfp) errorfp=stderr;
 
     load_options();

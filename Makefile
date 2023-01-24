@@ -1,4 +1,4 @@
-all: moac.exe anicopy.exe
+all: bin/moac.exe bin/anicopy.exe
 
 CC=gcc
 CFLAGS=-O3 -ggdb -Wall -Wno-pointer-sign -Wno-char-subscripts
@@ -11,11 +11,11 @@ OBJS	=		src/gui/gui.o src/client/client.o src/client/skill.o src/game/dd.o src/g
 			src/sdl/sound.o src/game/resource.o src/sdl/sdl.o src/helper/helper.o\
 			src/gui/dots.o src/gui/display.o src/gui/teleport.o src/gui/color.o src/gui/cmd.o src/gui/questlog.o
 
-moac.exe:       	$(OBJS)
-			$(CC) $(LDFLAGS) -o moac.exe $(OBJS)  $(LIBS)
+bin/moac.exe:       	$(OBJS)
+			$(CC) $(LDFLAGS) -o bin/moac.exe $(OBJS)  $(LIBS)
 
-anicopy.exe:		src/helper/anicopy.c
-			$(CC) -O3 -ggdb -Wall -o anicopy.exe src/helper/anicopy.c
+bin/anicopy.exe:	src/helper/anicopy.c
+			$(CC) -O3 -ggdb -Wall -o bin/anicopy.exe src/helper/anicopy.c
 
 src/client/client.o:	src/client/client.c src/astonia.h src/client.h src/client/_client.h src/sdl.h
 
