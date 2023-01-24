@@ -8,14 +8,17 @@ void amod_gamestart(void);
 void amod_frame(void);
 void amod_tick(void);
 
+// Client exported functions
 __declspec(dllimport) int note(const char *format,...) __attribute__((format(printf, 1, 2)));
 __declspec(dllimport) int warn(const char *format,...) __attribute__((format(printf, 1, 2)));
 __declspec(dllimport) int fail(const char *format,...) __attribute__((format(printf, 1, 2)));
 __declspec(dllimport) void paranoia(const char *format,...) __attribute__((format(printf, 1, 2)));
 __declspec(dllimport) void addline(const char *format,...) __attribute__((format(printf, 1, 2)));
 
+// ignore
 struct map;
 
+// override-able functions, also exported from client
 __declspec(dllimport) int _is_cut_sprite(int sprite);
 __declspec(dllimport) int _is_mov_sprite(int sprite,int itemhint);
 __declspec(dllimport) int _is_door_sprite(int sprite);
@@ -29,6 +32,7 @@ __declspec(dllimport) int _get_offset_sprite(int sprite,int *px,int *py);
 __declspec(dllimport) int _additional_sprite(int sprite,int attick);
 __declspec(dllimport) int _opt_sprite(int sprite);
 
+// declarations for functions the mod might provide
 int is_cut_sprite(int sprite);
 int is_mov_sprite(int sprite,int itemhint);
 int is_door_sprite(int sprite);
@@ -42,6 +46,7 @@ int get_offset_sprite(int sprite,int *px,int *py);
 int additional_sprite(int sprite,int attick);
 int opt_sprite(int sprite);
 
+// ignore
 struct complex_sprite {
     unsigned int sprite;
     unsigned short c1,c2,c3,shine;

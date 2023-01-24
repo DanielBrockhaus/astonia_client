@@ -1802,10 +1802,11 @@ int main_loop(void) {
 #endif
             gui_frametime=SDL_GetTicks64()-gui_last_frame;
             gui_last_frame=SDL_GetTicks64();
+
             if (sdl_has_focus()) {
+                amod_frame();
                 sdl_clear();
                 display();
-                amod_frame();
             }
 
             timediff=nextframe-SDL_GetTicks();
