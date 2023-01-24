@@ -19,6 +19,7 @@
 #include "../../src/client.h"
 #include "../../src/game.h"
 #include "../../src/sdl.h"
+#include "../../src/modder.h"
 
 uint64_t gui_time_misc=0;
 
@@ -1742,6 +1743,8 @@ int main_loop(void) {
     int do_one_tick=1;
     uint64_t gui_last_frame=0,gui_last_tick=0;
 
+    amod_gamestart();
+
     nexttick=SDL_GetTicks()+MPT;
     nextframe=SDL_GetTicks()+MPF;
 
@@ -1785,6 +1788,7 @@ int main_loop(void) {
                 if (sockstate==4 && ltick%TICKS==0) {
                     cl_ticker();
                 }
+                amod_tick();
             }
         }
 
@@ -1801,6 +1805,7 @@ int main_loop(void) {
             if (sdl_has_focus()) {
                 sdl_clear();
                 display();
+                amod_frame();
             }
 
             timediff=nextframe-SDL_GetTicks();

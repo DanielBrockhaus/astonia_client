@@ -101,24 +101,17 @@ void dd_text_lineup(void);
 void dd_text_linedown(void);
 int dd_offset_x(void);
 int dd_offset_y(void);
-
-int trans_asprite(int mn,int sprite,int attick,
-                  unsigned char *pscale,
-                  unsigned char *pcr,
-                  unsigned char *pcg,
-                  unsigned char *pcb,
-                  unsigned char *plight,
-                  unsigned char *psat,
-                  unsigned short *pc1,
-                  unsigned short *pc2,
-                  unsigned short *pc3,
-                  unsigned short *pshine);
-
-int trans_charno(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,int *psat,int *pc1,int *pc2,int *pc3,int *pshine,int attick);
-int additional_sprite(int sprite,int attick);
-int get_player_sprite(int nr,int zdir,int action,int step,int duration,int attick);
+extern int (*trans_asprite)(int mn,int sprite,int attick,unsigned char *pscale,unsigned char *pcr,unsigned char *pcg,unsigned char *pcb,unsigned char *plight,unsigned char *psat,unsigned short *pc1,unsigned short *pc2,unsigned short *pc3,unsigned short *pshine);
+int _trans_asprite(int mn,int sprite,int attick,unsigned char *pscale,unsigned char *pcr,unsigned char *pcg,unsigned char *pcb,unsigned char *plight,unsigned char *psat,unsigned short *pc1,unsigned short *pc2,unsigned short *pc3,unsigned short *pshine);
+extern int (*trans_charno)(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,int *psat,int *pc1,int *pc2,int *pc3,int *pshine,int attick);
+int _trans_charno(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,int *psat,int *pc1,int *pc2,int *pc3,int *pshine,int attick);
+extern int (*additional_sprite)(int sprite,int attick);
+int _additional_sprite(int sprite,int attick);
+extern int (*get_player_sprite)(int nr,int zdir,int action,int step,int duration,int attick);
+int _get_player_sprite(int nr,int zdir,int action,int step,int duration,int attick);
 void save_options(void);
-int opt_sprite(int sprite);
+extern int (*opt_sprite)(int sprite);
+int _opt_sprite(int sprite);
 struct map;
 int get_sink(int mn,struct map *cmap);
 

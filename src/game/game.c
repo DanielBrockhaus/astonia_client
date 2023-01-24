@@ -522,7 +522,6 @@ void show_bubbles(void) {
 
 }
 
-void trans_csprite(int mn,struct map *cmap,int attick);
 void set_map_sprites(struct map *cmap,int attick) {
     int i,mn;
 

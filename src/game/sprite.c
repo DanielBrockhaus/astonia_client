@@ -16,9 +16,11 @@
 #include "../../src/gui.h"
 #include "../../src/client.h"
 
-// is_..._sprite
+uint64_t sprite_options=0;
 
-int is_cut_sprite(int sprite) {
+// is_..._sprite
+int (*is_cut_sprite)(int sprite)=_is_cut_sprite;
+__declspec(dllexport) int _is_cut_sprite(int sprite) {
     switch (sprite) {
         case 11104: case 11105: case 11106: case 11107:
             return sprite+4;
@@ -335,7 +337,8 @@ int is_cut_sprite(int sprite) {
     return sprite;
 }
 
-int is_mov_sprite(int sprite,int itemhint) {
+int (*is_mov_sprite)(int sprite,int itemhint)=_is_mov_sprite;
+__declspec(dllexport) int _is_mov_sprite(int sprite,int itemhint) {
     switch (sprite) {
         case 20039: case 20040: case 20041: case 20042:         // wood door
         case 20122: case 20123: case 20124: case 20125:         // steel door
@@ -354,7 +357,8 @@ int is_mov_sprite(int sprite,int itemhint) {
     return itemhint;
 }
 
-int is_door_sprite(int sprite) {
+int (*is_door_sprite)(int sprite)=_is_door_sprite;
+__declspec(dllexport) int _is_door_sprite(int sprite) {
     switch (sprite) {
         case 20039: case 20040: case 20041: case 20042:         // wood door
         case 20122: case 20123: case 20124: case 20125:         // steel door
@@ -372,7 +376,8 @@ int is_door_sprite(int sprite) {
     return 0;
 }
 
-int is_yadd_sprite(int sprite) {
+int (*is_yadd_sprite)(int sprite)=_is_yadd_sprite;
+__declspec(dllexport) int _is_yadd_sprite(int sprite) {
     switch (sprite) {
         case 13103: case 13104:
             return 29;
@@ -422,7 +427,8 @@ int is_yadd_sprite(int sprite) {
     return 0;
 }
 
-int get_chr_height(int csprite) {
+int (*get_chr_height)(int csprite)=_get_chr_height;
+__declspec(dllexport) int _get_chr_height(int csprite) {
     //csprite=playersprite_override;
 
     switch (csprite) {
@@ -448,7 +454,8 @@ int get_chr_height(int csprite) {
 #define IRGB(r,g,b) (((r)<<10)|((g)<<5)|((b)<<0))
 
 // charno to scale / colors
-int trans_charno(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,int *psat,int *pc1,int *pc2,int *pc3,int *pshine,int attick) {
+int (*trans_charno)(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,int *psat,int *pc1,int *pc2,int *pc3,int *pshine,int attick)=_trans_charno;
+__declspec(dllexport) int _trans_charno(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,int *psat,int *pc1,int *pc2,int *pc3,int *pshine,int attick) {
     int scale=100,cr=0,cg=0,cb=0,light=0,sat=0,c1=0,c2=0,c3=0,shine=0,helper;
 
     switch (csprite) {
@@ -858,18 +865,8 @@ int trans_charno(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,
 }
 
 // asprite
-
-int trans_asprite(int mn,int sprite,int attick,
-                  unsigned char *pscale,
-                  unsigned char *pcr,
-                  unsigned char *pcg,
-                  unsigned char *pcb,
-                  unsigned char *plight,
-                  unsigned char *psat,
-                  unsigned short *pc1,
-                  unsigned short *pc2,
-                  unsigned short *pc3,
-                  unsigned short *pshine) {
+int (*trans_asprite)(int mn,int sprite,int attick,unsigned char *pscale,unsigned char *pcr,unsigned char *pcg,unsigned char *pcb,unsigned char *plight,unsigned char *psat,unsigned short *pc1,unsigned short *pc2,unsigned short *pc3,unsigned short *pshine)=_trans_asprite;
+__declspec(dllexport) int _trans_asprite(int mn,int sprite,int attick,unsigned char *pscale,unsigned char *pcr,unsigned char *pcg,unsigned char *pcb,unsigned char *plight,unsigned char *psat,unsigned short *pc1,unsigned short *pc2,unsigned short *pc3,unsigned short *pshine) {
     // if (!isprite) return 0;
     int help,scale=100,cr=0,cg=0,cb=0,light=0,sat=0,nr,c1=0,c2=0,c3=0,shine=0,edi=0;
 
@@ -2326,9 +2323,8 @@ int trans_asprite(int mn,int sprite,int attick,
     return sprite;
 }
 
-// csprite
-
-int get_player_sprite(int nr,int zdir,int action,int step,int duration,int attick) {
+int (*get_player_sprite)(int nr,int zdir,int action,int step,int duration,int attick)=_get_player_sprite;
+__declspec(dllexport) int _get_player_sprite(int nr,int zdir,int action,int step,int duration,int attick) {
     int base;
 
     if (nr>100) nr=trans_charno(nr,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,attick);
@@ -2425,7 +2421,8 @@ int get_player_sprite(int nr,int zdir,int action,int step,int duration,int attic
     return base;
 }
 
-void trans_csprite(int mn,struct map *cmap,int attick) {
+void (*trans_csprite)(int mn,struct map *cmap,int attick)=_trans_csprite;
+__declspec(dllexport) void _trans_csprite(int mn,struct map *cmap,int attick) {
     int dirxadd[8]={+1,0,-1,-2,-1,0,+1,+2};
     int diryadd[8]={+1,+2,+1,0,-1,-2,-1,0};
     // int base;
@@ -2466,7 +2463,8 @@ void trans_csprite(int mn,struct map *cmap,int attick) {
     }
 }
 
-int get_lay_sprite(int sprite,int lay) {
+int (*get_lay_sprite)(int sprite,int lay)=_get_lay_sprite;
+__declspec(dllexport) int _get_lay_sprite(int sprite,int lay) {
     switch (sprite) {
         case 14363: case 14364: case 14365: case 14366:
             return GND_LAY;
@@ -2495,7 +2493,8 @@ int get_lay_sprite(int sprite,int lay) {
     return lay;
 }
 
-int get_offset_sprite(int sprite,int *px,int *py) {
+int (*get_offset_sprite)(int sprite,int *px,int *py)=_get_offset_sprite;
+__declspec(dllexport) int _get_offset_sprite(int sprite,int *px,int *py) {
     int x=0,y=0;
 
     switch (sprite) {
@@ -2532,7 +2531,8 @@ int get_offset_sprite(int sprite,int *px,int *py) {
     else return 0;
 }
 
-int additional_sprite(int sprite,int attick) {
+int (*additional_sprite)(int sprite,int attick)=_additional_sprite;
+__declspec(dllexport) int _additional_sprite(int sprite,int attick) {
     switch (sprite) {
         case 50495: case 50496: case 50497: case 50498:
             return 50500+attick%6;
@@ -2541,9 +2541,8 @@ int additional_sprite(int sprite,int attick) {
     }
 }
 
-uint64_t sprite_options=0;
-
-int opt_sprite(int sprite) {
+int (*opt_sprite)(int sprite)=_opt_sprite;
+__declspec(dllexport) int _opt_sprite(int sprite) {
     switch (sprite) {
         case 13:
             if (sprite_options&SO_DARK) return 300;

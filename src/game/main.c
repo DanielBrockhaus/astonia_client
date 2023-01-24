@@ -21,6 +21,7 @@
 #include "../../src/sdl.h"
 #include "../../src/gui.h"
 #include "../../src/client.h"
+#include "../../src/modder.h"
 
 int quit=0;
 static int quickstart=0;
@@ -37,7 +38,7 @@ static FILE *errorfp;
 
 // note, warn, fail, paranoia, addline
 
-int note(const char *format,...) {
+__declspec(dllexport) int note(const char *format,...) {
     va_list va;
     char buf[1024];
 
@@ -55,7 +56,7 @@ int note(const char *format,...) {
     return 0;
 }
 
-int warn(const char *format,...) {
+__declspec(dllexport) int warn(const char *format,...) {
     va_list va;
     char buf[1024];
 
@@ -71,7 +72,7 @@ int warn(const char *format,...) {
     return 0;
 }
 
-int fail(const char *format,...) {
+__declspec(dllexport) int fail(const char *format,...) {
     va_list va;
     char buf[1024];
 
@@ -89,7 +90,7 @@ int fail(const char *format,...) {
     return -1;
 }
 
-void paranoia(const char *format,...) {
+__declspec(dllexport) void paranoia(const char *format,...) {
     va_list va;
 
     fprintf(errorfp,"PARANOIA EXIT in ");
@@ -110,7 +111,7 @@ void addlinesep(void) {
     _addlinesep=1;
 }
 
-void addline(const char *format,...) {
+__declspec(dllexport) void addline(const char *format,...) {
     va_list va;
     char buf[1024];
 
@@ -628,6 +629,8 @@ int main(int argc,char *args[]) {
     errorfp=fopen("bin/data/moac.log","a");
     if (!errorfp) errorfp=stderr;
 
+    amod_init();
+
     load_options();
 
     convert_cmd_line(buffer,argc,args,1000);
@@ -705,6 +708,7 @@ int main(int argc,char *args[]) {
 
     main_loop();
 
+    amod_exit();
     main_exit();
     sound_exit();
     dd_exit();

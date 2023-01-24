@@ -37,17 +37,11 @@ Possibly
 
 - Add stuff to the client window to make it 960 pixels wide to fill a standard 16:9 display.
 
-- Add configuration files for:
-  - Pretty much everything in sprite.c
-  - Everything in skill.c
-
 - Implement a control scheme that works without shift and control.
 
 - Port the winsock stuff to SDL_net
 
 - A Linux port. Once all is SDL it should be possible.
-
-- Clean up the sources. Less header files. Merge dd.c and sdl.c? Or make a sharper cut.
 
 
 Maybe Later
