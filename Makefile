@@ -1,8 +1,8 @@
 all: bin/moac.exe bin/anicopy.exe bin/amod.dll
 
 CC=gcc
-CFLAGS=-O3 -ggdb -Wall -Wno-pointer-sign -Wno-char-subscripts
-LDFLAGS=-O3 -ggdb -Wl,-subsystem,windows
+CFLAGS=-O0 -ggdb -Wall -Wno-pointer-sign -Wno-char-subscripts
+LDFLAGS=-O0 -ggdb -Wl,-subsystem,windows
 #-Wl,-subsystem,windows
 LIBS = -lwsock32 -lws2_32 -lz -lpng -lsdl2 -lSDL2_mixer -lsdl2main -lzip
 
@@ -50,8 +50,8 @@ src/game/resource.o:	src/game/resource.rc src/game/resource.h
 			windres -F pe-x86-64 src/game/resource.rc src/game/resource.o
 
 clean:
-		rm src/client/*.o src/game/*.o src/gui/*.o helper/*.o src/sdl/*.o
-		rm moac.exe
+		rm src/client/*.o src/game/*.o src/gui/*.o helper/*.o src/sdl/*.o src/amod/*.o
+		rm bin/moac.exe bin/amod.dll
 
 distrib:
 	ldd bin/moac.exe | grep mingw | awk 'NF == 4 { system("cp " $3 " bin") }'

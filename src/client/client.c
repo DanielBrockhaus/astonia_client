@@ -68,9 +68,9 @@ int originy;
 struct map map[MAPDX*MAPDY];
 struct map map2[MAPDX*MAPDY];
 
-int value[2][V_MAX];
+__declspec(dllexport) int value[2][V_MAX];
 int item[INVENTORYSIZE];
-int item_flags[INVENTORYSIZE];
+__declspec(dllexport) int item_flags[INVENTORYSIZE];
 int hp;
 int mana;
 int rage;
@@ -81,7 +81,7 @@ int experience_used;
 int mil_exp;
 int gold;
 
-struct player player[MAXCHARS];
+__declspec(dllexport) struct player player[MAXCHARS];
 
 union ceffect ceffect[MAXEF];
 unsigned char ueffect[MAXEF];
@@ -307,10 +307,9 @@ void sv_setval(unsigned char *buf,int nr) {
     int n;
 
     n=buf[1];
-    if (n<0 || n>=V_MAX) return;
+    if (n<0 || n>=(*game_v_max)) return;
 
-    if (nr==0 && n==V_PROFESSION);
-    else value[nr][n]=*(short *)(buf+2);
+    if (nr!=0 || n!=V_PROFESSION) value[nr][n]=*(short *)(buf+2);
 
     update_skltab=1;
 }

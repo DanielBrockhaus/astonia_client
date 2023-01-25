@@ -1,27 +1,15 @@
 /*
- * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
- *
- * Skills
- *
- * The game's skill list.
- *
+ * Example of modding the skill table (using vanilla data for easy editing)
  */
 
-#include <stdint.h>
+#define MOD_V_MAX       63
+#define MOD_V_PROFBASE  43
 
-#include "../../src/astonia.h"
-#include "../../src/game.h"
-#include "../../src/game/_game.h"
-#include "../../src/client.h"
+__declspec(dllexport) int game_v_max=MOD_V_MAX;
+__declspec(dllexport) int game_v_profbase=MOD_V_PROFBASE;
 
-int _game_v_profbase=43;
-int *game_v_profbase=&_game_v_profbase;
-
-int _game_v_max=43+20;
-int *game_v_max=&_game_v_max;
-
-struct skill _game_skill[V_MAX]={
-    //  Bases          Cost W M (0=not raisable, 1=skill, 2=attribute, 3=power)
+__declspec(dllexport) struct skill game_skill[MOD_V_MAX] = {
+	//  Bases          Cost W M (0=not raisable, 1=skill, 2=attribute, 3=power)
     // Powers
     {"Hitpoints",-1,-1,-1,3,10},    // 0		done
     {"Endurance",-1,-1,-1,3,10},    // 1
@@ -105,23 +93,8 @@ struct skill _game_skill[V_MAX]={
     {"empty",-1,-1,-1,0,1} // 19
 };
 
-struct skill *game_skill=_game_skill;
-
-__declspec(dllexport) int raise_cost(int v,int n) {
-    int nr,seyan;
-
-    // hack to determine if we are a seyan:
-    if (value[0][V_ATTACK] && value[0][V_BLESS]) seyan=1;
-    else seyan=0;
-
-    nr=n-game_skill[v].start+1+5;
-
-    if (seyan) return max(1,nr*nr*nr*game_skill[v].cost*4/30);
-    else return max(1,nr*nr*nr*game_skill[v].cost/10);
-}
-
-char *_game_skilldesc[]={
-    "Hitpoints ('life force') are reduced as you battle and sustain injury. The top red line above your head shows your Hitpoints level. If your Hitpoints level drops to zero, then you will die!",
+__declspec(dllexport) char *game_skilldesc[] = {
+	"Hitpoints ('life force') are reduced as you battle and sustain injury. The top red line above your head shows your Hitpoints level. If your Hitpoints level drops to zero, then you will die!",
     "Endurance enables you to run and fight with greater speed. When your Endurance is gone, you will slow down and feel exhausted.",
     "Magic users need Mana to cast spells. If your Mana runs out, then you can no longer cast spells or perform magic. If you stand completely still for a few moments, your Mana will replenish itself.",
     "Wisdom, a base attribute, deepens your comprehension of the secrets of spells and magic; enhances all spells and some skills.",
@@ -199,5 +172,30 @@ char *_game_skilldesc[]={
     "prof20: write me!"
 };
 
-char **game_skilldesc=_game_skilldesc;
+__declspec(dllexport) int get_skltab_index(int n) {
+    static int itab[] = {
+		-1,
+        0,1,2,                          // powers
+        3,4,5,6,                        // bases
+        7,8,9,10,38,41,                 // armor etc
+        12,13,14,15,16,40,              // fight skills
+        17,18,19,20,21,22,23,24,        // 2ndary fight skills
+        28,29,30,31,32,33,34,11,39,     // spells
+        25,26,27,35,36,37,              // misc skills
+        42,                             // profession
+        43,44,45,46,47,48,49,50,51,52,  // professions 1-10
+        53,54,55,56,57,58,59,60,61,62,  // professions 11-20
+        -2                              // end marker
+};
+
+    return itab[n];
+}
+
+__declspec(dllexport)int get_skltab_sep(int i) {
+    return (i==0 || i==3 || i==7 || i==12 || i==17 || i==25 || i==28 || i==42 || i==43);
+}
+
+__declspec(dllexport)int get_skltab_show(int i) {
+    return (i==V_WEAPON || i==V_ARMOR || i==V_SPEED || i==V_LIGHT);
+}
 

@@ -49,3 +49,12 @@ int main_init(void);
 int main_loop(void);
 void main_exit(void);
 
+extern int (*get_skltab_sep)(int i);
+int _get_skltab_sep(int i);
+extern int (*get_skltab_index)(int n);
+int _get_skltab_index(int n);
+extern int (*get_skltab_show)(int i);
+__declspec(dllexport)int _get_skltab_show(int i);
+
+
+

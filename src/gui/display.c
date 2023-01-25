@@ -15,6 +15,7 @@
 #include "../../src/gui/_gui.h"
 #include "../../src/game.h"
 #include "../../src/client.h"
+#include "../../src/modder.h"
 
 char tutor_text[1024]={""};
 int show_tutor=0;
@@ -359,8 +360,10 @@ void display_scrollbars(void) {
 }
 
 void display_skill(void) {
-    int b,i,x,y,yt,bsx,bex,bsy,barsize;
+    int b,i,x,y,yt,bsx,bex,bsy,barsize,cn;
     char buf[256];
+
+    cn=map[MAPDX*MAPDY/2].cn;
 
     for (b=BUT_SKL_BEG; b<=BUT_SKL_END; b++) {
 
@@ -396,20 +399,27 @@ void display_skill(void) {
             case V_WEAPON:
             case V_SPEED:
             case V_LIGHT:
-            case V_COLD:		sprintf(buf,"%d",skltab[i].curr);
+            case V_COLD:
+                sprintf(buf,"%d",skltab[i].curr);
                 break;
-            case V_ARMOR:		sprintf(buf,"%.2f",skltab[i].curr/20.0);
+            case V_ARMOR:
+                sprintf(buf,"%.2f",skltab[i].curr/20.0);
                 break;
-            case V_MANA:		sprintf(buf,"%d/%2d/%2d",mana,skltab[i].base,skltab[i].curr);
+            case V_MANA:
+                sprintf(buf,"%d/%2d/%2d",mana,skltab[i].base,skltab[i].curr);
                 break;
             case V_HP:
                 if (lifeshield) sprintf(buf,"%d+%d/%2d/%2d",hp,lifeshield,skltab[i].base,skltab[i].curr);
                 else sprintf(buf,"%d/%2d/%2d",hp,skltab[i].base,skltab[i].curr);
                 break;
-            case V_ENDURANCE:	sprintf(buf,"%d/%2d/%2d",endurance,skltab[i].base,skltab[i].curr);
+            case V_ENDURANCE:
+                sprintf(buf,"%d/%2d/%2d",endurance,skltab[i].base,skltab[i].curr);
                 break;
-            default:		if (skltab[i].v>=V_PROFBASE) sprintf(buf,"%d",skltab[i].base);
-                else sprintf(buf,"%2d/%2d",skltab[i].base,skltab[i].curr);
+            default:
+                if (!amod_display_skill_line(skltab[i].v,skltab[i].base,skltab[i].curr,cn,buf)) {
+                    if (skltab[i].v>=V_PROFBASE) sprintf(buf,"%d",skltab[i].base);
+                    else sprintf(buf,"%2d/%2d",skltab[i].base,skltab[i].curr);
+                }
                 break;
         }
 

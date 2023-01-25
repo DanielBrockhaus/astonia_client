@@ -15,12 +15,15 @@
 #include "../../src/modder/_modder.h"
 #include "../../src/game.h"
 #include "../../src/game/_game.h"
+#include "../../src/client.h"
+#include "../../src/gui.h"
 
 void (*_amod_init)(void)=NULL;
 void (*_amod_exit)(void)=NULL;
 void (*_amod_gamestart)(void)=NULL;
 void (*_amod_frame)(void)=NULL;
 void (*_amod_tick)(void)=NULL;
+int (*_amod_display_skill_line)(int v,int base,int curr,int cn,char *buf)=NULL;
 
 char *game_email_main="<no one>";
 char *game_email_cash="<no one>";
@@ -38,6 +41,7 @@ int amod_init(void) {
     if ((tmp=GetProcAddress(dll_instance,"amod_gamestart"))) _amod_gamestart=tmp;
     if ((tmp=GetProcAddress(dll_instance,"amod_frame"))) _amod_frame=tmp;
     if ((tmp=GetProcAddress(dll_instance,"amod_tick"))) _amod_tick=tmp;
+    if ((tmp=GetProcAddress(dll_instance,"amod_display_skill_line"))) _amod_display_skill_line=tmp;
 
     if ((tmp=GetProcAddress(dll_instance,"is_cut_sprite"))) is_cut_sprite=tmp;
     if ((tmp=GetProcAddress(dll_instance,"is_mov_sprite"))) is_mov_sprite=tmp;
@@ -51,12 +55,19 @@ int amod_init(void) {
     if ((tmp=GetProcAddress(dll_instance,"get_offset_sprite"))) get_offset_sprite=tmp;
     if ((tmp=GetProcAddress(dll_instance,"additional_sprite"))) additional_sprite=tmp;
     if ((tmp=GetProcAddress(dll_instance,"opt_sprite"))) opt_sprite=tmp;
+    if ((tmp=GetProcAddress(dll_instance,"get_skltab_index"))) get_skltab_index=tmp;
+    if ((tmp=GetProcAddress(dll_instance,"get_skltab_sep"))) get_skltab_sep=tmp;
+    if ((tmp=GetProcAddress(dll_instance,"get_skltab_show"))) get_skltab_show=tmp;
 
     if ((tmp=GetProcAddress(dll_instance,"game_email_main"))) game_email_main=tmp;
     if ((tmp=GetProcAddress(dll_instance,"game_email_cash"))) game_email_cash=tmp;
     if ((tmp=GetProcAddress(dll_instance,"game_url"))) game_url=tmp;
     if ((tmp=GetProcAddress(dll_instance,"game_rankname"))) game_rankname=tmp;
     if ((tmp=GetProcAddress(dll_instance,"game_rankcount"))) game_rankcount=tmp;
+    if ((tmp=GetProcAddress(dll_instance,"game_v_max"))) game_v_max=tmp;
+    if ((tmp=GetProcAddress(dll_instance,"game_skill"))) game_skill=tmp;
+    if ((tmp=GetProcAddress(dll_instance,"game_skilldesc"))) game_skilldesc=tmp;
+    if ((tmp=GetProcAddress(dll_instance,"game_v_profbase"))) game_v_profbase=tmp;
 
     if (_amod_init) _amod_init();
 
@@ -77,5 +88,10 @@ void amod_frame(void) {
 
 void amod_tick(void) {
     if (_amod_tick) _amod_tick();
+}
+
+int amod_display_skill_line(int v,int base,int curr,int cn,char *buf) {
+    if (_amod_display_skill_line) return _amod_display_skill_line(v,base,curr,cn,buf);
+    return 0;
 }
 

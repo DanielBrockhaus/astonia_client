@@ -6,8 +6,15 @@
  */
 
 #include <stdint.h>
+#include <stdio.h>
 
 #include "../../src/amod/amod.h"
+#if 0
+#include "bmod.c"
+#else
+#include "strings.c"
+#include "ranks.c"
+#include "skills.c"
 
 __declspec(dllexport) void amod_gamestart(void) {
     note("A Mod by ModderMcModFace loaded.");
@@ -26,3 +33,4 @@ __declspec(dllexport) int trans_charno(int csprite,int *pscale,int *pcr,int *pcg
 
     return csprite;
 }
+#endif

@@ -67,7 +67,7 @@ int vk_item,vk_char,vk_spell;
 
 // globals wea
 
-int weatab[12]={9,6,8,11,0,1,2,4,5,3,7,10};
+__declspec(dllexport) int weatab[12]={9,6,8,11,0,1,2,4,5,3,7,10};
 char weaname[12][32]={"RING","HAND","HAND","RING","NECK","HEAD","BACK","BODY","BELT","ARMS","LEGS","FEET"};
 
 KEYTAB keytab[]={
@@ -133,9 +133,9 @@ int takegold;                   // the amout of gold to take
 
 char hitsel[256];               // something in the text (dx_drawtext()) is selected
 
-SKLTAB *skltab=NULL;
+__declspec(dllexport) SKLTAB *skltab=NULL;
 int skltab_max=0;
-int skltab_cnt=0;
+__declspec(dllexport) int skltab_cnt=0;
 
 int invoff,max_invoff;
 int conoff,max_conoff;
@@ -938,31 +938,49 @@ static void set_conoff(int bymouse,int ny) {
     if (con_cnt) but[BUT_SCL_TR].y=but[BUT_SCL_UP].y+10+(but[BUT_SCL_DW].y-but[BUT_SCL_UP].y-20)*conoff/max(1,max_conoff);
 }
 
+int (*get_skltab_index)(int n)=_get_skltab_index;
+__declspec(dllexport) int _get_skltab_index(int n) {
+    static int itab[V_MAX+1]={
+        -1,
+        0,1,2,                          // powers
+        3,4,5,6,                        // bases
+        7,8,9,10,38,41,                 // armor etc
+        12,13,14,15,16,40,              // fight skills
+        17,18,19,20,21,22,23,24,        // 2ndary fight skills
+        28,29,30,31,32,33,34,11,39,     // spells
+        25,26,27,35,36,37,              // misc skills
+        42,                             // profession
+        43,44,45,46,47,48,49,50,51,52,  // professions 1-10
+        53,54,55,56,57,58,59,60,61,62,  // professions 11-20
+        -2                              // end marker
+    };
+
+    return itab[n];
+}
+
+int (*get_skltab_sep)(int i)=_get_skltab_sep;
+__declspec(dllexport)int _get_skltab_sep(int i) {
+    return (i==0 || i==3 || i==7 || i==12 || i==17 || i==25 || i==28 || i==42 || i==43);
+}
+
+int (*get_skltab_show)(int i)=_get_skltab_show;
+__declspec(dllexport)int _get_skltab_show(int i) {
+    return (i==V_WEAPON || i==V_ARMOR || i==V_SPEED || i==V_LIGHT);
+}
+
 static void set_skltab(void) {
     int i,use,flag,n;
     int experience_left,raisecost;
-    static int itab[V_MAX+1]={
-        -1,
-        0,1,2,              // powers
-        3,4,5,6,            // bases
-        7,8,9,10,38,41,         // armor etc
-        12,13,14,15,16,40,      // fight skills
-        17,18,19,20,21,22,23,24,    // 2ndary fight skills
-        28,29,30,31,32,33,34,11,39, // spells
-        25,26,27,35,36,37,      // misc skills
-        42,
-        43,44,45,46,47,48,49,50,51,52,
-        53,54,55,56,57,58,59,60,61,62
-    };
+
 
     experience_left=experience-experience_used;
 
-    //for (flag=use=0,i=-1; i<V_MAX; i++) {
     for (flag=use=0,n=0; n<=V_MAX; n++) {
 
-        i=itab[n];
+        i=get_skltab_index(n);
+        if (i==-2) break;
 
-        if (flag && (i==0 || i==3 || i==7 || i==12 || i==17 || i==25 || i==28 || i==42 || i==43)) {
+        if (flag && get_skltab_sep(i)) {
 
             if (use==skltab_max) skltab=xrealloc(skltab,(skltab_max+=8)*sizeof(SKLTAB),MEM_GUI);
 
@@ -988,7 +1006,7 @@ static void set_skltab(void) {
             use++;
             flag=1;
 
-        } else if (value[0][i] || value[1][i] || i==V_WEAPON || i==V_ARMOR || i==V_SPEED || i==V_LIGHT) {
+        } else if (value[0][i] || value[1][i] || get_skltab_show(i)) {
 
             if (use==skltab_max) skltab=xrealloc(skltab,(skltab_max+=8)*sizeof(SKLTAB),MEM_GUI);
 
@@ -997,7 +1015,7 @@ static void set_skltab(void) {
 
             skltab[use].v=i;
 
-            strcpy(skltab[use].name,skill[i].name);
+            strcpy(skltab[use].name,game_skill[i].name);
             skltab[use].base=value[1][i];
             skltab[use].curr=value[0][i];
             skltab[use].raisecost=raisecost=raise_cost(i,value[1][i]);
@@ -1067,8 +1085,8 @@ static int get_skl_look(int x,int y) {
 }
 
 static void cmd_look_skill(int nr) {
-    if (nr>=0 && nr<=V_MAX) {
-        addline("%s: %s",skill[nr].name,skilldesc[nr]);
+    if (nr>=0 && nr<=(*game_v_max)) {
+        addline("%s: %s",game_skill[nr].name,game_skilldesc[nr]);
     } else addline("Unknown.");
 }
 

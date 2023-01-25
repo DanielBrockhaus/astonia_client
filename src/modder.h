@@ -7,6 +7,7 @@ void amod_exit(void);
 void amod_gamestart(void);
 void amod_frame(void);
 void amod_tick(void);
+int amod_display_skill_line(int v,int base,int curr,int cn,char *buf);
 
 extern char *game_email_main;
 extern char *game_email_cash;

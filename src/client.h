@@ -43,7 +43,7 @@
 #define V_ATTACK       	18
 #define V_PARRY	       	19
 #define V_WARCRY       	20
-//#define V_BERSERK      	21
+#define V_TACTICS      	21
 #define V_SURROUND     	22
 #define V_BODYCONTROL	23
 #define V_SPEEDSKILL	24
@@ -70,9 +70,9 @@
 #define V_COLD		41
 #define V_PROFESSION	42
 
-#define V_PROFBASE	43
-#define P_MAX		20
-#define V_MAX	       	(V_PROFBASE+P_MAX)
+#define V_PROFBASE	    (*game_v_profbase)  // 43
+#define P_MAX		    20
+#define V_MAX	        200
 
 #define CL_NOP			1
 #define CL_MOVE			2
@@ -457,6 +457,8 @@ extern struct map map[MAPDX*MAPDY];
 extern struct map map2[MAPDX*MAPDY];
 
 extern int value[2][V_MAX];
+extern int *game_v_max;
+extern int *game_v_profbase;
 extern int item[INVENTORYSIZE];
 extern int item_flags[INVENTORYSIZE];
 extern int hp;
@@ -504,8 +506,8 @@ extern int target_server;
 extern int target_port;
 extern int kicked_out;
 
-extern char *skilldesc[];
-extern struct skill skill[];
+extern char **game_skilldesc;
+extern struct skill *game_skill;
 
 extern int act;
 extern int actx;
