@@ -22,6 +22,10 @@ void (*_amod_gamestart)(void)=NULL;
 void (*_amod_frame)(void)=NULL;
 void (*_amod_tick)(void)=NULL;
 
+char *game_email_main="<no one>";
+char *game_email_cash="<no one>";
+char *game_url="<nowhere>";
+
 int amod_init(void) {
 	HMODULE dll_instance=NULL;
 	void *tmp;
@@ -47,6 +51,12 @@ int amod_init(void) {
     if ((tmp=GetProcAddress(dll_instance,"get_offset_sprite"))) get_offset_sprite=tmp;
     if ((tmp=GetProcAddress(dll_instance,"additional_sprite"))) additional_sprite=tmp;
     if ((tmp=GetProcAddress(dll_instance,"opt_sprite"))) opt_sprite=tmp;
+
+    if ((tmp=GetProcAddress(dll_instance,"game_email_main"))) game_email_main=tmp;
+    if ((tmp=GetProcAddress(dll_instance,"game_email_cash"))) game_email_cash=tmp;
+    if ((tmp=GetProcAddress(dll_instance,"game_url"))) game_url=tmp;
+    if ((tmp=GetProcAddress(dll_instance,"game_rankname"))) game_rankname=tmp;
+    if ((tmp=GetProcAddress(dll_instance,"game_rankcount"))) game_rankcount=tmp;
 
     if (_amod_init) _amod_init();
 

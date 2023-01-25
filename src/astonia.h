@@ -99,7 +99,8 @@
 #define DOT_HL2         24      // help bottom right
 #define DOT_TEL         25      // teleporter top left
 #define DOT_COL         26      // color picker top left
-#define MAX_DOT         27
+#define DOT_LOK         27      // look at character window (show_look), top left
+#define MAX_DOT         28
 
 extern int __yres;
 extern int quit;

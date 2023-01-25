@@ -377,6 +377,17 @@ int dd_drawtext_fmt(int sx,int sy,unsigned short int color,int flags,const char 
     return dd_drawtext(sx,sy,color,flags,buf);
 }
 
+int dd_drawtext_break_fmt(int sx,int sy,int breakx,unsigned short int color,int flags,const char *format,...) {
+    char buf[1024];
+    va_list va;
+
+    va_start(va,format);
+    vsprintf(buf,format,va);
+    va_end(va);
+
+    return dd_drawtext_break(sx,sy,breakx,color,flags,buf);
+}
+
 
 static int bless_init=0;
 static int bless_sin[36];

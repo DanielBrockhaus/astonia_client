@@ -117,6 +117,9 @@ void init_dots(void) {
     // teleporter window
     set_dot(DOT_TEL,100,40,0);
 
+    // look at window
+    set_dot(DOT_LOK,150,50,0);
+
     // color picker window
     set_dot(DOT_COL,340,210,0);
 

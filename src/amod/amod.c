@@ -9,17 +9,8 @@
 
 #include "../../src/amod/amod.h"
 
-int initial=0;
-void amod_init(void) {
-    initial++;
-}
-
-void amod_exit(void) {
-    ;
-}
-
-void amod_gamestart(void) {
-    note("A Mod by ModderMcModFace loaded (%d).",initial);
+__declspec(dllexport) void amod_gamestart(void) {
+    note("A Mod by ModderMcModFace loaded.");
 }
 
 __declspec(dllexport) int trans_charno(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,int *psat,int *pc1,int *pc2,int *pc3,int *pshine,int attick)
@@ -35,4 +26,3 @@ __declspec(dllexport) int trans_charno(int csprite,int *pscale,int *pcr,int *pcg
 
     return csprite;
 }
-

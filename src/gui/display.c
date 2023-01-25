@@ -94,15 +94,13 @@ void display_look(void) {
     DDFX fx;
     static int look_anim=4,look_step=0,look_dir=0;
 
-    dd_copysprite(opt_sprite(994),151,50,DDFX_NLIGHT,DD_NORMAL);
+    dd_copysprite(opt_sprite(994),dotx(DOT_LOK),doty(DOT_LOK),DDFX_NLIGHT,DD_NORMAL);
 
     for (b=BUT_WEA_BEG; b<=BUT_WEA_END; b++) {
         i=b-BUT_WEA_BEG;
 
-        // Intentionally using the array directly here
-        // since we want the non-sliding Y
-        x=but[b].x;
-        y=but[b].y+50;
+        x=dotx(DOT_LOK)+but[b].x-dotx(DOT_WEA)+30;
+        y=doty(DOT_LOK)+20;
 
         dd_copysprite(SPR_ITPAD,x,y,DDFX_NLIGHT,DD_CENTER);
         if (lookinv[weatab[i]]) {
@@ -127,8 +125,8 @@ void display_look(void) {
             dd_copysprite_fx(&fx,x,y);
         }
     }
-    dd_drawtext(220,100,0xffff,DD_LEFT,look_name);
-    dd_drawtext_break(220,110,440,0xffff,DD_LEFT,look_desc);
+    dd_drawtext(dotx(DOT_LOK)+70,doty(DOT_LOK)+50,0xffff,DD_LEFT,look_name);
+    dd_drawtext_break(dotx(DOT_LOK)+70,doty(DOT_LOK)+60,dotx(DOT_LOK)+290,0xffff,DD_LEFT,look_desc);
 
     {
         int csprite,scale,cr,cg,cb,light,sat,c1,c2,c3,shine;
@@ -168,7 +166,7 @@ void display_look(void) {
         fx.sink=0;
         fx.align=DD_OFFSET;
         fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=FX_ITEMLIGHT;
-        dd_copysprite_fx(&fx,190,160);
+        dd_copysprite_fx(&fx,dotx(DOT_LOK)+40,doty(DOT_LOK)+110);
     }
 }
 
@@ -660,7 +658,7 @@ void display_exp(void) {
     }
 }
 
-static char *rankname[]={
+char *_game_rankname[]={
     "nobody",               //0
     "Private",              //1
     "Private First Class",  //2
@@ -687,6 +685,10 @@ static char *rankname[]={
     "Earl of Astonia",      //23
     "Warlord of Astonia"    //24    lvl 125
 };
+char **game_rankname=_game_rankname;
+
+int _game_rankcount=ARRAYSIZE(_game_rankname);
+int *game_rankcount=&_game_rankcount;
 
 static int mil_rank(int exp) {
     int n;
@@ -711,14 +713,14 @@ void display_military(void) {
     if (step>total) step=total;
 
     if (mil_exp && total) {
-        if (rank<24) {
+        if (rank<*game_rankcount) {
             dd_push_clip();
             dd_more_clip(0,0,dotx(DOT_TOP)+31+100*step/total,doty(DOT_TOP)+8+24);
             dd_copysprite(993,dotx(DOT_TOP)+31,doty(DOT_TOP)+24,DDFX_NLIGHT,DD_NORMAL);
             dd_pop_clip();
 
-            sprintf(rank_text,"Rank: '%s' to '%s'",rankname[rank],rankname[rank+1]);
-        } else sprintf(rank_text,"Rank: Warlord of Astonia");
+            sprintf(rank_text,"Rank: '%s' to '%s'",game_rankname[rank],game_rankname[rank+1]);
+        } else sprintf(rank_text,game_rankname[*game_rankcount-1]);
     }
 }
 

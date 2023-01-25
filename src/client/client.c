@@ -1458,11 +1458,9 @@ int poll_network(void) {
         }
 
         // connect to server
-
         addr.sin_family=AF_INET;
         addr.sin_port=htons(target_port);
         addr.sin_addr.s_addr=htonl(target_server);
-        note("trying %d.%d.%d.%d",(target_server>>24)&255,(target_server>>16)&255,(target_server>>8)&255,(target_server>>0)&255);
         if ((connect(sock,(struct sockaddr *)&addr,sizeof(addr)))) {
             if (WSAGetLastError()!=WSAEWOULDBLOCK) {
                 fail("connect failed (%d)\n",WSAGetLastError());

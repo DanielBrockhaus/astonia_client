@@ -47,6 +47,22 @@ int additional_sprite(int sprite,int attick);
 int opt_sprite(int sprite);
 
 // ignore
+#ifndef min
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+
+#ifndef max
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+#endif
+
+#ifndef abs
+#define abs(a)	((a)<0 ? (-(a)) : (a))
+#endif
+
+#ifndef ARRAYSIZE
+#define ARRAYSIZE(a) (sizeof(a)/sizeof((a)[0]))
+#endif
+
 struct complex_sprite {
     unsigned int sprite;
     unsigned short c1,c2,c3,shine;

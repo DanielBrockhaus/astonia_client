@@ -257,7 +257,7 @@ int do_display_help(int nr) {
             y=dd_drawtext_break(x,y,x+192,graycolor,0,"It is your responsibility to store your account in a safe place. If someone steals or messes with your account, you're still responsible. If you manage to lose your account, it is lost. If you lose your password, the only thing we can do is send it to your account's e-mail address. If that e-mail address turns out to be wrong or doesn't exist, there is nothing more we can do for you."); y+=10;
 
             y=dd_drawtext_break(x,y,x+192,whitecolor,0,"Account Payments"); y+=5;
-            y=dd_drawtext_break(x,y,x+192,graycolor,0,"If you are having trouble with your account payments, or if you have questions concerning account payments, please write cash@astonia.com."); y+=10;
+            y=dd_drawtext_break_fmt(x,y,x+192,graycolor,0,"If you are having trouble with your account payments, or if you have questions concerning account payments, please write %s.",game_email_cash); y+=10;
 
             y=dd_drawtext_break(x,y,x+192,whitecolor,0,"Account Sharing"); y+=5;
             y=dd_drawtext_break(x,y,x+192,graycolor,0,"When you share accounts with another player, you are risking the security of your game characters and their equipment.  In most cases of account sharing, characters are stripped of their equipment and their game gold by the one(s) that the account is being shared with.  Characters can end up locked or banned from the game, or with negative leveling experience.  Be wise, don't share!"); y+=10;
@@ -283,7 +283,7 @@ int do_display_help(int nr) {
             y=dd_drawtext_break(x,y,x+192,graycolor,0,"Everything you hear and say is displayed in the chat window at the bottom of your screen.  To talk to a character standing next to you, just type what you'd like to say and hit ENTER.  To say something in the general chat channel (the \"Gossip\" channel) which will be heard by all other players, type:  /c2 <your message> and hit ENTER.  Use the PAGE UP and PAGE DOWN keys on your keyboard to scroll the chat window up and down.  To see a list of channels in the game, type:  /channels.  To join a channel, type:  /join <channel number>.  To leave a channel, type:  /leave <channel number>.  Spamming, offensive language, and disruptive chatter is not allowed.  To send a message to a particular player, type:  /tell <player name> and then your message.  Nobody else will hear what you said."); y+=10;
 
             y=dd_drawtext_break(x,y,x+192,whitecolor,0,"Clans"); y+=5;
-            y=dd_drawtext_break(x,y,x+192,graycolor,0,"There is detailed information about clans in the Game Manual at www.astonia.com. To see a list of clans in the game, type: /clan."); y+=10;
+            y=dd_drawtext_break_fmt(x,y,x+192,graycolor,0,"There is detailed information about clans in the Game Manual at %s. To see a list of clans in the game, type: /clan.",game_url); y+=10;
             break;
 
         case 6:
@@ -365,7 +365,7 @@ int do_display_help(int nr) {
             y=dd_drawtext_break(x,y,x+192,graycolor,0,"Your first quest will be to find Lydia, the daughter of Gwendylon the mage.  She will ask you to find a potion which was stolen the night before.  Lydia lives in the grey building across from the fortress (the place where you first arrived in the game)."); y+=10;
             y=dd_drawtext_break(x,y,x+192,graycolor,0,"NPCs (Non-Player Characters) give the quests in the game.  Even if you talked to an NPC before, talk to him again; he may tell you something new or give you another quest.  Say \"hi\" or <name> \"repeat\" to get an NPC to talk to you.   Be sure to step all the way into a room or area as you quest; monsters, chests, and doors may be hidden in the shadows.  Carry a torch to light your way, and always check the bodies of slain enemies (SHIFT + LEFT CLICK)."); y+=10;
             y=dd_drawtext_break(x,y,x+192,whitecolor,0,"Questions"); y+=5;
-            y=dd_drawtext_break(x,y,x+192,graycolor,0,"If you have a question while in the game, you can always ask a Staffer. Staffers and other admin can be recognized by their name being in capital letters (i.e. \"COLOMAN\" is a member of Admin, \"Coloman\" is not).  For any other game related questions, please write to game@astonia.com."); y+=10;
+            y=dd_drawtext_break_fmt(x,y,x+192,graycolor,0,"If you have a question while in the game, you can always ask a Staffer. Staffers and other admin can be recognized by their name being in capital letters (i.e. \"COLOMAN\" is a member of Admin, \"Coloman\" is not).  For any other game related questions, please write to %s.",game_email_main); y+=10;
             break;
         case 19:
             y=dd_drawtext_break(x,y,x+192,whitecolor,0,"Reading books, signs, etc."); y+=5;
@@ -376,7 +376,7 @@ int do_display_help(int nr) {
             y=dd_drawtext_break(x,y,x+192,graycolor,0,"With each new level you obtain as you play, you also receive a Save. A Save is a gift from Ishtar: if you die, your items stay with you instead of having them left on your corpse, and you will not get negative experience. The maximum number of Saves that a player can have at any time is 10."); y+=10;
 
             y=dd_drawtext_break(x,y,x+192,whitecolor,0,"Scamming"); y+=5;
-            y=dd_drawtext_break(x,y,x+192,graycolor,0,"Most cases of scamming happen when players share passwords.  NEVER give your password to another player for any reason!  Make your passwords hard to guess by using a combination of numbers and letters.  Change your password often; go to www.astonia.com, then click on Account Management to change your password.  Always use an NPC Trader when trading with another player.  The NPC Trader can be found in most towns in or near the banks - he is a non-playing character that will handle the trade for both parties.  If a player does not want to use an NPC Trader for trading with you, then do not trade with him - he could potentially steal your items.  Do not put your items on the ground when trading with another player or you risk losing them.  Be wary of loaning your equipment to others - unfortunately, many never see their items again.  Players are able to perform welding in the game, but welds are very valuable and should not be traded away too early.  Hold on to your welds until you learn more about the game!"); y+=10;
+            y=dd_drawtext_break_fmt(x,y,x+192,graycolor,0,"Most cases of scamming happen when players share passwords.  NEVER give your password to another player for any reason!  Make your passwords hard to guess by using a combination of numbers and letters.  Change your password often; go to %s, then click on Account Management to change your password.  Always use an NPC Trader when trading with another player.  The NPC Trader can be found in most towns in or near the banks - he is a non-playing character that will handle the trade for both parties.  If a player does not want to use an NPC Trader for trading with you, then do not trade with him - he could potentially steal your items.  Do not put your items on the ground when trading with another player or you risk losing them.  Be wary of loaning your equipment to others - unfortunately, many never see their items again.  Players are able to perform welding in the game, but welds are very valuable and should not be traded away too early.  Hold on to your welds until you learn more about the game!",game_url); y+=10;
             break;
 
         case 21:
@@ -466,7 +466,7 @@ static void display(void) {
             dd_drawtext_fmt(800/2,540/2-40,textcolor,DD_SMALL|DD_CENTER|DD_FRAME,"Trying to establish connection. %d seconds...",t);
             if (t>15) {
                 dd_drawtext_fmt(800/2,540/2-20,textcolor,DD_LARGE|DD_CENTER|DD_FRAME,"If you have connection problems, please try a different connection in the lower left of the client startup screen.");
-                dd_drawtext_fmt(800/2,540/2-0,textcolor,DD_LARGE|DD_CENTER|DD_FRAME,"Additional information can be found at www.astonia.com.");
+                dd_drawtext_fmt(800/2,540/2-0,textcolor,DD_LARGE|DD_CENTER|DD_FRAME,"Additional information can be found at %s.",game_url);
             }
         }
         return;
@@ -551,12 +551,12 @@ static void display(void) {
         dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_NOCACHE|DD_LEFT|DD_FRAME,"TT %d %d",tick_min,tick_max);
 #endif
         size=gui_frametime/2;
-        dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_NOCACHE|DD_LEFT|DD_FRAME,"Frametime %d",gui_frametime);
+        dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_NOCACHE|DD_LEFT|DD_FRAME,"Frametime %lld",gui_frametime);
         sdl_bargraph_add(sizeof(pre2_graph),pre2_graph,size<42?size:42);
         sdl_bargraph(px,py+=40,sizeof(pre2_graph),pre2_graph,x_offset,y_offset);
 
         size=gui_ticktime/2;
-        dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_NOCACHE|DD_LEFT|DD_FRAME,"Ticktime %d",gui_ticktime);
+        dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_NOCACHE|DD_LEFT|DD_FRAME,"Ticktime %lld",gui_ticktime);
         sdl_bargraph_add(sizeof(pre3_graph),pre3_graph,size<42?size:42);
         sdl_bargraph(px,py+=40,sizeof(pre3_graph),pre3_graph,x_offset,y_offset);
 #if 0
@@ -595,7 +595,7 @@ static void display(void) {
             dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME,"Pre-Back (%d)",sdl_multi);
         } else {
             size=sdl_time_pre2;
-            dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME,"Make",sdl_multi);
+            dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME,"Make");
         }
         sdl_bargraph_add(sizeof(pre1_graph),pre1_graph,size<42?size:42);
         sdl_bargraph(px,py+=40,sizeof(pre1_graph),pre1_graph,x_offset,y_offset);
@@ -1178,7 +1178,8 @@ static void set_cmd_states(void) {
     if (mousex>=dotx(DOT_TOP)+704 && mousex<=dotx(DOT_TOP)+739 && mousey>=doty(DOT_TOP)+22 && mousey<=doty(DOT_TOP)+30) butsel=BUT_HELP;
     if (mousex>=dotx(DOT_TOP)+741 && mousex<=dotx(DOT_TOP)+775 && mousey>=doty(DOT_TOP)+22 && mousey<=doty(DOT_TOP)+30) butsel=BUT_QUEST;
     if (mousex>=dotx(DOT_TOP)+704 && mousex<=dotx(DOT_TOP)+723 && mousey>=doty(DOT_TOP)+7 && mousey<=doty(DOT_TOP)+18) butsel=BUT_EXIT;
-    if (mousex>=dotx(DOT_TOP)+643 && mousex<=dotx(DOT_TOP)+650 && mousey>=doty(DOT_TOP)+53 && mousey<=doty(DOT_TOP)+60) butsel=BUT_NOLOOK;
+
+    if (show_look && mousex>=dotx(DOT_LOK)+493 && mousex<=dotx(DOT_LOK)+500 && mousey>=doty(DOT_LOK)+3 && mousey<=doty(DOT_LOK)+10) butsel=BUT_NOLOOK;
 
     // hit map
     if (!hitsel[0] && butsel==-1 && mousex>=dotx(DOT_MTL) && mousey>=doty(DOT_MTL) && doty(DOT_MBR) && mousey<doty(DOT_MBR)) {
