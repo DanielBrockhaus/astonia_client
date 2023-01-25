@@ -451,8 +451,6 @@ __declspec(dllexport) int _get_chr_height(int csprite) {
     }
 }
 
-#define IRGB(r,g,b) (((r)<<10)|((g)<<5)|((b)<<0))
-
 // charno to scale / colors
 int (*trans_charno)(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,int *psat,int *pc1,int *pc2,int *pc3,int *pshine,int attick)=_trans_charno;
 __declspec(dllexport) int _trans_charno(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,int *psat,int *pc1,int *pc2,int *pc3,int *pshine,int attick) {

@@ -24,6 +24,8 @@ void (*_amod_gamestart)(void)=NULL;
 void (*_amod_frame)(void)=NULL;
 void (*_amod_tick)(void)=NULL;
 int (*_amod_display_skill_line)(int v,int base,int curr,int cn,char *buf)=NULL;
+void (*_amod_mouse_move)(int x,int y)=NULL;
+int (*_amod_mouse_click)(int x,int y,int what)=NULL;
 
 char *game_email_main="<no one>";
 char *game_email_cash="<no one>";
@@ -42,6 +44,8 @@ int amod_init(void) {
     if ((tmp=GetProcAddress(dll_instance,"amod_frame"))) _amod_frame=tmp;
     if ((tmp=GetProcAddress(dll_instance,"amod_tick"))) _amod_tick=tmp;
     if ((tmp=GetProcAddress(dll_instance,"amod_display_skill_line"))) _amod_display_skill_line=tmp;
+    if ((tmp=GetProcAddress(dll_instance,"amod_mouse_move"))) _amod_mouse_move=tmp;
+    if ((tmp=GetProcAddress(dll_instance,"amod_mouse_click"))) _amod_mouse_click=tmp;
 
     if ((tmp=GetProcAddress(dll_instance,"is_cut_sprite"))) is_cut_sprite=tmp;
     if ((tmp=GetProcAddress(dll_instance,"is_mov_sprite"))) is_mov_sprite=tmp;
@@ -95,3 +99,11 @@ int amod_display_skill_line(int v,int base,int curr,int cn,char *buf) {
     return 0;
 }
 
+void amod_mouse_move(int x,int y) {
+    if (_amod_mouse_move) _amod_mouse_move(x,y);
+}
+
+int amod_mouse_click(int x,int y,int what) {
+    if (_amod_mouse_click) return _amod_mouse_click(x,y,what);
+    return 0;
+}

@@ -1618,10 +1618,14 @@ void gui_sdl_mouseproc(int x,int y,int what) {
             mousey-=dd_offset_y();
 
             if (butsel!=-1 && vk_lbut && (but[butsel].flags&BUTF_MOVEEXEC)) exec_cmd(lcmd,0);
+
+            amod_mouse_move(mousex,mousey);
             break;
 
         case SDL_MOUM_LDOWN:
             vk_lbut=1;
+
+            if (amod_mouse_click(mousex,mousey,what)) break;
 
             if (butsel!=-1 && capbut==-1 && (but[butsel].flags&BUTF_CAPTURE)) {
                 sdl_show_cursor(0);
@@ -1636,6 +1640,9 @@ void gui_sdl_mouseproc(int x,int y,int what) {
 
         case SDL_MOUM_LUP:
             vk_lbut=0;
+
+            if (amod_mouse_click(mousex,mousey,what)) break;
+
             if (capbut!=-1) {
                 sdl_set_cursor_pos(but[capbut].x*sdl_scale+dd_offset_x(),but[capbut].y*sdl_scale+dd_offset_y());
                 sdl_capture_mouse(0);
@@ -1647,15 +1654,19 @@ void gui_sdl_mouseproc(int x,int y,int what) {
 
         case SDL_MOUM_RDOWN:
             vk_rbut=1;
+            if (amod_mouse_click(mousex,mousey,what)) break;
             break;
 
         case SDL_MOUM_RUP:
             vk_rbut=0;
+            if (amod_mouse_click(mousex,mousey,what)) break;
             exec_cmd(rcmd,0);
             break;
 
         case SDL_MOUM_WHEEL:
             delta=y;
+
+            if (amod_mouse_click(0,delta,what)) break;
 
             if (mousex>=dotx(DOT_SKL) && mousex<dotx(DOT_SK2) && mousey>=doty(DOT_SKL) && mousey<doty(DOT_SK2)) {	// skill / depot / merchant
 				while (delta>0) { if (!con_cnt) set_skloff(0,skloff-1); else set_conoff(0,conoff-1); delta--; }
@@ -1823,9 +1834,9 @@ int main_loop(void) {
             gui_last_frame=SDL_GetTicks64();
 
             if (sdl_has_focus()) {
-                amod_frame();
                 sdl_clear();
                 display();
+                amod_frame();
             }
 
             timediff=nextframe-SDL_GetTicks();

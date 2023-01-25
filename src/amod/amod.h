@@ -8,13 +8,37 @@ void amod_gamestart(void);
 void amod_frame(void);
 void amod_tick(void);
 int amod_display_skill_line(int v,int base,int curr,int cn,char *buf);
+void amod_mouse_move(int x,int y);
+int amod_mouse_click(int x,int y,int what);     // return true if mouse click should NOT be processed by the client
 
-// Client exported functions
+// --------- Client exported functions -----------
+
+// basics
 __declspec(dllimport) int note(const char *format,...) __attribute__((format(printf, 1, 2)));
 __declspec(dllimport) int warn(const char *format,...) __attribute__((format(printf, 1, 2)));
 __declspec(dllimport) int fail(const char *format,...) __attribute__((format(printf, 1, 2)));
 __declspec(dllimport) void paranoia(const char *format,...) __attribute__((format(printf, 1, 2)));
 __declspec(dllimport) void addline(const char *format,...) __attribute__((format(printf, 1, 2)));
+// game, drawing
+__declspec(dllimport) void dd_push_clip(void);
+__declspec(dllimport) void dd_pop_clip(void);
+__declspec(dllimport) void dd_more_clip(int sx,int sy,int ex,int ey);
+__declspec(dllimport) void dd_copysprite(int sprite,int scrx,int scry,int light,int align);
+__declspec(dllimport) void dd_rect(int sx,int sy,int ex,int ey,unsigned short int color);
+__declspec(dllimport) void dd_line(int fx,int fy,int tx,int ty,unsigned short col);
+__declspec(dllimport) int dd_textlength(int flags,const char *text);
+__declspec(dllimport) int dd_drawtext(int sx,int sy,unsigned short int color,int flags,const char *text);
+__declspec(dllimport) int dd_drawtext_break(int x,int y,int breakx,unsigned short color,int flags,const char *ptr);
+__declspec(dllimport) void dd_pixel(int x,int y,unsigned short col);
+__declspec(dllimport) int dd_drawtext_fmt(int sx,int sy,unsigned short int color,int flags,const char *format,...);
+__declspec(dllimport) int dd_drawtext_break_fmt(int sx,int sy,int breakx,unsigned short int color,int flags,const char *format,...);
+// gui, dots and buttons
+__declspec(dllimport) int dotx(int didx);
+__declspec(dllimport) int doty(int didx);
+__declspec(dllimport) int butx(int bidx);
+__declspec(dllimport) int buty(int bidx);
+
+// ---------- Client exported data structures -------------
 struct skltab;
 __declspec(dllimport) extern int skltab_cnt;
 __declspec(dllimport) extern struct skltab *skltab;
@@ -25,10 +49,7 @@ __declspec(dllimport) extern int value[2][V_MAX];
 struct player;
 __declspec(dllimport) extern struct player *player;
 
-// ignore
-struct map;
-
-// override-able functions, also exported from client
+// ---------------- override-able functions, also exported from client ----------------
 __declspec(dllimport) int _is_cut_sprite(int sprite);
 __declspec(dllimport) int _is_mov_sprite(int sprite,int itemhint);
 __declspec(dllimport) int _is_door_sprite(int sprite);
@@ -36,6 +57,7 @@ __declspec(dllimport) int _is_yadd_sprite(int sprite);
 __declspec(dllimport) int _get_chr_height(int csprite);
 __declspec(dllimport) int _trans_charno(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,int *psat,int *pc1,int *pc2,int *pc3,int *pshine,int attick);
 __declspec(dllimport) int _get_player_sprite(int nr,int zdir,int action,int step,int duration,int attick);
+struct map;
 __declspec(dllimport) void _trans_csprite(int mn,struct map *cmap,int attick);
 __declspec(dllimport) int _get_lay_sprite(int sprite,int lay);
 __declspec(dllimport) int _get_offset_sprite(int sprite,int *px,int *py);
@@ -45,7 +67,7 @@ __declspec(dllimport) int _get_skltab_sep(int i);
 __declspec(dllimport) int _get_skltab_index(int n);
 __declspec(dllimport) int _get_skltab_show(int i);
 
-// declarations for functions the mod might provide
+// ------------ declarations for functions the mod might provide -------------------
 int is_cut_sprite(int sprite);
 int is_mov_sprite(int sprite,int itemhint);
 int is_door_sprite(int sprite);
@@ -62,7 +84,7 @@ int get_skltab_sep(int i);
 int get_skltab_index(int n);
 int get_skltab_show(int i);
 
-// ignore
+// ---------- ignore ----------------
 #ifndef min
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #endif
@@ -80,6 +102,55 @@ int get_skltab_show(int i);
 #endif
 
 #define MAXCHARS	2048
+
+#define DD_OFFSET        0       // this has to be zero, so bzero on the structures default this
+#define DD_CENTER        1       // also used in dd_drawtext
+#define DD_NORMAL        2
+
+#define DD_LEFT         0
+#define DD_CENTER       1
+#define DD_RIGHT        2
+#define DD_SHADE        4
+#define DD_LARGE        0
+#define DD_SMALL        8
+#define DD_FRAME        16
+#define DD_BIG        	32
+#define DD_NOCACHE      64
+
+#define IGET_R(c) ((((unsigned short int)(c))>>10)&0x1F)
+#define IGET_G(c) ((((unsigned short int)(c))>>5)&0x1F)
+#define IGET_B(c) ((((unsigned short int)(c))>>0)&0x1F)
+#define IRGB(r,g,b) (((r)<<10)|((g)<<5)|((b)<<0))
+
+#define DOT_TL          0       // top left?
+#define DOT_BR          1       // bottom right?
+#define DOT_WEA         2       // worn equipment
+#define DOT_INV         3       // inventory
+#define DOT_CON         4       // container
+#define DOT_SCL         5       // scroll bar left, uses only X
+#define DOT_SCR         6       // scroll bar right, uses only X
+#define DOT_SCU         7       // scroll bars up arrows at this Y
+#define DOT_SCD         8       // scroll bars down arrors at thy Y
+#define DOT_TXT         9       // chat window
+#define DOT_MTL         10      // map top left
+#define DOT_MBR         11      // map bottom right
+#define DOT_SKL         12      // skill list
+#define DOT_GLD         13      // gold
+#define DOT_JNK         14      // trashcan
+#define DOT_MOD         15      // speed mode
+#define DOT_MCT         16      // map center
+#define DOT_TOP         17      // top left corner of equipment bar
+#define DOT_BOT         18      // top left corner of bottom window holding skills, chat, etc.
+#define DOT_TX2         19      // chat window bottom right
+#define DOT_SK2         20      // skill list window bottom right
+#define DOT_IN1         21      // inventory top left
+#define DOT_IN2         22      // inventory bottom right
+#define DOT_HLP         23      // help top left
+#define DOT_HL2         24      // help bottom right
+#define DOT_TEL         25      // teleporter top left
+#define DOT_COL         26      // color picker top left
+#define DOT_LOK         27      // look at character window (show_look), top left
+#define MAX_DOT         28
 
 #define V_HP		0
 #define V_ENDURANCE	1
@@ -133,6 +204,14 @@ int get_skltab_show(int i);
 #define V_RAGE		40
 #define V_COLD		41
 #define V_PROFESSION	42
+
+#define SDL_MOUM_LUP        1
+#define SDL_MOUM_LDOWN      2
+#define SDL_MOUM_RUP        3
+#define SDL_MOUM_RDOWN      4
+#define SDL_MOUM_MUP        5
+#define SDL_MOUM_MDOWN      6
+#define SDL_MOUM_WHEEL      7
 
 struct complex_sprite {
     unsigned int sprite;
