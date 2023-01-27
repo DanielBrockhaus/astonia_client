@@ -104,7 +104,6 @@
 #define CL_TAKE_GOLD		28
 #define CL_DROP_GOLD		29
 #define CL_JUNK_ITEM		30
-#define CL_CLIENTINFO		31
 
 #define CL_TICKER		33
 #define CL_CONTAINER_FAST	34
@@ -473,8 +472,8 @@ extern int tick;
 extern int lasttick;                    // ticks in inbuf
 extern int q_size;
 
-extern unsigned int cflags;     // current item flags
-extern unsigned int csprite;        // and sprite
+extern unsigned int cflags;     // current item (item under mouse cursor) flags
+extern unsigned int csprite;    // and sprite
 
 extern int con_cnt;
 extern int con_type;

@@ -498,7 +498,7 @@ static void display(void) {
     display_game_special();
     display_tutor();
     display_citem();
-
+    context_display(mousex,mousey);
     display_helpandquest(); // display last because it is on top
 
     int duration=SDL_GetTicks64()-start;
@@ -797,7 +797,7 @@ void set_cmd_key_states(void) {
     vk_spell=vk_alt;
 }
 
-static int get_near_ground(int x,int y) {
+__declspec(dllexport) int get_near_ground(int x,int y) {
     int mapx,mapy;
 
     stom(x,y,&mapx,&mapy);
@@ -807,7 +807,7 @@ static int get_near_ground(int x,int y) {
     return mapmn(mapx,mapy);
 }
 
-static int get_near_item(int x,int y,int flag,int small) {
+__declspec(dllexport) int get_near_item(int x,int y,int flag,int small) {
     int mapx,mapy,sx,sy,ex,ey,mn,scrx,scry,nearest=-1,look;
     double dist,nearestdist=100000000;
 
@@ -844,13 +844,14 @@ static int get_near_item(int x,int y,int flag,int small) {
     return nearest;
 }
 
-static int get_near_char(int x,int y) {
+__declspec(dllexport) int get_near_char(int x,int y,int small) {
     int mapx,mapy,sx,sy,ex,ey,mn,scrx,scry,nearest=-1,look;
     double dist,nearestdist=100000000;
 
     stom(mousex,mousey,&mapx,&mapy);
 
-    look=MAPDX;
+    if (small) look=0;
+    else look=MAPDX;
 
     sx=max(0,mapx-look);
     sy=max(0,mapy-look);;
@@ -1201,7 +1202,7 @@ static void set_cmd_states(void) {
 
     // hit map
     if (!hitsel[0] && butsel==-1 && mousex>=dotx(DOT_MTL) && mousey>=doty(DOT_MTL) && doty(DOT_MBR) && mousey<doty(DOT_MBR)) {
-        if (vk_char) chrsel=get_near_char(mousex,mousey);
+        if (vk_char) chrsel=get_near_char(mousex,mousey,0);
         if (chrsel==-1 && vk_item) itmsel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,csprite);
         if (chrsel==-1 && itmsel==-1 && !vk_char && (!vk_item || csprite)) mapsel=get_near_ground(mousex,mousey);
 
@@ -1485,7 +1486,7 @@ void gui_sdl_keyproc(int wparam) {
 
     switch (wparam) {
 
-        case SDLK_ESCAPE:       cmd_stop(); show_look=0; display_gfx=0; teleporter=0; show_tutor=0; display_help=0; display_quest=0; show_color=0; return;
+        case SDLK_ESCAPE:       cmd_stop(); context_stop(); show_look=0; display_gfx=0; teleporter=0; show_tutor=0; display_help=0; display_quest=0; show_color=0; return;
         case SDLK_F1:           if (fkeyitem[0]) exec_cmd(CMD_USE_FKEYITEM,0); return;
         case SDLK_F2:           if (fkeyitem[1]) exec_cmd(CMD_USE_FKEYITEM,1); return;
         case SDLK_F3:           if (fkeyitem[2]) exec_cmd(CMD_USE_FKEYITEM,2); return;
@@ -1642,6 +1643,7 @@ void gui_sdl_mouseproc(int x,int y,int what) {
             vk_lbut=0;
 
             if (amod_mouse_click(mousex,mousey,what)) break;
+            if (context_click(mousex,mousey)) break;
 
             if (capbut!=-1) {
                 sdl_set_cursor_pos(but[capbut].x*sdl_scale+dd_offset_x(),but[capbut].y*sdl_scale+dd_offset_y());
@@ -1655,11 +1657,14 @@ void gui_sdl_mouseproc(int x,int y,int what) {
         case SDL_MOUM_RDOWN:
             vk_rbut=1;
             if (amod_mouse_click(mousex,mousey,what)) break;
+            context_stop();
             break;
 
         case SDL_MOUM_RUP:
             vk_rbut=0;
             if (amod_mouse_click(mousex,mousey,what)) break;
+            if (rcmd==CMD_MAP_LOOK && context_open(mousex,mousey)) break;
+            context_stop();
             exec_cmd(rcmd,0);
             break;
 
@@ -1804,16 +1809,6 @@ int main_loop(void) {
                 gui_last_tick=SDL_GetTicks64();
                 do_tick();
                 ltick++;
-
-                if (ltick==TICKS*10) {
-                    void dd_get_client_info(struct client_info *ci);
-                    struct client_info ci;
-
-                    dd_get_client_info(&ci);
-                    ci.idle=100*idle/tota;
-                    ci.skip=100*skip/tota;
-                    cl_client_info(&ci);
-                }
 
                 if (sockstate==4 && ltick%TICKS==0) {
                     cl_ticker();

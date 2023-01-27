@@ -56,52 +56,52 @@ static unsigned char inbuf[MAX_INBUF];
 static int outused;
 static unsigned char outbuf[MAX_OUTBUF];
 
-int act;
-int actx;
-int acty;
+__declspec(dllexport) int act;
+__declspec(dllexport) int actx;
+__declspec(dllexport) int acty;
 
-unsigned int cflags;        // current item flags
-unsigned int csprite;       // and sprite
+__declspec(dllexport) unsigned int cflags;        // current item flags
+__declspec(dllexport) unsigned int csprite;       // and sprite
 
-int originx;
-int originy;
-struct map map[MAPDX*MAPDY];
-struct map map2[MAPDX*MAPDY];
+__declspec(dllexport) int originx;
+__declspec(dllexport) int originy;
+__declspec(dllexport) struct map map[MAPDX*MAPDY];
+__declspec(dllexport) struct map map2[MAPDX*MAPDY];
 
 __declspec(dllexport) int value[2][V_MAX];
-int item[INVENTORYSIZE];
+__declspec(dllexport) int item[INVENTORYSIZE];
 __declspec(dllexport) int item_flags[INVENTORYSIZE];
-int hp;
-int mana;
-int rage;
-int endurance;
-int lifeshield;
-int experience;
-int experience_used;
-int mil_exp;
-int gold;
+__declspec(dllexport) int hp;
+__declspec(dllexport) int mana;
+__declspec(dllexport) int rage;
+__declspec(dllexport) int endurance;
+__declspec(dllexport) int lifeshield;
+__declspec(dllexport) int experience;
+__declspec(dllexport) int experience_used;
+__declspec(dllexport) int mil_exp;
+__declspec(dllexport) int gold;
 
 __declspec(dllexport) struct player player[MAXCHARS];
 
-union ceffect ceffect[MAXEF];
-unsigned char ueffect[MAXEF];
+__declspec(dllexport) union ceffect ceffect[MAXEF];
+__declspec(dllexport) unsigned char ueffect[MAXEF];
 
-int con_type;
-char con_name[80];
-int con_cnt;
-int container[CONTAINERSIZE];
-int price[CONTAINERSIZE];
-int itemprice[CONTAINERSIZE];
-int cprice;
+__declspec(dllexport) int con_type;
+__declspec(dllexport) char con_name[80];
+__declspec(dllexport) int con_cnt;
+__declspec(dllexport) int container[CONTAINERSIZE];
+__declspec(dllexport) int price[CONTAINERSIZE];
+__declspec(dllexport) int itemprice[CONTAINERSIZE];
+__declspec(dllexport) int cprice;
 
-int lookinv[12];
-int looksprite,lookc1,lookc2,lookc3;
-char look_name[80];
-char look_desc[1024];
+__declspec(dllexport) int lookinv[12];
+__declspec(dllexport) int looksprite,lookc1,lookc2,lookc3;
+__declspec(dllexport) char look_name[80];
+__declspec(dllexport) char look_desc[1024];
 
-char pent_str[7][80];
+__declspec(dllexport) char pent_str[7][80];
 
-int pspeed=0;   // 0=normal   1=fast      2=stealth     - like the server
+__declspec(dllexport) int pspeed=0;   // 0=normal   1=fast      2=stealth     - like the server
 
 int may_teleport[64+32];
 
@@ -1706,14 +1706,6 @@ int do_tick(void) {
     }
 
     return 0;
-}
-
-void cl_client_info(struct client_info *ci) {
-    char buf[256];
-
-    buf[0]=CL_CLIENTINFO;
-    memcpy(buf+1,ci,sizeof(struct client_info));
-    client_send(buf,sizeof(struct client_info)+1);
 }
 
 void cl_ticker(void) {

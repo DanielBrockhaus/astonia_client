@@ -37,17 +37,60 @@ __declspec(dllimport) int dotx(int didx);
 __declspec(dllimport) int doty(int didx);
 __declspec(dllimport) int butx(int bidx);
 __declspec(dllimport) int buty(int bidx);
+// gui helperls
+__declspec(dllimport) int get_near_ground(int x,int y);
+__declspec(dllimport) int get_near_item(int x,int y,int flag,int small);
+__declspec(dllimport) int get_near_char(int x,int y,int small);
 
 // ---------- Client exported data structures -------------
+#define V_MAX	        200
+struct player;
 struct skltab;
 __declspec(dllimport) extern int skltab_cnt;
 __declspec(dllimport) extern struct skltab *skltab;
 __declspec(dllimport) extern int item_flags[];
 __declspec(dllimport) extern int weatab[];
-#define V_MAX	        200
-__declspec(dllimport) extern int value[2][V_MAX];
-struct player;
-__declspec(dllimport) extern struct player *player;
+__declspec(dllimport) int act;
+__declspec(dllimport) int actx;
+__declspec(dllimport) int acty;
+
+__declspec(dllimport) unsigned int cflags;        // current item flags
+__declspec(dllimport) unsigned int csprite;       // and sprite
+
+__declspec(dllimport) int originx;
+__declspec(dllimport) int originy;
+__declspec(dllimport) struct map map[MAPDX*MAPDY];
+__declspec(dllimport) struct map map2[MAPDX*MAPDY];
+
+__declspec(dllimport) int value[2][V_MAX];
+__declspec(dllimport) int item[INVENTORYSIZE];
+__declspec(dllimport) int item_flags[INVENTORYSIZE];
+__declspec(dllimport) int hp;
+__declspec(dllimport) int mana;
+__declspec(dllimport) int rage;
+__declspec(dllimport) int endurance;
+__declspec(dllimport) int lifeshield;
+__declspec(dllimport) int experience;
+__declspec(dllimport) int experience_used;
+__declspec(dllimport) int mil_exp;
+__declspec(dllimport) int gold;
+__declspec(dllimport) struct player player[MAXCHARS];
+__declspec(dllimport) union ceffect ceffect[MAXEF];
+__declspec(dllimport) unsigned char ueffect[MAXEF];
+__declspec(dllimport) int con_type;
+__declspec(dllimport) char con_name[80];
+__declspec(dllimport) int con_cnt;
+__declspec(dllimport) int container[CONTAINERSIZE];
+__declspec(dllimport) int price[CONTAINERSIZE];
+__declspec(dllimport) int itemprice[CONTAINERSIZE];
+__declspec(dllimport) int cprice;
+__declspec(dllimport) int lookinv[12];
+__declspec(dllimport) int looksprite,lookc1,lookc2,lookc3;
+__declspec(dllimport) char look_name[80];
+__declspec(dllimport) char look_desc[1024];
+__declspec(dllimport) char pent_str[7][80];
+__declspec(dllimport) int pspeed=0;
+
 
 // ---------------- override-able functions, also exported from client ----------------
 __declspec(dllimport) int _is_cut_sprite(int sprite);

@@ -1456,8 +1456,9 @@ void display_game_map(struct map *cmap) {
 
     if (cmap==map) {            // avoid acting on prefetch
         // selection on ground
-        if (mapsel!=-1) {
-            mn=mapsel;
+        if (mapsel!=-1 || context_getnm()!=-1) {
+            if (context_getnm()!=-1) mn=context_getnm();
+            else mn=mapsel;
             mapx=mn%MAPDX;
             mapy=mn/MAPDX;
             mtos(mapx,mapy,&scrx,&scry);

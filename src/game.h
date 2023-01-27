@@ -97,7 +97,7 @@ void dd_display_text(void);
 int dd_scantext(int x,int y,char *hit);
 int dd_char_len(char c);
 int dd_drawtext_char(int sx,int sy,int c,unsigned short int color);
-void dd_shaded_rect(int sx,int sy,int ex,int ey);
+void dd_shaded_rect(int sx,int sy,int ex,int ey,unsigned short color);
 void dd_text_lineup(void);
 void dd_text_linedown(void);
 int dd_offset_x(void);

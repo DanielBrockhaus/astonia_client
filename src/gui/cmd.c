@@ -280,8 +280,8 @@ void display_cmd(void) {
         if (cmdline[n]) tmp=dd_drawtext_char(dotx(DOT_TXT)+x,doty(DOT_TXT)+149,cmdline[n],IRGB(31,31,31));
         else tmp=0;
         if (n==cmdcursor) {
-            if (cmdline[n]) dd_shaded_rect(dotx(DOT_TXT)+x-1,doty(DOT_TXT)+149,dotx(DOT_TXT)+x+tmp+1,doty(DOT_TXT)+149+9);
-            else dd_shaded_rect(dotx(DOT_TXT)+x,doty(DOT_TXT)+149,dotx(DOT_TXT)+x+4,doty(DOT_TXT)+149+9);
+            if (cmdline[n]) dd_shaded_rect(dotx(DOT_TXT)+x-1,doty(DOT_TXT)+149,dotx(DOT_TXT)+x+tmp+1,doty(DOT_TXT)+149+9,0xffe0);
+            else dd_shaded_rect(dotx(DOT_TXT)+x,doty(DOT_TXT)+149,dotx(DOT_TXT)+x+4,doty(DOT_TXT)+149+9,0xffe0);
         }
         x+=tmp;
         if (x>dotx(DOT_TXT)+625-230) break;

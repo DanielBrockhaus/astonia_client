@@ -56,5 +56,6 @@ int _get_skltab_index(int n);
 extern int (*get_skltab_show)(int i);
 __declspec(dllexport)int _get_skltab_show(int i);
 
+int context_getnm(void);
 
 

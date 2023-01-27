@@ -72,20 +72,6 @@ void dd_set_clip(int sx,int sy,int ex,int ey) {
     clipey=ey;
 }
 
-void dd_get_client_info(struct client_info *ci) {
-    static MEMORYSTATUS memstat;
-
-    bzero(&memstat,sizeof(memstat));
-    memstat.dwLength=sizeof(memstat);
-    GlobalMemoryStatus(&memstat);
-
-    ci->vidmemtotal=0;
-    ci->vidmemfree=0;
-
-    ci->systemtotal=memstat.dwTotalPhys;
-    ci->systemfree=memstat.dwAvailPhys;
-}
-
 int dd_init(void) {
     // set the clipping to the maximum possible
     clippos=0;
@@ -198,8 +184,8 @@ __declspec(dllexport) void dd_rect(int sx,int sy,int ex,int ey,unsigned short in
     sdl_rect(sx,sy,ex,ey,color,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 }
 
-void dd_shaded_rect(int sx,int sy,int ex,int ey) {
-    sdl_shaded_rect(sx,sy,ex,ey,0xffe0,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
+void dd_shaded_rect(int sx,int sy,int ex,int ey,unsigned short color) {
+    sdl_shaded_rect(sx,sy,ex,ey,color,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 }
 
 __declspec(dllexport) void dd_line(int fx,int fy,int tx,int ty,unsigned short col) {

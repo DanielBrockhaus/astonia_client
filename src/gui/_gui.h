@@ -323,3 +323,11 @@ void cmd_color(int nr);
 
 void cmd_proc(int key);
 
+int get_near_char(int x,int y,int small);
+int get_near_item(int x,int y,int flag,int small);
+int get_near_ground(int x,int y);
+
+int context_open(int mx,int my);
+void context_display(int mx,int my);
+void context_stop(void);
+int context_click(int mx,int my);
