@@ -384,7 +384,7 @@ int maxquick;
 #define MMF_SIGHTBLOCK  (1<<1)  // indicates sight block (set_map_lights)
 #define MMF_DOOR        (1<<2)  // a door - helpful when cutting sprites - (set_map_sprites)
 #define MMF_CUT         (1<<3)  // indicates cut (set_map_cut)
-#define MMF_NOCUT       (1<<4)  // helps not looking twice (set_map_cut)
+
 #define MMF_STRAIGHT_T  (1<<5)  // (set_map_straight)
 #define MMF_STRAIGHT_B  (1<<6)  // (set_map_straight)
 #define MMF_STRAIGHT_L  (1<<7)  // (set_map_straight)
@@ -573,8 +573,9 @@ static void set_map_cut(struct map *cmap) {
              ((unsigned)abs(is_cut_sprite(cmap[mn].ri.sprite))!=cmap[mn].ri.sprite  && is_cut_sprite(cmap[mn].ri.sprite)>0)) &&
             (!mn2 || !cmap[mn2].rlight ||
              ((unsigned)abs(is_cut_sprite(cmap[mn2].rf.sprite))!=cmap[mn2].rf.sprite && is_cut_sprite(cmap[mn2].rf.sprite)>0) ||
-             ((unsigned)abs(is_cut_sprite(cmap[mn2].rf2.sprite))!=cmap[mn2].rf.sprite && is_cut_sprite(cmap[mn2].rf2.sprite)>0) ||
+             ((unsigned)abs(is_cut_sprite(cmap[mn2].rf2.sprite))!=cmap[mn2].rf2.sprite && is_cut_sprite(cmap[mn2].rf2.sprite)>0) ||
              ((unsigned)abs(is_cut_sprite(cmap[mn2].ri.sprite))!=cmap[mn2].ri.sprite && is_cut_sprite(cmap[mn2].ri.sprite)>0) )) continue;
+
 
         cmap[quick[i].mn[4]].mmf|=MMF_CUT;
     }

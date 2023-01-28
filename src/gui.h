@@ -39,6 +39,8 @@ extern char tutor_text[1024];
 extern int show_look;
 extern int vendor;
 
+extern int context_enabled;
+
 void mtos(int mapx,int mapy,int *scrx,int *scry);
 void stom(int scrx,int scry,int *mapx,int *mapy);
 void set_mapoff(int cx,int cy,int mdx,int mdy);

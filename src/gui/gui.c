@@ -807,19 +807,16 @@ __declspec(dllexport) int get_near_ground(int x,int y) {
     return mapmn(mapx,mapy);
 }
 
-__declspec(dllexport) int get_near_item(int x,int y,int flag,int small) {
-    int mapx,mapy,sx,sy,ex,ey,mn,scrx,scry,nearest=-1,look;
+__declspec(dllexport) int get_near_item(int x,int y,int flag,int looksize) {
+    int mapx,mapy,sx,sy,ex,ey,mn,scrx,scry,nearest=-1;
     double dist,nearestdist=100000000;
 
     stom(mousex,mousey,&mapx,&mapy);
 
-    if (small) look=0;
-    else look=MAPDX;
-
-    sx=max(0,mapx-look);
-    sy=max(0,mapy-look);;
-    ex=min(MAPDX-1,mapx+look);
-    ey=min(MAPDY-1,mapy+look);
+    sx=max(0,mapx-looksize);
+    sy=max(0,mapy-looksize);;
+    ex=min(MAPDX-1,mapx+looksize);
+    ey=min(MAPDY-1,mapy+looksize);
 
     for (mapy=sy; mapy<=ey; mapy++) {
         for (mapx=sx; mapx<=ex; mapx++) {
@@ -844,24 +841,26 @@ __declspec(dllexport) int get_near_item(int x,int y,int flag,int small) {
     return nearest;
 }
 
-__declspec(dllexport) int get_near_char(int x,int y,int small) {
-    int mapx,mapy,sx,sy,ex,ey,mn,scrx,scry,nearest=-1,look;
+__declspec(dllexport) int get_near_char(int x,int y,int looksize) {
+    int mapx,mapy,sx,sy,ex,ey,mn,scrx,scry,nearest=-1;
     double dist,nearestdist=100000000;
 
     stom(mousex,mousey,&mapx,&mapy);
 
-    if (small) look=0;
-    else look=MAPDX;
+    mn=mapmn(mapx,mapy);
+    if (mn==MAPDX*MAPDY/2) return mn;   // return player character if clicked directly
 
-    sx=max(0,mapx-look);
-    sy=max(0,mapy-look);;
-    ex=min(MAPDX-1,mapx+look);
-    ey=min(MAPDY-1,mapy+look);
+    sx=max(0,mapx-looksize);
+    sy=max(0,mapy-looksize);;
+    ex=min(MAPDX-1,mapx+looksize);
+    ey=min(MAPDY-1,mapy+looksize);
 
     for (mapy=sy; mapy<=ey; mapy++) {
         for (mapx=sx; mapx<=ex; mapx++) {
 
             mn=mapmn(mapx,mapy);
+
+            if (mn==MAPDX*MAPDY/2) continue; // ignore player character if NOT clicked directly
 
             if (!(map[mn].rlight)) continue;
             if (!(map[mn].csprite)) continue;
@@ -1202,8 +1201,8 @@ static void set_cmd_states(void) {
 
     // hit map
     if (!hitsel[0] && butsel==-1 && mousex>=dotx(DOT_MTL) && mousey>=doty(DOT_MTL) && doty(DOT_MBR) && mousey<doty(DOT_MBR)) {
-        if (vk_char) chrsel=get_near_char(mousex,mousey,0);
-        if (chrsel==-1 && vk_item) itmsel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,csprite);
+        if (vk_char) chrsel=get_near_char(mousex,mousey,MAPDX);
+        if (chrsel==-1 && vk_item) itmsel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,MAPDX);
         if (chrsel==-1 && itmsel==-1 && !vk_char && (!vk_item || csprite)) mapsel=get_near_ground(mousex,mousey);
 
         if (mapsel!=-1 || itmsel!=-1 || chrsel!=-1)  butsel=BUT_MAP;

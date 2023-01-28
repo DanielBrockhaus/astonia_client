@@ -21,6 +21,8 @@
 #include "../../src/sdl.h"
 #include "../../src/modder.h"
 
+int context_enabled=3;
+
 static int c_on=0,c_x,c_y,d_y;
 static int csel,isel,msel;
 
@@ -35,11 +37,6 @@ struct menu {
     int opt1[MAXLINE],opt2[MAXLINE];
 };
 struct menu menu;
-
-/*
-        case CMD_MAP_CAST_K:    cmd_some_spell(a,originx-MAPDX/2+mapsel%MAPDX,originy-MAPDY/2+mapsel/MAPDX,0); break;
-        case CMD_CHR_CAST_K:    cmd_some_spell(a,0,0,map[chrsel].cn); break;
-*/
 
 static void makemenu(void) {
     int co;
@@ -68,15 +65,15 @@ static void makemenu(void) {
         if (map[isel].flags&CMF_TAKE) {
             sprintf(menu.line[menu.linecnt],"Take Item");
             menu.cmd[menu.linecnt]=CMD_ITM_TAKE;
-            menu.opt1[menu.linecnt]=originx-MAPDX/2+msel%MAPDX;
-            menu.opt2[menu.linecnt]=originy-MAPDY/2+msel/MAPDX;
+            menu.opt1[menu.linecnt]=originx-MAPDX/2+isel%MAPDX;
+            menu.opt2[menu.linecnt]=originy-MAPDY/2+isel/MAPDX;
             menu.linecnt++;
         } else if (map[isel].flags&CMF_USE) {
             if (csprite) sprintf(menu.line[menu.linecnt],"Use Item with");
             else sprintf(menu.line[menu.linecnt],"Use Item");
             menu.cmd[menu.linecnt]=CMD_ITM_USE;
-            menu.opt1[menu.linecnt]=originx-MAPDX/2+msel%MAPDX;
-            menu.opt2[menu.linecnt]=originy-MAPDY/2+msel/MAPDX;
+            menu.opt1[menu.linecnt]=originx-MAPDX/2+isel%MAPDX;
+            menu.opt2[menu.linecnt]=originy-MAPDY/2+isel/MAPDX;
             menu.linecnt++;
         }
     }
@@ -195,20 +192,20 @@ static void makemenu(void) {
         }
     }
 
-    sprintf(menu.line[menu.linecnt],"Look at ground");
+    sprintf(menu.line[menu.linecnt],"Examine ground");
     menu.cmd[menu.linecnt]=CMD_MAP_LOOK;
     menu.opt1[menu.linecnt]=originx-MAPDX/2+msel%MAPDX;
     menu.opt2[menu.linecnt]=originy-MAPDY/2+msel/MAPDX;
     menu.linecnt++;
     if (isel!=-1) {
-        sprintf(menu.line[menu.linecnt],"Look at item");
+        sprintf(menu.line[menu.linecnt],"Examine item");
         menu.cmd[menu.linecnt]=CMD_ITM_LOOK;
         menu.opt1[menu.linecnt]=originx-MAPDX/2+msel%MAPDX;
         menu.opt2[menu.linecnt]=originy-MAPDY/2+msel/MAPDX;
         menu.linecnt++;
     }
     if (csel!=-1) {
-        sprintf(menu.line[menu.linecnt],"Look at %s",name);
+        sprintf(menu.line[menu.linecnt],"Inspect %s",name);
         menu.cmd[menu.linecnt]=CMD_CHR_LOOK;
         menu.opt1[menu.linecnt]=map[csel].cn;;
         menu.opt2[menu.linecnt]=0;
@@ -218,9 +215,12 @@ static void makemenu(void) {
 
 int context_open(int mx,int my) {
 
-    csel=get_near_char(mx,my,1);
-    isel=get_near_item(mx,my,CMF_USE|CMF_TAKE,1);
+    if (!(context_enabled&1)) return 0;
+
+    csel=get_near_char(mx,my,3);
+    isel=get_near_item(mx,my,CMF_USE|CMF_TAKE,3);
     msel=get_near_ground(mx,my);
+    note("csel=%d, isel=%d, msel=%d",csel,isel,msel);
 
     c_on=1;
     c_x=mx;
@@ -236,6 +236,8 @@ int context_open(int mx,int my) {
 }
 
 int context_getnm(void) {
+    if (!(context_enabled&1)) return -1;
+
     if (c_on) return msel;
     else return -1;
 }
@@ -246,7 +248,7 @@ void context_stop(void) {
 void context_display(int mx,int my) {
     int x,y,n;
 
-    if (c_on) {
+    if ((context_enabled&1) && c_on) {
         makemenu();
 
         d_y=menu.linecnt*10+8;
@@ -266,26 +268,76 @@ void context_display(int mx,int my) {
 int context_click(int mx,int my) {
     int n;
 
-    c_on=0;
+    if ((context_enabled&1) && c_on) {
+        c_on=0;
 
-    if (mx>c_x && mx<c_x+MENUWIDTH && my>=c_y && my<c_y+menu.linecnt*10+8) {
-        n=(my-c_y-4)/10;
-        if (n<0) n=0;
-        if (n>=menu.linecnt) n=menu.linecnt-1;
-        switch (menu.cmd[n]) {
-            case CMD_MAP_MOVE:      cmd_move(menu.opt1[n],menu.opt2[n]); break;
-            case CMD_MAP_DROP:      cmd_drop(menu.opt1[n],menu.opt2[n]); break;
-            case CMD_MAP_LOOK:      cmd_look_map(menu.opt1[n],menu.opt2[n]); break;
-            case CMD_ITM_TAKE:      cmd_take(menu.opt1[n],menu.opt2[n]); break;
-            case CMD_ITM_USE:       cmd_use(menu.opt1[n],menu.opt2[n]); break;
-            case CMD_ITM_LOOK:      cmd_look_item(menu.opt1[n],menu.opt2[n]); break;
-            case CMD_CHR_ATTACK:    cmd_kill(menu.opt1[n]); break;
-            case CMD_CHR_GIVE:      cmd_give(menu.opt1[n]); break;
-            case CMD_CHR_LOOK:      cmd_look_char(menu.opt1[n]); break;
-            case CMD_CHR_CAST_K:    cmd_some_spell(menu.opt2[n],0,0,menu.opt1[n]); break;
+        if (mx>c_x && mx<c_x+MENUWIDTH && my>=c_y && my<c_y+menu.linecnt*10+8) {
+            n=(my-c_y-4)/10;
+            if (n<0) n=0;
+            if (n>=menu.linecnt) n=menu.linecnt-1;
+            switch (menu.cmd[n]) {
+                case CMD_MAP_MOVE:      cmd_move(menu.opt1[n],menu.opt2[n]); break;
+                case CMD_MAP_DROP:      cmd_drop(menu.opt1[n],menu.opt2[n]); break;
+                case CMD_MAP_LOOK:      cmd_look_map(menu.opt1[n],menu.opt2[n]); break;
+                case CMD_ITM_TAKE:      cmd_take(menu.opt1[n],menu.opt2[n]); break;
+                case CMD_ITM_USE:       cmd_use(menu.opt1[n],menu.opt2[n]); break;
+                case CMD_ITM_LOOK:      cmd_look_item(menu.opt1[n],menu.opt2[n]); break;
+                case CMD_CHR_ATTACK:    cmd_kill(menu.opt1[n]); break;
+                case CMD_CHR_GIVE:      cmd_give(menu.opt1[n]); break;
+                case CMD_CHR_LOOK:      cmd_look_char(menu.opt1[n]); break;
+                case CMD_CHR_CAST_K:    cmd_some_spell(menu.opt2[n],0,0,menu.opt1[n]); break;
+            }
+            return 1;
         }
-        return 1;
     }
     return 0;
+}
+
+static int keymode=0;
+int context_key(int key) {
+    int isel,csel;
+
+    if (!(context_enabled&2)) return 0;
+
+    if (key==CMD_RETURN) {
+        if (keymode==1) {
+            keymode=0;
+            return 0;
+        }
+        keymode=1;
+    }
+    if (keymode) return 0;
+
+    csel=get_near_char(mousex,mousey,3);
+    isel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,3);
+
+    switch (key) {
+        case 'a':   cmd_some_spell(CL_FLASH,0,0,0); break;
+        case 's':   cmd_some_spell(CL_MAGICSHIELD,0,0,0); break;
+        case 'd':   if (isel!=-1) cmd_use(originx-MAPDX/2+isel%MAPDX,originy-MAPDY/2+isel/MAPDX);
+                    break;
+        case 'y':   if (csel!=-1) cmd_kill(map[csel].cn);
+                    break;
+
+
+    }
+    return 1;
+}
+
+int context_key_set(int onoff) {
+    int old;
+    if (!(context_enabled&2)) return 1;
+    old=keymode;
+    keymode=onoff;
+    return old;
+}
+
+int context_key_isset(void) {
+    if (!(context_enabled&2)) return 1;
+    return keymode;
+}
+
+int context_key_enabled(void) {
+    return(context_enabled&2);
 }
 

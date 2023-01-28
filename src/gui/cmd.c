@@ -192,6 +192,8 @@ void cmd_fetch(char *ptr) {
 }
 
 void cmd_proc(int key) {
+    if (context_key(key)) return;
+
     switch (key) {
         case CMD_BACK:	if (cmdcursor<1) break;
             memmove(cmdline+cmdcursor-1,cmdline+cmdcursor,MAXCMDLINE-cmdcursor);
@@ -235,7 +237,8 @@ void cmd_proc(int key) {
             break;
 
         case CMD_RETURN:    // TODO: why is there a 13 here?
-        case 13:	if (!client_cmd(cmdline) && cmdline[0]) cmd_text(cmdline);
+        case 13:
+            if (!client_cmd(cmdline) && cmdline[0]) cmd_text(cmdline);
             cmd_remember(cmdline);
             if (history[MAXHIST-1]) xfree(history[MAXHIST-1]);
             memmove(history+1,history,sizeof(history)-sizeof(history[0]));
@@ -260,20 +263,29 @@ void cmd_proc(int key) {
 }
 
 void cmd_add_text(char *buf) {
+    int old;
+    old=context_key_set(1);
     while (*buf) cmd_proc(*buf++);
+    cmd_proc(CMD_RETURN);
+    context_key_set(old);
 }
 
 void display_cmd(void) {
     int n,x,tmp;
 
+    if (!context_key_isset()) return;
+
     if (cmdcursor<cmddisplay) cmddisplay=0;
 
     for (x=0,n=cmdcursor; n>cmddisplay; n--) {
         x+=dd_char_len(cmdline[n]);
-        if (x>625-230-4) {
+        if (x>dotx(DOT_TXT)+390) {
             cmddisplay=n;
             break;
         }
+    }
+    if (context_key_enabled()) {
+        dd_shaded_rect(dotx(DOT_TXT)-1,doty(DOT_TXT)+149,dotx(DOT_TXT)+390,doty(DOT_TXT)+149+9,IRGB(15,15,15));
     }
 
     for (x=0,n=cmddisplay; n<MAXCMDLINE; n++) {
@@ -284,7 +296,7 @@ void display_cmd(void) {
             else dd_shaded_rect(dotx(DOT_TXT)+x,doty(DOT_TXT)+149,dotx(DOT_TXT)+x+4,doty(DOT_TXT)+149+9,0xffe0);
         }
         x+=tmp;
-        if (x>dotx(DOT_TXT)+625-230) break;
+        if (x>dotx(DOT_TXT)+390) break;
     }
 }
 

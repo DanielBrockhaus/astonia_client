@@ -39,8 +39,8 @@ __declspec(dllimport) int butx(int bidx);
 __declspec(dllimport) int buty(int bidx);
 // gui helperls
 __declspec(dllimport) int get_near_ground(int x,int y);
-__declspec(dllimport) int get_near_item(int x,int y,int flag,int small);
-__declspec(dllimport) int get_near_char(int x,int y,int small);
+__declspec(dllimport) int get_near_item(int x,int y,int flag,int looksize);
+__declspec(dllimport) int get_near_char(int x,int y,int looksize);
 
 // ---------- Client exported data structures -------------
 #define V_MAX	        200
