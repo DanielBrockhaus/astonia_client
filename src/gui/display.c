@@ -192,7 +192,7 @@ void display_inventory(void) {
         yt=y+12;
 
         dd_copysprite(SPR_ITPAD,x,y,DDFX_NLIGHT,DD_CENTER);
-        if (i==invsel) dd_copysprite(SPR_ITSEL,x,y,DDFX_NLIGHT,DD_CENTER);
+        if (i==invsel && !context_inv_isopen()) dd_copysprite(SPR_ITSEL,x,y,DDFX_NLIGHT,DD_CENTER);
         if (item[i]) {
 
             bzero(&fx,sizeof(fx));
@@ -211,7 +211,7 @@ void display_inventory(void) {
             fx.scale=scale;
             fx.sink=0;
             fx.align=DD_CENTER;
-            fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=i==invsel?FX_ITEMBRIGHT:FX_ITEMLIGHT;
+            fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=(i==invsel && !context_inv_isopen())?FX_ITEMBRIGHT:FX_ITEMLIGHT;
             dd_copysprite_fx(&fx,x,y);
             if ((sprite=additional_sprite(item[i],tick))!=0) {
                 fx.sprite=sprite;
@@ -303,7 +303,7 @@ void display_citem(void) {
     DDFX fx;
 
     // trashcan
-    if (vk_item) {
+    if (vk_item || csprite) {
         x=but[BUT_JNK].x;
         y=but[BUT_JNK].y;
         dd_copysprite(25,x,y,lcmd==CMD_JUNK_ITEM?DDFX_BRIGHT:DDFX_NLIGHT,DD_CENTER);

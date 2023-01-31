@@ -81,6 +81,7 @@ void init_dots(void) {
     // top and bottom window
     set_dot(DOT_TOP,0,  0,YRES==YRES0 ? 0 : DOTF_TOPOFF);
     set_dot(DOT_BOT,0,YRES-540+370,0);
+    set_dot(DOT_BO2,XRES,YRES,0);
 
     // scroll bars
     set_dot(DOT_SCL,160+5,0,0);

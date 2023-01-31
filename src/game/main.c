@@ -683,12 +683,10 @@ int main(int argc,char *args[]) {
     rrandomize();
 
     if (!want_height) {
-        if (!want_width) want_width=800;
-        want_height=want_width*9/16;
+        if (want_width) want_height=want_width*9/16;
     }
     if (!want_width) {
-        if (!want_height) want_height=540;
-        want_width=want_height*16/9;
+        if (!want_height) want_width=want_height*16/9;
     }
 
     sprintf(buf,"Astonia 3 v%d.%d.%d",(VERSION>>16)&255,(VERSION>>8)&255,(VERSION)&255);

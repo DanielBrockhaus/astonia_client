@@ -328,6 +328,7 @@ int get_near_item(int x,int y,int flag,int looksize);
 int get_near_ground(int x,int y);
 
 int context_open(int mx,int my);
+int context_open_inv(int mx,int my,int clicks);
 void context_display(int mx,int my);
 void context_stop(void);
 int context_click(int mx,int my);
@@ -336,4 +337,4 @@ int context_key_set(int onoff);
 int context_key_isset(void);
 int context_key_isset(void);
 int context_key_enabled(void);
-
+int context_inv_isopen(void);

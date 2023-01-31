@@ -1090,6 +1090,63 @@ static void cmd_look_skill(int nr) {
     } else addline("Unknown.");
 }
 
+static void set_cmd_invsel(void) {
+    if (context_key_enabled() && !con_type) {
+        if (invsel==-1) return;
+        if (item[invsel]) {
+            if (csprite) lcmd=CMD_INV_SWAP;
+            else lcmd=CMD_INV_TAKE;
+        } else {
+            if (csprite) lcmd=CMD_INV_DROP;
+            else lcmd=CMD_INV_TAKE; // show anyway for people who want to click faster than the server responds
+        }
+    } else {
+        if (invsel!=-1 && !vk_item && !vk_char && !csprite &&  item[invsel] && (!con_type || !con_cnt)) lcmd=CMD_INV_USE;
+        if (invsel!=-1 && !vk_item && !vk_char && !csprite && !item[invsel] && (!con_type || !con_cnt)) lcmd=CMD_INV_USE;       // fake
+        if (invsel!=-1 && !vk_item && !vk_char &&  csprite &&  item[invsel] && (!con_type || !con_cnt)) lcmd=CMD_INV_USE_WITH;
+
+        if (invsel!=-1 && !vk_item && !vk_char && !csprite &&  item[invsel] &&  con_type==2 &&  con_cnt) lcmd=CMD_CON_FASTSELL;
+        if (invsel!=-1 && !vk_item && !vk_char && !csprite && !item[invsel] &&  con_type==2 &&  con_cnt) lcmd=CMD_CON_FASTSELL; // fake
+        if (invsel!=-1 && !vk_item && !vk_char &&  csprite &&  item[invsel] &&  con_type==2 &&  con_cnt) lcmd=CMD_CON_FASTSELL;
+
+        if (invsel!=-1 && !vk_item && !vk_char && !csprite &&  item[invsel] &&  con_type==1 &&  con_cnt) lcmd=CMD_CON_FASTDROP;
+        if (invsel!=-1 && !vk_item && !vk_char && !csprite && !item[invsel] &&  con_type==1 &&  con_cnt) lcmd=CMD_CON_FASTDROP; // fake
+        if (invsel!=-1 && !vk_item && !vk_char &&  csprite &&  item[invsel] &&  con_type==1 &&  con_cnt) lcmd=CMD_CON_FASTDROP;
+
+        if (invsel!=-1 && !vk_item && !vk_char &&  csprite && !item[invsel]) lcmd=CMD_INV_USE_WITH; // fake
+        if (invsel!=-1 &&  vk_item && !vk_char && !csprite &&  item[invsel]) lcmd=CMD_INV_TAKE;
+        if (invsel!=-1 &&  vk_item && !vk_char && !csprite && !item[invsel]) lcmd=CMD_INV_TAKE;  // fake - slot is empty so i can't take
+        if (invsel!=-1 &&  vk_item && !vk_char &&  csprite &&  item[invsel]) lcmd=CMD_INV_SWAP;
+        if (invsel!=-1 &&  vk_item && !vk_char &&  csprite && !item[invsel]) lcmd=CMD_INV_DROP;
+    }
+}
+
+void set_cmd_weasel(void) {
+    if (weasel!=-1 && !vk_item && !vk_char && !csprite &&  item[weatab[weasel]]) lcmd=CMD_WEA_USE;
+    if (weasel!=-1 && !vk_item && !vk_char && !csprite && !item[weatab[weasel]]) lcmd=CMD_WEA_USE;      // fake
+    if (weasel!=-1 && !vk_item && !vk_char &&  csprite &&  item[weatab[weasel]]) lcmd=CMD_WEA_USE_WITH;
+    if (weasel!=-1 && !vk_item && !vk_char &&  csprite && !item[weatab[weasel]]) lcmd=CMD_WEA_USE_WITH; // fake
+    if (weasel!=-1 &&  vk_item && !vk_char && !csprite &&  item[weatab[weasel]]) lcmd=CMD_WEA_TAKE;
+    if (weasel!=-1 &&  vk_item && !vk_char && !csprite && !item[weatab[weasel]]) lcmd=CMD_WEA_TAKE; // fake - slot is empty so i can't take
+    if (weasel!=-1 &&  vk_item && !vk_char &&  csprite &&  item[weatab[weasel]]) lcmd=CMD_WEA_SWAP;
+    if (weasel!=-1 &&  vk_item && !vk_char &&  csprite && !item[weatab[weasel]]) lcmd=CMD_WEA_DROP;
+}
+
+void set_cmd_consel(void) {
+    if (consel!=-1 &&  vk_item && !vk_char && !csprite && con_type==1 && con_cnt &&  container[consel]) lcmd=CMD_CON_TAKE;
+    if (consel!=-1 &&  vk_item && !vk_char && !csprite && con_type==1 && con_cnt && !container[consel]) lcmd=CMD_CON_TAKE;  // fake - slot is empty so i can't take (buy is also not possible)
+
+    if (consel!=-1 && !vk_item && !vk_char && !csprite && con_type==1 && con_cnt &&  container[consel]) lcmd=CMD_CON_FASTTAKE;
+    if (consel!=-1 && !vk_item && !vk_char && !csprite && con_type==1 && con_cnt && !container[consel]) lcmd=CMD_CON_FASTTAKE;  // fake
+
+    if (consel!=-1 &&  vk_item && !vk_char && !csprite && con_type==2 && con_cnt) lcmd=CMD_CON_BUY;
+    if (consel!=-1 && !vk_item && !vk_char && !csprite && con_type==2 && con_cnt) lcmd=CMD_CON_FASTBUY;
+
+    if (consel!=-1 &&  vk_item && !vk_char &&  csprite && con_type==1 && con_cnt &&  container[consel]) lcmd=CMD_CON_SWAP;
+    if (consel!=-1 &&  vk_item && !vk_char &&  csprite && con_type==1 && con_cnt && !container[consel]) lcmd=CMD_CON_DROP;
+    if (consel!=-1 &&  vk_item && !vk_char &&  csprite && con_type==2 && con_cnt) lcmd=CMD_CON_SELL;
+}
+
 static void set_cmd_states(void) {
     int i,c;
     static int oldconcnt=0; // ;-)
@@ -1231,51 +1288,13 @@ static void set_cmd_states(void) {
     if (chrsel!=-1 && !vk_item &&  vk_char && !csprite) lcmd=CMD_CHR_ATTACK;
     if (chrsel!=-1 && !vk_item &&  vk_char &&  csprite) lcmd=CMD_CHR_GIVE;
 
-    if (invsel!=-1 && !vk_item && !vk_char && !csprite &&  item[invsel] && (!con_type || !con_cnt)) lcmd=CMD_INV_USE;
-    if (invsel!=-1 && !vk_item && !vk_char && !csprite && !item[invsel] && (!con_type || !con_cnt)) lcmd=CMD_INV_USE;       // fake
-    if (invsel!=-1 && !vk_item && !vk_char &&  csprite &&  item[invsel] && (!con_type || !con_cnt)) lcmd=CMD_INV_USE_WITH;
-
-    if (invsel!=-1 && !vk_item && !vk_char && !csprite &&  item[invsel] &&  con_type==2 &&  con_cnt) lcmd=CMD_CON_FASTSELL;
-    if (invsel!=-1 && !vk_item && !vk_char && !csprite && !item[invsel] &&  con_type==2 &&  con_cnt) lcmd=CMD_CON_FASTSELL; // fake
-    if (invsel!=-1 && !vk_item && !vk_char &&  csprite &&  item[invsel] &&  con_type==2 &&  con_cnt) lcmd=CMD_CON_FASTSELL;
-
-    if (invsel!=-1 && !vk_item && !vk_char && !csprite &&  item[invsel] &&  con_type==1 &&  con_cnt) lcmd=CMD_CON_FASTDROP;
-    if (invsel!=-1 && !vk_item && !vk_char && !csprite && !item[invsel] &&  con_type==1 &&  con_cnt) lcmd=CMD_CON_FASTDROP; // fake
-    if (invsel!=-1 && !vk_item && !vk_char &&  csprite &&  item[invsel] &&  con_type==1 &&  con_cnt) lcmd=CMD_CON_FASTDROP;
-
-    if (invsel!=-1 && !vk_item && !vk_char &&  csprite && !item[invsel]) lcmd=CMD_INV_USE_WITH; // fake
-    if (invsel!=-1 &&  vk_item && !vk_char && !csprite &&  item[invsel]) lcmd=CMD_INV_TAKE;
-    if (invsel!=-1 &&  vk_item && !vk_char && !csprite && !item[invsel]) lcmd=CMD_INV_TAKE;  // fake - slot is empty so i can't take
-    if (invsel!=-1 &&  vk_item && !vk_char &&  csprite &&  item[invsel]) lcmd=CMD_INV_SWAP;
-    if (invsel!=-1 &&  vk_item && !vk_char &&  csprite && !item[invsel]) lcmd=CMD_INV_DROP;
-
-    if (weasel!=-1 && !vk_item && !vk_char && !csprite &&  item[weatab[weasel]]) lcmd=CMD_WEA_USE;
-    if (weasel!=-1 && !vk_item && !vk_char && !csprite && !item[weatab[weasel]]) lcmd=CMD_WEA_USE;      // fake
-    if (weasel!=-1 && !vk_item && !vk_char &&  csprite &&  item[weatab[weasel]]) lcmd=CMD_WEA_USE_WITH;
-    if (weasel!=-1 && !vk_item && !vk_char &&  csprite && !item[weatab[weasel]]) lcmd=CMD_WEA_USE_WITH; // fake
-    if (weasel!=-1 &&  vk_item && !vk_char && !csprite &&  item[weatab[weasel]]) lcmd=CMD_WEA_TAKE;
-    if (weasel!=-1 &&  vk_item && !vk_char && !csprite && !item[weatab[weasel]]) lcmd=CMD_WEA_TAKE; // fake - slot is empty so i can't take
-    if (weasel!=-1 &&  vk_item && !vk_char &&  csprite &&  item[weatab[weasel]]) lcmd=CMD_WEA_SWAP;
-    if (weasel!=-1 &&  vk_item && !vk_char &&  csprite && !item[weatab[weasel]]) lcmd=CMD_WEA_DROP;
-
-    if (consel!=-1 &&  vk_item && !vk_char && !csprite && con_type==1 && con_cnt &&  container[consel]) lcmd=CMD_CON_TAKE;
-    if (consel!=-1 &&  vk_item && !vk_char && !csprite && con_type==1 && con_cnt && !container[consel]) lcmd=CMD_CON_TAKE;  // fake - slot is empty so i can't take (buy is also not possible)
-
-    if (consel!=-1 && !vk_item && !vk_char && !csprite && con_type==1 && con_cnt &&  container[consel]) lcmd=CMD_CON_FASTTAKE;
-    if (consel!=-1 && !vk_item && !vk_char && !csprite && con_type==1 && con_cnt && !container[consel]) lcmd=CMD_CON_FASTTAKE;  // fake
-
-    if (consel!=-1 &&  vk_item && !vk_char && !csprite && con_type==2 && con_cnt) lcmd=CMD_CON_BUY;
-    if (consel!=-1 && !vk_item && !vk_char && !csprite && con_type==2 && con_cnt) lcmd=CMD_CON_FASTBUY;
-
-    if (consel!=-1 &&  vk_item && !vk_char &&  csprite && con_type==1 && con_cnt &&  container[consel]) lcmd=CMD_CON_SWAP;
-    if (consel!=-1 &&  vk_item && !vk_char &&  csprite && con_type==1 && con_cnt && !container[consel]) lcmd=CMD_CON_DROP;
-    if (consel!=-1 &&  vk_item && !vk_char &&  csprite && con_type==2 && con_cnt) lcmd=CMD_CON_SELL;
+    set_cmd_invsel();
+    set_cmd_weasel();
+    set_cmd_consel();
 
     if (splsel!=-1 && !vk_item && !vk_char) lcmd=CMD_SPL_SET_L;
-
     if (telsel!=-1) lcmd=CMD_TELEPORT;
     if (colsel!=-1) lcmd=CMD_COLOR;
-
 
     if (lcmd==CMD_NONE) {
         if (butsel==BUT_SCR_UP) lcmd=CMD_INV_OFF_UP;
@@ -1297,7 +1316,7 @@ static void set_cmd_states(void) {
         if (vk_item && butsel==BUT_GLD && csprite>=SPR_GOLD_BEG && csprite<=SPR_GOLD_END) lcmd=CMD_DROP_GOLD;
         if (!vk_item && butsel==BUT_GLD && csprite>=SPR_GOLD_BEG && csprite<=SPR_GOLD_END) { takegold=cprice; lcmd=CMD_TAKE_GOLD; }
         if (!vk_item && butsel==BUT_GLD && !csprite) { takegold=0; lcmd=CMD_TAKE_GOLD; }
-        if (vk_item && butsel==BUT_JNK) lcmd=CMD_JUNK_ITEM;
+        if ((vk_item || csprite) && butsel==BUT_JNK) lcmd=CMD_JUNK_ITEM;
 
         if (butsel>=BUT_MOD_WALK0 && butsel<=BUT_MOD_WALK2) lcmd=CMD_SPEED0+butsel-BUT_MOD_WALK0;
 
@@ -1596,7 +1615,7 @@ void gui_sdl_keyproc(int wparam) {
     }
 }
 
-void gui_sdl_mouseproc(int x,int y,int what) {
+void gui_sdl_mouseproc(int x,int y,int what,int clicks) {
     int delta;
 
     switch (what) {
@@ -1663,6 +1682,7 @@ void gui_sdl_mouseproc(int x,int y,int what) {
             vk_rbut=0;
             if (amod_mouse_click(mousex,mousey,what)) break;
             if (rcmd==CMD_MAP_LOOK && context_open(mousex,mousey)) break;
+            if (rcmd==CMD_INV_LOOK && context_open_inv(mousex,mousey,clicks)) break;
             context_stop();
             exec_cmd(rcmd,0);
             break;

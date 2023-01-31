@@ -19,13 +19,6 @@
 #include "../../src/sdl.h"
 #include "../../src/sdl/_sdl.h"
 
-#define IGET_A(c)       ((((uint32_t)(c))>>24)&0xFF)
-#define IGET_R(c)       ((((uint32_t)(c))>>16)&0xFF)
-#define IGET_G(c)       ((((uint32_t)(c))>>8)&0xFF)
-#define IGET_B(c)       ((((uint32_t)(c))>>0)&0xFF)
-#define IRGB(r,g,b)     (((r)<<0)|((g)<<8)|((b)<<16))
-#define IRGBA(r,g,b,a)  (((a)<<24)|((r)<<16)|((g)<<8)|((b)<<0))
-
 static SDL_Window *sdlwnd;
 static SDL_Renderer *sdlren;
 
@@ -82,6 +75,12 @@ int sdl_init(int width,int height,char *title) {
     }
 
     SDL_GetCurrentDisplayMode(0, &DM);
+
+    if (!width || !height) {
+        width=DM.w;
+        height=DM.h;
+    }
+
     sdlwnd = SDL_CreateWindow(title, DM.w/2-width/2, DM.h/2-height/2, width, height, SDL_WINDOW_SHOWN);
     if (!sdlwnd) {
         fail("SDL_Init Error: %s",SDL_GetError());
@@ -212,6 +211,7 @@ int sdl_init(int width,int height,char *title) {
 int maxpanic=0;
 
 int sdl_clear(void) {
+    //SDL_SetRenderDrawColor(sdlren,255,63,63,255);     // clear with bright red to spot broken sprites
     SDL_SetRenderDrawColor(sdlren,0,0,0,255);
     SDL_RenderClear(sdlren);
     //note("mem: %.2fM PNG, %.2fM Tex, Hit: %ld, Miss: %ld, Max: %d\n",mem_png/(1024.0*1024.0),mem_tex/(1024.0*1024.0),texc_hit,texc_miss,maxpanic);
@@ -453,8 +453,8 @@ int sdl_load_image_png_(struct sdl_image *si,char *filename,zip_t *zip) {
     // of sd_scale. And never shrink the visible portion to do that.
     sx=(sx/sdl_scale)*sdl_scale;
     sy=(sy/sdl_scale)*sdl_scale;
-    ex=((ex+sdl_scale-1)/sdl_scale)*sdl_scale;
-    ey=((ey+sdl_scale-1)/sdl_scale)*sdl_scale;
+    ex=((ex+sdl_scale)/sdl_scale)*sdl_scale;
+    ey=((ey+sdl_scale)/sdl_scale)*sdl_scale;
 
     if (ex<sx) ex=sx-1;
     if (ey<sy) ey=sy-1;
@@ -477,16 +477,22 @@ int sdl_load_image_png_(struct sdl_image *si,char *filename,zip_t *zip) {
         for (x=0; x<si->xres; x++) {
 
             if (p.bpp==32) {
-                r=p.row[(sy+y)][(sx+x)*4+0];
-                g=p.row[(sy+y)][(sx+x)*4+1];
-                b=p.row[(sy+y)][(sx+x)*4+2];
-                a=p.row[(sy+y)][(sx+x)*4+3];
+                if (sx+x>=p.xres || sy+y>=p.yres) r=g=b=a=0;
+                else {
+                    r=p.row[(sy+y)][(sx+x)*4+0];
+                    g=p.row[(sy+y)][(sx+x)*4+1];
+                    b=p.row[(sy+y)][(sx+x)*4+2];
+                    a=p.row[(sy+y)][(sx+x)*4+3];
+                }
             } else {
-                r=p.row[(sy+y)][(sx+x)*3+0];
-                g=p.row[(sy+y)][(sx+x)*3+1];
-                b=p.row[(sy+y)][(sx+x)*3+2];
-                if (r==255 && g==0 && b==255) a=0;
-                else a=255;
+                if (sx+x>=p.xres || sy+y>=p.yres) r=g=b=a=0;
+                else {
+                    r=p.row[(sy+y)][(sx+x)*3+0];
+                    g=p.row[(sy+y)][(sx+x)*3+1];
+                    b=p.row[(sy+y)][(sx+x)*3+2];
+                    if (r==255 && g==0 && b==255) a=0;
+                    else a=255;
+                }
             }
 
             if (r==255 && g==0 && b==255) a=0;
@@ -670,6 +676,20 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         return -1;
     }
 
+#if 1
+    if (sprite>=12000 && sprite<=12008) {
+        int convert_to_floor(struct sdl_image *si,int sprite);
+        convert_to_floor(si,sprite);
+        return 0;
+    }
+
+    if (sprite>=14030 && sprite<=14037) {
+        int convert_to_wall(struct sdl_image *si,int sprite);
+        convert_to_wall(si,sprite);
+        return 0;
+    }
+#endif
+
     // get high res from archive
     if (sdl_zip2 || sdl_zip2p) {
         sprintf(filename,"%08d.png",sprite);
@@ -677,7 +697,7 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         if (sdl_zip2 && sdl_load_image_png_(si,filename,sdl_zip2)==0) return 0;
     }
 
-#if 0
+#if 1
     // get high res from png folder
     if (sdl_scale>1) {
         sprintf(filename,"../gfx/x%d/%08d/%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
@@ -963,7 +983,6 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
         st->flags|=SF_DIDALLOC;
     }
 
-
     if (!preload || preload==2) {
         if (!(st->flags&SF_DIDALLOC)) {
             fail("cannot make without alloc for sprite %d (%p)",st->sprite,st);
@@ -1067,34 +1086,44 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
                             g4=IGET_G(sdl_light(st->rl,irgb));
                             b4=IGET_B(sdl_light(st->rl,irgb));
                         } else v4=0;
+
+                        v1=20*sdl_scale-(v2+v3+v4+v5)/2;
+                        r1=IGET_R(sdl_light(st->ml,irgb));
+                        g1=IGET_G(sdl_light(st->ml,irgb));
+                        b1=IGET_B(sdl_light(st->ml,irgb));
                     } else {
                         if (y<10*sdl_scale+(20*sdl_scale-abs(20*sdl_scale-x))/2) {
 
                             // This part calculates a floor tile, or the top of a wall tile
                             if (x/2<20*sdl_scale-y) {
-                                v2=-(x/2-(20*sdl_scale-y))+1;
+                                v2=-(x/2-(20*sdl_scale-y));
                                 r2=IGET_R(sdl_light(st->ll,irgb));
                                 g2=IGET_G(sdl_light(st->ll,irgb));
                                 b2=IGET_B(sdl_light(st->ll,irgb));
                             } else v2=0;
                             if (x/2>20*sdl_scale-y) {
-                                v3=(x/2-(20*sdl_scale-y))+1;
+                                v3=(x/2-(20*sdl_scale-y));
                                 r3=IGET_R(sdl_light(st->rl,irgb));
                                 g3=IGET_G(sdl_light(st->rl,irgb));
                                 b3=IGET_B(sdl_light(st->rl,irgb));
                             } else v3=0;
                             if (x/2>y) {
-                                v4=(x/2-y)+1;
+                                v4=(x/2-y);
                                 r4=IGET_R(sdl_light(st->ul,irgb));
                                 g4=IGET_G(sdl_light(st->ul,irgb));
                                 b4=IGET_B(sdl_light(st->ul,irgb));
                             } else v4=0;
                             if (x/2<y) {
-                                v5=-(x/2-y)+1;
+                                v5=-(x/2-y);
                                 r5=IGET_R(sdl_light(st->dl,irgb));
                                 g5=IGET_G(sdl_light(st->dl,irgb));
                                 b5=IGET_B(sdl_light(st->dl,irgb));
                             } else v5=0;
+
+                            v1=20*sdl_scale-(v2+v3+v4+v5);
+                            r1=IGET_R(sdl_light(st->ml,irgb));
+                            g1=IGET_G(sdl_light(st->ml,irgb));
+                            b1=IGET_B(sdl_light(st->ml,irgb));
                         } else {
 
                             // This is for the lower part (left side and front as seen on the screen)
@@ -1116,19 +1145,20 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
                                 g5=IGET_G(sdl_light(st->dl,irgb));
                                 b5=IGET_B(sdl_light(st->dl,irgb));
                             } else v5=0;
-                            if (x>30*sdl_scale && x<40*sdl_scale) {
-                                v4=(x-30*sdl_scale)*2-2;
+                            if (x>30*sdl_scale) {
+                                if (x<40*sdl_scale) v4=(x-30*sdl_scale)*2-2;
+                                else v4=0;
                                 r4=IGET_R(sdl_light(st->ul,irgb));
                                 g4=IGET_G(sdl_light(st->ul,irgb));
                                 b4=IGET_B(sdl_light(st->ul,irgb));
                             } else v4=0;
+
+                            v1=20*sdl_scale-(v2+v3+v4+v5)/2;
+                            r1=IGET_R(sdl_light(st->ml,irgb));
+                            g1=IGET_G(sdl_light(st->ml,irgb));
+                            b1=IGET_B(sdl_light(st->ml,irgb));
                         }
                     }
-
-                    v1=20*sdl_scale-(v2+v3+v4+v5)/2;
-                    r1=IGET_R(sdl_light(st->ml,irgb));
-                    g1=IGET_G(sdl_light(st->ml,irgb));
-                    b1=IGET_B(sdl_light(st->ml,irgb));
 
                     div=v1+v2+v3+v4+v5;
 
@@ -1698,7 +1728,7 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
 int *dumpidx;
 
 int dump_cmp(const void *ca,const void *cb) {
-    int a,b;
+    int a,b,tmp;
 
     a=*(int*)ca;
     b=*(int*)cb;
@@ -1709,7 +1739,14 @@ int dump_cmp(const void *ca,const void *cb) {
     if (sdlt[a].flags&SF_TEXT) return 1;
     if (sdlt[b].flags&SF_TEXT) return -1;
 
-    return sdlt[a].sprite-sdlt[b].sprite;
+    if ((tmp=sdlt[a].sprite-sdlt[b].sprite)!=0) return tmp;
+
+    if ((tmp=sdlt[a].ml-sdlt[b].ml)!=0) return tmp;
+    if ((tmp=sdlt[a].ll-sdlt[b].ll)!=0) return tmp;
+    if ((tmp=sdlt[a].rl-sdlt[b].rl)!=0) return tmp;
+    if ((tmp=sdlt[a].ul-sdlt[b].ul)!=0) return tmp;
+
+    return sdlt[a].dl-sdlt[b].dl;
 }
 
 void sdl_dump_spritechache(void) {
@@ -1976,7 +2013,7 @@ void sdl_line(int fx,int fy,int tx,int ty,unsigned short color,int clipsx,int cl
 }
 
 void gui_sdl_keyproc(int wparam);
-void gui_sdl_mouseproc(int x,int y,int but);
+void gui_sdl_mouseproc(int x,int y,int but,int clicks);
 void cmd_proc(int key);
 
 void sdl_loop(void) {
@@ -1994,20 +2031,20 @@ void sdl_loop(void) {
                 cmd_proc(event.text.text[0]);
                 break;
             case SDL_MOUSEMOTION:
-                gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_NONE);
+                gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_NONE,0);
                 break;
             case SDL_MOUSEBUTTONDOWN:
-                if (event.button.button==SDL_BUTTON_LEFT) gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_LDOWN);
-                if (event.button.button==SDL_BUTTON_MIDDLE) gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_MDOWN);
-                if (event.button.button==SDL_BUTTON_RIGHT) gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_RDOWN);
+                if (event.button.button==SDL_BUTTON_LEFT) gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_LDOWN,event.button.clicks);
+                if (event.button.button==SDL_BUTTON_MIDDLE) gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_MDOWN,event.button.clicks);
+                if (event.button.button==SDL_BUTTON_RIGHT) gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_RDOWN,event.button.clicks);
                 break;
             case SDL_MOUSEBUTTONUP:
-                if (event.button.button==SDL_BUTTON_LEFT) gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_LUP);
-                if (event.button.button==SDL_BUTTON_MIDDLE) gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_MUP);
-                if (event.button.button==SDL_BUTTON_RIGHT) gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_RUP);
+                if (event.button.button==SDL_BUTTON_LEFT) gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_LUP,event.button.clicks);
+                if (event.button.button==SDL_BUTTON_MIDDLE) gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_MUP,event.button.clicks);
+                if (event.button.button==SDL_BUTTON_RIGHT) gui_sdl_mouseproc(event.motion.x,event.motion.y,SDL_MOUM_RUP,event.button.clicks);
                 break;
             case SDL_MOUSEWHEEL:
-                gui_sdl_mouseproc(event.wheel.x,event.wheel.y,SDL_MOUM_WHEEL);
+                gui_sdl_mouseproc(event.wheel.x,event.wheel.y,SDL_MOUM_WHEEL,0);
                 break;
         }
     }

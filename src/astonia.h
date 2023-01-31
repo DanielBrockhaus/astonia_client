@@ -100,7 +100,8 @@
 #define DOT_TEL         25      // teleporter top left
 #define DOT_COL         26      // color picker top left
 #define DOT_LOK         27      // look at character window (show_look), top left
-#define MAX_DOT         28
+#define DOT_BO2         28      // bottom right of bottom window
+#define MAX_DOT         29
 
 extern int __yres;
 extern int quit;
@@ -119,6 +120,7 @@ void* xrecalloc(void *ptr,int size,int ID);
 void xfree(void *ptr);
 char* xstrdup(const char *src,int ID);
 
+int rrand(int range);
 
 void init_dots(void);
 int dotx(int didx);
@@ -127,4 +129,5 @@ int butx(int bidx);
 int buty(int bidx);
 
 void dd_set_offset(int x,int y);
+
 

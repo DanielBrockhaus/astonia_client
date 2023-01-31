@@ -109,7 +109,6 @@ char* load_ascii_file(char *filename,int ID);
 int xmemcheck(void *ptr);
 void rrandomize(void);
 void rseed(int seed);
-int rrand(int range);
 
 int dd_init(void);
 int dd_exit(void);
