@@ -1,9 +1,30 @@
 /*
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
+ *
+ * convert.exe
+ *
+ * Will convert any seamless texture (of sufficient size, say 400x400 pixels) into a set of either wall
+ * or floor tiles. Walls come in sets of four full height and four cut off. Sprite numbers need to be
+ * added to the switch/case in convert_to_wall().
+ *
+ * Floors come in sets of nine (three by three) and are assumed to start on a multiple of ten (ie. 12000,
+ * 12010, etc.). A different logic can be implemented in the switch/case in convert_to_floor()
+ *
+ * Usage: convert.exe <texture.png> <sprite nr> <w|f>
+ *
+ * The resulting tiles will be written to ../gfxp/x1..4/spritenr.png
+ *
+ * Missing directories will be created.
+ *
+ * Files will be overwritten without prompt!
+ *
+ * w|f means w for wall tiles or f for floor tiles.
+ *
  */
 
 #include <stdint.h>
 #include <ctype.h>
+#include <sys/stat.h>
 #ifdef STANDALONE
 #define SDL_MAIN_HANDLED
 #endif
@@ -364,6 +385,7 @@ int main(int argc,char *args[]) {
     struct sdl_image si;
     struct png_helper p;
     int n,s,sprite;
+    char buf[256];
 
     if (argc!=4 || (tolower(args[3][0])!='w' && tolower(args[3][0])!='f')) {
         printf("%s: <texture.png> <sprite nr> <w|f>\n",args[0]);
@@ -373,6 +395,14 @@ int main(int argc,char *args[]) {
     p.zip=NULL;
     p.filename=args[1];
     sprite=atoi(args[2]);
+
+    mkdir("../gfxp");
+    for (s=1; s<5; s++) {
+        sprintf(buf,"../gfxp/x%d",s);
+        mkdir(buf);
+        sprintf(buf,"../gfxp/x%d/%08d",s,(sprite/1000)*1000);
+        mkdir(buf);
+    }
 
     if (tolower(args[3][0])=='w') {
         for (s=1; s<5; s++) {
