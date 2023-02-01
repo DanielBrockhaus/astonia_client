@@ -343,7 +343,7 @@ int context_key(int key) {
 
     if (!(context_enabled&2)) return 0;
 
-    if (key=='#') {
+    if (key=='#' || key==CMD_UP || key==CMD_DOWN) {
         keymode=1;
     } else if (key==CMD_RETURN) {
         if (keymode==1) {

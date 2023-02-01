@@ -1,9 +1,10 @@
-all: bin/moac.exe bin/anicopy.exe
+all: bin/moac.exe bin/anicopy.exe bin/convert.exe
 # bin/amod.dll
 
 CC=gcc
-CFLAGS=-O0 -ggdb -Wall -Wno-pointer-sign -Wno-char-subscripts
-LDFLAGS=-O0 -ggdb -Wl,-subsystem,windows
+OPT=-O3
+CFLAGS=$(OPT) -ggdb -Wall -Wno-pointer-sign -Wno-char-subscripts
+LDFLAGS=$(OPT) -ggdb -Wl,-subsystem,windows
 #-Wl,-subsystem,windows
 LIBS = -lwsock32 -lws2_32 -lz -lpng -lsdl2 -lSDL2_mixer -lsdl2main -lzip
 
@@ -11,7 +12,7 @@ OBJS	=		src/gui/gui.o src/client/client.o src/client/skill.o src/game/dd.o src/g
 			src/game/main.o src/game/sprite.o src/game/game.o src/modder/modder.o\
 			src/sdl/sound.o src/game/resource.o src/sdl/sdl.o src/helper/helper.o\
 			src/gui/dots.o src/gui/display.o src/gui/teleport.o src/gui/color.o src/gui/cmd.o\
-			src/gui/questlog.o src/gui/context.o src/helper/convert.o
+			src/gui/questlog.o src/gui/context.o
 
 bin/moac.exe lib/moac.a &:	$(OBJS)
 			$(CC) $(LDFLAGS) -Wl,--out-implib,lib/moac.a -o bin/moac.exe $(OBJS) $(LIBS)
@@ -23,6 +24,10 @@ src/amod/amod.o:	src/amod/amod.c src/amod/amod.h
 
 bin/anicopy.exe:	src/helper/anicopy.c
 			$(CC) -O3 -ggdb -Wall -o bin/anicopy.exe src/helper/anicopy.c
+
+bin/convert.exe:	src/helper/convert.c
+			$(CC) -O3 -ggdb -Wall -DSTANDALONE -o bin/convert.exe src/helper/convert.c -lpng -lzip
+
 
 src/client/client.o:	src/client/client.c src/astonia.h src/client.h src/client/_client.h src/sdl.h
 

@@ -14,7 +14,6 @@
 #define IRGB(r,g,b)     (((r)<<0)|((g)<<8)|((b)<<16))
 #define IRGBA(r,g,b,a)  (((a)<<24)|((r)<<16)|((g)<<8)|((b)<<0))
 
-
 #define SF_USED         (1<<0)
 #define SF_SPRITE       (1<<1)
 #define SF_TEXT         (1<<2)
@@ -65,7 +64,6 @@ struct sdl_image {
     int16_t xres,yres;
     int16_t xoff,yoff;
 };
-
 
 #ifndef HAVE_DDFONT
 #define HAVE_DDFONT

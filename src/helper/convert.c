@@ -3,16 +3,17 @@
  */
 
 #include <stdint.h>
+#include <ctype.h>
+#ifdef STANDALONE
+#define SDL_MAIN_HANDLED
+#endif
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_mixer.h>
 #include <png.h>
 #include <zip.h>
 
-#include "../../src/astonia.h"
-#include "../../src/sdl.h"
+#ifndef STANDALONE
 #include "../../src/sdl/_sdl.h"
-
-void write_png_file(char *filename,uint32_t *pixel,int width,int height,int heightfill);
+#endif
 
 struct png_helper {
     char *filename;
@@ -26,17 +27,90 @@ struct png_helper {
     png_infop info_ptr;
 };
 
-int convert_to_wall(struct sdl_image *si,int sprite) {
-    struct png_helper p;
+void write_png_file(char *filename,uint32_t *pixel,int width,int height,int heightfill);
+
+#ifdef STANDALONE
+
+#define IGET_A(c)       ((((uint32_t)(c))>>24)&0xFF)
+#define IGET_R(c)       ((((uint32_t)(c))>>16)&0xFF)
+#define IGET_G(c)       ((((uint32_t)(c))>>8)&0xFF)
+#define IGET_B(c)       ((((uint32_t)(c))>>0)&0xFF)
+#define IRGB(r,g,b)     (((r)<<0)|((g)<<8)|((b)<<16))
+#define IRGBA(r,g,b,a)  (((a)<<24)|((r)<<16)|((g)<<8)|((b)<<0))
+
+struct sdl_image {
+    uint32_t *pixel;
+
+    uint16_t flags;
+    int16_t xres,yres;
+    int16_t xoff,yoff;
+};
+
+void png_helper_read(png_struct *ps,unsigned char *buf,long long unsigned len) {
+    zip_fread(png_get_io_ptr(ps),buf,len);
+}
+
+int png_load_helper(struct png_helper *p) {
+    FILE *fp=NULL;
+    zip_file_t *zp=NULL;
+    int tmp;
+
+    if (p->zip) {
+        zp=zip_fopen(p->zip,p->filename,0);
+        if (!zp) return -1;
+    } else {
+        fp=fopen(p->filename,"rb");
+        if (!fp) return -1;
+    }
+
+    p->png_ptr=png_create_read_struct(PNG_LIBPNG_VER_STRING,NULL,NULL,NULL);
+    if (!p->png_ptr) { fclose(fp); fprintf(stderr,"create read\n"); return -1; }
+
+    p->info_ptr=png_create_info_struct(p->png_ptr);
+    if (!p->info_ptr) { fclose(fp); png_destroy_read_struct(&p->png_ptr,(png_infopp)NULL,(png_infopp)NULL); fprintf(stderr,"create info1\n"); return -1; }
+
+    if (p->zip) {
+        png_set_read_fn(p->png_ptr,zp,png_helper_read);
+    } else {
+        png_init_io(p->png_ptr,fp);
+    }
+    png_set_strip_16(p->png_ptr);
+    png_read_png(p->png_ptr,p->info_ptr,PNG_TRANSFORM_PACKING,NULL);
+
+    p->row=png_get_rows(p->png_ptr,p->info_ptr);
+    if (!p->row) { fclose(fp); png_destroy_read_struct(&p->png_ptr,&p->info_ptr,(png_infopp)NULL); fprintf(stderr,"read row\n"); return -1; }
+
+    p->xres=png_get_image_width(p->png_ptr,p->info_ptr);
+    p->yres=png_get_image_height(p->png_ptr,p->info_ptr);
+
+    tmp=png_get_rowbytes(p->png_ptr,p->info_ptr);
+
+    if (tmp==p->xres*3) p->bpp=24;
+    else if (tmp==p->xres*4) p->bpp=32;
+    else { fclose(fp); png_destroy_read_struct(&p->png_ptr,&p->info_ptr,(png_infopp)NULL); fprintf(stderr,"rowbytes!=xres*4 (%d, %d, %s)",tmp,p->xres,p->filename); return -1; }
+
+    if (png_get_bit_depth(p->png_ptr,p->info_ptr)!=8) { fclose(fp); png_destroy_read_struct(&p->png_ptr,&p->info_ptr,(png_infopp)NULL); fprintf(stderr,"bit depth!=8\n"); return -1; }
+    if (png_get_channels(p->png_ptr,p->info_ptr)!=p->bpp/8) { fclose(fp); png_destroy_read_struct(&p->png_ptr,&p->info_ptr,(png_infopp)NULL); fprintf(stderr,"channels!=format\n"); return -1; }
+
+    if (p->zip) zip_fclose(zp);
+    else fclose(fp);
+
+    return 0;
+}
+
+void png_load_helper_exit(struct png_helper *p) {
+    png_destroy_read_struct(&p->png_ptr,&p->info_ptr,(png_infopp)NULL);
+}
+#endif
+
+int convert_to_wall(struct sdl_image *si,int sprite,int sdl_scale,struct png_helper *p) {
     int r,g,b,a,x,y,sx,sy;
     int xres,yres,tres,cres;
     int cutoff=0,scale=1,off=0;
     double sc;
 
-    p.zip=NULL;
-    p.filename="C:/Users/User/Downloads/texture5.png";
-    if (png_load_helper(&p)) {
-        fail("Could not open texture for convert!");
+    if (png_load_helper(p)) {
+        fprintf(stderr,"Could not open texture for convert!\n");
         return 0;
     }
 
@@ -72,48 +146,48 @@ int convert_to_wall(struct sdl_image *si,int sprite) {
         si->pixel=malloc(xres*yres*sizeof(uint32_t));
     }
 
-    sc=2.0*p.xres/xres/scale;
+    sc=2.0*p->xres/xres/scale;
 
     for (y=0; y<cres; y++) {
         for (x=0; x<xres; x++) {
 
-            sx=x*sc+off*p.xres/scale;
-            while (sx>=p.xres) sx-=p.xres;
+            sx=x*sc+off*p->xres/scale;
+            while (sx>=p->xres) sx-=p->xres;
 
             sy=y*sc;
             if (x<xres/2) sy-=(x/2+tres)*sc;
             else sy-=((xres-x)/2+tres)*sc;
 
-            while (sy>=p.yres) sy-=p.yres;
+            while (sy>=p->yres) sy-=p->yres;
 
             if (y<abs(x-xres/2)/2 || cres-y<abs(x-xres/2)/2) { // corners
                 r=b=g=a=0;
             } else if (sy<0) {
-                sx=(x-xres/2+y*2)*sc/2+off*p.xres/scale;
+                sx=(x-xres/2+y*2)*sc/2+off*p->xres/scale;
                 sy=(xres/2-x+y*2)*sc/2;
-                if (sx>=0 && sy>=0 && sx<p.xres && sy<p.yres) {
-                    if (p.bpp==32) {
-                        r=p.row[(sy)][(sx)*4+0];
-                        g=p.row[(sy)][(sx)*4+1];
-                        b=p.row[(sy)][(sx)*4+2];
-                        a=p.row[(sy)][(sx)*4+3];
+                if (sx>=0 && sy>=0 && sx<p->xres && sy<p->yres) {
+                    if (p->bpp==32) {
+                        r=p->row[(sy)][(sx)*4+0];
+                        g=p->row[(sy)][(sx)*4+1];
+                        b=p->row[(sy)][(sx)*4+2];
+                        a=p->row[(sy)][(sx)*4+3];
                     } else {
-                        r=p.row[(sy)][(sx)*3+0];
-                        g=p.row[(sy)][(sx)*3+1];
-                        b=p.row[(sy)][(sx)*3+2];
+                        r=p->row[(sy)][(sx)*3+0];
+                        g=p->row[(sy)][(sx)*3+1];
+                        b=p->row[(sy)][(sx)*3+2];
                         a=255;
                     }
                 } else r=g=b=a=0;
             } else {
-                if (p.bpp==32) {
-                    r=p.row[(sy)][(sx)*4+0];
-                    g=p.row[(sy)][(sx)*4+1];
-                    b=p.row[(sy)][(sx)*4+2];
-                    a=p.row[(sy)][(sx)*4+3];
+                if (p->bpp==32) {
+                    r=p->row[(sy)][(sx)*4+0];
+                    g=p->row[(sy)][(sx)*4+1];
+                    b=p->row[(sy)][(sx)*4+2];
+                    a=p->row[(sy)][(sx)*4+3];
                 } else {
-                    r=p.row[(sy)][(sx)*3+0];
-                    g=p.row[(sy)][(sx)*3+1];
-                    b=p.row[(sy)][(sx)*3+2];
+                    r=p->row[(sy)][(sx)*3+0];
+                    g=p->row[(sy)][(sx)*3+1];
+                    b=p->row[(sy)][(sx)*3+2];
                     a=255;
                 }
                 if (x>=xres/2) {
@@ -131,29 +205,25 @@ int convert_to_wall(struct sdl_image *si,int sprite) {
         }
     }
 
-    png_load_helper_exit(&p);
+    png_load_helper_exit(p);
 
-#if 0
+#ifdef STANDALONE
     char fname[1024];
-    sprintf(fname,"../x%d_%08d_%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
+    sprintf(fname,"../gfxp/x%d/%08d/%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
     write_png_file(fname,si->pixel,si->xres*sdl_scale,si->yres*sdl_scale,(-si->yoff*2-si->yres)*sdl_scale);
 #endif
 
     return 0;
 }
 
-int convert_to_floor(struct sdl_image *si,int sprite) {
-    struct png_helper p;
+int convert_to_floor(struct sdl_image *si,int sprite,int sdl_scale,struct png_helper *p) {
     int r,g,b,a,x,y,sx,sy,l;
     int xres,yres;
     int scale=1,offx=0,offy=0;
     double scx,scy;
 
-    p.zip=NULL;
-    if (sprite>=12000 && sprite<=12008) p.filename="C:/Users/User/Downloads/texture8.png";
-    else p.filename="C:/Users/User/Downloads/texture7.png";
-    if (png_load_helper(&p)) {
-        fail("Could not open texture for convert!");
+    if (png_load_helper(p)) {
+        fprintf(stderr,"Could not open texture for convert!\n");
         return 0;
     }
 
@@ -180,8 +250,8 @@ int convert_to_floor(struct sdl_image *si,int sprite) {
 
     si->pixel=malloc(xres*yres*sizeof(uint32_t));
 
-    scx=1.00*p.xres/(xres+2)/scale;
-    scy=0.49*p.yres/(yres)/scale;
+    scx=0.98*p->xres/(xres+2)/scale;
+    scy=0.45*p->yres/(yres)/scale;
 
     for (y=0; y<yres; y++) {
         for (x=0; x<xres; x++) {
@@ -192,59 +262,33 @@ int convert_to_floor(struct sdl_image *si,int sprite) {
             if (y<l || yres-y<=l) { // corners
                 r=b=g=a=0;
             } else {
-                sx=(x-xres/2+y*2)*scx+offx*p.xres/scale+3;
-                sy=(xres/2-x+y*2)*scy+offy*p.yres/scale+1;
-#if 0
-                if (offx==2 && offy==2) {
-                    printf("sx=%d,sy=%d (%d,%d) of (%d,%d) [%d,%d]\n",sx,sy,x,y,xres,yres,p.xres,p.yres);
-                    fflush(stdout);
-                }
-#endif
-                if (sx<0) {
-                    printf("sx=%d,sy=%d (%d,%d) of (%d,%d) [%d,%d]\n",sx,sy,x,y,xres,yres,p.xres,p.yres);
-                    fflush(stdout);
-                    sx=0;
-                }
-                if (sy<0) {
-                    printf("sx=%d,sy=%d (%d,%d) of (%d,%d) [%d,%d]\n",sx,sy,x,y,xres,yres,p.xres,p.yres);
-                    fflush(stdout);
-                    sy=0;
-                }
-                if (sx>=p.xres) {
-                    printf("sx=%d,sy=%d (%d,%d) of (%d,%d) [%d,%d]\n",sx,sy,x,y,xres,yres,p.xres,p.yres);
-                    fflush(stdout);
-                    sx=p.xres-1;
-                }
-                if (sy>=p.yres) {
-                    printf("sx=%d,sy=%d (%d,%d) of (%d,%d) [%d,%d]\n",sx,sy,x,y,xres,yres,p.xres,p.yres);
-                    fflush(stdout);
-                    sy=p.yres-1;
-                }
+                sx=(x-xres/2+y*2)*scx+offx*(p->xres)/scale+12/sdl_scale;
+                sy=(xres/2-x+y*2)*scy+offy*(p->yres)/scale+12/sdl_scale;
 
-                if (sx>=0 && sy>=0 && sx<p.xres && sy<p.yres) {
-                    if (p.bpp==32) {
-                        r=p.row[(sy)][(sx)*4+0];
-                        g=p.row[(sy)][(sx)*4+1];
-                        b=p.row[(sy)][(sx)*4+2];
-                        a=p.row[(sy)][(sx)*4+3];
+                if (sx>=0 && sy>=0 && sx<p->xres && sy<p->yres) {
+                    if (p->bpp==32) {
+                        r=p->row[(sy)][(sx)*4+0];
+                        g=p->row[(sy)][(sx)*4+1];
+                        b=p->row[(sy)][(sx)*4+2];
+                        a=p->row[(sy)][(sx)*4+3];
                     } else {
-                        r=p.row[(sy)][(sx)*3+0];
-                        g=p.row[(sy)][(sx)*3+1];
-                        b=p.row[(sy)][(sx)*3+2];
+                        r=p->row[(sy)][(sx)*3+0];
+                        g=p->row[(sy)][(sx)*3+1];
+                        b=p->row[(sy)][(sx)*3+2];
                         a=255;
                     }
-                } else r=g=b=a=255;
+                } else r=g=b=a=0;
             }
             si->pixel[x+y*xres]=IRGBA(r,g,b,a);
         }
     }
 
-    png_load_helper_exit(&p);
+    png_load_helper_exit(p);
 
-#if 0
+#ifdef STANDALONE
     char fname[1024];
-    sprintf(fname,"../x%d_%08d_%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
-    write_png_file(fname,si->pixel,si->xres*sdl_scale,si->yres*sdl_scale);
+    sprintf(fname,"../gfxp/x%d/%08d/%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
+    write_png_file(fname,si->pixel,si->xres*sdl_scale,si->yres*sdl_scale,0);
 #endif
 
     return 0;
@@ -313,4 +357,36 @@ void write_png_file(char *filename,uint32_t *pixel,int width,int height,int heig
 
   free(line);
 }
+
+
+#ifdef STANDALONE
+int main(int argc,char *args[]) {
+    struct sdl_image si;
+    struct png_helper p;
+    int n,s,sprite;
+
+    if (argc!=4 || (tolower(args[3][0])!='w' && tolower(args[3][0])!='f')) {
+        printf("%s: <texture.png> <sprite nr> <w|f>\n",args[0]);
+        return 1;
+    }
+
+    p.zip=NULL;
+    p.filename=args[1];
+    sprite=atoi(args[2]);
+
+    if (tolower(args[3][0])=='w') {
+        for (s=1; s<5; s++) {
+            for (n=0; n<4; n++) {
+                convert_to_wall(&si,sprite+n,s,&p);
+            }
+        }
+    } else if (tolower(args[3][0])=='f') {
+        for (s=1; s<5; s++) {
+            for (n=0; n<9; n++) {
+                convert_to_floor(&si,sprite+n,s,&p);
+            }
+        }
+    }
+}
+#endif
 
