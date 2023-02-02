@@ -59,3 +59,17 @@ Maybe Later
 - Move all parts of the client into separate windows, including the different chat channels.
 
 
+Notes:
+------
+
+Releases:
+
+git commit -a -m ""
+git push
+git tag releasename
+git push origin releasename
+
+
+Compress branch:
+git merge --squash <feature branch>
+

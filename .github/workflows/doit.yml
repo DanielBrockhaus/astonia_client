@@ -1,0 +1,28 @@
+name: Compile and Package Client
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  do-it:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        lfs: true
+    - uses: msys2/setup-msys2@v2
+      with:
+        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-SDL2 mingw-w64-x86_64-libpng mingw-w64-x86_64-SDL2_mixer mingw-w64-x86_64-libzip make zip
+    - run: make CC=gcc
+    - run: make distrib
+    - uses: softprops/action-gh-release@v1
+      with:
+        files: windows_client.zip
+
+
