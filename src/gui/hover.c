@@ -62,7 +62,7 @@ struct hover_item {
     char *desc[MAXDESC];
 };
 
-static struct hover_item hi[INVENTORYSIZE];
+static struct hover_item hi[INVENTORYSIZE+CONTAINERSIZE];
 
 static int last_look=0,last_invsel=-1,last_line=0,capture=0,last_tick=0;
 
@@ -97,7 +97,7 @@ int hover_capture_text(char *line) {
     }
 
     if (line[0]=='°' && line[1]=='c' && line[2]=='5' && line[3]=='.') {
-        capture=0;
+        capture=last_look=0;
         return 1;
     }
 
@@ -129,23 +129,21 @@ static void display_hover(void) {
     int n,i,col,x,sx,sy,slot;
     char buf[4];
 
-    if (tick-last_tick<HOVER_DELAY) {
-        sdl_show_cursor(1);
-        return;
-    }
-
     if (invsel==-1) {
         if (weasel==-1) {
-            sdl_show_cursor(1);
-            return;
+            if (consel==-1) {
+                sdl_show_cursor(1);
+                return;
+            } else slot=consel+INVENTORYSIZE;
         } else slot=weatab[weasel];
     } else slot=invsel;
-    if (!item[slot]) {
+
+    if ((slot<INVENTORYSIZE && !item[slot]) || (slot>=INVENTORYSIZE && !container[slot-INVENTORYSIZE])) {
         sdl_show_cursor(1);
         return;
     }
 
-    if (hi[slot].valid_till>=tick) {
+    if (hi[slot].valid_till>=tick && tick-last_tick>HOVER_DELAY) {
         sdl_show_cursor(0);
         sx=mousex+8;
         if (sx<dotx(DOT_TL)) sx=dotx(DOT_TL);
@@ -183,11 +181,15 @@ static void display_hover(void) {
                 x=dd_drawtext(x,sy+n*10+4,col,0,buf);
             }
         }
-    } else if (!last_look) {
-        cmd_look_inv(slot);
-        last_line=0;
-        last_look=20;
-        last_invsel=slot;
+    } else {
+        if (!last_look && hi[slot].valid_till<tick) {
+            if (slot<INVENTORYSIZE) cmd_look_inv(slot);
+            else cmd_look_con(slot-INVENTORYSIZE);
+            last_line=0;
+            last_look=20;
+            last_invsel=slot;
+        }
+        sdl_show_cursor(1);
     }
 }
 
