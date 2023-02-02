@@ -21,9 +21,9 @@
 #include "../../src/sdl.h"
 #include "../../src/modder.h"
 
-int context_enabled=3;
+int context_enabled=7;
 
-static int c_on=0,c_x,c_y,d_y,csel,isel,msel;
+static int c_on=0,c_x,c_y,d_y,csel,isel,msel,ori_x,ori_y;
 
 #define MAXLINE     20
 #define MAXLEN      120
@@ -38,9 +38,33 @@ struct menu {
 };
 struct menu menu;
 
+static void update_ori(void) {
+    int x,y;
+
+    x=(msel%MAPDX)+ori_x-originx;
+    y=(msel/MAPDX)+ori_y-originy;
+    if (x<0 || x>=MAPDX || y<0 || y>=MAPDX) msel=-1;
+    else msel=x+y*MAPDX;
+
+    x=(isel%MAPDX)+ori_x-originx;
+    y=(isel/MAPDX)+ori_y-originy;
+    if (x<0 || x>=MAPDX || y<0 || y>=MAPDX) isel=-1;
+    else isel=x+y*MAPDX;
+
+    x=(csel%MAPDX)+ori_x-originx;
+    y=(csel/MAPDX)+ori_y-originy;
+    if (x<0 || x>=MAPDX || y<0 || y>=MAPDX) csel=-1;
+    else csel=x+y*MAPDX;
+
+    ori_x=originx;
+    ori_y=originy;
+}
+
 static void makemenu(void) {
     int co;
     char *name="someone";
+
+    update_ori();
 
     if (csel!=-1) {
         co=map[csel].cn;
@@ -200,8 +224,8 @@ static void makemenu(void) {
     if (isel!=-1) {
         sprintf(menu.line[menu.linecnt],"Examine item");
         menu.cmd[menu.linecnt]=CMD_ITM_LOOK;
-        menu.opt1[menu.linecnt]=originx-MAPDX/2+msel%MAPDX;
-        menu.opt2[menu.linecnt]=originy-MAPDY/2+msel/MAPDX;
+        menu.opt1[menu.linecnt]=originx-MAPDX/2+isel%MAPDX;
+        menu.opt2[menu.linecnt]=originy-MAPDY/2+isel/MAPDX;
         menu.linecnt++;
     }
     if (csel!=-1) {
@@ -220,10 +244,12 @@ int context_open(int mx,int my) {
     csel=get_near_char(mx,my,3);
     isel=get_near_item(mx,my,CMF_USE|CMF_TAKE,3);
     msel=get_near_ground(mx,my);
+    ori_x=originx;
+    ori_y=originy;
 
     makemenu();
     if (menu.linecnt==1) {
-        cmd_look_map(originx-MAPDX/2+msel%MAPDX,originy-MAPDY/2+msel/MAPDX);
+        cmd_look_map(ori_x-MAPDX/2+msel%MAPDX,ori_y-MAPDY/2+msel/MAPDX);
         return 1;
     }
 
@@ -242,6 +268,7 @@ int context_open(int mx,int my) {
 
 int context_getnm(void) {
     if (!(context_enabled&1)) return -1;
+    update_ori();
 
     if (c_on) return msel;
     else return -1;

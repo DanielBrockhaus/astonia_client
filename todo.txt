@@ -21,7 +21,7 @@ Bugs
 Probably
 --------
 
-- Optionally make left-click take-drop in inventory and equipment, right-click context menu with use+examine.
+- Highlight usable items (characters?) in a 3 tile radius around the mouse cursor.
 
 - Action Bar for Warcry, spells and usable items.
 

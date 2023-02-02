@@ -689,6 +689,13 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         if (sdl_zip2 && sdl_load_image_png_(si,filename,sdl_zip2)==0) return 0;
     }
 
+#if 1
+    // get high res from png folder
+    sprintf(filename,"../gfx/x%d/%08d/%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
+    if (sdl_load_image_png_(si,filename,NULL)==0) return 0;
+#endif
+
+
     // get standard from archive
     if (sdl_zip1 || sdl_zip2p) {
         sprintf(filename,"%08d.png",sprite);
@@ -696,7 +703,7 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         if (sdl_zip1 && sdl_load_image_png(si,filename,sdl_zip1,do_smoothify(sprite))==0) return 0;
     }
 
-#if 0
+#if 1
     // get standard from png folder
     sprintf(filename,"../gfx/x1/%08d/%08d.png",(sprite/1000)*1000,sprite);
     if (sdl_load_image_png(si,filename,NULL,do_smoothify(sprite))==0) return 0;
