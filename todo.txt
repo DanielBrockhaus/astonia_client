@@ -2,6 +2,11 @@
 Astonia To-Do List
 ==================
 
+Server Patches
+--------------
+
+- Add "log_char(cn,LOG_SYSTEM,0,"°c5.");" to the very end of int look_item() in tool.c.
+
 
 Bugs
 ----

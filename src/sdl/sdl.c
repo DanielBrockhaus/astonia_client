@@ -1633,7 +1633,7 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
     uint32_t *pixel,*dst;
     unsigned char *rawrun;
     int x,y=0,sizex,sizey=0,sx=0;
-    const char *c;
+    const char *c,*otext=text;
     long long start=SDL_GetTicks64();
 
     for (sizex=0,c=text; *c; c++) sizex+=font[*c].dim*sdl_scale;
@@ -1690,7 +1690,7 @@ SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,in
         SDL_UpdateTexture(texture,NULL,pixel,sizex*sizeof(uint32_t));
         SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
     } else {
-        warn("SDL_texture Error: %s maketext",SDL_GetError());
+        warn("SDL_texture Error: %s maketext (%s)",SDL_GetError(),otext);
     }
 #ifdef SDL_FAST_MALLOC
     free(pixel);

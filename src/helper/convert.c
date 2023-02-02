@@ -406,7 +406,7 @@ int main(int argc,char *args[]) {
 
     if (tolower(args[3][0])=='w') {
         for (s=1; s<5; s++) {
-            for (n=0; n<4; n++) {
+            for (n=0; n<8; n++) {
                 convert_to_wall(&si,sprite+n,s,&p);
             }
         }

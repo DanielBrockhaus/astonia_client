@@ -192,7 +192,7 @@ void display_inventory(void) {
         yt=y+12;
 
         dd_copysprite(SPR_ITPAD,x,y,DDFX_NLIGHT,DD_CENTER);
-        if (i==invsel && !context_inv_isopen()) dd_copysprite(SPR_ITSEL,x,y,DDFX_NLIGHT,DD_CENTER);
+        if (i==invsel) dd_copysprite(SPR_ITSEL,x,y,DDFX_NLIGHT,DD_CENTER);
         if (item[i]) {
 
             bzero(&fx,sizeof(fx));
@@ -211,7 +211,7 @@ void display_inventory(void) {
             fx.scale=scale;
             fx.sink=0;
             fx.align=DD_CENTER;
-            fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=(i==invsel && !context_inv_isopen())?FX_ITEMBRIGHT:FX_ITEMLIGHT;
+            fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=(i==invsel)?FX_ITEMBRIGHT:FX_ITEMLIGHT;
             dd_copysprite_fx(&fx,x,y);
             if ((sprite=additional_sprite(item[i],tick))!=0) {
                 fx.sprite=sprite;
@@ -498,8 +498,6 @@ static void trans_date(int t,int *phour,int *pmin) {
     if (phour) *phour=(t/HOURLEN)%24;
 }
 
-static char time_text[120];
-
 void display_screen(void) {
     int h,m;
     int h1,h2,m1,m2;
@@ -531,7 +529,7 @@ void display_screen(void) {
     dd_copysprite(200+rm1,dotx(DOT_TOP)+734+2*10-2,doty(DOT_TOP)+5+3,DDFX_NLIGHT,DD_NORMAL);
     dd_copysprite(200+rm2,dotx(DOT_TOP)+734+3*10-2,doty(DOT_TOP)+5+3,DDFX_NLIGHT,DD_NORMAL);
 
-    sprintf(time_text,"%02d:%02d Astonia Standard Time",h,m);
+    sprintf(hover_time_text,"%02d:%02d Astonia Standard Time",h,m);
 
     dd_copysprite(opt_sprite(998),dotx(DOT_BOT),doty(DOT_BOT),DDFX_NLIGHT,DD_NORMAL);
 }
@@ -567,39 +565,15 @@ void display_mode(void) {
     if (*speedtext[sel]) dd_drawtext(but[BUT_MOD_WALK0].x,but[BUT_MOD_WALK0].y-13,col,DD_SMALL|DD_CENTER|DD_FRAME,speedtext[seltxt]);
 }
 
-static char bless_text[120];
-static char freeze_text[120];
-static char potion_text[120];
-static char rage_text[120];
-static char level_text[120];
-static char rank_text[120];
-
-void display_mouseover(void) {
-    if (mousey>=doty(DOT_BOT)-370+496-60 && mousey<=doty(DOT_BOT)-370+551-60) {
-        if (mousex>=dotx(DOT_BOT)+207 && mousex<=dotx(DOT_BOT)+214) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,rage_text);
-        if (mousex>=dotx(DOT_BOT)+197 && mousex<=dotx(DOT_BOT)+204) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,bless_text);
-        if (mousex>=dotx(DOT_BOT)+187 && mousex<=dotx(DOT_BOT)+194) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,freeze_text);
-        if (mousex>=dotx(DOT_BOT)+177 && mousex<=dotx(DOT_BOT)+184) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,potion_text);
-    }
-
-    if (mousex>=dotx(DOT_BOT)+25 && mousex<=dotx(DOT_BOT)+135) {
-        if (mousey>=doty(DOT_TOP)+5 && mousey<=doty(DOT_TOP)+13) dd_drawtext(mousex+16,mousey-4,0xffff,DD_BIG|DD_FRAME,level_text);
-        if (mousey>=doty(DOT_TOP)+22 && mousey<=doty(DOT_TOP)+30) dd_drawtext(mousex+16,mousey-4,0xffff,DD_BIG|DD_FRAME,rank_text);
-    }
-
-    if (mousex>=dotx(DOT_TOP)+728 && mousex<=dotx(DOT_TOP)+772 && mousey>=doty(DOT_TOP)+7 && mousey<=doty(DOT_TOP)+17)
-        dd_drawtext(mousex-16,mousey-4,0xffff,DD_BIG|DD_FRAME|DD_RIGHT,time_text);
-}
-
 void display_selfspells(void) {
     int n,nr,cn,step;
 
     cn=map[mapmn(MAPDX/2,MAPDY/2)].cn;
     if (!cn) return;
 
-    sprintf(bless_text,"Bless: Not active");
-    sprintf(freeze_text,"Freeze: Not active");
-    sprintf(potion_text,"Potion: Not active");
+    sprintf(hover_bless_text,"Bless: Not active");
+    sprintf(hover_freeze_text,"Freeze: Not active");
+    sprintf(hover_potion_text,"Potion: Not active");
 
     for (n=0; n<4; n++) {
         nr=find_cn_ceffect(cn,n);
@@ -613,7 +587,7 @@ void display_selfspells(void) {
                 if (ceffect[nr].bless.stop-tick<24*30 && (tick&4)) dd_copysprite(997,dotx(DOT_BOT)+179+2*10,doty(DOT_BOT)+68+step,DDFX_BRIGHT,DD_NORMAL);
                 else dd_copysprite(997,dotx(DOT_BOT)+179+2*10,doty(DOT_BOT)+68+step,DDFX_NLIGHT,DD_NORMAL);
                 dd_pop_clip();
-                sprintf(bless_text,"Bless: %ds to go",(ceffect[nr].bless.stop-tick)/24);
+                sprintf(hover_bless_text,"Bless: %ds to go",(ceffect[nr].bless.stop-tick)/24);
                 break;
             case 11:
                 step=50-50*(ceffect[nr].freeze.stop-tick)/(ceffect[nr].freeze.stop-ceffect[nr].freeze.start);
@@ -621,7 +595,7 @@ void display_selfspells(void) {
                 dd_more_clip(0,0,800,doty(DOT_BOT)+119);
                 dd_copysprite(997,dotx(DOT_BOT)+179+1*10,doty(DOT_BOT)+68+step,DDFX_NLIGHT,DD_NORMAL);
                 dd_pop_clip();
-                sprintf(freeze_text,"Freeze: %ds to go",(ceffect[nr].freeze.stop-tick)/24);
+                sprintf(hover_freeze_text,"Freeze: %ds to go",(ceffect[nr].freeze.stop-tick)/24);
                 break;
 
             case 14:
@@ -631,7 +605,7 @@ void display_selfspells(void) {
                 if (step>=40 && (tick&4)) dd_copysprite(997,dotx(DOT_BOT)+179+0*10,doty(DOT_BOT)+68+step,DDFX_BRIGHT,DD_NORMAL);
                 else dd_copysprite(997,dotx(DOT_BOT)+179+0*10,doty(DOT_BOT)+68+step,DDFX_NLIGHT,DD_NORMAL);
                 dd_pop_clip();
-                sprintf(potion_text,"Potion: %ds to go",(ceffect[nr].potion.stop-tick)/24);
+                sprintf(hover_potion_text,"Potion: %ds to go",(ceffect[nr].potion.stop-tick)/24);
                 break;
         }
     }
@@ -641,7 +615,7 @@ void display_exp(void) {
     int level,step,total,expe,cn,clevel,nlevel;
     static int last_exp=0,exp_ticker=0;
 
-    sprintf(level_text,"Level: unknown");
+    sprintf(hover_level_text,"Level: unknown");
 
     cn=map[MAPDX*MAPDY/2].cn;
     level=player[cn].level;
@@ -667,7 +641,7 @@ void display_exp(void) {
 
         if (exp_ticker) exp_ticker--;
 
-        sprintf(level_text,"Level: From %d to %d",clevel,nlevel);
+        sprintf(hover_level_text,"Level: From %d to %d",clevel,nlevel);
     }
 }
 
@@ -715,7 +689,7 @@ static int mil_rank(int exp) {
 void display_military(void) {
     int step,total,rank,cost1,cost2;
 
-    sprintf(rank_text,"Rank: none or unknown");
+    sprintf(hover_rank_text,"Rank: none or unknown");
 
     rank=mil_rank(mil_exp);
     cost1=rank*rank*rank;
@@ -732,15 +706,15 @@ void display_military(void) {
             dd_copysprite(993,dotx(DOT_TOP)+31,doty(DOT_TOP)+24,DDFX_NLIGHT,DD_NORMAL);
             dd_pop_clip();
 
-            sprintf(rank_text,"Rank: '%s' to '%s'",game_rankname[rank],game_rankname[rank+1]);
-        } else sprintf(rank_text,game_rankname[*game_rankcount-1]);
+            sprintf(hover_rank_text,"Rank: '%s' to '%s'",game_rankname[rank],game_rankname[rank+1]);
+        } else sprintf(hover_rank_text,game_rankname[*game_rankcount-1]);
     }
 }
 
 void display_rage(void) {
     int step;
 
-    sprintf(rage_text,"Rage: Not active");
+    sprintf(hover_rage_text,"Rage: Not active");
 
     if (!value[0][V_RAGE] || !rage) return;
 
@@ -750,7 +724,7 @@ void display_rage(void) {
     dd_copysprite(997,dotx(DOT_BOT)+179+3*10,doty(DOT_BOT)+68+step,DDFX_NLIGHT,DD_NORMAL);
     dd_pop_clip();
 
-    sprintf(rage_text,"Rage: %d%%",100*rage/value[0][V_RAGE]);
+    sprintf(hover_rage_text,"Rage: %d%%",100*rage/value[0][V_RAGE]);
 }
 
 void display_game_special(void) {

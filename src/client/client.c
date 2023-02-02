@@ -342,6 +342,8 @@ void sv_setitem(unsigned char *buf) {
 
     item[n]=*(unsigned int *)(buf+2);
     item_flags[n]=*(unsigned int *)(buf+6);
+
+    hover_invalidate_inv(n);
 }
 
 void sv_setorigin(unsigned char *buf) {
@@ -415,7 +417,10 @@ int sv_text(unsigned char *buf) {
             } else if (line[1]=='9') {
                 strcpy(pent_str[6],line+2);
             }
-        } else addline("%s",line);
+        } else {
+            if (!hover_capture_text(line))
+                addline("%s",line);
+        }
     }
 
     return len+3;
@@ -652,6 +657,7 @@ void sv_container(unsigned char *buf) {
     if (nr<0 || nr>=CONTAINERSIZE) { fail("illegal nr %d in sv_container!",nr);  exit(-1); }
 
     container[nr]=*(unsigned int *)(buf+2);
+    hover_invalidate_con(nr);
 }
 
 void sv_price(unsigned char *buf) {
@@ -862,7 +868,6 @@ void process(unsigned char *buf,int size) {
                 case SV_EXIT:			        len=sv_exit(buf); break;
                 case SV_TEXT:                   len=sv_text(buf); break;
 
-
                 case SV_NAME:			        len=sv_name(buf); break;
 
                 case SV_CONTAINER:		        sv_container(buf); len=6; break;
@@ -959,7 +964,6 @@ int prefetch(unsigned char *buf,int size) {
                 case SV_CONNAME:		        len=svl_conname(buf); break;
 
                 case SV_MIRROR:                len=5; break;
-
 
                 case SV_GOLD:			        len=5; break;
 
@@ -1697,6 +1701,7 @@ int do_tick(void) {
         process(queue[q_out].buf,queue[q_out].size);
         q_out=(q_out+1)%Q_SIZE;
         q_size--;
+        hover_capture_tick();
 
         // increase tick
         tick++;

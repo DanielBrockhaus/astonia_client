@@ -24,7 +24,6 @@
 int context_enabled=3;
 
 static int c_on=0,c_x,c_y,d_y,csel,isel,msel;
-static int ci_on=0,ci_x,ci_y,di_y,ci_sel;
 
 #define MAXLINE     20
 #define MAXLEN      120
@@ -222,6 +221,12 @@ int context_open(int mx,int my) {
     isel=get_near_item(mx,my,CMF_USE|CMF_TAKE,3);
     msel=get_near_ground(mx,my);
 
+    makemenu();
+    if (menu.linecnt==1) {
+        cmd_look_map(originx-MAPDX/2+msel%MAPDX,originy-MAPDY/2+msel/MAPDX);
+        return 1;
+    }
+
     c_on=1;
     c_x=mx;
     c_y=my-10;
@@ -235,29 +240,6 @@ int context_open(int mx,int my) {
     return 1;
 }
 
-int context_open_inv(int mx,int my,int clicks) {
-
-    if (!(context_enabled&2)) return 0;
-
-    if (clicks>1) {
-        cmd_use_inv(invsel);
-        return 1;
-    }
-
-    ci_on=1;
-    ci_x=mx;
-    ci_y=my-10;
-    di_y=8;
-    ci_sel=invsel;
-
-    if (ci_x<dotx(DOT_MTL)+10) ci_x=dotx(DOT_MTL)+10;
-    if (ci_x>dotx(DOT_BO2)-MENUWIDTH-10) ci_x=dotx(DOT_BO2)-MENUWIDTH-10;
-    if (ci_y<doty(DOT_MTL)+10) ci_y=doty(DOT_MTL)+10;
-    if (ci_y>doty(DOT_BO2)-34-10) ci_y=doty(DOT_BO2)-34-10;
-
-    return 1;
-}
-
 int context_getnm(void) {
     if (!(context_enabled&1)) return -1;
 
@@ -267,7 +249,6 @@ int context_getnm(void) {
 
 void context_stop(void) {
     c_on=0;
-    ci_on=0;
 }
 void context_display(int mx,int my) {
     int x,y,n;
@@ -286,17 +267,6 @@ void context_display(int mx,int my) {
             else dd_drawtext(x,y,graycolor,DD_LEFT,menu.line[n]);
             y+=10;
         }
-    }
-    if ((context_enabled&2) && ci_on) {
-
-        di_y=20+8+(csprite?10:0);
-        x=ci_x+4;
-        y=ci_y+4;
-
-        dd_shaded_rect(ci_x,ci_y,ci_x+MENUWIDTH,ci_y+di_y,0x0000);
-        dd_drawtext(x,y,(mousex>ci_x && mousex<ci_x+MENUWIDTH && mousey>=ci_y+0*10+4 && mousey<ci_y+0*10+14)?whitecolor:graycolor,DD_LEFT,"Look");
-        y+=10;
-        dd_drawtext(x,y,(mousex>ci_x && mousex<ci_x+MENUWIDTH && mousey>=ci_y+1*10+4 && mousey<ci_y+1*10+14)?whitecolor:graycolor,DD_LEFT,"Use");
     }
 }
 
@@ -322,15 +292,6 @@ int context_click(int mx,int my) {
                 case CMD_CHR_LOOK:      cmd_look_char(menu.opt1[n]); break;
                 case CMD_CHR_CAST_K:    cmd_some_spell(menu.opt2[n],0,0,menu.opt1[n]); break;
             }
-            return 1;
-        }
-    }
-    if ((context_enabled&2) && ci_on) {
-        ci_on=0;
-
-        if (mx>ci_x && mx<ci_x+MENUWIDTH && my>=ci_y && my<ci_y+20+8) {
-            if (mx>ci_x && mx<ci_x+MENUWIDTH && my>=ci_y+0*10+4 && my<ci_y+0*10+14) cmd_look_inv(ci_sel);
-            if (mx>ci_x && mx<ci_x+MENUWIDTH && my>=ci_y+1*10+4 && my<ci_y+1*10+14) cmd_use_inv(ci_sel);
             return 1;
         }
     }
@@ -385,8 +346,4 @@ int context_key_enabled(void) {
     return(context_enabled&2);
 }
 
-int context_inv_isopen(void) {
-    if (!(context_enabled&2)) return 0;
-    return ci_on;
-}
 

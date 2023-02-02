@@ -59,5 +59,8 @@ extern int (*get_skltab_show)(int i);
 __declspec(dllexport)int _get_skltab_show(int i);
 
 int context_getnm(void);
-
+int hover_capture_text(char *line);
+void hover_capture_tick(void);
+void hover_invalidate_inv(int slot);
+void hover_invalidate_con(int slot);
 

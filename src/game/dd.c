@@ -279,7 +279,7 @@ __declspec(dllexport) int dd_textlength(int flags,const char *text) {
 
     for (x=0,c=text; *c && *c!=DDT; c++) x+=font[*c].dim;
 
-    return (int)(x+0.5f);
+    return x;
 }
 
 int dd_textlen(int flags,const char *text,int n) {
@@ -295,7 +295,7 @@ int dd_textlen(int flags,const char *text,int n) {
 
     for (x=0,c=text; *c && *c!=DDT && n; c++,n--)  x+=font[*c].dim;
 
-    return (int)(x+0.5f);
+    return x;
 }
 
 __declspec(dllexport) int dd_drawtext(int sx,int sy,unsigned short int color,int flags,const char *text) {

@@ -1091,7 +1091,7 @@ static void cmd_look_skill(int nr) {
 }
 
 static void set_cmd_invsel(void) {
-    if (context_key_enabled() && !con_type) {
+    if (context_key_enabled() && (!con_cnt || con_type==1)) {
         if (invsel==-1) return;
         if (item[invsel]) {
             if (csprite) lcmd=CMD_INV_SWAP;
@@ -1122,29 +1122,54 @@ static void set_cmd_invsel(void) {
 }
 
 void set_cmd_weasel(void) {
-    if (weasel!=-1 && !vk_item && !vk_char && !csprite &&  item[weatab[weasel]]) lcmd=CMD_WEA_USE;
-    if (weasel!=-1 && !vk_item && !vk_char && !csprite && !item[weatab[weasel]]) lcmd=CMD_WEA_USE;      // fake
-    if (weasel!=-1 && !vk_item && !vk_char &&  csprite &&  item[weatab[weasel]]) lcmd=CMD_WEA_USE_WITH;
-    if (weasel!=-1 && !vk_item && !vk_char &&  csprite && !item[weatab[weasel]]) lcmd=CMD_WEA_USE_WITH; // fake
-    if (weasel!=-1 &&  vk_item && !vk_char && !csprite &&  item[weatab[weasel]]) lcmd=CMD_WEA_TAKE;
-    if (weasel!=-1 &&  vk_item && !vk_char && !csprite && !item[weatab[weasel]]) lcmd=CMD_WEA_TAKE; // fake - slot is empty so i can't take
-    if (weasel!=-1 &&  vk_item && !vk_char &&  csprite &&  item[weatab[weasel]]) lcmd=CMD_WEA_SWAP;
-    if (weasel!=-1 &&  vk_item && !vk_char &&  csprite && !item[weatab[weasel]]) lcmd=CMD_WEA_DROP;
+    if (context_key_enabled()) {
+        if (weasel==-1) return;
+        if (item[weatab[weasel]]) {
+            if (csprite) lcmd=CMD_WEA_SWAP;
+            else lcmd=CMD_WEA_TAKE;
+        } else {
+            if (csprite) lcmd=CMD_WEA_DROP;
+            else lcmd=CMD_WEA_TAKE; // show anyway for people who want to click faster than the server responds
+        }
+    } else {
+        if (weasel!=-1 && !vk_item && !vk_char && !csprite &&  item[weatab[weasel]]) lcmd=CMD_WEA_USE;
+        if (weasel!=-1 && !vk_item && !vk_char && !csprite && !item[weatab[weasel]]) lcmd=CMD_WEA_USE;      // fake
+        if (weasel!=-1 && !vk_item && !vk_char &&  csprite &&  item[weatab[weasel]]) lcmd=CMD_WEA_USE_WITH;
+        if (weasel!=-1 && !vk_item && !vk_char &&  csprite && !item[weatab[weasel]]) lcmd=CMD_WEA_USE_WITH; // fake
+        if (weasel!=-1 &&  vk_item && !vk_char && !csprite &&  item[weatab[weasel]]) lcmd=CMD_WEA_TAKE;
+        if (weasel!=-1 &&  vk_item && !vk_char && !csprite && !item[weatab[weasel]]) lcmd=CMD_WEA_TAKE; // fake - slot is empty so i can't take
+        if (weasel!=-1 &&  vk_item && !vk_char &&  csprite &&  item[weatab[weasel]]) lcmd=CMD_WEA_SWAP;
+        if (weasel!=-1 &&  vk_item && !vk_char &&  csprite && !item[weatab[weasel]]) lcmd=CMD_WEA_DROP;
+    }
 }
 
 void set_cmd_consel(void) {
-    if (consel!=-1 &&  vk_item && !vk_char && !csprite && con_type==1 && con_cnt &&  container[consel]) lcmd=CMD_CON_TAKE;
-    if (consel!=-1 &&  vk_item && !vk_char && !csprite && con_type==1 && con_cnt && !container[consel]) lcmd=CMD_CON_TAKE;  // fake - slot is empty so i can't take (buy is also not possible)
+    if (context_key_enabled()) {
+        if (consel==-1 || !con_cnt) return;
+        if (con_type==1) { // grave
+            if (!csprite) lcmd=CMD_CON_FASTTAKE;
+            else {
+                if (container[consel]) lcmd=CMD_CON_SWAP;
+                else lcmd=CMD_CON_DROP;
+            }
+        } else { // shop
+            if (!csprite) lcmd=CMD_CON_FASTBUY;
+            else lcmd=CMD_CON_SELL;
+        }
+    } else {
+        if (consel!=-1 &&  vk_item && !vk_char && !csprite && con_type==1 && con_cnt &&  container[consel]) lcmd=CMD_CON_TAKE;
+        if (consel!=-1 &&  vk_item && !vk_char && !csprite && con_type==1 && con_cnt && !container[consel]) lcmd=CMD_CON_TAKE;  // fake - slot is empty so i can't take (buy is also not possible)
 
-    if (consel!=-1 && !vk_item && !vk_char && !csprite && con_type==1 && con_cnt &&  container[consel]) lcmd=CMD_CON_FASTTAKE;
-    if (consel!=-1 && !vk_item && !vk_char && !csprite && con_type==1 && con_cnt && !container[consel]) lcmd=CMD_CON_FASTTAKE;  // fake
+        if (consel!=-1 && !vk_item && !vk_char && !csprite && con_type==1 && con_cnt &&  container[consel]) lcmd=CMD_CON_FASTTAKE;
+        if (consel!=-1 && !vk_item && !vk_char && !csprite && con_type==1 && con_cnt && !container[consel]) lcmd=CMD_CON_FASTTAKE;  // fake
 
-    if (consel!=-1 &&  vk_item && !vk_char && !csprite && con_type==2 && con_cnt) lcmd=CMD_CON_BUY;
-    if (consel!=-1 && !vk_item && !vk_char && !csprite && con_type==2 && con_cnt) lcmd=CMD_CON_FASTBUY;
+        if (consel!=-1 &&  vk_item && !vk_char && !csprite && con_type==2 && con_cnt) lcmd=CMD_CON_BUY;
+        if (consel!=-1 && !vk_item && !vk_char && !csprite && con_type==2 && con_cnt) lcmd=CMD_CON_FASTBUY;
 
-    if (consel!=-1 &&  vk_item && !vk_char &&  csprite && con_type==1 && con_cnt &&  container[consel]) lcmd=CMD_CON_SWAP;
-    if (consel!=-1 &&  vk_item && !vk_char &&  csprite && con_type==1 && con_cnt && !container[consel]) lcmd=CMD_CON_DROP;
-    if (consel!=-1 &&  vk_item && !vk_char &&  csprite && con_type==2 && con_cnt) lcmd=CMD_CON_SELL;
+        if (consel!=-1 &&  vk_item && !vk_char &&  csprite && con_type==1 && con_cnt &&  container[consel]) lcmd=CMD_CON_SWAP;
+        if (consel!=-1 &&  vk_item && !vk_char &&  csprite && con_type==1 && con_cnt && !container[consel]) lcmd=CMD_CON_DROP;
+        if (consel!=-1 &&  vk_item && !vk_char &&  csprite && con_type==2 && con_cnt) lcmd=CMD_CON_SELL;
+    }
 }
 
 static void set_cmd_states(void) {
@@ -1341,9 +1366,14 @@ static void set_cmd_states(void) {
         if (mapsel!=-1) rcmd=CMD_MAP_LOOK;
         if (itmsel!=-1) rcmd=CMD_ITM_LOOK;
         if (chrsel!=-1) rcmd=CMD_CHR_LOOK;
-        if (invsel!=-1) rcmd=CMD_INV_LOOK;
-        if (weasel!=-1) rcmd=CMD_WEA_LOOK;
-        if (consel!=-1) rcmd=CMD_CON_LOOK;
+        if (context_key_enabled()) {
+            if (invsel!=-1 && (item_flags[invsel]&IF_USE)) rcmd=CMD_INV_USE;
+            if (weasel!=-1 && (item_flags[weatab[weasel]]&IF_USE)) rcmd=CMD_WEA_USE;
+        } else {
+            if (invsel!=-1) rcmd=CMD_INV_LOOK;
+            if (weasel!=-1) rcmd=CMD_WEA_LOOK;
+            if (consel!=-1) rcmd=CMD_CON_LOOK;
+        }
         if (splsel!=-1) rcmd=CMD_SPL_SET_R;
     } else {
         if (mapsel!=-1) rcmd=CMD_MAP_CAST_R;
@@ -1638,6 +1668,7 @@ void gui_sdl_mouseproc(int x,int y,int what,int clicks) {
 
             if (butsel!=-1 && vk_lbut && (but[butsel].flags&BUTF_MOVEEXEC)) exec_cmd(lcmd,0);
 
+            hover_mouse_move(mousex,mousey);
             amod_mouse_move(mousex,mousey);
             break;
 
@@ -1682,7 +1713,6 @@ void gui_sdl_mouseproc(int x,int y,int what,int clicks) {
             vk_rbut=0;
             if (amod_mouse_click(mousex,mousey,what)) break;
             if (rcmd==CMD_MAP_LOOK && context_open(mousex,mousey)) break;
-            if (rcmd==CMD_INV_LOOK && context_open_inv(mousex,mousey,clicks)) break;
             context_stop();
             exec_cmd(rcmd,0);
             break;
