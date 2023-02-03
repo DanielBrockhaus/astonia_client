@@ -788,8 +788,8 @@ void sv_prof(unsigned char *buf) {
     update_skltab=1;
 }
 
-struct quest quest[MAXQUEST];
-struct shrine_ppd shrine;
+__declspec(dllexport) struct quest quest[MAXQUEST];
+__declspec(dllexport) struct shrine_ppd shrine;
 
 void sv_questlog(unsigned char *buf) {
     int size;

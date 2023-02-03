@@ -137,7 +137,8 @@ int questcmp(const void *a,const void *b) {
     return *va-*vb;
 }
 
-int do_display_random(void) {
+int (*do_display_random)(void)=_do_display_random;
+__declspec(dllexport) int _do_display_random(void) {
     int y=doty(DOT_HLP)+15,x,n,idx,bit,m;
     static short indec[10]={0,11,24,38,43,57,64,76,83,96};
     static short bribes[10]={0,15,22,34,48,54,67,78,86,93};

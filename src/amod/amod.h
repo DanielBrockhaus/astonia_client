@@ -90,6 +90,16 @@ __declspec(dllimport) char look_desc[1024];
 __declspec(dllimport) char pent_str[7][80];
 __declspec(dllimport) int pspeed;
 
+__declspec(dllimport) unsigned short int healthcolor,manacolor,endurancecolor,shieldcolor;
+__declspec(dllimport) unsigned short int whitecolor,lightgraycolor,graycolor,darkgraycolor,blackcolor;
+__declspec(dllimport) unsigned short int lightredcolor,redcolor,darkredcolor;
+__declspec(dllimport) unsigned short int lightgreencolor,greencolor,darkgreencolor;
+__declspec(dllimport) unsigned short int lightbluecolor,bluecolor,darkbluecolor;
+__declspec(dllimport) unsigned short int lightorangecolor,orangecolor,darkorangecolor;
+__declspec(dllimport) unsigned short int textcolor;
+
+__declspec(dllimport) struct quest quest[MAXQUEST];
+__declspec(dllimport) struct shrine_ppd shrine;
 
 // ---------------- override-able functions, also exported from client ----------------
 __declspec(dllimport) int _is_cut_sprite(int sprite);
@@ -108,6 +118,7 @@ __declspec(dllimport) int _opt_sprite(int sprite);
 __declspec(dllimport) int _get_skltab_sep(int i);
 __declspec(dllimport) int _get_skltab_index(int n);
 __declspec(dllimport) int _get_skltab_show(int i);
+__declspec(dllimport) int _do_display_random(void);
 
 // ------------ declarations for functions the mod might provide -------------------
 int is_cut_sprite(int sprite);
@@ -125,4 +136,6 @@ int opt_sprite(int sprite);
 int get_skltab_sep(int i);
 int get_skltab_index(int n);
 int get_skltab_show(int i);
+int do_display_random(void);
+
 

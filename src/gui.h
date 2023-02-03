@@ -64,3 +64,7 @@ void hover_capture_tick(void);
 void hover_invalidate_inv(int slot);
 void hover_invalidate_con(int slot);
 
+extern int (*do_display_random)(void);
+__declspec(dllexport) int _do_display_random(void);
+
+

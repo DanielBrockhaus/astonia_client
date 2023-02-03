@@ -38,6 +38,7 @@ int amod_init(void) {
 	dll_instance=LoadLibrary("bin\\amod.dll");
     if (!dll_instance) return 0;
 
+    // amod
     if ((tmp=GetProcAddress(dll_instance,"amod_init"))) _amod_init=tmp;
     if ((tmp=GetProcAddress(dll_instance,"amod_exit"))) _amod_exit=tmp;
     if ((tmp=GetProcAddress(dll_instance,"amod_gamestart"))) _amod_gamestart=tmp;
@@ -47,6 +48,7 @@ int amod_init(void) {
     if ((tmp=GetProcAddress(dll_instance,"amod_mouse_move"))) _amod_mouse_move=tmp;
     if ((tmp=GetProcAddress(dll_instance,"amod_mouse_click"))) _amod_mouse_click=tmp;
 
+    // client functions
     if ((tmp=GetProcAddress(dll_instance,"is_cut_sprite"))) is_cut_sprite=tmp;
     if ((tmp=GetProcAddress(dll_instance,"is_mov_sprite"))) is_mov_sprite=tmp;
     if ((tmp=GetProcAddress(dll_instance,"is_door_sprite"))) is_door_sprite=tmp;
@@ -62,7 +64,9 @@ int amod_init(void) {
     if ((tmp=GetProcAddress(dll_instance,"get_skltab_index"))) get_skltab_index=tmp;
     if ((tmp=GetProcAddress(dll_instance,"get_skltab_sep"))) get_skltab_sep=tmp;
     if ((tmp=GetProcAddress(dll_instance,"get_skltab_show"))) get_skltab_show=tmp;
+    if ((tmp=GetProcAddress(dll_instance,"do_display_random"))) do_display_random=tmp;
 
+    // client variables
     if ((tmp=GetProcAddress(dll_instance,"game_email_main"))) game_email_main=tmp;
     if ((tmp=GetProcAddress(dll_instance,"game_email_cash"))) game_email_cash=tmp;
     if ((tmp=GetProcAddress(dll_instance,"game_url"))) game_url=tmp;

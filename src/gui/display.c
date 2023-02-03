@@ -635,7 +635,7 @@ void display_exp(void) {
         }
 
         dd_push_clip();
-        dd_more_clip(0,0,dotx(DOT_TOP)+31+100-100*step/total,doty(DOT_TOP)+8+7);
+        dd_more_clip(0,0,dotx(DOT_TOP)+31+100-(int)(100ll*step/total),doty(DOT_TOP)+8+7);
         dd_copysprite(996,dotx(DOT_TOP)+31,doty(DOT_TOP)+7,exp_ticker?DDFX_BRIGHT:DDFX_NLIGHT,DD_NORMAL);
         dd_pop_clip();
 

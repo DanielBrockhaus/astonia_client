@@ -92,6 +92,8 @@ static int textlength(char *text) {
 int hover_capture_text(char *line) {
     int len;
 
+    while (isspace(*line)) line++;
+
     if (line[0]=='°' && line[1]=='c' && line[2]=='5' && last_look) {
         capture=1;
     }
@@ -122,7 +124,7 @@ void hover_invalidate_inv(int slot) {
 }
 
 void hover_invalidate_con(int slot) {
-    //hi[slot].valid_till=0;
+    hi[slot+INVENTORYSIZE].valid_till=0;
 }
 
 static void display_hover(void) {

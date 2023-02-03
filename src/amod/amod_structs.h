@@ -138,7 +138,8 @@
 #define SDL_MOUM_MDOWN      6
 #define SDL_MOUM_WHEEL      7
 
-
+#define MAXSHRINE	256
+#define MAXQUEST	100
 
 struct complex_sprite {
     unsigned int sprite;
@@ -414,5 +415,15 @@ union ceffect {
     struct cef_pulseback pulseback;
     struct cef_firering firering;
     struct cef_bubble bubble;
+};
+
+struct quest {
+    unsigned char done:6;
+    unsigned char flags:2;
+};
+
+struct shrine_ppd {
+    unsigned int used[MAXSHRINE/32];
+    unsigned char continuity;
 };
 

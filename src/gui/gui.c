@@ -50,13 +50,13 @@ int show_look=0;
 
 int gui_topoff;     // offset of the top bar *above* the top of the window (0 ... -38)
 
-unsigned short int healthcolor,manacolor,endurancecolor,shieldcolor;
-unsigned short int whitecolor,lightgraycolor,graycolor,darkgraycolor,blackcolor;
-unsigned short int lightredcolor,redcolor,darkredcolor;
-unsigned short int lightgreencolor,greencolor,darkgreencolor;
-unsigned short int lightbluecolor,bluecolor,darkbluecolor;
-unsigned short int textcolor;
-unsigned short int lightorangecolor,orangecolor,darkorangecolor;
+__declspec(dllexport) unsigned short int healthcolor,manacolor,endurancecolor,shieldcolor;
+__declspec(dllexport) unsigned short int whitecolor,lightgraycolor,graycolor,darkgraycolor,blackcolor;
+__declspec(dllexport) unsigned short int lightredcolor,redcolor,darkredcolor;
+__declspec(dllexport) unsigned short int lightgreencolor,greencolor,darkgreencolor;
+__declspec(dllexport) unsigned short int lightbluecolor,bluecolor,darkbluecolor;
+__declspec(dllexport) unsigned short int textcolor;
+__declspec(dllexport) unsigned short int lightorangecolor,orangecolor,darkorangecolor;
 
 unsigned int now;
 

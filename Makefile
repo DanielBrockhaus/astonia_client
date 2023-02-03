@@ -1,11 +1,10 @@
-all: bin/moac.exe bin/anicopy.exe bin/convert.exe
-# bin/amod.dll
+all: bin/moac.exe
 
 CC=gcc
 OPT=-O3
 CFLAGS=$(OPT) -ggdb -Wall -Wno-pointer-sign -Wno-char-subscripts
 LDFLAGS=$(OPT) -ggdb -Wl,-subsystem,windows
-#-Wl,-subsystem,windows
+
 LIBS = -lwsock32 -lws2_32 -lz -lpng -lsdl2 -lSDL2_mixer -lsdl2main -lzip
 
 OBJS	=		src/gui/gui.o src/client/client.o src/client/skill.o src/game/dd.o src/game/font.o\
@@ -69,6 +68,6 @@ distrib:
 
 
 amod:		bin/amod.dll bin/moac.exe
-
-
+convert:	bin/convert.exe
+anicopy:	bin/anicopy.exe
 
