@@ -1,17 +1,20 @@
 /*
  * Part of Astonia Mod (c) ModderMcModFace.
  *
- * Says Hello
+ * See https://brockhaus.org/modding.html
+ *
+ * Use "make amod" to build.
  *
  */
 
-#include <stdint.h>
-#include <stdio.h>
-
-#include "../../src/amod/amod.h"
 #if 0
 #include "bmod.c"
 #else
+
+#include <stdint.h>
+#include <stdio.h>
+#include "../../src/amod/amod.h"
+
 #include "strings.c"
 #include "ranks.c"
 #include "skills.c"

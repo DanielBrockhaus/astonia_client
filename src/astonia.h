@@ -15,7 +15,7 @@
 #define MPT             (1000/TICKS)            // milliseconds per tick
 #define MPF             (1000/FRAMES)           // milliseconds per frame
 
-#define DIST		25
+#define DIST		    25
 #define FDX             40      // width of a map tile
 #define FDY             20      // height of a map tile
 

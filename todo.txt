@@ -63,7 +63,6 @@ Notes:
 ------
 
 Releases:
-
 git commit -a -m ""
 git push
 git tag releasename
@@ -72,4 +71,7 @@ git push origin releasename
 
 Compress branch:
 git merge --squash <feature branch>
+
+Delete branch on remote
+git push origin --delete <branch>
 

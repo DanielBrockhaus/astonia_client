@@ -20,7 +20,7 @@ bin/moac.exe lib/moac.a &:	$(OBJS)
 bin/amod.dll:		src/amod/amod.o lib/moac.a
 			$(CC) $(LDFLAGS) -shared -o bin/amod.dll src/amod/amod.o lib/moac.a
 
-src/amod/amod.o:	src/amod/amod.c src/amod/amod.h
+src/amod/amod.o:	src/amod/amod.c src/amod/amod.h src/amod/amod_structs.h
 
 bin/anicopy.exe:	src/helper/anicopy.c
 			$(CC) -O3 -ggdb -Wall -o bin/anicopy.exe src/helper/anicopy.c
@@ -60,13 +60,15 @@ src/game/resource.o:	src/game/resource.rc src/game/resource.h res/moa3.ico
 			windres -F pe-x86-64 src/game/resource.rc src/game/resource.o
 
 clean:
-		rm src/client/*.o src/game/*.o src/gui/*.o helper/*.o src/sdl/*.o src/amod/*.o
-		rm bin/moac.exe bin/amod.dll
+		-rm src/client/*.o src/game/*.o src/gui/*.o helper/*.o src/sdl/*.o src/amod/*.o
+		-rm bin/*.exe bin/*.dll
 
 distrib:
 	ldd bin/moac.exe | grep mingw | awk 'NF == 4 { system("cp " $$3 " bin") }'
 	zip windows_client.zip -r bin res
 
+
+amod:		bin/amod.dll bin/moac.exe
 
 
 
