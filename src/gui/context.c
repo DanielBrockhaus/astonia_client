@@ -327,7 +327,6 @@ int context_click(int mx,int my) {
 
 static int keymode=0;
 int context_key(int key) {
-    int isel,csel;
 
     if (!(context_enabled&2)) return 0;
 
@@ -342,18 +341,104 @@ int context_key(int key) {
     }
     if (keymode) return 0;
 
-    csel=get_near_char(mousex,mousey,3);
-    isel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,3);
+    return 1;
+}
+
+static int lcmd_override=CMD_NONE;
+
+void context_key_reset(void) {
+    lcmd_override=CMD_NONE;
+}
+
+void context_keydown(int key) {
+
+    if (!(context_enabled&2)) return;
+    if (keymode) return;
 
     switch (key) {
-        case 'a':   cmd_some_spell(CL_FLASH,0,0,0); break;
-        case 's':   cmd_some_spell(CL_MAGICSHIELD,0,0,0); break;
-        case 'd':   if (isel!=-1) cmd_use(originx-MAPDX/2+isel%MAPDX,originy-MAPDY/2+isel/MAPDX);
-                    break;
-        case 'y':   if (csel!=-1) cmd_kill(map[csel].cn);
-                    break;
+        case 'a':   lcmd_override=CMD_CHR_ATTACK; break;
+        case 's':   lcmd_override=CMD_CHR_CAST_L; break;
+        case 'd':   lcmd_override=CMD_CHR_CAST_R; break;
+        case 'f':
+        case 'g':   lcmd_override=CMD_CHR_CAST_K; break;
+        case 'h':   lcmd_override=CMD_ITM_USE; break;
+
+        case 'q':   lcmd_override=CMD_MAP_CAST_L; break;
+        case 'w':   lcmd_override=CMD_MAP_CAST_R; break;
+        case 'e':
+        case 'r':
+        case 't':
+        case 'z':
+        case 'u':
+        case 'i':
+        case 'o':
+        case 'p':   lcmd_override=CMD_SLF_CAST_K; break;
+
     }
+}
+
+int context_key_set_cmd(void) {
+    if (!(context_enabled&2)) return 0;
+    if (keymode) return 0;
+    if (lcmd_override==CMD_NONE) return 0;
+
+    switch (lcmd_override) {
+        case CMD_CHR_ATTACK:
+        case CMD_CHR_CAST_L:
+        case CMD_CHR_CAST_R:
+        case CMD_CHR_CAST_K:    chrsel=get_near_char(mousex,mousey,3); break;
+        case CMD_MAP_CAST_L:
+        case CMD_MAP_CAST_R:    mapsel=get_near_ground(mousex,mousey); break;
+
+        case CMD_ITM_USE:
+        case CMD_ITM_TAKE:
+            itmsel=get_near_item(mousex,mousey,CMF_TAKE|CMF_USE,3);
+            if (itmsel==-1) break;
+            if (map[itmsel].flags&CMF_TAKE) lcmd_override=CMD_ITM_TAKE;
+            else if (map[itmsel].flags&CMF_USE) lcmd_override=CMD_ITM_USE;
+            break;
+    }
+    lcmd=lcmd_override;
+
     return 1;
+}
+
+void context_keyup(int key) {
+    int csel,isel,msel;
+
+    lcmd_override=CMD_NONE;
+
+    if (!(context_enabled&2)) return;
+    if (keymode) return;
+
+    csel=get_near_char(mousex,mousey,3);
+    isel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,3);
+    msel=get_near_ground(mousex,mousey);
+
+    switch (key) {
+        case 'a':   if (csel!=-1) cmd_kill(map[csel].cn); break;
+        case 's':   if (csel!=-1) cmd_some_spell(CL_FIREBALL,0,0,map[csel].cn); break;
+        case 'd':   if (csel!=-1) cmd_some_spell(CL_BALL,0,0,map[csel].cn); break;
+        case 'f':   if (csel!=-1) cmd_some_spell(CL_BLESS,0,0,map[csel].cn); break;
+        case 'g':   if (csel!=-1) cmd_some_spell(CL_HEAL,0,0,map[csel].cn); break;
+        case 'h':
+            if (isel!=-1) {
+                if (map[isel].flags&CMF_TAKE) cmd_take(originx-MAPDX/2+isel%MAPDX,originy-MAPDY/2+isel/MAPDX);
+                else if (map[isel].flags&CMF_USE) cmd_use(originx-MAPDX/2+isel%MAPDX,originy-MAPDY/2+isel/MAPDX);
+            }
+            break;
+
+        case 'q':   if (msel!=-1) cmd_some_spell(CL_FIREBALL,originx-MAPDX/2+msel%MAPDX,originy-MAPDY/2+msel/MAPDX,0); break;
+        case 'w':   if (msel!=-1) cmd_some_spell(CL_BALL,originx-MAPDX/2+msel%MAPDX,originy-MAPDY/2+msel/MAPDX,0); break;
+        case 'e':   cmd_some_spell(CL_FLASH,0,0,map[plrmn].cn); break;
+        case 'r':   cmd_some_spell(CL_FREEZE,0,0,map[plrmn].cn); break;
+        case 't':   cmd_some_spell(CL_MAGICSHIELD,0,0,map[plrmn].cn); break;
+        case 'z':   cmd_some_spell(CL_BLESS,0,0,map[plrmn].cn); break;
+        case 'u':   cmd_some_spell(CL_HEAL,0,0,map[plrmn].cn); break;
+        case 'i':   cmd_some_spell(CL_WARCRY,0,0,map[plrmn].cn); break;
+        case 'o':   cmd_some_spell(CL_PULSE,0,0,map[plrmn].cn); break;
+        case 'p':   cmd_some_spell(CL_FIREBALL,0,0,map[plrmn].cn); break;
+    }
 }
 
 int context_key_set(int onoff) {
@@ -373,4 +458,6 @@ int context_key_enabled(void) {
     return(context_enabled&2);
 }
 
-
+int context_action_enabled(void) {
+    return(context_enabled&4);
+}

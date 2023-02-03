@@ -118,14 +118,16 @@ int chrsel;                     // mn
 int invsel;                     // index into item
 int weasel;                     // index into weatab
 int consel;                     // index into item
-int splsel;
 int sklsel;
 int butsel;                     // is always set, if any of the others is set
 int telsel;
 int helpsel;
 int questsel;
 int colsel;
+int actsel;
 int skl_look_sel;
+
+int action_ovr=-1;
 
 int capbut=-1;                  // the button capturing the mouse
 
@@ -143,10 +145,6 @@ int skloff,max_skloff;
 
 int lcmd;
 int rcmd;
-
-int curspell_l=4;               // index into spelltab
-int curspell_r=6;               // index into spelltab
-
 
 // transformation
 
@@ -497,6 +495,7 @@ static void display(void) {
     display_rage();
     display_game_special();
     display_tutor();
+    display_action();
     display_citem();
     context_display(mousex,mousey);
     display_helpandquest(); // display last because it is on top
@@ -739,8 +738,6 @@ static void set_cmd_cursor(int cmd) {
         case CMD_MAP_CAST_R:    cursor=SDL_CUR_c_spell; break;
         case CMD_ITM_CAST_R:    cursor=SDL_CUR_c_spell; break;
         case CMD_CHR_CAST_R:    cursor=SDL_CUR_c_spell; break;
-        case CMD_SPL_SET_L:     cursor=SDL_CUR_c_set; break;
-        case CMD_SPL_SET_R:     cursor=SDL_CUR_c_set; break;
 
         case CMD_SKL_RAISE:     cursor=SDL_CUR_c_raise; break;
 
@@ -773,6 +770,8 @@ static void set_cmd_cursor(int cmd) {
         case CMD_NOLOOK:	    cursor=SDL_CUR_c_use; break;
 
         case CMD_COLOR:		    cursor=SDL_CUR_c_use; break;
+
+        case CMD_ACTION:        cursor=SDL_CUR_c_use; break;
 
         default:                cursor=SDL_CUR_c_only; break;
     }
@@ -1231,7 +1230,7 @@ static void set_cmd_states(void) {
     }
 
     // reset
-    butsel=mapsel=itmsel=chrsel=invsel=weasel=consel=splsel=sklsel=telsel=helpsel=colsel=skl_look_sel=questsel=-1;
+    butsel=mapsel=itmsel=chrsel=invsel=weasel=consel=sklsel=telsel=helpsel=colsel=skl_look_sel=questsel=actsel=-1;
 
     // hit teleport?
     telsel=get_teleport(mousex,mousey);
@@ -1281,13 +1280,19 @@ static void set_cmd_states(void) {
 
     if (show_look && mousex>=dotx(DOT_LOK)+493 && mousex<=dotx(DOT_LOK)+500 && mousey>=doty(DOT_LOK)+3 && mousey<=doty(DOT_LOK)+10) butsel=BUT_NOLOOK;
 
+    if (butsel==-1 && context_action_enabled()) {
+        butsel=get_near_button(mousex,mousey);
+        if (butsel>=BUT_ACT_BEG && butsel<=BUT_ACT_END && has_action_skill(butsel-BUT_ACT_BEG)) actsel=butsel-BUT_ACT_BEG;
+        else butsel=-1;
+    }
+
     // hit map
     if (!hitsel[0] && butsel==-1 && mousex>=dotx(DOT_MTL) && mousey>=doty(DOT_MTL) && doty(DOT_MBR) && mousey<doty(DOT_MBR)) {
-        if (vk_char) chrsel=get_near_char(mousex,mousey,MAPDX);
-        if (chrsel==-1 && vk_item) itmsel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,MAPDX);
-        if (chrsel==-1 && itmsel==-1 && !vk_char && (!vk_item || csprite)) mapsel=get_near_ground(mousex,mousey);
+            if (vk_char || (action_ovr!=-1 && (action_ovr!=11 || csprite))) chrsel=get_near_char(mousex,mousey,MAPDX);
+            if (chrsel==-1 && (vk_item || action_ovr==11)) itmsel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,csprite?0:MAPDX);
+            if (chrsel==-1 && itmsel==-1 && !vk_char && (!vk_item || csprite)) mapsel=get_near_ground(mousex,mousey);
 
-        if (mapsel!=-1 || itmsel!=-1 || chrsel!=-1)  butsel=BUT_MAP;
+            if (mapsel!=-1 || itmsel!=-1 || chrsel!=-1)  butsel=BUT_MAP;
     }
 
     if (!hitsel[0] && butsel==-1) {
@@ -1303,23 +1308,39 @@ static void set_cmd_states(void) {
     // set lcmd
     lcmd=CMD_NONE;
 
-    if (mapsel!=-1 && !vk_item && !vk_char) lcmd=CMD_MAP_MOVE;
-    if (mapsel!=-1 &&  vk_item && !vk_char && csprite) lcmd=CMD_MAP_DROP;
+    if (context_key_set_cmd()) ;
+    else if (action_ovr!=-1) {
+        if (action_ovr==0 && chrsel!=-1) lcmd=CMD_CHR_ATTACK;
+        if (action_ovr==1 && chrsel!=-1) lcmd=CMD_CHR_CAST_L;
+        if (action_ovr==2 && chrsel!=-1) lcmd=CMD_CHR_CAST_R;
+        if (action_ovr==11) {
+            if (itmsel!=-1) {
+                if (map[itmsel].flags&CMF_USE) {
+                    if (csprite) lcmd=CMD_ITM_USE_WITH;
+                    else lcmd=CMD_ITM_USE;
+                } else if (map[itmsel].flags&CMF_TAKE)
+                    lcmd=CMD_ITM_TAKE;
+            } else if (chrsel!=-1 && csprite) lcmd=CMD_CHR_GIVE;
+        }
+    } else {
+        if (mapsel!=-1 && !vk_item && !vk_char) lcmd=CMD_MAP_MOVE;
+        if (mapsel!=-1 &&  vk_item && !vk_char && csprite) lcmd=CMD_MAP_DROP;
 
-    if (itmsel!=-1 &&  vk_item && !vk_char && !csprite && map[itmsel].flags&CMF_USE) lcmd=CMD_ITM_USE;
-    if (itmsel!=-1 &&  vk_item && !vk_char && !csprite && map[itmsel].flags&CMF_TAKE) lcmd=CMD_ITM_TAKE;
-    if (itmsel!=-1 &&  vk_item && !vk_char &&  csprite && map[itmsel].flags&CMF_USE) lcmd=CMD_ITM_USE_WITH;
+        if (itmsel!=-1 &&  vk_item && !vk_char && !csprite && map[itmsel].flags&CMF_USE) lcmd=CMD_ITM_USE;
+        if (itmsel!=-1 &&  vk_item && !vk_char && !csprite && map[itmsel].flags&CMF_TAKE) lcmd=CMD_ITM_TAKE;
+        if (itmsel!=-1 &&  vk_item && !vk_char &&  csprite && map[itmsel].flags&CMF_USE) lcmd=CMD_ITM_USE_WITH;
 
-    if (chrsel!=-1 && !vk_item &&  vk_char && !csprite) lcmd=CMD_CHR_ATTACK;
-    if (chrsel!=-1 && !vk_item &&  vk_char &&  csprite) lcmd=CMD_CHR_GIVE;
+        if (chrsel!=-1 && !vk_item &&  vk_char && !csprite) lcmd=CMD_CHR_ATTACK;
+        if (chrsel!=-1 && !vk_item &&  vk_char &&  csprite) lcmd=CMD_CHR_GIVE;
+    }
 
     set_cmd_invsel();
     set_cmd_weasel();
     set_cmd_consel();
 
-    if (splsel!=-1 && !vk_item && !vk_char) lcmd=CMD_SPL_SET_L;
     if (telsel!=-1) lcmd=CMD_TELEPORT;
     if (colsel!=-1) lcmd=CMD_COLOR;
+    if (actsel!=-1) lcmd=CMD_ACTION;
 
     if (lcmd==CMD_NONE) {
         if (butsel==BUT_SCR_UP) lcmd=CMD_INV_OFF_UP;
@@ -1356,34 +1377,31 @@ static void set_cmd_states(void) {
         if (butsel==BUT_NOLOOK) lcmd=CMD_NOLOOK;
     }
 
-
     // set rcmd
     rcmd=CMD_NONE;
-
-    skl_look_sel=get_skl_look(mousex,mousey);
-    if (con_cnt==0 && skl_look_sel!=-1) rcmd=CMD_SKL_LOOK;
-    else if (!vk_spell) {
-        if (mapsel!=-1) rcmd=CMD_MAP_LOOK;
-        if (itmsel!=-1) rcmd=CMD_ITM_LOOK;
-        if (chrsel!=-1) rcmd=CMD_CHR_LOOK;
-        if (context_key_enabled()) {
-            if (invsel!=-1 && (item_flags[invsel]&IF_USE)) rcmd=CMD_INV_USE;
-            if (weasel!=-1 && (item_flags[weatab[weasel]]&IF_USE)) rcmd=CMD_WEA_USE;
+    if (action_ovr==-1) {
+        skl_look_sel=get_skl_look(mousex,mousey);
+        if (con_cnt==0 && skl_look_sel!=-1) rcmd=CMD_SKL_LOOK;
+        else if (!vk_spell) {
+            if (mapsel!=-1) rcmd=CMD_MAP_LOOK;
+            if (itmsel!=-1) rcmd=CMD_ITM_LOOK;
+            if (chrsel!=-1) rcmd=CMD_CHR_LOOK;
+            if (context_key_enabled()) {
+                if (invsel!=-1 && (item_flags[invsel]&IF_USE)) rcmd=CMD_INV_USE;
+                if (weasel!=-1 && (item_flags[weatab[weasel]]&IF_USE)) rcmd=CMD_WEA_USE;
+            } else {
+                if (invsel!=-1) rcmd=CMD_INV_LOOK;
+                if (weasel!=-1) rcmd=CMD_WEA_LOOK;
+                if (consel!=-1) rcmd=CMD_CON_LOOK;
+            }
         } else {
-            if (invsel!=-1) rcmd=CMD_INV_LOOK;
-            if (weasel!=-1) rcmd=CMD_WEA_LOOK;
-            if (consel!=-1) rcmd=CMD_CON_LOOK;
+            if (mapsel!=-1) rcmd=CMD_MAP_CAST_R;
+            if (itmsel!=-1) rcmd=CMD_ITM_CAST_R;
+            if (chrsel!=-1) rcmd=CMD_CHR_CAST_R;
         }
-        if (splsel!=-1) rcmd=CMD_SPL_SET_R;
-    } else {
-        if (mapsel!=-1) rcmd=CMD_MAP_CAST_R;
-        if (itmsel!=-1) rcmd=CMD_ITM_CAST_R;
-        if (chrsel!=-1) rcmd=CMD_CHR_CAST_R;
-        if (splsel!=-1) rcmd=CMD_SPL_SET_R;
-    }
+    } else rcmd=CMD_ACTION_CANCEL;
 
     // set cursor
-
     if (vk_rbut) set_cmd_cursor(rcmd);
     else set_cmd_cursor(lcmd);
 }
@@ -1410,7 +1428,27 @@ void help_drag(void) {
     mousedx=mousedy=0;
 }
 
+static void cmd_action(void) {
+    switch (actsel) {
+        case 0:
+        case 1:
+        case 2:     action_ovr=actsel; break;
+        case 3:     cmd_some_spell(CL_FLASH,0,0,map[plrmn].cn); break;
+        case 4:     cmd_some_spell(CL_FREEZE,0,0,map[plrmn].cn); break;
+        case 5:     cmd_some_spell(CL_MAGICSHIELD,0,0,map[plrmn].cn); break;
+        case 6:     cmd_some_spell(CL_BLESS,0,0,map[plrmn].cn); break;
+        case 7:     cmd_some_spell(CL_HEAL,0,0,map[plrmn].cn); break;
+        case 8:     cmd_some_spell(CL_WARCRY,0,0,map[plrmn].cn); break;
+        case 9:     cmd_some_spell(CL_PULSE,0,0,map[plrmn].cn); break;
+        case 10:    cmd_some_spell(CL_FIREBALL,0,0,map[plrmn].cn); break;
+        case 11:    action_ovr=actsel; break;
+    }
+}
+
 static void exec_cmd(int cmd,int a) {
+    action_ovr=-1;
+    context_key_reset();
+
     switch (cmd) {
         case CMD_NONE:          return;
 
@@ -1454,19 +1492,16 @@ static void exec_cmd(int cmd,int a) {
         case CMD_WEA_LOOK:      cmd_look_inv(weatab[weasel]); return;
         case CMD_CON_LOOK:      cmd_look_con(consel); return;
 
-        case CMD_MAP_CAST_L:    cmd_some_spell(/*spelltab[curspell_l].cl*/CL_FIREBALL,originx-MAPDX/2+mapsel%MAPDX,originy-MAPDY/2+mapsel/MAPDX,0); break;
-        case CMD_ITM_CAST_L:    cmd_some_spell(/*spelltab[curspell_l].cl*/CL_FIREBALL,originx-MAPDX/2+itmsel%MAPDX,originy-MAPDY/2+itmsel/MAPDX,0); break;
-        case CMD_CHR_CAST_L:    cmd_some_spell(/*spelltab[curspell_l].cl*/CL_FIREBALL,0,0,map[chrsel].cn); break;
-        case CMD_MAP_CAST_R:    cmd_some_spell(/*spelltab[curspell_r].cl*/CL_BALL,originx-MAPDX/2+mapsel%MAPDX,originy-MAPDY/2+mapsel/MAPDX,0); break;
-        case CMD_ITM_CAST_R:    cmd_some_spell(/*spelltab[curspell_r].cl*/CL_BALL,originx-MAPDX/2+itmsel%MAPDX,originy-MAPDY/2+itmsel/MAPDX,0); break;
-        case CMD_CHR_CAST_R:    cmd_some_spell(/*spelltab[curspell_r].cl*/CL_BALL,0,0,map[chrsel].cn); break;
+        case CMD_MAP_CAST_L:    cmd_some_spell(CL_FIREBALL,originx-MAPDX/2+mapsel%MAPDX,originy-MAPDY/2+mapsel/MAPDX,0); break;
+        case CMD_ITM_CAST_L:    cmd_some_spell(CL_FIREBALL,originx-MAPDX/2+itmsel%MAPDX,originy-MAPDY/2+itmsel/MAPDX,0); break;
+        case CMD_CHR_CAST_L:    cmd_some_spell(CL_FIREBALL,0,0,map[chrsel].cn); break;
+        case CMD_MAP_CAST_R:    cmd_some_spell(CL_BALL,originx-MAPDX/2+mapsel%MAPDX,originy-MAPDY/2+mapsel/MAPDX,0); break;
+        case CMD_ITM_CAST_R:    cmd_some_spell(CL_BALL,originx-MAPDX/2+itmsel%MAPDX,originy-MAPDY/2+itmsel/MAPDX,0); break;
+        case CMD_CHR_CAST_R:    cmd_some_spell(CL_BALL,0,0,map[chrsel].cn); break;
 
         case CMD_SLF_CAST_K:	cmd_some_spell(a,0,0,map[plrmn].cn); break;
         case CMD_MAP_CAST_K:    cmd_some_spell(a,originx-MAPDX/2+mapsel%MAPDX,originy-MAPDY/2+mapsel/MAPDX,0); break;
         case CMD_CHR_CAST_K:    cmd_some_spell(a,0,0,map[chrsel].cn); break;
-
-        case CMD_SPL_SET_L:     curspell_l=splsel; break;
-        case CMD_SPL_SET_R:     curspell_r=splsel; break;
 
         case CMD_SKL_RAISE:     cmd_raise(skltab[sklsel].v); break;
 
@@ -1525,6 +1560,8 @@ static void exec_cmd(int cmd,int a) {
         case CMD_EXIT:		quit=1; return;
         case CMD_NOLOOK:	show_look=0; return;
 
+        case CMD_ACTION:    cmd_action(); return;
+        case CMD_ACTION_CANCEL: return; // action gets cancelled on top
     }
     return;
 }
@@ -1534,7 +1571,8 @@ void gui_sdl_keyproc(int wparam) {
 
     switch (wparam) {
 
-        case SDLK_ESCAPE:       cmd_stop(); context_stop(); show_look=0; display_gfx=0; teleporter=0; show_tutor=0; display_help=0; display_quest=0; show_color=0; return;
+        case SDLK_ESCAPE:       cmd_stop(); context_stop(); show_look=0; display_gfx=0; teleporter=0; show_tutor=0; display_help=0; display_quest=0; show_color=0;
+                                context_key_reset(); action_ovr=-1; return;
         case SDLK_F1:           if (fkeyitem[0]) exec_cmd(CMD_USE_FKEYITEM,0); return;
         case SDLK_F2:           if (fkeyitem[1]) exec_cmd(CMD_USE_FKEYITEM,1); return;
         case SDLK_F3:           if (fkeyitem[2]) exec_cmd(CMD_USE_FKEYITEM,2); return;
@@ -1616,7 +1654,10 @@ void gui_sdl_keyproc(int wparam) {
         case 'y':
         case 'z':
             spellbindkey:
-            if (!vk_item && !vk_char && !vk_spell) return;
+            if (!vk_item && !vk_char && !vk_spell) {
+                context_keydown(wparam);
+                return;
+            }
 
             wparam=toupper(wparam);
 

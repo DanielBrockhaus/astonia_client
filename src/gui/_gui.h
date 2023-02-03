@@ -14,18 +14,6 @@
 #define FX_ITEMBRIGHT           DDFX_BRIGHT
 #define DOTF_TOPOFF     (1<<0)  // dot moves with top bar
 
-#define BUTID_MAP       0
-#define BUTID_WEA       1
-#define BUTID_INV       2
-#define BUTID_CON       3
-#define BUTID_SCL       4
-#define BUTID_SCR       5
-#define BUTID_SKL       6
-#define BUTID_GLD       7
-#define BUTID_JNK       8
-#define BUTID_MOD       9
-#define BUTID_TELE	10
-
 #define BUT_MAP         0
 #define BUT_WEA_BEG     1
 #define BUT_WEA_END     12
@@ -59,7 +47,11 @@
 #define BUT_SKL_LOOK	81
 #define BUT_QUEST	    82
 #define BUT_HELP_DRAG   83
-#define MAX_BUT         84
+
+#define BUT_ACT_BEG     84
+#define BUT_ACT_END     95
+
+#define MAX_BUT         96
 
 #define BUTF_NOHIT      (1<<1)  // button is ignored int hit processing
 #define BUTF_CAPTURE    (1<<2)  // button captures mouse on lclick
@@ -124,8 +116,8 @@
 #define CMD_CHR_CAST_K        	36
 #define CMD_SLF_CAST_K        	37
 
-#define CMD_SPL_SET_L           38
-#define CMD_SPL_SET_R           39
+//#define CMD_SPL_SET_L           38
+//#define CMD_SPL_SET_R           39
 
 #define CMD_SKL_RAISE           40
 
@@ -173,6 +165,9 @@
 #define CMD_QUEST		        75
 #define CMD_HELP_DRAG           76
 
+#define CMD_ACTION              77
+#define CMD_ACTION_CANCEL       78
+
 #define STV_EMPTYLINE           -1
 #define STV_JUSTAVALUE          -2      // value is in curr
 
@@ -192,8 +187,8 @@ typedef struct dot DOT;
 struct but {
     int flags;      // flags
 
-    int id;         // something an application can give a button, but it need not ;-)
-    int val;        // something an application can give a button, but it need not ;-)
+    //int id;         // something an application can give a button, but it need not ;-)
+    //int val;        // something an application can give a button, but it need not ;-)
 
     int x;          // center x coordinate - or left if button is a RECT
     int y;          // center y coordinate - or top if button is a RECT
@@ -246,14 +241,15 @@ extern int plrmn;                      // mn of player
 extern int invsel;                     // index into item
 extern int weasel;                     // index into weatab
 extern int consel;                     // index into item
-extern int splsel;
 extern int sklsel;
 extern int butsel;                     // is always set, if any of the others is set
 extern int telsel;
 extern int helpsel;
 extern int questsel;
 extern int colsel;
+extern int actsel;
 extern int skl_look_sel;
+extern int action_ovr;                  // action bar overrides other functions
 
 extern int weatab[12];
 extern char weaname[12][32];
@@ -313,6 +309,8 @@ void display_military(void);
 void display_rage(void);
 void display_game_special(void);
 int do_display_questlog(int nr);
+void display_action(void);
+int has_action_skill(int i);
 
 void display_teleport(void);
 int get_teleport(int x,int y);
@@ -332,10 +330,15 @@ void context_display(int mx,int my);
 void context_stop(void);
 int context_click(int mx,int my);
 int context_key(int key);
+void context_keydown(int key);
+void context_keyup(int key);
 int context_key_set(int onoff);
 int context_key_isset(void);
 int context_key_isset(void);
 int context_key_enabled(void);
+int context_action_enabled(void);
+int context_key_set_cmd(void);
+void context_key_reset(void);
 
 extern char hover_bless_text[];
 extern char hover_freeze_text[];

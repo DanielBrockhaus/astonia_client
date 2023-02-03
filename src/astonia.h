@@ -101,7 +101,8 @@
 #define DOT_COL         26      // color picker top left
 #define DOT_LOK         27      // look at character window (show_look), top left
 #define DOT_BO2         28      // bottom right of bottom window
-#define MAX_DOT         29
+#define DOT_ACT         29      // action bar top left
+#define MAX_DOT         30
 
 extern int __yres;
 extern int quit;

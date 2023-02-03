@@ -36,13 +36,10 @@ __declspec(dllexport) int doty(int didx) {
     return dot[didx].y;
 }
 
-void set_but(int bidx,int x,int y,int hitrad,int id,int val,int flags) {
+void set_but(int bidx,int x,int y,int hitrad,int flags) {
     PARANOIA(if (bidx<0 || bidx>=MAX_BUT) paranoia("set_but: ill bidx=%d",bidx); )
 
     but[bidx].flags=flags;
-
-    but[bidx].id=id;
-    but[bidx].val=val;
 
     but[bidx].x=x;
     but[bidx].y=y;
@@ -124,33 +121,37 @@ void init_dots(void) {
     // color picker window
     set_dot(DOT_COL,340,210,0);
 
+    // action bar
+    set_dot(DOT_ACT,180,YRES-190,0);
+
     // buts
     but=xmalloc(MAX_BUT*sizeof(BUT),MEM_GUI);
 
-    set_but(BUT_MAP,XRES/2,YRES/2,0,BUTID_MAP,0,BUTF_NOHIT);
+    set_but(BUT_MAP,XRES/2,YRES/2,0,BUTF_NOHIT);
 
     // note to self: do not use dotx(),doty() here because the moving top bar logic is built into the
     // button flags as well
-    for (i=0; i<12; i++) set_but(BUT_WEA_BEG+i,dot[DOT_WEA].x+i*FDX,dot[DOT_WEA].y+0,40,BUTID_WEA,0,YRES==YRES0 ? 0 : BUTF_TOPOFF);
-    for (x=0; x<4; x++) for (y=0; y<4; y++) set_but(BUT_INV_BEG+x+y*4,dot[DOT_INV].x+x*FDX,dot[DOT_INV].y+y*FDX,40,BUTID_INV,0,0);
-    for (x=0; x<4; x++) for (y=0; y<4; y++) set_but(BUT_CON_BEG+x+y*4,dot[DOT_CON].x+x*FDX,dot[DOT_CON].y+y*FDX,40,BUTID_CON,0,0);
-    for (i=0; i<16; i++) set_but(BUT_SKL_BEG+i,dot[DOT_SKL].x,dot[DOT_SKL].y+i*LINEHEIGHT,40,BUTID_SKL,0,0);
+    for (i=0; i<12; i++) set_but(BUT_WEA_BEG+i,dot[DOT_WEA].x+i*FDX,dot[DOT_WEA].y+0,40,YRES==YRES0 ? 0 : BUTF_TOPOFF);
+    for (x=0; x<4; x++) for (y=0; y<4; y++) set_but(BUT_INV_BEG+x+y*4,dot[DOT_INV].x+x*FDX,dot[DOT_INV].y+y*FDX,40,0);
+    for (x=0; x<4; x++) for (y=0; y<4; y++) set_but(BUT_CON_BEG+x+y*4,dot[DOT_CON].x+x*FDX,dot[DOT_CON].y+y*FDX,40,0);
+    for (i=0; i<16; i++) set_but(BUT_SKL_BEG+i,dot[DOT_SKL].x,dot[DOT_SKL].y+i*LINEHEIGHT,40,0);
+    for (i=0; i<12; i++) set_but(BUT_ACT_BEG+i,dot[DOT_ACT].x+i*40,dot[DOT_ACT].y,18,0);
 
-    set_but(BUT_SCL_UP,dot[DOT_SCL].x+0,dot[DOT_SCU].y+0,30,BUTID_SCL,0,0);
-    set_but(BUT_SCL_TR,dot[DOT_SCL].x+0,dot[DOT_SCU].y+10,40,BUTID_SCL,0,BUTF_CAPTURE|BUTF_MOVEEXEC);
-    set_but(BUT_SCL_DW,dot[DOT_SCL].x+0,dot[DOT_SCD].y+0,30,BUTID_SCL,0,0);
+    set_but(BUT_SCL_UP,dot[DOT_SCL].x+0,dot[DOT_SCU].y+0,30,0);
+    set_but(BUT_SCL_TR,dot[DOT_SCL].x+0,dot[DOT_SCU].y+10,40,BUTF_CAPTURE|BUTF_MOVEEXEC);
+    set_but(BUT_SCL_DW,dot[DOT_SCL].x+0,dot[DOT_SCD].y+0,30,0);
 
-    set_but(BUT_SCR_UP,dot[DOT_SCR].x+0,dot[DOT_SCU].y+0,30,BUTID_SCR,0,0);
-    set_but(BUT_SCR_TR,dot[DOT_SCR].x+0,dot[DOT_SCU].y+10,40,BUTID_SCR,0,BUTF_CAPTURE|BUTF_MOVEEXEC);
-    set_but(BUT_SCR_DW,dot[DOT_SCR].x+0,dot[DOT_SCD].y+0,30,BUTID_SCR,0,0);
+    set_but(BUT_SCR_UP,dot[DOT_SCR].x+0,dot[DOT_SCU].y+0,30,0);
+    set_but(BUT_SCR_TR,dot[DOT_SCR].x+0,dot[DOT_SCU].y+10,40,BUTF_CAPTURE|BUTF_MOVEEXEC);
+    set_but(BUT_SCR_DW,dot[DOT_SCR].x+0,dot[DOT_SCD].y+0,30,0);
 
-    set_but(BUT_GLD,dot[DOT_GLD].x+0,dot[DOT_GLD].y+0,30,BUTID_GLD,0,BUTF_CAPTURE);
+    set_but(BUT_GLD,dot[DOT_GLD].x+0,dot[DOT_GLD].y+0,30,BUTF_CAPTURE);
 
-    set_but(BUT_JNK,dot[DOT_JNK].x+0,dot[DOT_JNK].y+0,30,BUTID_JNK,0,0);
+    set_but(BUT_JNK,dot[DOT_JNK].x+0,dot[DOT_JNK].y+0,30,0);
 
-    set_but(BUT_MOD_WALK0,dot[DOT_MOD].x+1*14,dot[DOT_MOD].y+0*30,30,BUTID_MOD,0,0);
-    set_but(BUT_MOD_WALK1,dot[DOT_MOD].x+0*14,dot[DOT_MOD].y+0*30,30,BUTID_MOD,0,0);
-    set_but(BUT_MOD_WALK2,dot[DOT_MOD].x+2*14,dot[DOT_MOD].y+0*30,30,BUTID_MOD,0,0);
-    set_but(BUT_HELP_DRAG,(dotx(DOT_HLP)+dotx(DOT_HL2))/2,doty(DOT_HLP)+6,0,0,0,BUTF_CAPTURE|BUTF_MOVEEXEC);
+    set_but(BUT_MOD_WALK0,dot[DOT_MOD].x+1*14,dot[DOT_MOD].y+0*30,30,0);
+    set_but(BUT_MOD_WALK1,dot[DOT_MOD].x+0*14,dot[DOT_MOD].y+0*30,30,0);
+    set_but(BUT_MOD_WALK2,dot[DOT_MOD].x+2*14,dot[DOT_MOD].y+0*30,30,0);
+    set_but(BUT_HELP_DRAG,(dotx(DOT_HLP)+dotx(DOT_HL2))/2,doty(DOT_HLP)+6,0,BUTF_CAPTURE|BUTF_MOVEEXEC);
 }
 

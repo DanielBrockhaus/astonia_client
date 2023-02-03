@@ -459,14 +459,13 @@ void display_tutor(void) {
 
     if (!show_tutor) return;
 
-    // TODO: test me
-    dd_rect(dotx(DOT_BOT)+220,doty(DOT_BOT)-90,dotx(DOT_BOT)+630,doty(DOT_BOT)-10,IRGB(24,22,16));
-    dd_line(dotx(DOT_BOT)+220,doty(DOT_BOT)-90,dotx(DOT_BOT)+630,doty(DOT_BOT)-90,IRGB(12,10,4));
-    dd_line(dotx(DOT_BOT)+630,doty(DOT_BOT)-90,dotx(DOT_BOT)+630,doty(DOT_BOT)-10,IRGB(12,10,4));
-    dd_line(dotx(DOT_BOT)+220,doty(DOT_BOT)-10,dotx(DOT_BOT)+360,doty(DOT_BOT)-10,IRGB(12,10,4));
-    dd_line(dotx(DOT_BOT)+220,doty(DOT_BOT)-90,dotx(DOT_BOT)+220,doty(DOT_BOT)-10,IRGB(12,10,4));
+    dd_rect(dotx(DOT_BOT)+220,doty(DOT_BOT)-140,dotx(DOT_BOT)+630,doty(DOT_BOT)-50,IRGB(24,22,16));
+    dd_line(dotx(DOT_BOT)+220,doty(DOT_BOT)-140,dotx(DOT_BOT)+630,doty(DOT_BOT)-140,IRGB(12,10,4));
+    dd_line(dotx(DOT_BOT)+630,doty(DOT_BOT)-140,dotx(DOT_BOT)+630,doty(DOT_BOT)-50,IRGB(12,10,4));
+    dd_line(dotx(DOT_BOT)+220,doty(DOT_BOT)-50,dotx(DOT_BOT)+360,doty(DOT_BOT)-50,IRGB(12,10,4));
+    dd_line(dotx(DOT_BOT)+220,doty(DOT_BOT)-140,dotx(DOT_BOT)+220,doty(DOT_BOT)-50,IRGB(12,10,4));
 
-    x=dotx(DOT_BOT)+224; y=doty(DOT_BOT)-86; ptr=tutor_text;
+    x=dotx(DOT_BOT)+224; y=doty(DOT_BOT)-136; ptr=tutor_text;
     while (*ptr) {
         while (*ptr==' ') ptr++;
         while (*ptr=='$') {
@@ -773,6 +772,67 @@ void display_game_special(void) {
         // TODO: this is used to display the maps in earth underground
         // needs testing.
         default:	dd_copysprite(display_gfx,550,210,14,0); break;
+    }
+}
+
+static char action_row[2][12]={
+    "asd   fg   h",
+    " qwertzuiop "
+};
+static char *action_text[12]={
+    "Attack",
+    "Fireball",
+    "Lightning Ball",
+    "Flash",
+    "Freeze",
+    "Magic Shield",
+    "Bless",
+    "Heal",
+    "Warcry",
+    "Pulse",
+    "Firering",
+    "Take/Use"
+};
+
+static int action_skill[12]={
+    V_PERCEPT,
+    V_FIREBALL,
+    V_FLASH,
+    V_FLASH,
+    V_FREEZE,
+    V_MAGICSHIELD,
+    V_BLESS,
+    V_HEAL,
+    V_WARCRY,
+    V_PULSE,
+    V_FIREBALL,
+    V_PERCEPT
+};
+
+int has_action_skill(int i) {
+    return value[0][action_skill[i]];
+}
+
+void display_action(void) {
+    int i;
+    char buf[4];
+
+    if (!context_action_enabled()) return;
+
+    for (i=0; i<12; i++) {
+        if (!has_action_skill(i)) continue;
+        dd_copysprite(800+i,butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i),(i==actsel || i==action_ovr)?DDFX_BRIGHT:DDFX_NLIGHT,0);
+        if (i==actsel) {
+            dd_drawtext(butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i)-30,IRGB(31,31,31),DD_FRAME|DD_CENTER,action_text[i]);
+        }
+        if (action_row[0][i]>' ') {
+            buf[0]=action_row[0][i]; buf[1]=0;
+            dd_drawtext(butx(BUT_ACT_BEG+i)-10,buty(BUT_ACT_BEG+i)-14,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
+        }
+        if (action_row[1][i]>' ') {
+            buf[0]=action_row[1][i]; buf[1]=0;
+            dd_drawtext(butx(BUT_ACT_BEG+i)+10,buty(BUT_ACT_BEG+i)-14,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
+        }
     }
 }
 

@@ -676,7 +676,7 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         return -1;
     }
 
-#if 1
+#if 0
     // get patch png
     sprintf(filename,"../gfxp/x%d/%08d/%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
     if (sdl_load_image_png_(si,filename,NULL)==0) return 0;
@@ -689,7 +689,7 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         if (sdl_zip2 && sdl_load_image_png_(si,filename,sdl_zip2)==0) return 0;
     }
 
-#if 1
+#if 0
     // get high res from png folder
     sprintf(filename,"../gfx/x%d/%08d/%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
     if (sdl_load_image_png_(si,filename,NULL)==0) return 0;
@@ -703,7 +703,7 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         if (sdl_zip1 && sdl_load_image_png(si,filename,sdl_zip1,do_smoothify(sprite))==0) return 0;
     }
 
-#if 1
+#if 0
     // get standard from png folder
     sprintf(filename,"../gfx/x1/%08d/%08d.png",(sprite/1000)*1000,sprite);
     if (sdl_load_image_png(si,filename,NULL,do_smoothify(sprite))==0) return 0;
@@ -2000,6 +2000,7 @@ void sdl_line(int fx,int fy,int tx,int ty,unsigned short color,int clipsx,int cl
 void gui_sdl_keyproc(int wparam);
 void gui_sdl_mouseproc(int x,int y,int but,int clicks);
 void cmd_proc(int key);
+void context_keyup(int key);
 
 void sdl_loop(void) {
     SDL_Event event;
@@ -2011,6 +2012,9 @@ void sdl_loop(void) {
                 break;
             case SDL_KEYDOWN:
                 gui_sdl_keyproc(event.key.keysym.sym);
+                break;
+            case SDL_KEYUP:
+                context_keyup(event.key.keysym.sym);
                 break;
             case SDL_TEXTINPUT:
                 cmd_proc(event.text.text[0]);
@@ -2477,5 +2481,10 @@ zip -0 gx1.zip -r -j -q x1
 zip -0 gx2.zip -r -j -q x2
 zip -0 gx3.zip -r -j -q x3
 zip -0 gx4.zip -r -j -q x4
+
+zip -0 gx1_patch.zip -r -j -q x1
+zip -0 gx2_patch.zip -r -j -q x2
+zip -0 gx3_patch.zip -r -j -q x3
+zip -0 gx4_patch.zip -r -j -q x4
 
 */

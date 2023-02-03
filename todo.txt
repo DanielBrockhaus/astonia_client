@@ -11,8 +11,6 @@ Server Patches
 Bugs
 ----
 
-- There was an instance of a failed memory tail check in SDL_MEM_PIXEL (before splitting it into PIXEL and PIXEL2).
-
 - originx and originy are not correctly set for prefetch.
 
 - Shaded text in 2X has single pixel gaps.
@@ -46,8 +44,6 @@ Possibly
 
 - Add stuff to the client window to make it 960 pixels wide to fill a standard 16:9 display.
 
-- Implement a control scheme that works without shift and control.
-
 - Port the winsock stuff to SDL_net
 
 - A Linux port. Once all is SDL it should be possible.
@@ -67,7 +63,6 @@ git commit -a -m ""
 git push
 git tag releasename
 git push origin releasename
-
 
 Compress branch:
 git merge --squash <feature branch>
