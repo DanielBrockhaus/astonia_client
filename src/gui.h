@@ -62,6 +62,7 @@ int context_getnm(void);
 int hover_capture_text(char *line);
 void hover_capture_tick(void);
 void hover_invalidate_inv(int slot);
+void hover_invalidate_inv_delayed(int slot);
 void hover_invalidate_con(int slot);
 
 extern int (*do_display_random)(void);

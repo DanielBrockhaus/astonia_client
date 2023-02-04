@@ -120,10 +120,17 @@ void hover_capture_tick(void) {
 }
 
 void hover_invalidate_inv(int slot) {
+    if (slot<0 || slot>=INVENTORYSIZE) return;
     hi[slot].valid_till=0;
 }
 
+void hover_invalidate_inv_delayed(int slot) {
+    if (slot<0 || slot>=INVENTORYSIZE) return;
+    hi[slot].valid_till=tick+TICKS/2;
+}
+
 void hover_invalidate_con(int slot) {
+    if (slot<0 || slot>=INVENTORYSIZE) return;
     hi[slot+INVENTORYSIZE].valid_till=0;
 }
 

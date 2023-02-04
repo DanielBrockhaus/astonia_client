@@ -1032,6 +1032,10 @@ void cmd_swap(int with) {
     buf[0]=CL_SWAP;
     buf[1]=with;
     client_send(buf,2);
+
+    // if two items with identical flags & sprites are swapped the server won't
+    // update them so we need to clear the slot in the cache
+    hover_invalidate_inv_delayed(with);
 }
 
 void cmd_fastsell(int with) {
@@ -1048,6 +1052,7 @@ void cmd_use_inv(int with) {
     buf[0]=CL_USE_INV;
     buf[1]=with;
     client_send(buf,2);
+    hover_invalidate_inv(with);
 }
 
 void cmd_take(int x,int y) {

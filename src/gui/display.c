@@ -791,7 +791,7 @@ static char *action_text[12]={
     "Warcry",
     "Pulse",
     "Firering",
-    "Take/Use"
+    "Take/Use/Give"
 };
 
 static int action_skill[12]={

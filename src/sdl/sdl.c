@@ -138,8 +138,6 @@ int sdl_init(int width,int height,char *title) {
     // anything.
     SDL_StartTextInput();
 
-    sdl_create_cursors();
-
     // decide on screen format
     if (width!=XRES || height!=YRES) {
         int tmp_scale=1;
@@ -163,6 +161,8 @@ int sdl_init(int width,int height,char *title) {
         dd_set_offset((width/sdl_scale-XRES)/2,(height/sdl_scale-YRES)/2);
     }
     note("SDL using %dx%d scale %d",XRES,YRES,sdl_scale);
+
+    sdl_create_cursors();
 
     sdl_zip1=zip_open("res/gx1.zip",ZIP_RDONLY,NULL);
     sdl_zip1p=zip_open("res/gx1_patch.zip",ZIP_RDONLY,NULL);
@@ -2173,6 +2173,7 @@ uint32_t *sdl_load_png(char *filename,int *dx,int *dy) {
 SDL_Cursor *sdl_create_cursor(char *filename) {
     int handle;
     unsigned char mask[128],data[128],buf[326];
+    unsigned char mask2[128*16],data2[128*16];
 
     handle=open(filename,O_RDONLY|O_BINARY);
     if (handle==-1) {
@@ -2186,11 +2187,37 @@ SDL_Cursor *sdl_create_cursor(char *filename) {
     }
     close(handle);
 
+    // translate .cur
     for (int i=0; i<32; i++) {
         for (int j=0; j<4; j++) {
             data[i*4+j]=(~buf[322-i*4+j])&(~buf[194-i*4+j]);
             mask[i*4+j]=buf[194-i*4+j];
         }
+    }
+
+    // scale up if needed
+    if (sdl_scale>1) {
+        int dst,src,i1,b1,i2,b2,y1,y2;
+        for (y2=0; y2<32*sdl_scale; y2++) {
+            y1=y2/sdl_scale;
+
+            for (dst=0; dst<32*sdl_scale; dst++) {
+                src=dst/sdl_scale;
+
+                i1=src/8+y1*4;
+                b1=128>>(src&7);
+
+                i2=dst/8+y2*4*sdl_scale;
+                b2=128>>(dst&7);
+
+
+                if (data[i1]&b1) data2[i2]|=b2;
+                else data2[i2]&=~b2;
+                if (mask[i1]&b1) mask2[i2]|=b2;
+                else mask2[i2]&=~b2;
+            }
+        }
+        return SDL_CreateCursor(data2,mask2,32*sdl_scale,32*sdl_scale,6*sdl_scale,6*sdl_scale);
     }
     return SDL_CreateCursor(data,mask,32,32,6,6);
 }

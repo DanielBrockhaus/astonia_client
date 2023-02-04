@@ -1288,8 +1288,8 @@ static void set_cmd_states(void) {
 
     // hit map
     if (!hitsel[0] && butsel==-1 && mousex>=dotx(DOT_MTL) && mousey>=doty(DOT_MTL) && doty(DOT_MBR) && mousey<doty(DOT_MBR)) {
-            if (vk_char || (action_ovr!=-1 && (action_ovr!=11 || csprite))) chrsel=get_near_char(mousex,mousey,MAPDX);
-            if (chrsel==-1 && (vk_item || action_ovr==11)) itmsel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,csprite?0:MAPDX);
+            if (vk_char || (action_ovr!=-1 && (action_ovr!=11 || csprite))) chrsel=get_near_char(mousex,mousey,vk_char?MAPDX:3);
+            if (chrsel==-1 && (vk_item || action_ovr==11)) itmsel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,csprite?3:MAPDX);
             if (chrsel==-1 && itmsel==-1 && !vk_char && (!vk_item || csprite)) mapsel=get_near_ground(mousex,mousey);
 
             if (mapsel!=-1 || itmsel!=-1 || chrsel!=-1)  butsel=BUT_MAP;
@@ -1315,15 +1315,18 @@ static void set_cmd_states(void) {
         if (action_ovr==2 && chrsel!=-1) lcmd=CMD_CHR_CAST_R;
         if (action_ovr==11) {
             if (itmsel!=-1) {
-                if (map[itmsel].flags&CMF_USE) {
+                if (map[itmsel].flags&CMF_TAKE) {   // take needs to come first as dropped items can be usable
+                    lcmd=CMD_ITM_TAKE;
+                } else if (map[itmsel].flags&CMF_USE) {
                     if (csprite) lcmd=CMD_ITM_USE_WITH;
                     else lcmd=CMD_ITM_USE;
-                } else if (map[itmsel].flags&CMF_TAKE)
-                    lcmd=CMD_ITM_TAKE;
+                }
             } else if (chrsel!=-1 && csprite) lcmd=CMD_CHR_GIVE;
+            else if (mapsel!=-1 && csprite) lcmd=CMD_MAP_DROP;
         }
     } else {
-        if (mapsel!=-1 && !vk_item && !vk_char) lcmd=CMD_MAP_MOVE;
+        if (context_action_enabled() && csprite && mapsel!=-1) lcmd=CMD_MAP_DROP;
+        else if (mapsel!=-1 && !vk_item && !vk_char) lcmd=CMD_MAP_MOVE;
         if (mapsel!=-1 &&  vk_item && !vk_char && csprite) lcmd=CMD_MAP_DROP;
 
         if (itmsel!=-1 &&  vk_item && !vk_char && !csprite && map[itmsel].flags&CMF_USE) lcmd=CMD_ITM_USE;
