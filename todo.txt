@@ -19,9 +19,9 @@ Bugs
 Probably
 --------
 
-- Highlight usable items (characters?) in a 3 tile radius around the mouse cursor.
+- Replace Icons with something free, or commission them.
 
-- Action Bar for Warcry, spells and usable items.
+- Highlight usable items (characters?) in a 3 tile radius around the mouse cursor.
 
 - Command line option for server port.
 

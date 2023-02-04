@@ -2,9 +2,23 @@
 Astonia is
 	Copyright 1997-2000 by Daniel Brockhaus, Markus Roeder
 	Copyright 2001-2007 by Intent Software GmbH && Co. KG
-	Copyright 2008-2022 by Daniel Brockhaus
+	Copyright 2008-2023 by Daniel Brockhaus
 
 The software is provided "as is" without warranty of any kind.
 
+If you are an end-user ("a player"), please see eula.txt instead.
+
 For the current license to use this software, please see https://brockhaus.org/astonia3.html
+
+3rd Party Copyright Notices:
+
+The action icons (sprites 800 to 899) are from a Humble Bundle called
+"Dev Icons", and you will need to replace them, or buy your own license.
+
+If you still use the images from Luis Royo (Girl with Golem, Lady with Sword.
+They were used for a lot of the old advertisements and were part of the front
+wepage). You will also need a license for those.
+
+To the best of my knowledge tverything else is free for 3rd party rights.
+However, I do NOT GUARANTEE that this is the case!
 

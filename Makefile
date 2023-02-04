@@ -64,7 +64,7 @@ clean:
 
 distrib:
 	ldd bin/moac.exe | grep mingw | awk 'NF == 4 { system("cp " $$3 " bin") }'
-	zip windows_client.zip -r bin res
+	zip windows_client.zip -r bin res moac.bat eula.txt
 
 
 amod:		bin/amod.dll bin/moac.exe
