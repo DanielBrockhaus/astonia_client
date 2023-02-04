@@ -310,6 +310,7 @@ void display_rage(void);
 void display_game_special(void);
 int do_display_questlog(int nr);
 void display_action(void);
+void display_selfbars(void);
 
 void display_teleport(void);
 int get_teleport(int x,int y);

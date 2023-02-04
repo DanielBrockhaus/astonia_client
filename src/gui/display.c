@@ -894,3 +894,40 @@ void display_action(void) {
     }
 }
 
+static void display_bar(int sx,int sy,int perc,unsigned short color) {
+    if (perc<100) dd_shaded_rect(sx,sy,sx+10,sy+100-perc,IRGB(0,0,0));
+    if (perc>0) dd_shaded_rect(sx,sy+100-perc,sx+10,sy+100,color);
+}
+
+static int get_lifeshield_max(void) {
+    if (value[0][V_MAGICSHIELD]) return value[0][V_MAGICSHIELD];
+    return value[0][V_WARCRY];
+}
+
+static int warcryperccost(void) {
+    if (value[0][V_ENDURANCE]) return 100*value[0][V_WARCRY]/value[0][V_ENDURANCE]/3+1;
+    else return 911;
+}
+
+void display_selfbars(void) {
+    int lifep,shieldp,endup,manap;
+    if (plrmn==-1) return;
+
+    if (value[0][V_HP]) lifep=100*hp/value[0][V_HP]; else lifep=100;
+    if (get_lifeshield_max()) shieldp=100*lifeshield/get_lifeshield_max(); else shieldp=100;
+    if (value[0][V_MANA]) manap=100*mana/value[0][V_MANA]; else manap=100;
+    if (value[0][V_ENDURANCE]) endup=100*endurance/value[0][V_ENDURANCE]; else endup=100;
+
+    display_bar(dotx(DOT_MBR)-50,doty(DOT_MBR)-110,lifep,healthcolor);
+    display_bar(dotx(DOT_MBR)-35,doty(DOT_MBR)-110,shieldp,shieldcolor);
+    if (!value[0][V_MANA]) {
+
+        display_bar(dotx(DOT_MBR)-20,doty(DOT_MBR)-110,endup,endurancecolor);
+        if (value[0][V_WARCRY]) {
+            for (int i=0; i<100; i+=warcryperccost()) {
+                dd_line(dotx(DOT_MBR)-20,doty(DOT_MBR)-10-i,dotx(DOT_MBR)-10,doty(DOT_MBR)-10-i,0x0000);
+            }
+        }
+    } else display_bar(dotx(DOT_MBR)-20,doty(DOT_MBR)-110,manap,manacolor);
+}
+
