@@ -775,11 +775,14 @@ void display_game_special(void) {
     }
 }
 
-static char action_row[2][12]={
+#define MAXACTIONSLOT       12
+char action_row[2][MAXACTIONSLOT]={
+   //012345678901
     "asd   fg   h",
     " qwertzuiop "
 };
-static char *action_text[12]={
+
+static char *action_text[MAXACTIONSLOT]={
     "Attack",
     "Fireball",
     "Lightning Ball",
@@ -794,7 +797,7 @@ static char *action_text[12]={
     "Take/Use/Give"
 };
 
-static int action_skill[12]={
+static int action_skill[MAXACTIONSLOT]={
     V_PERCEPT,
     V_FIREBALL,
     V_FLASH,
@@ -808,6 +811,61 @@ static int action_skill[12]={
     V_FIREBALL,
     V_PERCEPT
 };
+
+void actions_loaded(void) {
+
+    memset(action_row,'-',sizeof(action_row));
+
+    action_row[0][3]=' ';
+    action_row[0][4]=' ';
+    action_row[0][5]=' ';
+    action_row[0][8]=' ';
+    action_row[0][9]=' ';
+    action_row[0][10]=' ';
+
+    action_row[1][0]=' ';
+    action_row[1][11]=' ';
+}
+
+int action_key2slot(int key) {
+    int i;
+
+    for (i=0; i<MAXACTIONSLOT; i++) {
+        if (action_row[0][i]==key) return i;
+        if (action_row[1][i]==key) return i+100;
+    }
+    return -1;
+}
+
+int action_slot2key(int slot) {
+    if (slot>100) {
+        slot-=100;
+        if (slot<0 || slot>=MAXACTIONSLOT) return -1;
+        return action_row[1][slot];
+    }
+    if (slot<0 || slot>=MAXACTIONSLOT) return -1;
+    return action_row[0][slot];
+}
+
+void action_set_key(int slot,int key) {
+    int row,i;
+
+    if (slot<0 || slot>=MAXACTIONSLOT) return;
+
+    if (action_row[0][slot]==' ') row=1;
+    else if (action_row[1][slot]==' ') row=0;
+    else if (actsel>=0 && actsel<MAXACTIONSLOT && butx(BUT_ACT_BEG+actsel)<mousex) row=1;
+    else row=0;
+
+    if (action_row[row][slot]==' ') return;
+
+    for (i=0; i<MAXACTIONSLOT*2; i++)
+        if (*(action_row[0]+i)==key) *(action_row[0]+i)='-';
+
+    action_row[row][slot]=key;
+
+    save_options();
+}
 
 int has_action_skill(int i) {
     return value[0][action_skill[i]];
@@ -826,11 +884,11 @@ void display_action(void) {
             dd_drawtext(butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i)-30,IRGB(31,31,31),DD_FRAME|DD_CENTER,action_text[i]);
         }
         if (action_row[0][i]>' ') {
-            buf[0]=action_row[0][i]; buf[1]=0;
+            buf[0]=action_slot2key(i); buf[1]=0;
             dd_drawtext(butx(BUT_ACT_BEG+i)-10,buty(BUT_ACT_BEG+i)-14,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
         }
         if (action_row[1][i]>' ') {
-            buf[0]=action_row[1][i]; buf[1]=0;
+            buf[0]=action_slot2key(i+100); buf[1]=0;
             dd_drawtext(butx(BUT_ACT_BEG+i)+10,buty(BUT_ACT_BEG+i)-14,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
         }
     }

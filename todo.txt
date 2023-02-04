@@ -21,7 +21,7 @@ Probably
 
 - Replace Icons with something free, or commission them.
 
-- Highlight usable items (characters?) in a 3 tile radius around the mouse cursor.
+- Highlight usable items (characters?) in a 3 tile radius around the mouse cursor (?).
 
 - Command line option for server port.
 

@@ -2,6 +2,8 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
+#define MAXACTIONSLOT       12
+
 struct quicks {
     int mn[9];      // 0 for invalid neighbours
     int qi[9];      // maxqick for invalid neighbours
@@ -68,4 +70,6 @@ void hover_invalidate_con(int slot);
 extern int (*do_display_random)(void);
 __declspec(dllexport) int _do_display_random(void);
 
+extern char action_row[2][MAXACTIONSLOT];
+void actions_loaded(void);
 

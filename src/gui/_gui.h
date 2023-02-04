@@ -310,7 +310,6 @@ void display_rage(void);
 void display_game_special(void);
 int do_display_questlog(int nr);
 void display_action(void);
-int has_action_skill(int i);
 
 void display_teleport(void);
 int get_teleport(int x,int y);
@@ -349,4 +348,9 @@ extern char hover_rank_text[];
 extern char hover_time_text[];
 
 void hover_mouse_move(int mx,int my);
+
+int action_key2slot(int key);
+int action_slot2key(int slot);
+int has_action_skill(int i);
+void action_set_key(int slot,int key);
 

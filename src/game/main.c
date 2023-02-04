@@ -609,7 +609,10 @@ void save_options(void) {
     if (handle==-1) return;
 
     write(handle,&user_keys,sizeof(user_keys));
+    write(handle,&action_row,sizeof(action_row));
     close(handle);
+
+    actions_loaded();
 }
 
 void load_options(void) {
@@ -619,6 +622,7 @@ void load_options(void) {
     if (handle==-1) return;
 
     read(handle,&user_keys,sizeof(user_keys));
+    read(handle,&action_row,sizeof(action_row));
     close(handle);
 }
 

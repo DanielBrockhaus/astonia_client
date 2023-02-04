@@ -203,6 +203,13 @@ static void display_hover(void) {
 }
 
 void hover_mouse_move(int mx,int my) {
-    last_tick=tick;
+    static int ivsel=-1,wsel=-1,csel=-1;
+
+    if (ivsel!=invsel || wsel!=weasel || csel!=consel) {
+        ivsel=invsel;
+        wsel=weasel;
+        csel=consel;
+        last_tick=tick;
+    }
 }
 

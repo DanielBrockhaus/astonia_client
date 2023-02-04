@@ -355,25 +355,27 @@ void context_keydown(int key) {
     if (!(context_enabled&2)) return;
     if (keymode) return;
 
-    switch (key) {
-        case 'a':   lcmd_override=CMD_CHR_ATTACK; break;
-        case 's':   lcmd_override=CMD_CHR_CAST_L; break;
-        case 'd':   lcmd_override=CMD_CHR_CAST_R; break;
-        case 'f':
-        case 'g':   lcmd_override=CMD_CHR_CAST_K; break;
-        case 'h':   lcmd_override=CMD_ITM_USE; break;
+    // ignore key-down while over action bar
+    if (actsel!=-1) return;
 
-        case 'q':   lcmd_override=CMD_MAP_CAST_L; break;
-        case 'w':   lcmd_override=CMD_MAP_CAST_R; break;
-        case 'e':
-        case 'r':
-        case 't':
-        case 'z':
-        case 'u':
-        case 'i':
-        case 'o':
-        case 'p':   lcmd_override=CMD_SLF_CAST_K; break;
+    switch (action_key2slot(key)) {
+        case 0:     lcmd_override=CMD_CHR_ATTACK; break;
+        case 1:     lcmd_override=CMD_CHR_CAST_L; break;
+        case 2:     lcmd_override=CMD_CHR_CAST_R; break;
+        case 6:
+        case 7:     lcmd_override=CMD_CHR_CAST_K; break;
+        case 11:    lcmd_override=CMD_ITM_USE; break;
 
+        case 101:   lcmd_override=CMD_MAP_CAST_L; break;
+        case 102:   lcmd_override=CMD_MAP_CAST_R; break;
+        case 103:
+        case 104:
+        case 105:
+        case 106:
+        case 107:
+        case 108:
+        case 109:
+        case 110:   lcmd_override=CMD_SLF_CAST_K; break;
     }
 }
 
@@ -411,33 +413,38 @@ void context_keyup(int key) {
     if (!(context_enabled&2)) return;
     if (keymode) return;
 
+    if (actsel!=-1) {
+        action_set_key(actsel,key);
+        return;
+    }
+
     csel=get_near_char(mousex,mousey,3);
     isel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,3);
     msel=get_near_ground(mousex,mousey);
 
-    switch (key) {
-        case 'a':   if (csel!=-1) cmd_kill(map[csel].cn); break;
-        case 's':   if (csel!=-1) cmd_some_spell(CL_FIREBALL,0,0,map[csel].cn); break;
-        case 'd':   if (csel!=-1) cmd_some_spell(CL_BALL,0,0,map[csel].cn); break;
-        case 'f':   if (csel!=-1) cmd_some_spell(CL_BLESS,0,0,map[csel].cn); break;
-        case 'g':   if (csel!=-1) cmd_some_spell(CL_HEAL,0,0,map[csel].cn); break;
-        case 'h':
+    switch (action_key2slot(key)) {
+        case 0:     if (csel!=-1) cmd_kill(map[csel].cn); break;
+        case 1:     if (csel!=-1) cmd_some_spell(CL_FIREBALL,0,0,map[csel].cn); break;
+        case 2:     if (csel!=-1) cmd_some_spell(CL_BALL,0,0,map[csel].cn); break;
+        case 6:     if (csel!=-1) cmd_some_spell(CL_BLESS,0,0,map[csel].cn); break;
+        case 7:     if (csel!=-1) cmd_some_spell(CL_HEAL,0,0,map[csel].cn); break;
+        case 11:
             if (isel!=-1) {
                 if (map[isel].flags&CMF_TAKE) cmd_take(originx-MAPDX/2+isel%MAPDX,originy-MAPDY/2+isel/MAPDX);
                 else if (map[isel].flags&CMF_USE) cmd_use(originx-MAPDX/2+isel%MAPDX,originy-MAPDY/2+isel/MAPDX);
             }
             break;
 
-        case 'q':   if (msel!=-1) cmd_some_spell(CL_FIREBALL,originx-MAPDX/2+msel%MAPDX,originy-MAPDY/2+msel/MAPDX,0); break;
-        case 'w':   if (msel!=-1) cmd_some_spell(CL_BALL,originx-MAPDX/2+msel%MAPDX,originy-MAPDY/2+msel/MAPDX,0); break;
-        case 'e':   cmd_some_spell(CL_FLASH,0,0,map[plrmn].cn); break;
-        case 'r':   cmd_some_spell(CL_FREEZE,0,0,map[plrmn].cn); break;
-        case 't':   cmd_some_spell(CL_MAGICSHIELD,0,0,map[plrmn].cn); break;
-        case 'z':   cmd_some_spell(CL_BLESS,0,0,map[plrmn].cn); break;
-        case 'u':   cmd_some_spell(CL_HEAL,0,0,map[plrmn].cn); break;
-        case 'i':   cmd_some_spell(CL_WARCRY,0,0,map[plrmn].cn); break;
-        case 'o':   cmd_some_spell(CL_PULSE,0,0,map[plrmn].cn); break;
-        case 'p':   cmd_some_spell(CL_FIREBALL,0,0,map[plrmn].cn); break;
+        case 101:   if (msel!=-1) cmd_some_spell(CL_FIREBALL,originx-MAPDX/2+msel%MAPDX,originy-MAPDY/2+msel/MAPDX,0); break;
+        case 102:   if (msel!=-1) cmd_some_spell(CL_BALL,originx-MAPDX/2+msel%MAPDX,originy-MAPDY/2+msel/MAPDX,0); break;
+        case 103:   cmd_some_spell(CL_FLASH,0,0,map[plrmn].cn); break;
+        case 104:   cmd_some_spell(CL_FREEZE,0,0,map[plrmn].cn); break;
+        case 105:   cmd_some_spell(CL_MAGICSHIELD,0,0,map[plrmn].cn); break;
+        case 106:   cmd_some_spell(CL_BLESS,0,0,map[plrmn].cn); break;
+        case 107:   cmd_some_spell(CL_HEAL,0,0,map[plrmn].cn); break;
+        case 108:   cmd_some_spell(CL_WARCRY,0,0,map[plrmn].cn); break;
+        case 109:   cmd_some_spell(CL_PULSE,0,0,map[plrmn].cn); break;
+        case 110:   cmd_some_spell(CL_FIREBALL,0,0,map[plrmn].cn); break;
     }
 }
 
