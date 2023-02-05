@@ -1,4 +1,4 @@
-all: bin/moac.exe
+all: bin/merc.exe
 
 CC=gcc
 OPT=-O3

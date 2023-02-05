@@ -29,9 +29,13 @@ char hover_level_text[120];
 char hover_rank_text[120];
 char hover_time_text[120];
 
-static void display_hover(void);
+static int display_hover(void);
+static void display_hover_update(void);
+static int display_hover_skill(void);
 
 void display_mouseover(void) {
+    int hide;
+
     if (mousey>=doty(DOT_BOT)-370+496-60 && mousey<=doty(DOT_BOT)-370+551-60) {
         if (mousex>=dotx(DOT_BOT)+207 && mousex<=dotx(DOT_BOT)+214) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,hover_rage_text);
         if (mousex>=dotx(DOT_BOT)+197 && mousex<=dotx(DOT_BOT)+204) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,hover_bless_text);
@@ -47,7 +51,11 @@ void display_mouseover(void) {
     if (mousex>=dotx(DOT_TOP)+728 && mousex<=dotx(DOT_TOP)+772 && mousey>=doty(DOT_TOP)+7 && mousey<=doty(DOT_TOP)+17)
         dd_drawtext(mousex-16,mousey-4,0xffff,DD_BIG|DD_FRAME|DD_RIGHT,hover_time_text);
 
-    display_hover();
+    display_hover_update();
+    hide=display_hover();
+    hide+=display_hover_skill();
+    if (hide) sdl_show_cursor(0);
+    else if (capbut==-1) sdl_show_cursor(1);
 }
 
 
@@ -134,26 +142,20 @@ void hover_invalidate_con(int slot) {
     hi[slot+INVENTORYSIZE].valid_till=0;
 }
 
-static void display_hover(void) {
+static int display_hover(void) {
     int n,i,col,x,sx,sy,slot;
     char buf[4];
 
     if (invsel==-1) {
         if (weasel==-1) {
-            if (consel==-1) {
-                sdl_show_cursor(1);
-                return;
-            } else slot=consel+INVENTORYSIZE;
+            if (consel==-1) return 0;
+            else slot=consel+INVENTORYSIZE;
         } else slot=weatab[weasel];
     } else slot=invsel;
 
-    if ((slot<INVENTORYSIZE && !item[slot]) || (slot>=INVENTORYSIZE && !container[slot-INVENTORYSIZE])) {
-        sdl_show_cursor(1);
-        return;
-    }
+    if ((slot<INVENTORYSIZE && !item[slot]) || (slot>=INVENTORYSIZE && !container[slot-INVENTORYSIZE])) return 0;
 
     if (hi[slot].valid_till>=tick && tick-last_tick>HOVER_DELAY) {
-        sdl_show_cursor(0);
         sx=mousex+8;
         if (sx<dotx(DOT_TL)) sx=dotx(DOT_TL);
         if (sx>dotx(DOT_BR)-hi[slot].width-8) sx=dotx(DOT_BR)-hi[slot].width-8;
@@ -190,6 +192,7 @@ static void display_hover(void) {
                 x=dd_drawtext(x,sy+n*10+4,col,0,buf);
             }
         }
+        return 1;
     } else {
         if (!last_look && hi[slot].valid_till<tick) {
             if (slot<INVENTORYSIZE) cmd_look_inv(slot);
@@ -198,18 +201,72 @@ static void display_hover(void) {
             last_look=20;
             last_invsel=slot;
         }
-        sdl_show_cursor(1);
+        return 0;
     }
 }
 
-void hover_mouse_move(int mx,int my) {
-    static int ivsel=-1,wsel=-1,csel=-1;
+static int sklsel2=-1;
+static void display_hover_update(void) {
+    static int ivsel=-1,wsel=-1,csel=-1,ssel=-1,soff=0,ioff=0,coff=0;
+    int x,y,i,v;
 
-    if (ivsel!=invsel || wsel!=weasel || csel!=consel) {
+    sklsel2=-1;
+    for (i=0; i<skltab_cnt; i++) {
+        x=butx(i+BUT_SKL_BEG);
+        y=buty(i+BUT_SKL_BEG);
+        if (mousex>x+16 && mousex<x+SKLWIDTH && mousey>y-5 && mousey<y+5) {
+            sklsel2=i;
+            break;
+        }
+    }
+
+    if (ivsel!=invsel || wsel!=weasel || csel!=consel || ssel!=sklsel2 ||
+        soff!=skloff  || ioff!=invoff || coff!=conoff) {
         ivsel=invsel;
         wsel=weasel;
         csel=consel;
+        ssel=sklsel2;
+        soff=skloff;
+        ioff=invoff;
+        coff=conoff;
         last_tick=tick;
     }
+}
+
+int tactics2melee(int val) {
+    return val*0.375;
+}
+
+int tactics2spell(int val) {
+    return val*0.125;
+}
+
+
+static int display_hover_skill(void) {
+    int sx,sy,height,width=200,v;
+
+    if (sklsel2!=-1 && tick-last_tick>HOVER_DELAY) {
+        v=skltab[sklsel2+skloff].v;
+        if (v<0 || v>=*game_v_max) return 0;
+
+        height=dd_drawtext_break_length(0,0,width-8,0xffff,0,game_skilldesc[v]);
+
+        sx=mousex+8;
+        if (sx<dotx(DOT_TL)) sx=dotx(DOT_TL);
+        if (sx>dotx(DOT_BR)-width-8) sx=dotx(DOT_BR)-width-8;
+
+        sy=mousey-height/2-4;
+        if (sy<doty(DOT_TL)) sy=doty(DOT_TL);
+        if (sy>doty(DOT_BR)-height-8) sy=doty(DOT_BR)-height-8;
+
+        dd_shaded_rect(sx,sy,sx+width+8,sy+height+8,0x0000);
+
+        sy=dd_drawtext_break(sx+4,sy+4,sx+width-8,0xffff,0,game_skilldesc[v]);
+        sy+=10;
+
+        return 1;
+    }
+
+    return 0;
 }
 

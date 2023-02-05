@@ -1016,9 +1016,7 @@ static void set_skltab(void) {
             skltab[use].curr=value[0][i];
             skltab[use].raisecost=raisecost=raise_cost(i,value[1][i]);
 
-            if (i==V_WEAPON || i==V_ARMOR || i==V_SPEED || i==V_LIGHT || i==V_DEMON || i==V_COLD || i>=V_PROFBASE) {
-                skltab[use].barsize=0;
-            } else if (experience_left>=0) {
+            if (experience_left>=0) {
                 if (raisecost>0 && experience_left>=raisecost) skltab[use].barsize=max(1,raisecost*(SKLWIDTH-10)/experience_left);
                 else if (experience_left>=0 && raisecost>0) skltab[use].barsize=-experience_left*(SKLWIDTH-10)/raisecost;
                 else skltab[use].barsize=0;
@@ -1708,7 +1706,6 @@ void gui_sdl_mouseproc(int x,int y,int what,int clicks) {
 
             if (butsel!=-1 && vk_lbut && (but[butsel].flags&BUTF_MOVEEXEC)) exec_cmd(lcmd,0);
 
-            hover_mouse_move(mousex,mousey);
             amod_mouse_move(mousex,mousey);
             break;
 

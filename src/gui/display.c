@@ -391,7 +391,8 @@ void display_skill(void) {
             continue;
         }
 
-        barsize=skltab[i].barsize;
+        if (skltab[i].button) barsize=skltab[i].barsize;
+        else barsize=0;
         if (barsize>0) dd_rect(bsx,bsy,bsx+barsize,bsy+1,bluecolor);
         else if (barsize<0) dd_rect(bsx,bsy,bex+barsize,bsy+1,redcolor);
 

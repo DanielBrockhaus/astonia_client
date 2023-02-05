@@ -348,8 +348,6 @@ extern char hover_level_text[];
 extern char hover_rank_text[];
 extern char hover_time_text[];
 
-void hover_mouse_move(int mx,int my);
-
 int action_key2slot(int key);
 int action_slot2key(int slot);
 int has_action_skill(int i);

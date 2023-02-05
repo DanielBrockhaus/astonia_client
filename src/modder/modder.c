@@ -54,6 +54,7 @@ int amod_init(void) {
     if ((tmp=GetProcAddress(dll_instance,"is_door_sprite"))) is_door_sprite=tmp;
     if ((tmp=GetProcAddress(dll_instance,"is_yadd_sprite"))) is_yadd_sprite=tmp;
     if ((tmp=GetProcAddress(dll_instance,"get_chr_height"))) get_chr_height=tmp;
+    if ((tmp=GetProcAddress(dll_instance,"trans_asprite"))) trans_asprite=tmp;
     if ((tmp=GetProcAddress(dll_instance,"trans_charno"))) trans_charno=tmp;
     if ((tmp=GetProcAddress(dll_instance,"get_player_sprite"))) get_player_sprite=tmp;
     if ((tmp=GetProcAddress(dll_instance,"trans_csprite"))) trans_csprite=tmp;

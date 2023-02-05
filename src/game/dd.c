@@ -347,6 +347,27 @@ __declspec(dllexport) int dd_drawtext_break(int x,int y,int breakx,unsigned shor
     return y+10;
 }
 
+__declspec(dllexport) int dd_drawtext_break_length(int x,int y,int breakx,unsigned short color,int flags,const char *ptr) {
+    char buf[256];
+    int xp,n;
+    float size;
+
+    xp=x;
+
+    while (*ptr) {
+        while (*ptr==' ') ptr++;
+
+        for (n=0; n<256 && *ptr && *ptr!=' '; buf[n++]=*ptr++);
+        buf[n]=0;
+
+        size=dd_textlength(flags,buf);
+        if (xp+size>breakx) {
+            xp=x; y+=10;
+        }
+        xp+=size+4;
+    }
+    return y+10;
+}
 
 __declspec(dllexport) void dd_pixel(int x,int y,unsigned short col) {
     sdl_pixel(x,y,col,x_offset,y_offset);
