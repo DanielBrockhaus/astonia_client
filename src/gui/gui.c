@@ -1285,9 +1285,9 @@ static void set_cmd_states(void) {
 
     // hit map
     if (!hitsel[0] && butsel==-1 && mousex>=dotx(DOT_MTL) && mousey>=doty(DOT_MTL) && doty(DOT_MBR) && mousey<doty(DOT_MBR)) {
-            if (vk_char || (action_ovr!=-1 && action_ovr!=11) || (csprite && context_action_enabled())) chrsel=get_near_char(mousex,mousey,vk_char?MAPDX:3);
+            if (vk_char || (action_ovr!=-1 && (action_ovr!=11 || csprite))) chrsel=get_near_char(mousex,mousey,vk_char?MAPDX:3);
             if (chrsel==-1 && (vk_item || action_ovr==11)) itmsel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,csprite?3:MAPDX);
-            if (chrsel==-1 && itmsel==-1 && !vk_char && (!vk_item || csprite)) mapsel=get_near_ground(mousex,mousey);
+            if (chrsel==-1 && itmsel==-1 && !vk_char && !vk_item) mapsel=get_near_ground(mousex,mousey);
 
             if (mapsel!=-1 || itmsel!=-1 || chrsel!=-1)  butsel=BUT_MAP;
     }
@@ -1322,9 +1322,7 @@ static void set_cmd_states(void) {
             else if (mapsel!=-1 && csprite) lcmd=CMD_MAP_DROP;
         }
     } else {
-        if (context_action_enabled() && csprite && chrsel!=-1) lcmd=CMD_CHR_GIVE;
-        else if (context_action_enabled() && csprite && mapsel!=-1) lcmd=CMD_MAP_DROP;
-        else if (mapsel!=-1 && !vk_item && !vk_char) lcmd=CMD_MAP_MOVE;
+        if (mapsel!=-1 && !vk_item && !vk_char) lcmd=CMD_MAP_MOVE;
         if (mapsel!=-1 &&  vk_item && !vk_char && csprite) lcmd=CMD_MAP_DROP;
 
         if (itmsel!=-1 &&  vk_item && !vk_char && !csprite && map[itmsel].flags&CMF_USE) lcmd=CMD_ITM_USE;

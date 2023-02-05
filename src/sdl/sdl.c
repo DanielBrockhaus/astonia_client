@@ -50,7 +50,7 @@ int sdl_scale=1;
 int sdl_frames=0;
 int sdl_multi=4;
 int sdl_fullscreen=0;
-int sdl_cache_size=5000;
+int sdl_cache_size=8000;
 
 static zip_t *sdl_zip1=NULL;
 static zip_t *sdl_zip2=NULL;

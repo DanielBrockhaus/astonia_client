@@ -506,7 +506,7 @@ void display_usage(void) {
     buf+=sprintf(buf,"fullscreen, largetextenable and soundenable can be either 0 or 1, for off or on.\n");
     buf+=sprintf(buf,"threads is the number of background threads the game should use. Use 0 to disable. Default is 4.\n");
     buf+=sprintf(buf,"options is a bitfield. Bit 0 (value of 1) enables the Dark GUI by Tegra.\n");
-    buf+=sprintf(buf,"cachesize is the size of the texture cache. Default is 5000. Very low numbers will crash!\n");
+    buf+=sprintf(buf,"cachesize is the size of the texture cache. Default is 8000. Very low numbers will crash!\n");
     buf+=sprintf(buf,"framespersecond will set the display rate in frames per second.\n");
     buf+=sprintf(buf,"contextmenuenable is another bitfield. Bit 0 enabled the context menu, bit 1 the new keybindings (default: 3)\n");
 
@@ -611,8 +611,6 @@ void save_options(void) {
     write(handle,&user_keys,sizeof(user_keys));
     write(handle,&action_row,sizeof(action_row));
     close(handle);
-
-    actions_loaded();
 }
 
 void load_options(void) {
@@ -624,6 +622,8 @@ void load_options(void) {
     read(handle,&user_keys,sizeof(user_keys));
     read(handle,&action_row,sizeof(action_row));
     close(handle);
+
+    actions_loaded();
 }
 
 // convert command line from unix style to windows style

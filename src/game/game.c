@@ -1338,6 +1338,9 @@ void display_game_map(struct map *cmap) {
             dl=dl_next_set(get_lay_sprite(cmap[mn].isprite,GME_LAY),cmap[mn].ri.sprite,scrx,scry-8,itmsel==mn?DDFX_BRIGHT:light);
             if (!dl) { note("error in game #8 (%d,%d)",cmap[mn].ri.sprite,cmap[mn].isprite); continue; }
 
+
+#if 0
+            // Disabled shaded lighting for items. It is often wrong and needs re-doing
             if ((mna=quick[i].mn[3])!=0 && (cmap[mna].rlight)) dl->ddfx.ll=cmap[mna].rlight;
             else dl->ddfx.ll=light;
             if ((mna=quick[i].mn[5])!=0 && (cmap[mna].rlight)) dl->ddfx.rl=cmap[mna].rlight;
@@ -1346,6 +1349,9 @@ void display_game_map(struct map *cmap) {
             else dl->ddfx.ul=light;
             if ((mna=quick[i].mn[7])!=0 && (cmap[mna].rlight)) dl->ddfx.dl=cmap[mna].rlight;
             else dl->ddfx.dl=light;
+#else
+            dl->ddfx.ll=dl->ddfx.rl=dl->ddfx.ul=dl->ddfx.dl=dl->ddfx.ml;
+#endif
 
             dl->h+=heightadd-8;
             dl->ddfx.scale=cmap[mn].ri.scale;

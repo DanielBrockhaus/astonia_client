@@ -41,20 +41,26 @@ struct menu menu;
 static void update_ori(void) {
     int x,y;
 
-    x=(msel%MAPDX)+ori_x-originx;
-    y=(msel/MAPDX)+ori_y-originy;
-    if (x<0 || x>=MAPDX || y<0 || y>=MAPDX) msel=-1;
-    else msel=x+y*MAPDX;
+    if (msel!=-1) {
+        x=(msel%MAPDX)+ori_x-originx;
+        y=(msel/MAPDX)+ori_y-originy;
+        if (x<0 || x>=MAPDX || y<0 || y>=MAPDX) msel=-1;
+        else msel=x+y*MAPDX;
+    }
 
-    x=(isel%MAPDX)+ori_x-originx;
-    y=(isel/MAPDX)+ori_y-originy;
-    if (x<0 || x>=MAPDX || y<0 || y>=MAPDX) isel=-1;
-    else isel=x+y*MAPDX;
+    if (isel!=-1) {
+        x=(isel%MAPDX)+ori_x-originx;
+        y=(isel/MAPDX)+ori_y-originy;
+        if (x<0 || x>=MAPDX || y<0 || y>=MAPDX) isel=-1;
+        else isel=x+y*MAPDX;
+    }
 
-    x=(csel%MAPDX)+ori_x-originx;
-    y=(csel/MAPDX)+ori_y-originy;
-    if (x<0 || x>=MAPDX || y<0 || y>=MAPDX) csel=-1;
-    else csel=x+y*MAPDX;
+    if (csel!=-1) {
+        x=(csel%MAPDX)+ori_x-originx;
+        y=(csel/MAPDX)+ori_y-originy;
+        if (x<0 || x>=MAPDX || y<0 || y>=MAPDX) csel=-1;
+        else csel=x+y*MAPDX;
+    }
 
     ori_x=originx;
     ori_y=originy;
@@ -68,9 +74,9 @@ static void makemenu(void) {
 
     if (csel!=-1) {
         co=map[csel].cn;
-        if (co>=0 && co<MAXCHARS) {
+        if (co>0 && co<MAXCHARS) {
             if (player[co].name[0]) name=player[co].name;
-        }
+        } else csel=-1;
     }
 
     menu.linecnt=0;
@@ -393,11 +399,23 @@ int context_key_set_cmd(void) {
         case CMD_MAP_CAST_R:    mapsel=get_near_ground(mousex,mousey); break;
 
         case CMD_ITM_USE:
+        case CMD_ITM_USE_WITH:
         case CMD_ITM_TAKE:
+        case CMD_CHR_GIVE:
+        case CMD_MAP_DROP:
+            chrsel=get_near_char(mousex,mousey,3);
             itmsel=get_near_item(mousex,mousey,CMF_TAKE|CMF_USE,3);
-            if (itmsel==-1) break;
-            if (map[itmsel].flags&CMF_TAKE) lcmd_override=CMD_ITM_TAKE;
-            else if (map[itmsel].flags&CMF_USE) lcmd_override=CMD_ITM_USE;
+            mapsel=get_near_ground(mousex,mousey);
+            if (csprite) {
+                if (chrsel!=-1) lcmd_override=CMD_CHR_GIVE;
+                else if (itmsel!=-1 && (map[itmsel].flags&CMF_USE)) lcmd_override=CMD_ITM_USE_WITH;
+                else if (mapsel!=-1) lcmd_override=CMD_MAP_DROP;
+            } else {
+                if (itmsel!=-1) {
+                    if (map[itmsel].flags&CMF_TAKE) lcmd_override=CMD_ITM_TAKE;
+                    else if (map[itmsel].flags&CMF_USE) lcmd_override=CMD_ITM_USE;
+                }
+            }
             break;
     }
     lcmd=lcmd_override;
@@ -418,9 +436,11 @@ void context_keyup(int key) {
         return;
     }
 
-    csel=get_near_char(mousex,mousey,3);
-    isel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,3);
-    msel=get_near_ground(mousex,mousey);
+    if (mousex>=dotx(DOT_MTL) && mousey>=doty(DOT_MTL) && mousex<dotx(DOT_MBR) && mousey<doty(DOT_MBR)) {
+        csel=get_near_char(mousex,mousey,3);
+        isel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,3);
+        msel=get_near_ground(mousex,mousey);
+    } else csel=isel=msel=-1;
 
     switch (action_key2slot(key)) {
         case 0:     if (csel!=-1) cmd_kill(map[csel].cn); break;
@@ -429,7 +449,11 @@ void context_keyup(int key) {
         case 6:     if (csel!=-1) cmd_some_spell(CL_BLESS,0,0,map[csel].cn); break;
         case 7:     if (csel!=-1) cmd_some_spell(CL_HEAL,0,0,map[csel].cn); break;
         case 11:
-            if (isel!=-1) {
+            if (csprite) {
+                if (csel!=-1) cmd_give(map[csel].cn);
+                else if (isel!=-1 && (map[isel].flags&CMF_USE)) cmd_use(originx-MAPDX/2+isel%MAPDX,originy-MAPDY/2+isel/MAPDX);
+                else if (msel!=-1) cmd_drop(originx-MAPDX/2+msel%MAPDX,originy-MAPDY/2+msel/MAPDX);
+            } else if (isel!=-1) {
                 if (map[isel].flags&CMF_TAKE) cmd_take(originx-MAPDX/2+isel%MAPDX,originy-MAPDY/2+isel/MAPDX);
                 else if (map[isel].flags&CMF_USE) cmd_use(originx-MAPDX/2+isel%MAPDX,originy-MAPDY/2+isel/MAPDX);
             }

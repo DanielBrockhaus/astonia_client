@@ -106,7 +106,7 @@ void init_dots(void) {
     // map top left, bottom right, center
     set_dot(DOT_MTL,  0, 40,YRES==YRES0 ? 0 : DOTF_TOPOFF);
     set_dot(DOT_MBR,800,YRES-540+376,0);
-    set_dot(DOT_MCT,400,YRES/2-40-(YRES==YRES0 ? 40 : 0),0);
+    set_dot(DOT_MCT,400,(YRES-(YRES==YRES0?40:0)-170)/2+40,0);
 
     // help and quest window
     set_dot(DOT_HLP,0,(YRES==YRES0 ? 40 : 0),0);

@@ -813,8 +813,12 @@ static int action_skill[MAXACTIONSLOT]={
 };
 
 void actions_loaded(void) {
+    int i;
 
-    memset(action_row,'-',sizeof(action_row));
+    for (i=0; i<MAXACTIONSLOT; i++) {
+        if (action_row[0][i]<'a' || action_row[0][i]>'z') action_row[0][i]='-';
+        if (action_row[1][i]<'a' || action_row[1][i]>'z') action_row[1][i]='-';
+    }
 
     action_row[0][3]=' ';
     action_row[0][4]=' ';
@@ -925,7 +929,8 @@ void display_selfbars(void) {
         display_bar(dotx(DOT_MBR)-20,doty(DOT_MBR)-110,endup,endurancecolor);
         if (value[0][V_WARCRY]) {
             for (int i=0; i<100; i+=warcryperccost()) {
-                dd_line(dotx(DOT_MBR)-20,doty(DOT_MBR)-10-i,dotx(DOT_MBR)-10,doty(DOT_MBR)-10-i,0x0000);
+                if (i<endup) dd_line(dotx(DOT_MBR)-20,doty(DOT_MBR)-10-i,dotx(DOT_MBR)-10,doty(DOT_MBR)-10-i,0x0000);
+                else dd_line(dotx(DOT_MBR)-20,doty(DOT_MBR)-10-i,dotx(DOT_MBR)-10,doty(DOT_MBR)-10-i,0xffff);
             }
         }
     } else display_bar(dotx(DOT_MBR)-20,doty(DOT_MBR)-110,manap,manacolor);
