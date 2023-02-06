@@ -111,6 +111,11 @@ int hover_capture_text(char *line) {
         return 1;
     }
 
+    if (!strcmp(line,"Empty spaces...")) {
+        capture=last_look=0;
+        return 1;
+    }
+
     if (capture) {
         len=textlength(line);
         hi[last_invsel].valid_till=tick+MAXVALID;
@@ -205,20 +210,9 @@ static int display_hover(void) {
     }
 }
 
-static int sklsel2=-1;
 static void display_hover_update(void) {
     static int ivsel=-1,wsel=-1,csel=-1,ssel=-1,soff=0,ioff=0,coff=0;
     int x,y,i,v;
-
-    sklsel2=-1;
-    for (i=0; i<=BUT_SKL_END-BUT_SKL_BEG; i++) {
-        x=butx(i+BUT_SKL_BEG);
-        y=buty(i+BUT_SKL_BEG);
-        if (mousex>x+16 && mousex<x+SKLWIDTH && mousey>y-5 && mousey<y+5) {
-            sklsel2=i;
-            break;
-        }
-    }
 
     if (ivsel!=invsel || wsel!=weasel || csel!=consel || ssel!=sklsel2 ||
         soff!=skloff  || ioff!=invoff || coff!=conoff) {

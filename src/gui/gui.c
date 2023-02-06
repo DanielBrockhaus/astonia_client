@@ -115,6 +115,7 @@ int invsel;                     // index into item
 int weasel;                     // index into weatab
 int consel;                     // index into item
 int sklsel;
+int sklsel2;
 int butsel;                     // is always set, if any of the others is set
 int telsel;
 int helpsel;
@@ -486,12 +487,12 @@ static void display(void) {
     display_selfspells();
     display_exp();
     display_military();
+    display_action();
     display_teleport();
     display_color();
     display_rage();
     display_game_special();
     display_tutor();
-    display_action();
     display_selfbars();
     display_citem();
     context_display(mousex,mousey);
@@ -1167,7 +1168,7 @@ void set_cmd_consel(void) {
 }
 
 static void set_cmd_states(void) {
-    int i,c;
+    int i,c,x,y;
     static int oldconcnt=0; // ;-)
     static char title[256];
     char buf[256];
@@ -1225,14 +1226,7 @@ static void set_cmd_states(void) {
     }
 
     // reset
-    butsel=mapsel=itmsel=chrsel=invsel=weasel=consel=sklsel=telsel=helpsel=colsel=skl_look_sel=questsel=actsel=-1;
-
-    // hit teleport?
-    telsel=get_teleport(mousex,mousey);
-    if (telsel!=-1) butsel=BUT_TEL;
-
-    colsel=get_color(mousex,mousey);
-    if (colsel!=-1) butsel=BUT_COLOR;
+    butsel=mapsel=itmsel=chrsel=invsel=weasel=consel=sklsel=sklsel2=telsel=helpsel=colsel=skl_look_sel=questsel=actsel=-1;
 
     if ((display_help || display_quest) && mousex>=dotx(DOT_HLP) && mousex<=dotx(DOT_HL2)-40 && mousey>=doty(DOT_HLP) && mousey<=doty(DOT_HLP)+12)
         butsel=BUT_HELP_DRAG;
@@ -1273,6 +1267,19 @@ static void set_cmd_states(void) {
     if (mousex>=dotx(DOT_TOP)+741 && mousex<=dotx(DOT_TOP)+775 && mousey>=doty(DOT_TOP)+22 && mousey<=doty(DOT_TOP)+30) butsel=BUT_QUEST;
     if (mousex>=dotx(DOT_TOP)+704 && mousex<=dotx(DOT_TOP)+723 && mousey>=doty(DOT_TOP)+7 && mousey<=doty(DOT_TOP)+18) butsel=BUT_EXIT;
 
+    // hit teleport?
+    telsel=get_teleport(mousex,mousey);
+    if (telsel!=-1) butsel=BUT_TEL;
+
+    colsel=get_color(mousex,mousey);
+    if (colsel!=-1) butsel=BUT_COLOR;
+
+    if (teleporter && butsel==-1) {
+        if (mousex>=dotx(DOT_TEL) && mousex<=dotx(DOT_TEL)+520 && mousey>=doty(DOT_TEL) && mousey<=doty(DOT_TEL)+320) {
+            butsel=BUT_TEL_MISC;
+        }
+    }
+
     if (show_look && mousex>=dotx(DOT_LOK)+493 && mousex<=dotx(DOT_LOK)+500 && mousey>=doty(DOT_LOK)+3 && mousey<=doty(DOT_LOK)+10) butsel=BUT_NOLOOK;
 
     if (butsel==-1 && context_action_enabled()) {
@@ -1290,6 +1297,19 @@ static void set_cmd_states(void) {
             if (mapsel!=-1 || itmsel!=-1 || chrsel!=-1)  butsel=BUT_MAP;
     }
 
+    // skill text lines for hover text
+    if (!hitsel[0] && butsel==-1 && !con_cnt) {
+        for (i=0; i<=BUT_SKL_END-BUT_SKL_BEG; i++) {
+            x=butx(i+BUT_SKL_BEG);
+            y=buty(i+BUT_SKL_BEG);
+            if (mousex>x+16 && mousex<x+SKLWIDTH && mousey>y-5 && mousey<y+5) {
+                sklsel2=i;
+                break;
+            }
+        }
+    }
+
+    // buttons
     if (!hitsel[0] && butsel==-1) {
         butsel=get_near_button(mousex,mousey);
 
@@ -1602,6 +1622,7 @@ void gui_sdl_keyproc(int wparam) {
         case SDLK_END:          cmd_proc(CMD_END); return;
         case SDLK_UP:           cmd_proc(CMD_UP); return;
         case SDLK_DOWN:         cmd_proc(CMD_DOWN); return;
+        case SDLK_TAB:          cmd_proc(9); return;
 
         case SDLK_KP_0:         wparam='0'; goto spellbindkey;
         case SDLK_KP_1:         wparam='1'; goto spellbindkey;

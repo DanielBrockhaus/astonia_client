@@ -51,7 +51,9 @@
 #define BUT_ACT_BEG     84
 #define BUT_ACT_END     95
 
-#define MAX_BUT         96
+#define BUT_TEL_MISC    96
+
+#define MAX_BUT         97
 
 #define BUTF_NOHIT      (1<<1)  // button is ignored int hit processing
 #define BUTF_CAPTURE    (1<<2)  // button captures mouse on lclick
@@ -242,6 +244,7 @@ extern int invsel;                     // index into item
 extern int weasel;                     // index into weatab
 extern int consel;                     // index into item
 extern int sklsel;
+extern int sklsel2;
 extern int butsel;                     // is always set, if any of the others is set
 extern int telsel;
 extern int helpsel;
