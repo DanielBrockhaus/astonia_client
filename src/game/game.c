@@ -1485,7 +1485,7 @@ void display_game_map(struct map *cmap) {
 }
 
 void display_pents(void) {
-    int n,col;
+    int n,col,yoff;
 
     for (n=0; n<7; n++) {
         switch (pent_str[n][0]) {
@@ -1496,7 +1496,9 @@ void display_pents(void) {
 
             default:	continue;
         }
-        dd_drawtext(dotx(DOT_BOT)+600,doty(DOT_BOT)-80+n*10,col,DD_SMALL|DD_FRAME,pent_str[n]+1);
+        if (context_action_enabled()) yoff=30;
+        else yoff=0;
+        dd_drawtext(dotx(DOT_BOT)+550,doty(DOT_BOT)-80+n*10-yoff,col,DD_SMALL|DD_FRAME,pent_str[n]+1);
     }
 }
 

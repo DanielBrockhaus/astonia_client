@@ -164,7 +164,7 @@ static int display_hover(void) {
         if (sy<doty(DOT_TL)) sy=doty(DOT_TL);
         if (sy>doty(DOT_BR)-hi[slot].cnt*10-8) sy=doty(DOT_BR)-hi[slot].cnt*10-8;
 
-        dd_shaded_rect(sx,sy,sx+hi[slot].width+8,sy+hi[slot].cnt*10+8,0x0000);
+        dd_shaded_rect(sx,sy,sx+hi[slot].width+8,sy+hi[slot].cnt*10+8,0x0000,150);
 
         for (n=0; n<MAXDESC; n++) {
             if (!hi[slot].desc[n]) break;
@@ -211,7 +211,7 @@ static void display_hover_update(void) {
     int x,y,i,v;
 
     sklsel2=-1;
-    for (i=0; i<skltab_cnt; i++) {
+    for (i=0; i<=BUT_SKL_END-BUT_SKL_BEG; i++) {
         x=butx(i+BUT_SKL_BEG);
         y=buty(i+BUT_SKL_BEG);
         if (mousex>x+16 && mousex<x+SKLWIDTH && mousey>y-5 && mousey<y+5) {
@@ -237,19 +237,88 @@ int tactics2melee(int val) {
     return val*0.375;
 }
 
+int tactics2immune(int val) {
+    return val*0.125;
+}
+
 int tactics2spell(int val) {
     return val*0.125;
 }
 
+static char *basename(int v) {
+    switch (v) {
+        case V_WIS: return "WIS";
+        case V_INT: return "INT";
+        case V_AGI: return "AGI";
+        case V_STR: return "STR";
+        default:    return "err";
+    }
+}
+
+static char *nicenumber(int n) {
+    static char nicebuf[256];
+
+    if (n>1000000) sprintf(nicebuf,"%d,%d,%d",n/1000000,(n/1000)%1000,n%1000);
+    else if (n>1000) sprintf(nicebuf,"%d,%d",n/1000,n%1000);
+    else sprintf(nicebuf,"%d",n);
+
+    return nicebuf;
+}
 
 static int display_hover_skill(void) {
-    int sx,sy,height,width=200,v;
+    int sx,sy,height=0,width=200,v;
+    int v1,v2,v3,base=0,cap=0,offense=0,defense=0,speed=0,armor=0,weapon=0,raisecost=0,immune=0,spells=0;
 
     if (sklsel2!=-1 && tick-last_tick>HOVER_DELAY) {
         v=skltab[sklsel2+skloff].v;
         if (v<0 || v>=*game_v_max) return 0;
 
-        height=dd_drawtext_break_length(0,0,width-8,0xffff,0,game_skilldesc[v]);
+        v1=game_skill[v].base1;
+        v2=game_skill[v].base2;
+        v3=game_skill[v].base3;
+
+        if (game_skill[v].cost) {
+            raisecost=raise_cost(v,value[1][v]);
+            height+=10;
+        }
+
+        if (v1!=-1 && v2!=-1 && v3!=-3) {
+            base=(value[0][v1]+value[0][v2]+value[0][v3])/5;
+            height+=10;
+            if (base>max(15,value[1][v]*2)) cap=max(15,value[1][v]*2);
+        }
+
+        if (v==V_DAGGER || v==V_SWORD || v==V_TWOHAND || v==V_STAFF || v==V_HAND) {
+            offense=value[0][v];
+            defense=value[0][v];
+            height+=20;
+        } else if (v==V_ATTACK) {
+            offense=value[0][v]*2;
+            height+=10;
+        } else if (v==V_PARRY) {
+            defense=value[0][v]*2;
+            height+=10;
+        } else if (v==V_TACTICS) {
+            offense=tactics2melee(value[0][v]);
+            defense=tactics2melee(value[0][v]);
+            immune=tactics2immune(value[0][v]);
+            if (value[0][V_BLESS]) {
+                spells=tactics2spell(value[0][v]);
+                height+=10;
+            }
+            height+=30;
+        } else if (v==V_SPEEDSKILL) {
+            speed=value[0][v]/2;
+            height+=10;
+        } else if (v==V_BODYCONTROL) {
+            armor=value[0][v]*5;
+            weapon=value[0][v]/4;
+            height+=20;
+        }
+
+        if (height) height+=10; // add a free line if there are more lines to display
+
+        height+=dd_drawtext_break_length(0,0,width-12,0xffff,0,game_skilldesc[v]);
 
         sx=mousex+8;
         if (sx<dotx(DOT_TL)) sx=dotx(DOT_TL);
@@ -259,10 +328,48 @@ static int display_hover_skill(void) {
         if (sy<doty(DOT_TL)) sy=doty(DOT_TL);
         if (sy>doty(DOT_BR)-height-8) sy=doty(DOT_BR)-height-8;
 
-        dd_shaded_rect(sx,sy,sx+width+8,sy+height+8,0x0000);
+        dd_shaded_rect(sx,sy,sx+width+8,sy+height+8,0x0000,150);
 
-        sy=dd_drawtext_break(sx+4,sy+4,sx+width-8,0xffff,0,game_skilldesc[v]);
-        sy+=10;
+        sy=dd_drawtext_break(sx+4,sy+4,sx+width-8,0xffff,0,game_skilldesc[v])+10;
+
+        if (base) {
+            if (cap)
+                dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gets +%d from (%s+%s+%s) (capped at %d)",base,basename(v1),basename(v2),basename(v3),cap);
+            else dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gets +%d from (%s+%s+%s)",base,basename(v1),basename(v2),basename(v3));
+            sy+=10;
+        }
+        if (offense) {
+            dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gives +%d to offense",offense);
+            sy+=10;
+        }
+        if (defense) {
+            dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gives +%d to defense",defense);
+            sy+=10;
+        }
+        if (immune) {
+            dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gives +%d to immunity",immune);
+            sy+=10;
+        }
+        if (spells) {
+            dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gives +%d to spell power",spells);
+            sy+=10;
+        }
+        if (speed) {
+            dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gives +%d to speed",speed);
+            sy+=10;
+        }
+        if (armor) {
+            dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gives +%.2f to armor value",armor/20.0f);
+            sy+=10;
+        }
+        if (weapon) {
+            dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gives +%d to weapon value",weapon);
+            sy+=10;
+        }
+        if (raisecost) {
+            dd_drawtext_fmt(sx+4,sy,0xffff,0,"%s exp to raise",nicenumber(raisecost));
+            sy+=10;
+        }
 
         return 1;
     }

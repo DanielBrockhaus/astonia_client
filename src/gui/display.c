@@ -900,8 +900,8 @@ void display_action(void) {
 }
 
 static void display_bar(int sx,int sy,int perc,unsigned short color) {
-    if (perc<100) dd_shaded_rect(sx,sy,sx+10,sy+100-perc,IRGB(0,0,0));
-    if (perc>0) dd_shaded_rect(sx,sy+100-perc,sx+10,sy+100,color);
+    if (perc<100) dd_shaded_rect(sx,sy,sx+10,sy+100-perc,IRGB(0,0,0),95);
+    if (perc>0) dd_shaded_rect(sx,sy+100-perc,sx+10,sy+100,color,95);
 }
 
 static int get_lifeshield_max(void) {

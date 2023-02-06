@@ -336,7 +336,6 @@ int context_key_set(int onoff);
 int context_key_isset(void);
 int context_key_isset(void);
 int context_key_enabled(void);
-int context_action_enabled(void);
 int context_key_set_cmd(void);
 void context_key_reset(void);
 
@@ -352,4 +351,5 @@ int action_key2slot(int key);
 int action_slot2key(int slot);
 int has_action_skill(int i);
 void action_set_key(int slot,int key);
+void context_action_enable(int onoff);
 

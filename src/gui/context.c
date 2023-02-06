@@ -21,7 +21,7 @@
 #include "../../src/sdl.h"
 #include "../../src/modder.h"
 
-int context_enabled=7;
+int context_enabled=3;
 
 static int c_on=0,c_x,c_y,d_y,csel,isel,msel,ori_x,ori_y;
 
@@ -291,7 +291,7 @@ void context_display(int mx,int my) {
 
         d_y=menu.linecnt*10+8;
 
-        dd_shaded_rect(c_x,c_y,c_x+MENUWIDTH,c_y+d_y,0x0000);
+        dd_shaded_rect(c_x,c_y,c_x+MENUWIDTH,c_y+d_y,0x0000,95);
         x=c_x+4;
         y=c_y+4;
 
@@ -407,14 +407,20 @@ int context_key_set_cmd(void) {
             itmsel=get_near_item(mousex,mousey,CMF_TAKE|CMF_USE,3);
             mapsel=get_near_ground(mousex,mousey);
             if (csprite) {
-                if (chrsel!=-1) lcmd_override=CMD_CHR_GIVE;
-                else if (itmsel!=-1 && (map[itmsel].flags&CMF_USE)) lcmd_override=CMD_ITM_USE_WITH;
-                else if (mapsel!=-1) lcmd_override=CMD_MAP_DROP;
+                if (chrsel!=-1) {
+                    itmsel=-1;
+                    lcmd_override=CMD_CHR_GIVE;
+                } else if (itmsel!=-1) {
+                    if (map[itmsel].flags&CMF_USE) lcmd_override=CMD_ITM_USE_WITH;
+                    else itmsel=-1;
+                } else if (mapsel!=-1) lcmd_override=CMD_MAP_DROP;
             } else {
                 if (itmsel!=-1) {
                     if (map[itmsel].flags&CMF_TAKE) lcmd_override=CMD_ITM_TAKE;
                     else if (map[itmsel].flags&CMF_USE) lcmd_override=CMD_ITM_USE;
+                    else itmsel=-1;
                 }
+                chrsel=-1;
             }
             break;
     }
@@ -489,6 +495,10 @@ int context_key_enabled(void) {
     return(context_enabled&2);
 }
 
+static int action_enabled=1;
+void context_action_enable(int onoff) {
+    action_enabled=onoff;
+}
 int context_action_enabled(void) {
-    return(context_enabled&4);
+    return(context_enabled&2) && action_enabled;
 }

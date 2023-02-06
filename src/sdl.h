@@ -70,7 +70,7 @@ int sdlt_yres(int stx);
 void sdl_blit(int stx,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset);
 int sdl_drawtext(int sx,int sy,unsigned short int color,int flags,const char *text,struct ddfont *font,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset);
 void sdl_rect(int sx,int sy,int ex,int ey,unsigned short int color,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset);
-void sdl_shaded_rect(int sx,int sy,int ex,int ey,unsigned short int color,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset);
+void sdl_shaded_rect(int sx,int sy,int ex,int ey,unsigned short int color,unsigned short alpha,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset);
 void sdl_pixel(int x,int y,unsigned short color,int x_offset,int y_offset);
 void sdl_line(int fx,int fy,int tx,int ty,unsigned short color,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset);
 uint32_t *sdl_load_png(char *filename,int *dx,int *dy);

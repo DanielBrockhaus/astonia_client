@@ -184,8 +184,8 @@ __declspec(dllexport) void dd_rect(int sx,int sy,int ex,int ey,unsigned short in
     sdl_rect(sx,sy,ex,ey,color,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 }
 
-void dd_shaded_rect(int sx,int sy,int ex,int ey,unsigned short color) {
-    sdl_shaded_rect(sx,sy,ex,ey,color,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
+void dd_shaded_rect(int sx,int sy,int ex,int ey,unsigned short color,unsigned short alpha) {
+    sdl_shaded_rect(sx,sy,ex,ey,color,alpha,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 }
 
 __declspec(dllexport) void dd_line(int fx,int fy,int tx,int ty,unsigned short col) {

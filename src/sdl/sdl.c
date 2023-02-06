@@ -1866,14 +1866,14 @@ void sdl_rect(int sx,int sy,int ex,int ey,unsigned short int color,int clipsx,in
     SDL_RenderFillRect(sdlren,&rc);
 }
 
-void sdl_shaded_rect(int sx,int sy,int ex,int ey,unsigned short int color,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
+void sdl_shaded_rect(int sx,int sy,int ex,int ey,unsigned short int color,unsigned short alpha,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
     int r,g,b,a;
     SDL_Rect rc;
 
     r=R16TO32(color);
     g=G16TO32(color);
     b=B16TO32(color);
-    a=95;
+    a=alpha;
 
     if (sx<clipsx) sx=clipsx;
     if (sy<clipsy) sy=clipsy;
