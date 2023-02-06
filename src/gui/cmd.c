@@ -236,7 +236,7 @@ void cmd_proc(int key) {
             cmdcursor++;
             break;
 
-        case CMD_RETURN:    // TODO: why is there a 13 here?
+        case CMD_RETURN:
         case 13:
             if (!client_cmd(cmdline) && cmdline[0]) cmd_text(cmdline);
             cmd_remember(cmdline);

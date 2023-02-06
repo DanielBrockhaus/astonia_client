@@ -15,7 +15,7 @@ Bugs
 
 - Shaded text in 2X has single pixel gaps.
 
-- when using scroll bars the cursor is visible mid screen
+- Dragged help window should disable mouse-overs and buttons in top bar.
 
 
 Probably

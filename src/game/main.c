@@ -31,8 +31,8 @@ int largetext=0;
 int vendor=1;
 char user_keys[10]={'Q','W','E','A','S','D','Z','X','C','V'};
 
-static char memcheck_failed_str[]={"TODO: memcheck failed"};  // TODO
-static char panic_reached_str[]={"TODO: panic failure"}; // TODO
+static char memcheck_failed_str[]={"memcheck failed"};
+static char panic_reached_str[]={"panic failure"};
 
 static FILE *errorfp;
 

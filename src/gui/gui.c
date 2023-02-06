@@ -1702,7 +1702,8 @@ void gui_sdl_keyproc(int wparam) {
         case SDLK_PAGEUP:       dd_text_pageup(); break;
         case SDLK_PAGEDOWN:     dd_text_pagedown(); break;
 
-        case '+':       if (!context_key_isset()) context_action_enable(1); break;
+        case '+':
+        case '=':       if (!context_key_isset()) context_action_enable(1); break;
         case '-':       if (!context_key_isset()) context_action_enable(0); break;
 
     }

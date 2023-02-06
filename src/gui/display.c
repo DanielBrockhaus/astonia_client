@@ -347,13 +347,10 @@ void display_citem(void) {
 }
 
 void display_scrollbars(void) {
-    // TODO: SPR_SCRBAR (image 26) is a single red pixel. This must be wrong?
-    //dd_copysprite(SPR_SCRBAR,but[BUT_SCL_UP].x,but[BUT_SCL_UP].y+(but[BUT_SCL_DW].y-but[BUT_SCL_UP].y)/2,DDFX_NLIGHT,DD_OFFSET);
     dd_copysprite(SPR_SCRUP,but[BUT_SCL_UP].x,but[BUT_SCL_UP].y,butsel==BUT_SCL_UP?FX_ITEMBRIGHT:FX_ITEMLIGHT,DD_OFFSET);
     dd_copysprite(SPR_SCRLT,but[BUT_SCL_TR].x,but[BUT_SCL_TR].y,butsel==BUT_SCL_TR?FX_ITEMBRIGHT:FX_ITEMLIGHT,DD_OFFSET);
     dd_copysprite(SPR_SCRDW,but[BUT_SCL_DW].x,but[BUT_SCL_DW].y,butsel==BUT_SCL_DW?FX_ITEMBRIGHT:FX_ITEMLIGHT,DD_OFFSET);
 
-    //dd_copysprite(SPR_SCRBAR,but[BUT_SCR_UP].x,but[BUT_SCR_UP].y+(but[BUT_SCR_DW].y-but[BUT_SCR_UP].y)/2,DDFX_NLIGHT,DD_OFFSET);
     dd_copysprite(SPR_SCRUP,but[BUT_SCR_UP].x,but[BUT_SCR_UP].y,butsel==BUT_SCR_UP?FX_ITEMBRIGHT:FX_ITEMLIGHT,DD_OFFSET);
     dd_copysprite(SPR_SCRRT,but[BUT_SCR_TR].x,but[BUT_SCR_TR].y,butsel==BUT_SCR_TR?FX_ITEMBRIGHT:FX_ITEMLIGHT,DD_OFFSET);
     dd_copysprite(SPR_SCRDW,but[BUT_SCR_DW].x,but[BUT_SCR_DW].y,butsel==BUT_SCR_DW?FX_ITEMBRIGHT:FX_ITEMLIGHT,DD_OFFSET);
