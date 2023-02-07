@@ -846,6 +846,8 @@ __declspec(dllexport) int _trans_charno(int csprite,int *pscale,int *pcr,int *pc
             //case 313:	csprite=58; c1=IRGB(18,18,18); c2=IRGB(22,22,22); c3=IRGB(12,7,6); break; // zoetje
 
         case 568:	csprite=58; c1=IRGB(16,31,16); c2=IRGB(6,20,6); c3=IRGB(28,16,16); break; // queen fiona
+
+        case 800:   csprite=121; break;
     }
 
     if (pscale) *pscale=scale;
@@ -2325,7 +2327,7 @@ int (*get_player_sprite)(int nr,int zdir,int action,int step,int duration,int at
 __declspec(dllexport) int _get_player_sprite(int nr,int zdir,int action,int step,int duration,int attick) {
     int base;
 
-    if (nr>100) nr=trans_charno(nr,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,attick);
+    //if (nr>100) nr=trans_charno(nr,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,attick);
 
     base=100000+nr*1000;
 
@@ -2362,7 +2364,8 @@ __declspec(dllexport) int _get_player_sprite(int nr,int zdir,int action,int step
                 step=attick%16;
                 duration=16;
                 break;
-            case 120:   // 120 is our test slot, to be kept empty. It is also used to showcase slower idle animations
+            case 120:      // 120 is our test slot, to be kept empty. It is also used to showcase slower idle animations
+            case 121:
                 action=60;
                 step=attick%32;
                 duration=32;

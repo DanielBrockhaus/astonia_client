@@ -404,7 +404,7 @@ int context_key_set_cmd(void) {
         case CMD_CHR_GIVE:
         case CMD_MAP_DROP:
             chrsel=get_near_char(mousex,mousey,3);
-            itmsel=get_near_item(mousex,mousey,CMF_TAKE|CMF_USE,3);
+            itmsel=get_near_item(mousex,mousey,CMF_TAKE|CMF_USE,0);
             mapsel=get_near_ground(mousex,mousey);
             if (csprite) {
                 if (chrsel!=-1) {

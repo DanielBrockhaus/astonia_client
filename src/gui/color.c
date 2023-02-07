@@ -44,6 +44,7 @@ void display_color(void) {
 
     csprite=trans_charno(map[MAPDX*MAPDY/2].csprite,&scale,&cr,&cg,&cb,&light,&sat,&c1,&c2,&c3,&shine,tick);
 
+    //csprite=121; col_anim=1; col_step=(tick/4)%16; TODO animation testing made easy
     fx.sprite=get_player_sprite(csprite,col_dir,col_anim,col_step,16,tick);
     col_step++;
     if (col_step==16) {

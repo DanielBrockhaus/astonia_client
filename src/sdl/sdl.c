@@ -676,7 +676,7 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         return -1;
     }
 
-#if 0
+#if 1
     // get patch png
     sprintf(filename,"../gfxp/x%d/%08d/%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
     if (sdl_load_image_png_(si,filename,NULL)==0) return 0;
