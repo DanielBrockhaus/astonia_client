@@ -171,8 +171,7 @@ static int display_hover(void) {
 
         dd_shaded_rect(sx,sy,sx+hi[slot].width+8,sy+hi[slot].cnt*10+8,0x0000,150);
 
-        for (n=0; n<MAXDESC; n++) {
-            if (!hi[slot].desc[n]) break;
+        for (n=0; n<hi[slot].cnt; n++) {
 
             x=sx+4;
             col=IRGB(24,24,24);

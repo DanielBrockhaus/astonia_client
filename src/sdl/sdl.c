@@ -2499,6 +2499,7 @@ void sdl_set_title(char *title) {
 /*
 
 for /r "." %a in (0*) do magick mogrify -resize 200% png32:"%~a"
+magick mogrify -resize 50% png32:*.png
 
 -transparent rgb(255,0,255)
 - specify output format (32 bits RGBA)

@@ -404,7 +404,7 @@ int context_key_set_cmd(void) {
         case CMD_CHR_GIVE:
         case CMD_MAP_DROP:
             chrsel=get_near_char(mousex,mousey,3);
-            itmsel=get_near_item(mousex,mousey,CMF_TAKE|CMF_USE,0);
+            itmsel=get_near_item(mousex,mousey,CMF_TAKE|CMF_USE,csprite?0:3);
             mapsel=get_near_ground(mousex,mousey);
             if (csprite) {
                 if (chrsel!=-1) {
@@ -444,7 +444,7 @@ void context_keyup(int key) {
 
     if (mousex>=dotx(DOT_MTL) && mousey>=doty(DOT_MTL) && mousex<dotx(DOT_MBR) && mousey<doty(DOT_MBR)) {
         csel=get_near_char(mousex,mousey,3);
-        isel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,3);
+        isel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,csprite?0:3);
         msel=get_near_ground(mousex,mousey);
     } else csel=isel=msel=-1;
 
