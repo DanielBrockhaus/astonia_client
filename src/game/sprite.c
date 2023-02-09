@@ -429,7 +429,6 @@ __declspec(dllexport) int _is_yadd_sprite(int sprite) {
 
 int (*get_chr_height)(int csprite)=_get_chr_height;
 __declspec(dllexport) int _get_chr_height(int csprite) {
-    //csprite=playersprite_override;
 
     switch (csprite) {
         case 20: 	return -35;

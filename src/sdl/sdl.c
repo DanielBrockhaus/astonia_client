@@ -875,6 +875,91 @@ static uint32_t sdl_colorize_pix(uint32_t irgb,unsigned short c1v,unsigned short
     return irgb;
 }
 
+static int would_colorize(int x,int y,int xres,int yres,uint32_t *pixel,int what) {
+    double rf,gf,bf,m,rm,gm,bm;
+    uint32_t irgb;
+
+    if (x<0 || x>=xres*sdl_scale) return 0;
+    if (y<0 || y>=yres*sdl_scale) return 0;
+
+    irgb=pixel[x+y*xres*sdl_scale];
+
+    rf=IGET_R(irgb)/255.0;
+    gf=IGET_G(irgb)/255.0;
+    bf=IGET_B(irgb)/255.0;
+
+    m=max(max(rf,gf),bf)+0.000001;
+    rm=rf/m; gm=gf/m; bm=bf/m;
+
+    if (what==0 && gm>0.99 && rm<GREENCOL && bm<GREENCOL) return 1;
+    if (what==1 && bm>0.99 && rm<BLUECOL && gm<BLUECOL) return 1;
+    if (what==2 && rm>0.99 && gm<REDCOL && bm<REDCOL) return 1;
+
+    return 0;
+}
+
+static int would_colorize_neigh(int x,int y,int xres,int yres,uint32_t *pixel,int what) {
+    int v=0;
+    v=  would_colorize(x+1,y+0,xres,yres,pixel,what) +
+        would_colorize(x-1,y+0,xres,yres,pixel,what) +
+        would_colorize(x+0,y+1,xres,yres,pixel,what) +
+        would_colorize(x+0,y-1,xres,yres,pixel,what);
+    if (sdl_scale>2) {
+        v+=would_colorize(x+2,y+0,xres,yres,pixel,what) +
+        would_colorize(x-2,y+0,xres,yres,pixel,what) +
+        would_colorize(x+0,y+2,xres,yres,pixel,what) +
+        would_colorize(x+0,y-2,xres,yres,pixel,what);
+    }
+    return v;
+}
+
+static uint32_t sdl_colorize_pix2(uint32_t irgb,unsigned short c1v,unsigned short c2v,unsigned short c3v,int x,int y,int xres,int yres,uint32_t *pixel,int sprite) {
+    double rf,gf,bf,m,rm,gm,bm;
+    int r,g,b,a;
+
+    // use old algorithm for old sprites
+    if (sprite<220000) return sdl_colorize_pix(irgb,c1v,c2v,c3v);
+
+    rf=IGET_R(irgb)/255.0;
+    gf=IGET_G(irgb)/255.0;
+    bf=IGET_B(irgb)/255.0;
+
+    m=max(max(rf,gf),bf)+0.000001;
+    rm=rf/m; gm=gf/m; bm=bf/m;
+
+    // channel 1: green
+    if ((c1v && gm>0.99 && rm<GREENCOL && bm<GREENCOL) || (c1v && gm>0.67 && would_colorize_neigh(x,y,xres,yres,pixel,0))) {
+
+        r=8.0*(OGET_R(c1v)*gf+(1.0-gf)*rf);
+        g=8.0*OGET_G(c1v)*gf;
+        b=8.0*(OGET_B(c1v)*gf+(1.0-gf)*bf);
+        a=IGET_A(irgb);
+        return IRGBA(r,g,b,a);
+    }
+
+    // channel 2: blue
+    if ((c2v && bm>0.99 && rm<BLUECOL && gm<BLUECOL) || (c2v && bm>0.67 && would_colorize_neigh(x,y,xres,yres,pixel,1))) {
+
+        r=8.0*(OGET_R(c2v)*bf+(1.0-bf)*rf);
+        g=8.0*(OGET_G(c2v)*bf+(1.0-bf)*gf);
+        b=8.0*OGET_B(c2v)*bf;
+        a=IGET_A(irgb);
+        return IRGBA(r,g,b,a);
+    }
+
+    // channel 3: red
+    if ((c3v && rm>0.99 && gm<REDCOL && bm<REDCOL) || (c3v && gm>0.67 && would_colorize_neigh(x,y,xres,yres,pixel,2))) {
+
+        r=8.0*OGET_R(c3v)*rf;
+        g=8.0*(OGET_G(c3v)*rf+(1.0-rf)*gf);
+        b=8.0*(OGET_B(c3v)*rf+(1.0-rf)*bf);
+        a=IGET_A(irgb);
+        return IRGBA(r,g,b,a);
+    }
+
+    return irgb;
+}
+
 static uint32_t sdl_colorbalance(uint32_t irgb,char cr,char cg,char cb,char light,char sat) {
     int r,g,b,a,grey;
 
@@ -918,16 +1003,6 @@ static uint32_t sdl_colorbalance(uint32_t irgb,char cr,char cg,char cb,char ligh
     irgb=IRGBA(r,g,b,a);
 
     return irgb;
-}
-
-// TODO: add other sprites to this list
-// TODO: move to sprite.c
-int is_non_wall(int sprite) {
-
-    switch (sprite) {
-        case 14177:     return 1;   // earth underground door
-        default:        return 0;
-    }
 }
 
 static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
@@ -996,7 +1071,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
 
                     irgb=si->pixel[(int)(floor(ix)+floor(iy)*si->xres*sdl_scale)];
 
-                    if (st->c1 || st->c2 || st->c3) irgb=sdl_colorize_pix(irgb,st->c1,st->c2,st->c3);
+                    if (st->c1 || st->c2 || st->c3) irgb=sdl_colorize_pix2(irgb,st->c1,st->c2,st->c3,floor(ix),floor(iy),si->xres,si->yres,si->pixel,st->sprite);
                     dba=IGET_A(irgb)*low_x*low_y;
                     dbr=IGET_R(irgb)*low_x*low_y;
                     dbg=IGET_G(irgb)*low_x*low_y;
@@ -1004,7 +1079,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
 
                     irgb=si->pixel[(int)(ceil(ix)+floor(iy)*si->xres*sdl_scale)];
 
-                    if (st->c1 || st->c2 || st->c3) irgb=sdl_colorize_pix(irgb,st->c1,st->c2,st->c3);
+                    if (st->c1 || st->c2 || st->c3) irgb=sdl_colorize_pix2(irgb,st->c1,st->c2,st->c3,ceil(ix),floor(iy),si->xres,si->yres,si->pixel,st->sprite);
                     dba+=IGET_A(irgb)*high_x*low_y;
                     dbr+=IGET_R(irgb)*high_x*low_y;
                     dbg+=IGET_G(irgb)*high_x*low_y;
@@ -1012,7 +1087,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
 
                     irgb=si->pixel[(int)(floor(ix)+ceil(iy)*si->xres*sdl_scale)];
 
-                    if (st->c1 || st->c2 || st->c3) irgb=sdl_colorize_pix(irgb,st->c1,st->c2,st->c3);
+                    if (st->c1 || st->c2 || st->c3) irgb=sdl_colorize_pix2(irgb,st->c1,st->c2,st->c3,floor(ix),ceil(iy),si->xres,si->yres,si->pixel,st->sprite);
                     dba+=IGET_A(irgb)*low_x*high_y;
                     dbr+=IGET_R(irgb)*low_x*high_y;
                     dbg+=IGET_G(irgb)*low_x*high_y;
@@ -1020,7 +1095,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
 
                     irgb=si->pixel[(int)(ceil(ix)+ceil(iy)*si->xres*sdl_scale)];
 
-                    if (st->c1 || st->c2 || st->c3) irgb=sdl_colorize_pix(irgb,st->c1,st->c2,st->c3);
+                    if (st->c1 || st->c2 || st->c3) irgb=sdl_colorize_pix2(irgb,st->c1,st->c2,st->c3,ceil(ix),ceil(iy),si->xres,si->yres,si->pixel,st->sprite);
                     dba+=IGET_A(irgb)*high_x*high_y;
                     dbr+=IGET_R(irgb)*high_x*high_y;
                     dbg+=IGET_G(irgb)*high_x*high_y;
@@ -1030,7 +1105,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
 
                 } else {
                     irgb=si->pixel[x+y*si->xres*sdl_scale];
-                    if (st->c1 || st->c2 || st->c3) irgb=sdl_colorize_pix(irgb,st->c1,st->c2,st->c3);
+                    if (st->c1 || st->c2 || st->c3) irgb=sdl_colorize_pix2(irgb,st->c1,st->c2,st->c3,x,y,si->xres,si->yres,si->pixel,st->sprite);
                 }
 
                 if (st->cr || st->cg || st->cb || st->light || st->sat) irgb=sdl_colorbalance(irgb,st->cr,st->cg,st->cb,st->light,st->sat);
@@ -1044,9 +1119,42 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
                     int v1,v2,v3,v4,v5=0;
                     int div;
 
-                    // TODO: This is actually just one direction a non-wall might be facing
-                    // and needs to account for the other one as well.
-                    if (is_non_wall(st->sprite)) {
+
+                    if (y<10*sdl_scale+(20*sdl_scale-abs(20*sdl_scale-x))/2) {
+
+                        // This part calculates a floor tile, or the top of a wall tile
+                        if (x/2<20*sdl_scale-y) {
+                            v2=-(x/2-(20*sdl_scale-y));
+                            r2=IGET_R(sdl_light(st->ll,irgb));
+                            g2=IGET_G(sdl_light(st->ll,irgb));
+                            b2=IGET_B(sdl_light(st->ll,irgb));
+                        } else v2=0;
+                        if (x/2>20*sdl_scale-y) {
+                            v3=(x/2-(20*sdl_scale-y));
+                            r3=IGET_R(sdl_light(st->rl,irgb));
+                            g3=IGET_G(sdl_light(st->rl,irgb));
+                            b3=IGET_B(sdl_light(st->rl,irgb));
+                        } else v3=0;
+                        if (x/2>y) {
+                            v4=(x/2-y);
+                            r4=IGET_R(sdl_light(st->ul,irgb));
+                            g4=IGET_G(sdl_light(st->ul,irgb));
+                            b4=IGET_B(sdl_light(st->ul,irgb));
+                        } else v4=0;
+                        if (x/2<y) {
+                            v5=-(x/2-y);
+                            r5=IGET_R(sdl_light(st->dl,irgb));
+                            g5=IGET_G(sdl_light(st->dl,irgb));
+                            b5=IGET_B(sdl_light(st->dl,irgb));
+                        } else v5=0;
+
+                        v1=20*sdl_scale-(v2+v3+v4+v5);
+                        r1=IGET_R(sdl_light(st->ml,irgb));
+                        g1=IGET_G(sdl_light(st->ml,irgb));
+                        b1=IGET_B(sdl_light(st->ml,irgb));
+                    } else {
+
+                        // This is for the lower part (left side and front as seen on the screen)
                         if (x<10*sdl_scale) {
                             v2=(10*sdl_scale-x)*2-2;
                             r2=IGET_R(sdl_light(st->ll,irgb));
@@ -1055,94 +1163,28 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
                         } else v2=0;
                         if (x>10*sdl_scale && x<20*sdl_scale) {
                             v3=(x-10*sdl_scale)*2-2;
-                            r3=IGET_R(sdl_light(st->ml,irgb));
-                            g3=IGET_G(sdl_light(st->ml,irgb));
-                            b3=IGET_B(sdl_light(st->ml,irgb));
+                            r3=IGET_R(sdl_light(st->rl,irgb));
+                            g3=IGET_G(sdl_light(st->rl,irgb));
+                            b3=IGET_B(sdl_light(st->rl,irgb));
                         } else v3=0;
                         if (x>20*sdl_scale && x<30*sdl_scale) {
                             v5=(10*sdl_scale-(x-20*sdl_scale))*2-2;
-                            r5=IGET_R(sdl_light(st->ml,irgb));
-                            g5=IGET_G(sdl_light(st->ml,irgb));
-                            b5=IGET_B(sdl_light(st->ml,irgb));
+                            r5=IGET_R(sdl_light(st->dl,irgb));
+                            g5=IGET_G(sdl_light(st->dl,irgb));
+                            b5=IGET_B(sdl_light(st->dl,irgb));
                         } else v5=0;
-                        if (x>30*sdl_scale && x<40*sdl_scale) {
-                            v4=(x-30*sdl_scale)*2-2;
-                            r4=IGET_R(sdl_light(st->rl,irgb));
-                            g4=IGET_G(sdl_light(st->rl,irgb));
-                            b4=IGET_B(sdl_light(st->rl,irgb));
+                        if (x>30*sdl_scale) {
+                            if (x<40*sdl_scale) v4=(x-30*sdl_scale)*2-2;
+                            else v4=0;
+                            r4=IGET_R(sdl_light(st->ul,irgb));
+                            g4=IGET_G(sdl_light(st->ul,irgb));
+                            b4=IGET_B(sdl_light(st->ul,irgb));
                         } else v4=0;
 
                         v1=20*sdl_scale-(v2+v3+v4+v5)/2;
                         r1=IGET_R(sdl_light(st->ml,irgb));
                         g1=IGET_G(sdl_light(st->ml,irgb));
                         b1=IGET_B(sdl_light(st->ml,irgb));
-                    } else {
-                        if (y<10*sdl_scale+(20*sdl_scale-abs(20*sdl_scale-x))/2) {
-
-                            // This part calculates a floor tile, or the top of a wall tile
-                            if (x/2<20*sdl_scale-y) {
-                                v2=-(x/2-(20*sdl_scale-y));
-                                r2=IGET_R(sdl_light(st->ll,irgb));
-                                g2=IGET_G(sdl_light(st->ll,irgb));
-                                b2=IGET_B(sdl_light(st->ll,irgb));
-                            } else v2=0;
-                            if (x/2>20*sdl_scale-y) {
-                                v3=(x/2-(20*sdl_scale-y));
-                                r3=IGET_R(sdl_light(st->rl,irgb));
-                                g3=IGET_G(sdl_light(st->rl,irgb));
-                                b3=IGET_B(sdl_light(st->rl,irgb));
-                            } else v3=0;
-                            if (x/2>y) {
-                                v4=(x/2-y);
-                                r4=IGET_R(sdl_light(st->ul,irgb));
-                                g4=IGET_G(sdl_light(st->ul,irgb));
-                                b4=IGET_B(sdl_light(st->ul,irgb));
-                            } else v4=0;
-                            if (x/2<y) {
-                                v5=-(x/2-y);
-                                r5=IGET_R(sdl_light(st->dl,irgb));
-                                g5=IGET_G(sdl_light(st->dl,irgb));
-                                b5=IGET_B(sdl_light(st->dl,irgb));
-                            } else v5=0;
-
-                            v1=20*sdl_scale-(v2+v3+v4+v5);
-                            r1=IGET_R(sdl_light(st->ml,irgb));
-                            g1=IGET_G(sdl_light(st->ml,irgb));
-                            b1=IGET_B(sdl_light(st->ml,irgb));
-                        } else {
-
-                            // This is for the lower part (left side and front as seen on the screen)
-                            if (x<10*sdl_scale) {
-                                v2=(10*sdl_scale-x)*2-2;
-                                r2=IGET_R(sdl_light(st->ll,irgb));
-                                g2=IGET_G(sdl_light(st->ll,irgb));
-                                b2=IGET_B(sdl_light(st->ll,irgb));
-                            } else v2=0;
-                            if (x>10*sdl_scale && x<20*sdl_scale) {
-                                v3=(x-10*sdl_scale)*2-2;
-                                r3=IGET_R(sdl_light(st->rl,irgb));
-                                g3=IGET_G(sdl_light(st->rl,irgb));
-                                b3=IGET_B(sdl_light(st->rl,irgb));
-                            } else v3=0;
-                            if (x>20*sdl_scale && x<30*sdl_scale) {
-                                v5=(10*sdl_scale-(x-20*sdl_scale))*2-2;
-                                r5=IGET_R(sdl_light(st->dl,irgb));
-                                g5=IGET_G(sdl_light(st->dl,irgb));
-                                b5=IGET_B(sdl_light(st->dl,irgb));
-                            } else v5=0;
-                            if (x>30*sdl_scale) {
-                                if (x<40*sdl_scale) v4=(x-30*sdl_scale)*2-2;
-                                else v4=0;
-                                r4=IGET_R(sdl_light(st->ul,irgb));
-                                g4=IGET_G(sdl_light(st->ul,irgb));
-                                b4=IGET_B(sdl_light(st->ul,irgb));
-                            } else v4=0;
-
-                            v1=20*sdl_scale-(v2+v3+v4+v5)/2;
-                            r1=IGET_R(sdl_light(st->ml,irgb));
-                            g1=IGET_G(sdl_light(st->ml,irgb));
-                            b1=IGET_B(sdl_light(st->ml,irgb));
-                        }
                     }
 
                     div=v1+v2+v3+v4+v5;
