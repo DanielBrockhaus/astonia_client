@@ -113,6 +113,7 @@ int  note(const char *format,...) __attribute__((format(printf, 1, 2)));
 int  warn(const char *format,...) __attribute__((format(printf, 1, 2)));
 int  fail(const char *format,...) __attribute__((format(printf, 1, 2)));
 void paranoia(const char *format,...) __attribute__((format(printf, 1, 2)));
+void display_messagebox(char *title,char *text);
 
 void* xmalloc(int size,int ID);
 void* xcalloc(int size,int ID);

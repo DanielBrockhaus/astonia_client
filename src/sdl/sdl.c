@@ -58,6 +58,9 @@ static zip_t *sdl_zip2=NULL;
 static zip_t *sdl_zip1p=NULL;
 static zip_t *sdl_zip2p=NULL;
 
+static zip_t *sdl_zip1m=NULL;
+static zip_t *sdl_zip2m=NULL;
+
 static SDL_sem *prework=NULL;
 static SDL_mutex *premutex=NULL;
 
@@ -166,19 +169,23 @@ int sdl_init(int width,int height,char *title) {
 
     sdl_zip1=zip_open("res/gx1.zip",ZIP_RDONLY,NULL);
     sdl_zip1p=zip_open("res/gx1_patch.zip",ZIP_RDONLY,NULL);
+    sdl_zip1m=zip_open("res/gx1_mod.zip",ZIP_RDONLY,NULL);
 
     switch (sdl_scale) {
         case 2:
             sdl_zip2=zip_open("res/gx2.zip",ZIP_RDONLY,NULL);
             sdl_zip2p=zip_open("res/gx2_patch.zip",ZIP_RDONLY,NULL);
+            sdl_zip2m=zip_open("res/gx2_mod.zip",ZIP_RDONLY,NULL);
             break;
         case 3:
             sdl_zip2=zip_open("res/gx3.zip",ZIP_RDONLY,NULL);
             sdl_zip2p=zip_open("res/gx3_patch.zip",ZIP_RDONLY,NULL);
+            sdl_zip2m=zip_open("res/gx3_mod.zip",ZIP_RDONLY,NULL);
             break;
         case 4:
             sdl_zip2=zip_open("res/gx4.zip",ZIP_RDONLY,NULL);
             sdl_zip2p=zip_open("res/gx4_patch.zip",ZIP_RDONLY,NULL);
+            sdl_zip2m=zip_open("res/gx4_mod.zip",ZIP_RDONLY,NULL);
             break;
     }
 
@@ -676,40 +683,54 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         return -1;
     }
 
-#if 1
+#if 0
     // get patch png
     sprintf(filename,"../gfxp/x%d/%08d/%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
     if (sdl_load_image_png_(si,filename,NULL)==0) return 0;
 #endif
 
     // get high res from archive
-    if (sdl_zip2 || sdl_zip2p) {
+    if (sdl_zip2 || sdl_zip2p || sdl_zip2m) {
         sprintf(filename,"%08d.png",sprite);
-        if (sdl_zip2p && sdl_load_image_png_(si,filename,sdl_zip2p)==0) return 0;    // check patch archive first
-        if (sdl_zip2 && sdl_load_image_png_(si,filename,sdl_zip2)==0) return 0;
+        if (sdl_zip2m && sdl_load_image_png_(si,filename,sdl_zip2m)==0) return 0;    // check mod archive first
+        if (sdl_zip2p && sdl_load_image_png_(si,filename,sdl_zip2p)==0) return 0;    // check patch archive second
+        if (sdl_zip2 && sdl_load_image_png_(si,filename,sdl_zip2)==0) return 0;     // check base archive third
     }
 
 #if 0
-    // get high res from png folder
+    // get high res from base png folder
     sprintf(filename,"../gfx/x%d/%08d/%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
     if (sdl_load_image_png_(si,filename,NULL)==0) return 0;
 #endif
 
 
     // get standard from archive
-    if (sdl_zip1 || sdl_zip2p) {
+    if (sdl_zip1 || sdl_zip2p || sdl_zip2m) {
         sprintf(filename,"%08d.png",sprite);
+        if (sdl_zip1m && sdl_load_image_png(si,filename,sdl_zip1m,do_smoothify(sprite))==0) return 0;
         if (sdl_zip1p && sdl_load_image_png(si,filename,sdl_zip1p,do_smoothify(sprite))==0) return 0;
         if (sdl_zip1 && sdl_load_image_png(si,filename,sdl_zip1,do_smoothify(sprite))==0) return 0;
     }
 
 #if 0
-    // get standard from png folder
+    // get standard from base png folder
     sprintf(filename,"../gfx/x1/%08d/%08d.png",(sprite/1000)*1000,sprite);
     if (sdl_load_image_png(si,filename,NULL,do_smoothify(sprite))==0) return 0;
 #endif
 
-    fail("%s not found",filename);
+    sprintf(filename,"%08d.png",sprite);
+    warn("%s not found",filename);
+
+    sprintf(filename,"%08d.png",2);
+    if (sdl_zip1 && sdl_load_image_png(si,filename,sdl_zip1,do_smoothify(sprite))==0) return 0;
+
+    char *txt="The client could not locate the graphics file gfx1.zip. "
+        "Please make sure you start the client from the main folder, "
+        "not from within the bin-folder.\n\n"
+        "You can either create a shortcut with the working directory set to the main folder, "
+        "or use a batch file like the supplied moac.bat";
+    display_messagebox("Graphics Not Found",txt);
+    exit(1);
     return -1;
 }
 

@@ -846,9 +846,10 @@ __declspec(dllexport) int _trans_charno(int csprite,int *pscale,int *pcr,int *pc
 
         case 568:	csprite=58; c1=IRGB(16,31,16); c2=IRGB(6,20,6); c3=IRGB(28,16,16); break; // queen fiona
 
-        case 800:   csprite=121; break;
-        case 801:   csprite=122; break;
-
+        case 800: csprite=120; break;
+        case 801: csprite=121; break;
+        case 802: csprite=122; break;
+        case 803: csprite=123; break;
     }
 
     if (pscale) *pscale=scale;

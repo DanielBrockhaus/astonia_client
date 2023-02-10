@@ -494,6 +494,10 @@ int net_exit(void) {
 
 // parsing command line
 
+void display_messagebox(char *title,char *text) {
+    MessageBox(NULL,text,title,MB_APPLMODAL|MB_OK|MB_ICONEXCLAMATION);
+}
+
 void display_usage(void) {
     char *buf,*txt;
 
