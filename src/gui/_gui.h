@@ -288,6 +288,7 @@ extern int show_color,show_cur;
 extern int show_color_c[];
 extern int show_cx;
 extern char hitsel[];
+extern int hittype;
 
 void dx_copysprite_emerald(int scrx,int scry,int emx,int emy);
 void display_cmd(void);

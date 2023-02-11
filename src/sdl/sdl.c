@@ -77,6 +77,8 @@ int sdl_init(int width,int height,char *title) {
 	    return 0;
     }
 
+    SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH,"1");
+
     SDL_GetCurrentDisplayMode(0, &DM);
 
     if (!width || !height) {
@@ -703,9 +705,8 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
     if (sdl_load_image_png_(si,filename,NULL)==0) return 0;
 #endif
 
-
     // get standard from archive
-    if (sdl_zip1 || sdl_zip2p || sdl_zip2m) {
+    if (sdl_zip1 || sdl_zip1p || sdl_zip1m) {
         sprintf(filename,"%08d.png",sprite);
         if (sdl_zip1m && sdl_load_image_png(si,filename,sdl_zip1m,do_smoothify(sprite))==0) return 0;
         if (sdl_zip1p && sdl_load_image_png(si,filename,sdl_zip1p,do_smoothify(sprite))==0) return 0;
@@ -724,7 +725,7 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
     sprintf(filename,"%08d.png",2);
     if (sdl_zip1 && sdl_load_image_png(si,filename,sdl_zip1,do_smoothify(sprite))==0) return 0;
 
-    char *txt="The client could not locate the graphics file gfx1.zip. "
+    char *txt="The client could not locate the graphics file gx1.zip. "
         "Please make sure you start the client from the main folder, "
         "not from within the bin-folder.\n\n"
         "You can either create a shortcut with the working directory set to the main folder, "

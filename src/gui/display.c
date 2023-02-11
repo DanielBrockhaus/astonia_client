@@ -533,11 +533,13 @@ void display_screen(void) {
 
 
 void display_text(void) {
+    int link;
 
     dd_display_text();
 
-    if (dd_scantext(mousex,mousey,hitsel));
-    else hitsel[0]=0;
+    if ((link=dd_scantext(mousex,mousey,hitsel))) {
+        hittype=link;
+    } else hitsel[0]=0;
 
     display_cmd();
 }
@@ -897,6 +899,7 @@ void display_action(void) {
 }
 
 static void display_bar(int sx,int sy,int perc,unsigned short color) {
+    dd_shaded_rect(sx-1,sy-1,sx+11,sy+101,0,120);
     if (perc<100) dd_shaded_rect(sx,sy,sx+10,sy+100-perc,IRGB(0,0,0),95);
     if (perc>0) dd_shaded_rect(sx,sy+100-perc,sx+10,sy+100,color,95);
 }
@@ -920,10 +923,11 @@ void display_selfbars(void) {
     if (value[0][V_MANA]) manap=100*mana/value[0][V_MANA]; else manap=100;
     if (value[0][V_ENDURANCE]) endup=100*endurance/value[0][V_ENDURANCE]; else endup=100;
 
+    //dd_shaded_rect(dotx(DOT_MBR)-55,doty(DOT_MBR)-115,dotx(DOT_MBR)-5,doty(DOT_MBR)-5,0x0000,120);
+
     display_bar(dotx(DOT_MBR)-50,doty(DOT_MBR)-110,lifep,healthcolor);
     display_bar(dotx(DOT_MBR)-35,doty(DOT_MBR)-110,shieldp,shieldcolor);
     if (!value[0][V_MANA]) {
-
         display_bar(dotx(DOT_MBR)-20,doty(DOT_MBR)-110,endup,endurancecolor);
         if (value[0][V_WARCRY]) {
             for (int i=0; i<100; i+=warcryperccost()) {

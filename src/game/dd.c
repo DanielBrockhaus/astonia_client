@@ -769,7 +769,8 @@ void dd_add_text(char *ptr) {
                 case 'c':	tmp=atoi(ptr+1);
                     if (tmp==18) link=0;
                     else if (tmp!=17) { color=tmp; link=0; }
-                    if (tmp==4 || tmp==17) link=1;
+                    if (tmp==4) link=1;
+                    else if (tmp==17) link=2;
                     ptr++;
                     while (isdigit(*ptr)) ptr++;
                     break;
@@ -831,7 +832,7 @@ int dd_text_init_done(void) {
 
 int dd_scantext(int x,int y,char *hit) {
     int n,m,pos,panic=0,tmp=0;
-    int dx;
+    int dx,link;
 
     if (x<dotx(DOT_TXT) || y<doty(DOT_TXT)) return 0;
     if (x>dotx(DOT_TXT)+TEXTDISPLAY_SX) return 0;
@@ -846,7 +847,7 @@ int dd_scantext(int x,int y,char *hit) {
         dx+=textfont[text[pos].c].dim;
 
         if (dx+dotx(DOT_TXT)>x) {
-            if (text[pos].link) {   // link palette color
+            if ((link=text[pos].link)) {   // link palette color
                 while ((text[pos].link || text[pos].c==0) && panic++<5000) {
                     pos--;
                     if (pos<0) pos=MAXTEXTLETTERS*MAXTEXTLINES-1;
@@ -861,7 +862,7 @@ int dd_scantext(int x,int y,char *hit) {
                 }
                 if (tmp>0 && hit[tmp-1]==' ') hit[tmp-1]=0;
                 else hit[tmp]=0;
-                return 1;
+                return link;
             }
             return 0;
         }

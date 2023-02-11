@@ -26,7 +26,7 @@ uint64_t gui_time_misc=0;
 #define MAXHELP		24
 #define MAXQUEST2	10
 
-void cmd_add_text(char *buf);
+void cmd_add_text(char *buf,int typ);
 
 // globals
 
@@ -131,6 +131,7 @@ int capbut=-1;                  // the button capturing the mouse
 int takegold;                   // the amout of gold to take
 
 char hitsel[256];               // something in the text (dx_drawtext()) is selected
+int hittype=0;
 
 __declspec(dllexport) SKLTAB *skltab=NULL;
 int skltab_max=0;
@@ -1534,7 +1535,7 @@ static void exec_cmd(int cmd,int a) {
         case CMD_CON_OFF_DW:    set_conoff(0,conoff+1); break;
         case CMD_CON_OFF_TR:    set_conoff(1,0/*mousey*/); break;
 
-        case CMD_SAY_HITSEL:    cmd_add_text(hitsel); break;
+        case CMD_SAY_HITSEL:    cmd_add_text(hitsel,hittype); break;
 
         case CMD_USE_FKEYITEM:	cmd_use_inv(fkeyitem[a]); return;
 

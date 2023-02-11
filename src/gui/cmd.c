@@ -262,12 +262,17 @@ void cmd_proc(int key) {
     }
 }
 
-void cmd_add_text(char *buf) {
+void cmd_add_text(char *buf,int typ) {
     int old;
+
     old=context_key_set(1);
+
     while (*buf) cmd_proc(*buf++);
-    cmd_proc(CMD_RETURN);
-    context_key_set(old);
+
+    if (typ==1) {
+        cmd_proc(CMD_RETURN);
+        context_key_set(old);
+    }
 }
 
 void display_cmd(void) {
