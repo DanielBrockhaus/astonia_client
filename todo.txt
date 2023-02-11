@@ -17,6 +17,8 @@ Bugs
 
 - Dragged help window should disable mouse-overs and buttons in top bar.
 
+- Clicking on player names in channels should not send their name immediately as it does for "fred, trade"
+
 
 Probably
 --------

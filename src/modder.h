@@ -10,6 +10,7 @@ void amod_tick(void);
 int amod_display_skill_line(int v,int base,int curr,int cn,char *buf);
 void amod_mouse_move(int x,int y);
 int amod_mouse_click(int x,int y,int what);
+void amod_mouse_capture(int onoff);
 
 extern char *game_email_main;
 extern char *game_email_cash;

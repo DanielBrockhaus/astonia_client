@@ -1741,6 +1741,7 @@ void gui_sdl_mouseproc(int x,int y,int what,int clicks) {
             if (amod_mouse_click(mousex,mousey,what)) break;
 
             if (butsel!=-1 && capbut==-1 && (but[butsel].flags&BUTF_CAPTURE)) {
+                amod_mouse_capture(1);
                 sdl_show_cursor(0);
                 sdl_capture_mouse(1);
                 mousedx=0;
@@ -1761,6 +1762,7 @@ void gui_sdl_mouseproc(int x,int y,int what,int clicks) {
                 sdl_set_cursor_pos(but[capbut].x*sdl_scale+dd_offset_x(),but[capbut].y*sdl_scale+dd_offset_y());
                 sdl_capture_mouse(0);
                 sdl_show_cursor(1);
+                amod_mouse_capture(0);
                 if (!(but[capbut].flags&BUTF_MOVEEXEC)) exec_cmd(lcmd,0);
                 capbut=-1;
             } else exec_cmd(lcmd,0);

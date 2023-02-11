@@ -697,7 +697,7 @@ void display_military(void) {
     if (step>total) step=total;
 
     if (mil_exp && total) {
-        if (rank<*game_rankcount) {
+        if (rank<*game_rankcount-1) {
             dd_push_clip();
             dd_more_clip(0,0,dotx(DOT_TOP)+31+100*step/total,doty(DOT_TOP)+8+24);
             dd_copysprite(993,dotx(DOT_TOP)+31,doty(DOT_TOP)+24,DDFX_NLIGHT,DD_NORMAL);
