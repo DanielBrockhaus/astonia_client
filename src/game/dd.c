@@ -656,7 +656,7 @@ int dd_char_len(char c) {
 #define TEXTDISPLAY_DY		(textdisplay_dy)
 
 #define TEXTDISPLAY_SX		396
-#define TEXTDISPLAY_SY		150
+#define TEXTDISPLAY_SY		(__textdisplay_sy)
 
 #define TEXTDISPLAYLINES	(TEXTDISPLAY_SY/TEXTDISPLAY_DY)
 

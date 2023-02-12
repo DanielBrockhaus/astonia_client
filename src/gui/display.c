@@ -20,6 +20,8 @@
 char tutor_text[1024]={""};
 int show_tutor=0;
 
+int __textdisplay_sy;
+
 static void dx_drawtext_gold(int x,int y,unsigned short int color,int amount) {
     if (amount>99) dd_drawtext_fmt(x,y,color,DD_CENTER|DD_FRAME|DD_SMALL,"%d.%02dG",amount/100,amount%100);
     else dd_drawtext_fmt(x,y,color,DD_CENTER|DD_FRAME|DD_SMALL,"%ds",amount);
@@ -189,6 +191,7 @@ void display_inventory(void) {
 
         x=butx(b);
         y=buty(b);
+        if (y>doty(DOT_IN2)-20) break;
         yt=y+12;
 
         dd_copysprite(SPR_ITPAD,x,y,DDFX_NLIGHT,DD_CENTER);
@@ -285,13 +288,13 @@ void display_gold(void) {
     x=but[BUT_GLD].x;
     y=but[BUT_GLD].y;
 
-    dd_copysprite(SPR_GOLD_BEG+7,x,y,lcmd==CMD_TAKE_GOLD || lcmd==CMD_DROP_GOLD?DDFX_BRIGHT:DDFX_NLIGHT,DD_CENTER);
+    if (!(game_options&GO_SMALLBOT)) dd_copysprite(SPR_GOLD_BEG+7,x,y-10,lcmd==CMD_TAKE_GOLD || lcmd==CMD_DROP_GOLD?DDFX_BRIGHT:DDFX_NLIGHT,DD_CENTER);
 
     if (capbut==BUT_GLD) {
-        dx_drawtext_gold(x,y,textcolor,takegold);
-        dx_drawtext_gold(x,y+12,textcolor,gold-takegold);
+        dx_drawtext_gold(x,y-10,textcolor,takegold);
+        dx_drawtext_gold(x,y+ 2,textcolor,gold-takegold);
     } else {
-        dx_drawtext_gold(x,y+12,textcolor,gold);
+        dx_drawtext_gold(x,y+ 2,textcolor,gold);
     }
 }
 
@@ -372,6 +375,8 @@ void display_skill(void) {
         bsx=x+10;
         bex=x+SKLWIDTH;
         bsy=y+4;
+
+        if (y+4>doty(DOT_SK2)) continue;
 
         if (i>=skltab_cnt) continue;
 
@@ -528,7 +533,8 @@ void display_screen(void) {
 
     sprintf(hover_time_text,"%02d:%02d Astonia Standard Time",h,m);
 
-    dd_copysprite(opt_sprite(998),dotx(DOT_BOT),doty(DOT_BOT),DDFX_NLIGHT,DD_NORMAL);
+    if (game_options&GO_SMALLBOT) dd_copysprite(opt_sprite(991),dotx(DOT_BOT),doty(DOT_BOT),DDFX_NLIGHT,DD_NORMAL);
+    else dd_copysprite(opt_sprite(998),dotx(DOT_BOT),doty(DOT_BOT),DDFX_NLIGHT,DD_NORMAL);
 }
 
 
@@ -546,22 +552,27 @@ void display_text(void) {
 
 void display_mode(void) {
     static char *speedtext[3]={"NORMAL","FAST","STEALTH"};
-    int sel,seltxt,lg;
+    int sel;
     unsigned short int col;
 
     // walk
-    if (butsel>=BUT_MOD_WALK0 && butsel<=BUT_MOD_WALK2) { seltxt=butsel-BUT_MOD_WALK0; lg=2; col=seltxt==pspeed?lightbluecolor:bluecolor; } else { seltxt=pspeed; lg=1; col=lightbluecolor; }
-    sel=pspeed;
+    if (butsel>=BUT_MOD_WALK0 && butsel<=BUT_MOD_WALK2) {
+        sel=butsel-BUT_MOD_WALK0;
+        col=sel==pspeed?lightbluecolor:bluecolor;
+    } else {
+        sel=pspeed;
+        col=lightbluecolor;
+    }
 
-    dx_copysprite_emerald(but[BUT_MOD_WALK0].x,but[BUT_MOD_WALK0].y,4,(sel==0?lg:0));
-    dx_copysprite_emerald(but[BUT_MOD_WALK1].x,but[BUT_MOD_WALK1].y,4,(sel==1?lg:0));
-    dx_copysprite_emerald(but[BUT_MOD_WALK2].x,but[BUT_MOD_WALK2].y,4,(sel==2?lg:0));
+    dx_copysprite_emerald(but[BUT_MOD_WALK0].x,but[BUT_MOD_WALK0].y,4,(sel==0?2:pspeed==0?1:0));
+    dx_copysprite_emerald(but[BUT_MOD_WALK1].x,but[BUT_MOD_WALK1].y,4,(sel==1?2:pspeed==1?1:0));
+    dx_copysprite_emerald(but[BUT_MOD_WALK2].x,but[BUT_MOD_WALK2].y,4,(sel==2?2:pspeed==2?1:0));
 
     dd_drawtext(but[BUT_MOD_WALK0].x,but[BUT_MOD_WALK0].y+7,bluecolor,DD_SMALL|DD_FRAME|DD_CENTER,"F6");
     dd_drawtext(but[BUT_MOD_WALK1].x,but[BUT_MOD_WALK1].y+7,bluecolor,DD_SMALL|DD_FRAME|DD_CENTER,"F5");
     dd_drawtext(but[BUT_MOD_WALK2].x,but[BUT_MOD_WALK2].y+7,bluecolor,DD_SMALL|DD_FRAME|DD_CENTER,"F7");
 
-    if (*speedtext[sel]) dd_drawtext(but[BUT_MOD_WALK0].x,but[BUT_MOD_WALK0].y-13,col,DD_SMALL|DD_CENTER|DD_FRAME,speedtext[seltxt]);
+    if (*speedtext[sel]) dd_drawtext(but[BUT_MOD_WALK0].x,but[BUT_MOD_WALK0].y-13,col,DD_SMALL|DD_CENTER|DD_FRAME,speedtext[sel]);
 }
 
 void display_selfspells(void) {
@@ -582,17 +593,17 @@ void display_selfspells(void) {
             case 9:
                 step=50-50*(ceffect[nr].bless.stop-tick)/(ceffect[nr].bless.stop-ceffect[nr].bless.start);
                 dd_push_clip();
-                dd_more_clip(0,0,800,doty(DOT_BOT)+119);
-                if (ceffect[nr].bless.stop-tick<24*30 && (tick&4)) dd_copysprite(997,dotx(DOT_BOT)+179+2*10,doty(DOT_BOT)+68+step,DDFX_BRIGHT,DD_NORMAL);
-                else dd_copysprite(997,dotx(DOT_BOT)+179+2*10,doty(DOT_BOT)+68+step,DDFX_NLIGHT,DD_NORMAL);
+                dd_more_clip(0,0,800,doty(DOT_SSP)+119-68);
+                if (ceffect[nr].bless.stop-tick<24*30 && (tick&4)) dd_copysprite(997,dotx(DOT_SSP)+2*10,doty(DOT_SSP)+step,DDFX_BRIGHT,DD_NORMAL);
+                else dd_copysprite(997,dotx(DOT_SSP)+2*10,doty(DOT_SSP)+step,DDFX_NLIGHT,DD_NORMAL);
                 dd_pop_clip();
                 sprintf(hover_bless_text,"Bless: %ds to go",(ceffect[nr].bless.stop-tick)/24);
                 break;
             case 11:
                 step=50-50*(ceffect[nr].freeze.stop-tick)/(ceffect[nr].freeze.stop-ceffect[nr].freeze.start);
                 dd_push_clip();
-                dd_more_clip(0,0,800,doty(DOT_BOT)+119);
-                dd_copysprite(997,dotx(DOT_BOT)+179+1*10,doty(DOT_BOT)+68+step,DDFX_NLIGHT,DD_NORMAL);
+                dd_more_clip(0,0,800,doty(DOT_SSP)+119-68);
+                dd_copysprite(997,dotx(DOT_SSP)+1*10,doty(DOT_SSP)+step,DDFX_NLIGHT,DD_NORMAL);
                 dd_pop_clip();
                 sprintf(hover_freeze_text,"Freeze: %ds to go",(ceffect[nr].freeze.stop-tick)/24);
                 break;
@@ -600,9 +611,9 @@ void display_selfspells(void) {
             case 14:
                 step=50-50*(ceffect[nr].potion.stop-tick)/(ceffect[nr].potion.stop-ceffect[nr].potion.start);
                 dd_push_clip();
-                dd_more_clip(0,0,800,doty(DOT_BOT)+119);
-                if (step>=40 && (tick&4)) dd_copysprite(997,dotx(DOT_BOT)+179+0*10,doty(DOT_BOT)+68+step,DDFX_BRIGHT,DD_NORMAL);
-                else dd_copysprite(997,dotx(DOT_BOT)+179+0*10,doty(DOT_BOT)+68+step,DDFX_NLIGHT,DD_NORMAL);
+                dd_more_clip(0,0,800,doty(DOT_SSP)+119-68);
+                if (step>=40 && (tick&4)) dd_copysprite(997,dotx(DOT_SSP)+0*10,doty(DOT_SSP)+step,DDFX_BRIGHT,DD_NORMAL);
+                else dd_copysprite(997,dotx(DOT_SSP)+0*10,doty(DOT_SSP)+step,DDFX_NLIGHT,DD_NORMAL);
                 dd_pop_clip();
                 sprintf(hover_potion_text,"Potion: %ds to go",(ceffect[nr].potion.stop-tick)/24);
                 break;
@@ -719,8 +730,8 @@ void display_rage(void) {
 
     step=50-50*rage/value[0][V_RAGE];
     dd_push_clip();
-    dd_more_clip(0,0,800,doty(DOT_BOT)+119);
-    dd_copysprite(997,dotx(DOT_BOT)+179+3*10,doty(DOT_BOT)+68+step,DDFX_NLIGHT,DD_NORMAL);
+    dd_more_clip(0,0,800,doty(DOT_SSP)+119-68);
+    dd_copysprite(997,dotx(DOT_SSP)+3*10,doty(DOT_SSP)+step,DDFX_NLIGHT,DD_NORMAL);
     dd_pop_clip();
 
     sprintf(hover_rage_text,"Rage: %d%%",100*rage/value[0][V_RAGE]);
@@ -896,6 +907,8 @@ void display_action(void) {
             dd_drawtext(butx(BUT_ACT_BEG+i)+10,buty(BUT_ACT_BEG+i)-14,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
         }
     }
+    dd_drawtext(butx(BUT_ACT_BEG)-25,buty(BUT_ACT_BEG)-5,IRGB(31,31,31),DD_FRAME|DD_CENTER,"-");
+    dd_drawtext(butx(BUT_ACT_END)+25,buty(BUT_ACT_BEG)-5,IRGB(31,31,31),DD_FRAME|DD_CENTER,"=");
 }
 
 static void display_bar(int sx,int sy,int perc,unsigned short color) {

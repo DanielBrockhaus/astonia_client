@@ -151,19 +151,20 @@ int sdl_init(int width,int height,char *title) {
         else if (width/XRES>=3 && height/YRES0>=3) sdl_scale=3;
         else if (width/XRES>=2 && height/YRES0>=2) sdl_scale=2;
 
-        if (width/XRES>=4 && height/YRES1>=4) tmp_scale=4;
-        else if (width/XRES>=3 && height/YRES1>=3) tmp_scale=3;
-        else if (width/XRES>=2 && height/YRES1>=2) tmp_scale=2;
-
-        if (tmp_scale>sdl_scale || height<YRES0) { sdl_scale=tmp_scale; YRES=YRES1; }
-
         if (width/XRES>=4 && height/YRES2>=4) tmp_scale=4;
         else if (width/XRES>=3 && height/YRES2>=3) tmp_scale=3;
         else if (width/XRES>=2 && height/YRES2>=2) tmp_scale=2;
 
-        if (tmp_scale>sdl_scale || height<YRES1) { sdl_scale=tmp_scale; YRES=YRES2; }
+        if (tmp_scale>sdl_scale || height<YRES0) { sdl_scale=tmp_scale; YRES=height/sdl_scale; }
+        YRES=height/sdl_scale;
 
         dd_set_offset((width/sdl_scale-XRES)/2,(height/sdl_scale-YRES)/2);
+
+        if (game_options==-1) {
+            if (YRES>=620) game_options=4;
+            else if (YRES>=580) game_options=12;
+            else game_options=28;
+        }
     }
     note("SDL using %dx%d scale %d",XRES,YRES,sdl_scale);
 
@@ -716,6 +717,8 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
 #if 0
     // get standard from base png folder
     sprintf(filename,"../gfx/x1/%08d/%08d.png",(sprite/1000)*1000,sprite);
+    if (sdl_load_image_png(si,filename,NULL,do_smoothify(sprite))==0) return 0;
+    sprintf(filename,"../gfxp/x1/%08d/%08d.png",(sprite/1000)*1000,sprite);
     if (sdl_load_image_png(si,filename,NULL,do_smoothify(sprite))==0) return 0;
 #endif
 

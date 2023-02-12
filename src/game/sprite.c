@@ -16,8 +16,6 @@
 #include "../../src/gui.h"
 #include "../../src/client.h"
 
-uint64_t sprite_options=0;
-
 // is_..._sprite
 int (*is_cut_sprite)(int sprite)=_is_cut_sprite;
 __declspec(dllexport) int _is_cut_sprite(int sprite) {
@@ -2548,28 +2546,28 @@ int (*opt_sprite)(int sprite)=_opt_sprite;
 __declspec(dllexport) int _opt_sprite(int sprite) {
     switch (sprite) {
         case 13:
-            if (sprite_options&SO_DARK) return 300;
+            if (game_options&GO_DARK) return 300;
             break;
         case 14:
-            if (sprite_options&SO_DARK) return 301;
+            if (game_options&GO_DARK) return 301;
             break;
         case 35:
-            if (sprite_options&SO_DARK) return 302;
+            if (game_options&GO_DARK) return 302;
             break;
         case 992:
-            if (sprite_options&SO_DARK) return 307;
+            if (game_options&GO_DARK) return 307;
             break;
         case 994:
-            if (sprite_options&SO_DARK) return 303;
+            if (game_options&GO_DARK) return 303;
             break;
         case 995:
-            if (sprite_options&SO_DARK) return 304;
+            if (game_options&GO_DARK) return 304;
             break;
         case 998:
-            if (sprite_options&SO_DARK) return 305;
+            if (game_options&GO_DARK) return 305;
             break;
         case 999:
-            if (sprite_options&SO_DARK) return 306;
+            if (game_options&GO_DARK) return 306;
             break;
     }
     return sprite;

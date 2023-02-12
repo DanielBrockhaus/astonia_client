@@ -3,10 +3,10 @@
  */
 
 #define INVDX                   4
-#define INVDY                   4
+#define INVDY                   (__invdy)
 #define CONDX                   4
 #define CONDY                   4
-#define SKLDY                   16
+#define SKLDY                   (__skldy)
 #define SKLWIDTH                145
 #define LINEHEIGHT              10
 
@@ -267,6 +267,8 @@ extern int capbut;                     // the button capturing the mouse
 extern int invoff,max_invoff;
 extern int conoff,max_conoff;
 extern int skloff,max_skloff;
+extern int __skldy;
+extern int __invdy;
 
 extern int fkeyitem[4];
 

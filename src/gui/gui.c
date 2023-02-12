@@ -140,6 +140,8 @@ __declspec(dllexport) int skltab_cnt=0;
 int invoff,max_invoff;
 int conoff,max_conoff;
 int skloff,max_skloff;
+int __skldy;
+int __invdy;
 
 int lcmd;
 int rcmd;
@@ -513,7 +515,7 @@ static void display(void) {
         static unsigned char pre1_graph[100],pre2_graph[100],pre3_graph[100];
         //static int frame_min=99,frame_max=0,frame_step=0;
         //static int tick_min=99,tick_max=0,tick_step=0;
-        int px=800-110,py=35+(YRES==YRES0 ? 0 : gui_topoff);
+        int px=800-110,py=35+(!(game_options&GO_SMALLBOT) ? 0 : gui_topoff);
         PROCESS_MEMORY_COUNTERS mi;
 
         GetProcessMemoryInfo(GetCurrentProcess(),&mi,sizeof(mi));

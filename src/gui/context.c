@@ -21,8 +21,6 @@
 #include "../../src/sdl.h"
 #include "../../src/modder.h"
 
-int context_enabled=3;
-
 static int c_on=0,c_x,c_y,d_y,csel,isel,msel,ori_x,ori_y;
 
 #define MAXLINE     20
@@ -245,7 +243,7 @@ static void makemenu(void) {
 
 int context_open(int mx,int my) {
 
-    if (!(context_enabled&1)) return 0;
+    if (!(game_options&GO_CONTEXT)) return 0;
 
     csel=get_near_char(mx,my,3);
     isel=get_near_item(mx,my,CMF_USE|CMF_TAKE,3);
@@ -273,7 +271,7 @@ int context_open(int mx,int my) {
 }
 
 int context_getnm(void) {
-    if (!(context_enabled&1)) return -1;
+    if (!(game_options&GO_CONTEXT)) return -1;
     update_ori();
 
     if (c_on) return msel;
@@ -286,7 +284,7 @@ void context_stop(void) {
 void context_display(int mx,int my) {
     int x,y,n;
 
-    if ((context_enabled&1) && c_on) {
+    if ((game_options&GO_CONTEXT) && c_on) {
         makemenu();
 
         d_y=menu.linecnt*10+8;
@@ -306,7 +304,7 @@ void context_display(int mx,int my) {
 int context_click(int mx,int my) {
     int n;
 
-    if ((context_enabled&1) && c_on) {
+    if ((game_options&GO_CONTEXT) && c_on) {
         c_on=0;
 
         if (mx>c_x && mx<c_x+MENUWIDTH && my>=c_y && my<c_y+menu.linecnt*10+8) {
@@ -334,7 +332,7 @@ int context_click(int mx,int my) {
 static int keymode=0;
 int context_key(int key) {
 
-    if (!(context_enabled&2)) return 0;
+    if (!(game_options&GO_ACTION)) return 0;
 
     if (key=='#' || key==CMD_UP || key==CMD_DOWN || key==9 || key=='/') {
         keymode=1;
@@ -358,7 +356,7 @@ void context_key_reset(void) {
 
 void context_keydown(int key) {
 
-    if (!(context_enabled&2)) return;
+    if (!(game_options&GO_ACTION)) return;
     if (keymode) return;
 
     // ignore key-down while over action bar
@@ -386,7 +384,7 @@ void context_keydown(int key) {
 }
 
 int context_key_set_cmd(void) {
-    if (!(context_enabled&2)) return 0;
+    if (!(game_options&GO_ACTION)) return 0;
     if (keymode) return 0;
     if (lcmd_override==CMD_NONE) return 0;
 
@@ -434,7 +432,7 @@ void context_keyup(int key) {
 
     lcmd_override=CMD_NONE;
 
-    if (!(context_enabled&2)) return;
+    if (!(game_options&GO_ACTION)) return;
     if (keymode) return;
 
     if (actsel!=-1) {
@@ -480,19 +478,19 @@ void context_keyup(int key) {
 
 int context_key_set(int onoff) {
     int old;
-    if (!(context_enabled&2)) return 1;
+    if (!(game_options&GO_ACTION)) return 1;
     old=keymode;
     keymode=onoff;
     return old;
 }
 
 int context_key_isset(void) {
-    if (!(context_enabled&2)) return 1;
+    if (!(game_options&GO_ACTION)) return 1;
     return keymode;
 }
 
 int context_key_enabled(void) {
-    return(context_enabled&2);
+    return(game_options&GO_ACTION);
 }
 
 static int action_enabled=1;
@@ -500,5 +498,5 @@ void context_action_enable(int onoff) {
     action_enabled=onoff;
 }
 int context_action_enabled(void) {
-    return(context_enabled&2) && action_enabled;
+    return(game_options&GO_ACTION) && action_enabled;
 }

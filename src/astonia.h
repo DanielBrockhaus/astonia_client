@@ -102,11 +102,20 @@
 #define DOT_LOK         27      // look at character window (show_look), top left
 #define DOT_BO2         28      // bottom right of bottom window
 #define DOT_ACT         29      // action bar top left
-#define MAX_DOT         30
+#define DOT_SSP         30      // self-spell-bars top left
+#define MAX_DOT         31
 
 extern int __yres;
 extern int quit;
 extern int frames_per_second;
+
+#define GO_DARK     (1<<0)  // Dark GUI by Tegra
+#define GO_CONTEXT  (1<<1)  // Right-Click Context Menu
+#define GO_ACTION   (1<<2)  // Action Bar and Key Bindings
+#define GO_SMALLBOT (1<<3)  // Smaller Bottom Window
+#define GO_SMALLTOP (1<<4)  // Smaller Top Window
+
+extern uint64_t game_options;
 
 void addline(const char *format,...) __attribute__((format(printf, 1, 2)));
 int  note(const char *format,...) __attribute__((format(printf, 1, 2)));

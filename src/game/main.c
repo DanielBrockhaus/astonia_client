@@ -31,6 +31,8 @@ int largetext=0;
 int vendor=1;
 char user_keys[10]={'Q','W','E','A','S','D','Z','X','C','V'};
 
+uint64_t game_options=-1;
+
 static char memcheck_failed_str[]={"memcheck failed"};
 static char panic_reached_str[]={"panic failure"};
 
@@ -503,16 +505,17 @@ void display_usage(void) {
 
     txt=buf=malloc(1024*4);
     buf+=sprintf(buf,"The Astonia Client can only be started from the command line or with a specially created shortcut.\n\n");
-    buf+=sprintf(buf,"Usage: moac -u playername -p password -d url [-w width]\n ... -h height] [-l largetextenable] [-s soundenable]\n");
-    buf+=sprintf(buf," ... [-m threads] [-o options] [-f fullscreen] [-c cachesize]\n ... [-k framespersecond] -x [contextmenuenable]\n\n");
-    buf+=sprintf(buf,"url being, for example, \"server.astonia.com\" or \"192.168.77.132\" (without the quotes).\n");
-    buf+=sprintf(buf,"width and height are the desired window size. If this matches the desktop size the client will start in windowed borderless pseudo-fullscreen mode.\n");
-    buf+=sprintf(buf,"fullscreen, largetextenable and soundenable can be either 0 or 1, for off or on.\n");
-    buf+=sprintf(buf,"threads is the number of background threads the game should use. Use 0 to disable. Default is 4.\n");
-    buf+=sprintf(buf,"options is a bitfield. Bit 0 (value of 1) enables the Dark GUI by Tegra.\n");
-    buf+=sprintf(buf,"cachesize is the size of the texture cache. Default is 8000. Very low numbers will crash!\n");
-    buf+=sprintf(buf,"framespersecond will set the display rate in frames per second.\n");
-    buf+=sprintf(buf,"contextmenuenable is another bitfield. Bit 0 enabled the context menu, bit 1 the new keybindings (default: 3)\n");
+    buf+=sprintf(buf,"Usage: moac -u playername -p password -d url\n ... [-w width] [-h height] [-l largetextenable] [-s soundenable]\n");
+    buf+=sprintf(buf," ... [-m threads] [-o options] [-f fullscreen] [-c cachesize]\n ... [-k framespersecond]\n\n");
+    buf+=sprintf(buf,"url being, for example, \"server.astonia.com\" or \"192.168.77.132\" (without the quotes).\n\n");
+    buf+=sprintf(buf,"width and height are the desired window size. If this matches the desktop size the client will start in windowed borderless pseudo-fullscreen mode.\n\n");
+    buf+=sprintf(buf,"fullscreen, largetextenable and soundenable can be either 0 or 1, for off or on.\n\n");
+    buf+=sprintf(buf,"threads is the number of background threads the game should use. Use 0 to disable. Default is 4.\n\n");
+    buf+=sprintf(buf,"options is a bitfield. Bit 0 (value of 1) enables the Dark GUI by Tegra. ");
+    buf+=sprintf(buf,"Bit 1 enables the context menu, bit 2 the new keybindings, bit 3 the smaller bottom GUI ");
+    buf+=sprintf(buf,"and bit 4 the sliding away of the top GUI. Default depends on screen height.\n\n");
+    buf+=sprintf(buf,"cachesize is the size of the texture cache. Default is 8000. Very low numbers will crash!\n\n");
+    buf+=sprintf(buf,"framespersecond will set the display rate in frames per second.\n\n");
 
     MessageBox(NULL,txt,"Usage",MB_APPLMODAL|MB_OK|MB_ICONEXCLAMATION);
 
@@ -578,7 +581,7 @@ int parse_cmd(char *s) {
             } else if (tolower(*s)=='o') { // -o option
                 s++;
                 while (isspace(*s)) s++;
-                sprite_options=strtoull(s,&end,10);
+                game_options=strtoull(s,&end,10);
                 s=end;
             } else if (tolower(*s)=='f') { // -f fullscreen
                 s++;
@@ -594,11 +597,6 @@ int parse_cmd(char *s) {
                 s++;
                 while (isspace(*s)) s++;
                 frames_per_second=strtol(s,&end,10);
-                s=end;
-            } else if (tolower(*s)=='x') { // -x context menu (and other newbie-friendly changes)
-                s++;
-                while (isspace(*s)) s++;
-                context_enabled=strtol(s,&end,10);
                 s=end;
             } else { display_usage(); return -1; }
         } else { display_usage(); return -2; }

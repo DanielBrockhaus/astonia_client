@@ -36,11 +36,11 @@ static int display_hover_skill(void);
 void display_mouseover(void) {
     int hide;
 
-    if (mousey>=doty(DOT_BOT)-370+496-60 && mousey<=doty(DOT_BOT)-370+551-60) {
-        if (mousex>=dotx(DOT_BOT)+207 && mousex<=dotx(DOT_BOT)+214) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,hover_rage_text);
-        if (mousex>=dotx(DOT_BOT)+197 && mousex<=dotx(DOT_BOT)+204) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,hover_bless_text);
-        if (mousex>=dotx(DOT_BOT)+187 && mousex<=dotx(DOT_BOT)+194) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,hover_freeze_text);
-        if (mousex>=dotx(DOT_BOT)+177 && mousex<=dotx(DOT_BOT)+184) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,hover_potion_text);
+    if (mousey>=doty(DOT_SSP) && mousey<=doty(DOT_SSP)+53) {
+        if (mousex>=dotx(DOT_SSP)+28 && mousex<=dotx(DOT_SSP)+35) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,hover_rage_text);
+        if (mousex>=dotx(DOT_SSP)+18 && mousex<=dotx(DOT_SSP)+25) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,hover_bless_text);
+        if (mousex>=dotx(DOT_SSP)+8 && mousex<=dotx(DOT_SSP)+15) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,hover_freeze_text);
+        if (mousex>=dotx(DOT_SSP)-2 && mousex<=dotx(DOT_SSP)+5) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,hover_potion_text);
     }
 
     if (mousex>=dotx(DOT_BOT)+25 && mousex<=dotx(DOT_BOT)+135) {

@@ -70,10 +70,10 @@ extern int dd_gamma;
 extern int dd_lighteffect;
 extern int largetext;
 extern float mouse_scale;   // mouse input needs to be scaled by this factor because the display window is stretched
-extern uint64_t sprite_options;
 extern char user_keys[10];
 extern int namesize;
 extern int stom_off_x,stom_off_y;
+extern int __textdisplay_sy;
 
 int dd_textlength(int flags,const char *text);
 int dd_textlen(int flags,const char *text,int n);

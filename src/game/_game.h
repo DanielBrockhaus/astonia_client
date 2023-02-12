@@ -13,8 +13,6 @@
 #define GMEGRD_LAYADD   500
 #define TOP_LAY         1000
 
-#define SO_DARK     (1<<0)  // Dark GUI by Tegra
-
 #define DDFX_MAX_FREEZE         8
 
 #define DD_LARGE_CHARSET "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.;:+-*/~@#'\"?!&%()[]=<>|_$"

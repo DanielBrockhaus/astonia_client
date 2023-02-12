@@ -105,12 +105,6 @@ int client_cmd(char *buf) {
     	addline("Volume is now at %d", sound_volume);
     	return 1;
     }
-    if (!strncmp(buf, "#option ", 8)) {
-    	int opt = atoi(&buf[8]);
-        sprite_options^=opt;
-        addline("Sprite_option is now  %08llX",sprite_options);
-    	return 1;
-    }
     if (!strncmp(buf,"#set ",5) || !strncmp(buf,"/set ",5)) {
         int what,key;
         char *ptr;
@@ -290,18 +284,18 @@ void display_cmd(void) {
         }
     }
     if (context_key_enabled()) {
-        dd_shaded_rect(dotx(DOT_TXT)-1,doty(DOT_TXT)+149,dotx(DOT_TXT)+390,doty(DOT_TXT)+149+9,IRGB(15,15,15),95);
+        dd_shaded_rect(dotx(DOT_TXT)-1,doty(DOT_TX2)-2,dotx(DOT_TX2)+1,doty(DOT_TX2)+8,IRGB(15,15,15),95);
     }
 
     for (x=0,n=cmddisplay; n<MAXCMDLINE; n++) {
-        if (cmdline[n]) tmp=dd_drawtext_char(dotx(DOT_TXT)+x,doty(DOT_TXT)+149,cmdline[n],IRGB(31,31,31));
+        if (cmdline[n]) tmp=dd_drawtext_char(dotx(DOT_TXT)+x,doty(DOT_TX2)-1,cmdline[n],IRGB(31,31,31));
         else tmp=0;
         if (n==cmdcursor) {
-            if (cmdline[n]) dd_shaded_rect(dotx(DOT_TXT)+x-1,doty(DOT_TXT)+149,dotx(DOT_TXT)+x+tmp+1,doty(DOT_TXT)+149+9,0xffe0,95);
-            else dd_shaded_rect(dotx(DOT_TXT)+x,doty(DOT_TXT)+149,dotx(DOT_TXT)+x+4,doty(DOT_TXT)+149+9,0xffe0,95);
+            if (cmdline[n]) dd_shaded_rect(dotx(DOT_TXT)+x-1,doty(DOT_TX2)-2,dotx(DOT_TXT)+x+tmp+1,doty(DOT_TX2)+8,0xffe0,95);
+            else            dd_shaded_rect(dotx(DOT_TXT)+x  ,doty(DOT_TX2)-2,dotx(DOT_TXT)+x+4    ,doty(DOT_TX2)+8,0xffe0,95);
         }
         x+=tmp;
-        if (x>dotx(DOT_TXT)+390) break;
+        if (x>dotx(DOT_TX2)-dotx(DOT_TXT)-8) break;
     }
 }
 
