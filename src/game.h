@@ -114,6 +114,9 @@ int _get_player_sprite(int nr,int zdir,int action,int step,int duration,int atti
 void save_options(void);
 extern int (*opt_sprite)(int sprite);
 int _opt_sprite(int sprite);
+extern int (*no_lighting_sprite)(int sprite);
+int _no_lighting_sprite(int sprite);
+
 struct map;
 int get_sink(int mn,struct map *cmap);
 

@@ -2573,3 +2573,31 @@ __declspec(dllexport) int _opt_sprite(int sprite) {
     return sprite;
 }
 
+// Return true if the sprite should not get shaded lighting.
+// The client will use uniform light instead. Should return
+// true for anything that is not a basic wall or floor.
+int (*no_lighting_sprite)(int sprite)=_no_lighting_sprite;
+int __declspec(dllexport) _no_lighting_sprite(int sprite) {
+    switch (sprite) {
+        case 21410:
+        case 21411:
+        case 21412:
+        case 21413:
+        case 21414:
+        case 21415:
+        case 21416:
+        case 21417:
+        case 21418:
+        case 21419:
+        case 21420:
+        case 21421:
+        case 21422:
+        case 21423:
+        case 21424:
+        case 21425:
+        case 21426:
+        case 21427:     return 1;
+    }
+    return 0;
+}
+

@@ -1267,6 +1267,7 @@ void display_game_map(struct map *cmap) {
             if ((mna=quick[i].mn[7])!=0 && (cmap[mna].rlight)) dl->ddfx.dl=cmap[mna].rlight;
             else dl->ddfx.dl=light;
 
+            if (no_lighting_sprite(cmap[mn].fsprite)) dl->ddfx.ll=dl->ddfx.rl=dl->ddfx.ul=dl->ddfx.dl=dl->ddfx.ml;
 
             // fsprite can increase the height of items and fsprite2
             heightadd=is_yadd_sprite(cmap[mn].rf.sprite);
@@ -1307,6 +1308,8 @@ void display_game_map(struct map *cmap) {
             else dl->ddfx.ul=light;
             if ((mna=quick[i].mn[7])!=0 && (cmap[mna].rlight)) dl->ddfx.dl=cmap[mna].rlight;
             else dl->ddfx.dl=light;
+
+            if (no_lighting_sprite(cmap[mn].fsprite2)) dl->ddfx.ll=dl->ddfx.rl=dl->ddfx.ul=dl->ddfx.dl=dl->ddfx.ml;
 
             dl->y+=1;
             dl->h+=1;

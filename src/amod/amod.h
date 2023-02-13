@@ -116,6 +116,7 @@ __declspec(dllimport) int _get_lay_sprite(int sprite,int lay);
 __declspec(dllimport) int _get_offset_sprite(int sprite,int *px,int *py);
 __declspec(dllimport) int _additional_sprite(int sprite,int attick);
 __declspec(dllimport) int _opt_sprite(int sprite);
+__declspec(dllimoort) int _no_lighting_sprite(int sprite)
 __declspec(dllimport) int _get_skltab_sep(int i);
 __declspec(dllimport) int _get_skltab_index(int n);
 __declspec(dllimport) int _get_skltab_show(int i);
@@ -135,6 +136,7 @@ int get_lay_sprite(int sprite,int lay);
 int get_offset_sprite(int sprite,int *px,int *py);
 int additional_sprite(int sprite,int attick);
 int opt_sprite(int sprite);
+int no_lighting_sprite(int sprite);
 int get_skltab_sep(int i);
 int get_skltab_index(int n);
 int get_skltab_show(int i);
