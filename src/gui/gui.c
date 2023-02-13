@@ -1875,7 +1875,7 @@ void flip_at(unsigned int t) {
 
     do {
         sdl_loop();
-        if (!sdl_has_focus() || !sdl_pre_do(tick)) Sleep(1);
+        if (!sdl_has_focus() || !sdl_pre_do(tick)) SDL_Delay(1);
         tnow=SDL_GetTicks();
     } while (t>tnow);
 

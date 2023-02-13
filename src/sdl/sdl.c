@@ -159,12 +159,11 @@ int sdl_init(int width,int height,char *title) {
         YRES=height/sdl_scale;
 
         dd_set_offset((width/sdl_scale-XRES)/2,(height/sdl_scale-YRES)/2);
-
-        if (game_options==-1) {
-            if (YRES>=620) game_options=4;
-            else if (YRES>=580) game_options=12;
-            else game_options=28;
-        }
+    }
+    if (game_options==-1) {
+        if (YRES>=620) game_options=4;
+        else if (YRES>=580) game_options=12;
+        else game_options=28;
     }
     note("SDL using %dx%d scale %d",XRES,YRES,sdl_scale);
 

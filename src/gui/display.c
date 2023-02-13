@@ -792,6 +792,7 @@ char action_row[2][MAXACTIONSLOT]={
     "asd   fg   h",
     " qwertzuiop "
 };
+int action_enabled=1;
 
 static char *action_text[MAXACTIONSLOT]={
     "Attack",

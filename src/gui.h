@@ -70,5 +70,6 @@ extern int (*do_display_random)(void);
 __declspec(dllexport) int _do_display_random(void);
 
 extern char action_row[2][MAXACTIONSLOT];
+extern int action_enabled;
 void actions_loaded(void);
 

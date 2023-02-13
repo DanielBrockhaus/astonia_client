@@ -9,8 +9,6 @@
  *
  */
 
-#include <windows.h>
-#include <psapi.h>
 #include <time.h>
 #include <SDL2/SDL.h>
 

@@ -8,8 +8,6 @@
  *
  */
 
-#include <windows.h>
-#include <psapi.h>
 #include <time.h>
 #include <SDL2/SDL.h>
 
@@ -493,9 +491,9 @@ int context_key_enabled(void) {
     return(game_options&GO_ACTION);
 }
 
-static int action_enabled=1;
 void context_action_enable(int onoff) {
     action_enabled=onoff;
+    save_options();
 }
 int context_action_enabled(void) {
     return(game_options&GO_ACTION) && action_enabled;

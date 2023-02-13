@@ -613,6 +613,7 @@ void save_options(void) {
 
     write(handle,&user_keys,sizeof(user_keys));
     write(handle,&action_row,sizeof(action_row));
+    write(handle,&action_enabled,sizeof(action_enabled));
     close(handle);
 }
 
@@ -624,6 +625,7 @@ void load_options(void) {
 
     read(handle,&user_keys,sizeof(user_keys));
     read(handle,&action_row,sizeof(action_row));
+    read(handle,&action_enabled,sizeof(action_enabled));
     close(handle);
 
     actions_loaded();
