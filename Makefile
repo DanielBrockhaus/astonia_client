@@ -11,7 +11,7 @@ OBJS	=		src/gui/gui.o src/client/client.o src/client/skill.o src/game/dd.o src/g
 			src/game/main.o src/game/sprite.o src/game/game.o src/modder/modder.o\
 			src/sdl/sound.o src/game/resource.o src/sdl/sdl.o src/helper/helper.o\
 			src/gui/dots.o src/gui/display.o src/gui/teleport.o src/gui/color.o src/gui/cmd.o\
-			src/gui/questlog.o src/gui/context.o src/gui/hover.c
+			src/gui/questlog.o src/gui/context.o src/gui/hover.c src/modder/sharedmem.o
 
 bin/moac.exe lib/moac.a &:	$(OBJS)
 			$(CC) $(LDFLAGS) -Wl,--out-implib,lib/moac.a -o bin/moac.exe $(OBJS) $(LIBS)
@@ -51,6 +51,7 @@ src/helper/helper.o:	src/helper/helper.c src/astonia.h
 src/helper/convert.o:	src/helper/convert.c src/astonia.h src/sdl.h src/sdl/_sdl.h
 
 src/modder/modder.o:	src/modder/modder.c src/astonia.h src/modder.h src/modder/_modder.h
+src/modder/sharedmem.o:	src/modder/sharedmem.c src/astonia.h src/modder.h src/modder/_modder.h
 
 src/sdl/sdl.o:		src/sdl/sdl.c src/astonia.h src/sdl.h src/sdl/_sdl.h
 src/sdl/sound.o:      	src/sdl/sound.c src/astonia.h src/sdl.h src/sdl/_sdl.h

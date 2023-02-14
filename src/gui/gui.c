@@ -1931,6 +1931,7 @@ int main_loop(void) {
                     cl_ticker();
                 }
                 amod_tick();
+                sharedmem_update();
             }
         }
 

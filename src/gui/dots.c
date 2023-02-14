@@ -150,7 +150,7 @@ void init_dots(void) {
     set_dot(DOT_COL,340,210,0);
 
     // action bar
-    set_dot(DOT_ACT,180,doty(DOT_BOT)-20,0);
+    set_dot(DOT_ACT,180,doty(DOT_BOT)-12,0);
 
     // buts
     but=xmalloc(MAX_BUT*sizeof(BUT),MEM_GUI);

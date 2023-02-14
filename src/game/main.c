@@ -655,6 +655,7 @@ int main(int argc,char *args[]) {
     if (!errorfp) errorfp=stderr;
 
     amod_init();
+    sharedmem_init();
 
     load_options();
 
@@ -726,6 +727,7 @@ int main(int argc,char *args[]) {
 
     main_loop();
 
+    sharedmem_exit();
     amod_exit();
     main_exit();
     sound_exit();

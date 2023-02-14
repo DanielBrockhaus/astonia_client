@@ -890,32 +890,40 @@ int has_action_skill(int i) {
 void display_action(void) {
     int i;
     char buf[4];
+    DDFX fx;
 
     if (!context_action_enabled()) return;
 
     for (i=0; i<12; i++) {
         if (!has_action_skill(i)) continue;
-        dd_copysprite(800+i,butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i),(i==actsel || i==action_ovr)?DDFX_BRIGHT:DDFX_NLIGHT,0);
+        bzero(&fx,sizeof(fx));
+        fx.sprite=800+i;
+        fx.scale=80;
+        fx.sat=14;
+        fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=(i==actsel || i==action_ovr)?DDFX_BRIGHT:DDFX_NLIGHT;
+        dd_copysprite_fx(&fx,butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i));
+        //dd_copysprite(800+i,butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i),(i==actsel || i==action_ovr)?DDFX_BRIGHT:DDFX_NLIGHT,0);
         if (i==actsel) {
             dd_drawtext(butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i)-30,IRGB(31,31,31),DD_FRAME|DD_CENTER,action_text[i]);
         }
         if (action_row[0][i]>' ') {
             buf[0]=action_slot2key(i); buf[1]=0;
-            dd_drawtext(butx(BUT_ACT_BEG+i)-10,buty(BUT_ACT_BEG+i)-14,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
+            dd_drawtext(butx(BUT_ACT_BEG+i)-8,buty(BUT_ACT_BEG+i)-11,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
         }
         if (action_row[1][i]>' ') {
             buf[0]=action_slot2key(i+100); buf[1]=0;
-            dd_drawtext(butx(BUT_ACT_BEG+i)+10,buty(BUT_ACT_BEG+i)-14,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
+            dd_drawtext(butx(BUT_ACT_BEG+i)+8,buty(BUT_ACT_BEG+i)-11,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
         }
     }
     dd_drawtext(butx(BUT_ACT_BEG)-25,buty(BUT_ACT_BEG)-5,IRGB(31,31,31),DD_FRAME|DD_CENTER,"-");
     dd_drawtext(butx(BUT_ACT_END)+25,buty(BUT_ACT_BEG)-5,IRGB(31,31,31),DD_FRAME|DD_CENTER,"=");
 }
 
-static void display_bar(int sx,int sy,int perc,unsigned short color) {
-    dd_shaded_rect(sx-1,sy-1,sx+11,sy+101,0,120);
-    if (perc<100) dd_shaded_rect(sx,sy,sx+10,sy+100-perc,IRGB(0,0,0),95);
-    if (perc>0) dd_shaded_rect(sx,sy+100-perc,sx+10,sy+100,color,95);
+static void display_bar(int sx,int sy,int perc,unsigned short color,int xs,int ys) {
+    perc=perc*ys/100;
+    dd_shaded_rect(sx-1,sy-1,sx+xs+1,sy+ys+1,0,120);
+    if (perc<100) dd_shaded_rect(sx,sy,sx+xs,sy+ys-perc,IRGB(0,0,0),95);
+    if (perc>0) dd_shaded_rect(sx,sy+ys-perc,sx+xs,sy+ys,color,95);
 }
 
 static int get_lifeshield_max(void) {
@@ -931,24 +939,29 @@ static int warcryperccost(void) {
 void display_selfbars(void) {
     int lifep,shieldp,endup,manap;
     if (plrmn==-1) return;
+    int x,y;
+    int xs=7,ys=67,xd=3;
+
+    x=dotx(DOT_MTL)+7;
+    y=doty(DOT_MTL)+7;
 
     if (value[0][V_HP]) lifep=100*hp/value[0][V_HP]; else lifep=100;
     if (get_lifeshield_max()) shieldp=100*lifeshield/get_lifeshield_max(); else shieldp=100;
     if (value[0][V_MANA]) manap=100*mana/value[0][V_MANA]; else manap=100;
     if (value[0][V_ENDURANCE]) endup=100*endurance/value[0][V_ENDURANCE]; else endup=100;
 
-    //dd_shaded_rect(dotx(DOT_MBR)-55,doty(DOT_MBR)-115,dotx(DOT_MBR)-5,doty(DOT_MBR)-5,0x0000,120);
-
-    display_bar(dotx(DOT_MBR)-50,doty(DOT_MBR)-110,lifep,healthcolor);
-    display_bar(dotx(DOT_MBR)-35,doty(DOT_MBR)-110,shieldp,shieldcolor);
+    display_bar(x,y,lifep,healthcolor,xs,ys);
+    display_bar(x+xs+xd,y,shieldp,shieldcolor,xs,ys);
     if (!value[0][V_MANA]) {
-        display_bar(dotx(DOT_MBR)-20,doty(DOT_MBR)-110,endup,endurancecolor);
+        display_bar(x+xs*2+xd*2,y,endup,endurancecolor,xs,ys);
         if (value[0][V_WARCRY]) {
             for (int i=0; i<100; i+=warcryperccost()) {
-                if (i<endup) dd_line(dotx(DOT_MBR)-20,doty(DOT_MBR)-10-i,dotx(DOT_MBR)-10,doty(DOT_MBR)-10-i,0x0000);
-                else dd_line(dotx(DOT_MBR)-20,doty(DOT_MBR)-10-i,dotx(DOT_MBR)-10,doty(DOT_MBR)-10-i,0xffff);
+                int j;
+                j=i*ys/100;
+                if (i<endup) dd_line(x+xs*2+xd*2,y+ys-j,x+xs*3+xd*2,y+ys-j,0x0000);
+                else dd_line(x+xs*2+xd*2,y+ys-j,x+xs*3+xd*2,y+ys-j,0xffff);
             }
         }
-    } else display_bar(dotx(DOT_MBR)-20,doty(DOT_MBR)-110,manap,manacolor);
+    } else display_bar(x+xs*2+xd*2,y,manap,manacolor,xs,ys);
 }
 
