@@ -141,6 +141,17 @@
 #define MAXSHRINE	256
 #define MAXQUEST	100
 
+#define CMF_LIGHT	(1+2+4+8)
+#define CMF_VISIBLE	16
+#define CMF_TAKE	32
+#define CMF_USE		64
+#define CMF_INFRA	128
+#define CMF_UNDERWATER	256
+
+#define MMF_SIGHTBLOCK  (1<<1)  // indicates sight block (set_map_lights)
+#define MMF_DOOR        (1<<2)  // a door - helpful when cutting sprites - (set_map_sprites)
+#define MMF_CUT         (1<<3)  // indicates cut (set_map_cut)
+
 struct complex_sprite {
     unsigned int sprite;
     unsigned short c1,c2,c3,shine;

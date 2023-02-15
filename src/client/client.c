@@ -17,6 +17,7 @@
 #include "../../src/client/_client.h"
 #include "../../src/sdl.h"
 #include "../../src/gui.h"
+#include "../../src/modder.h"
 
 int display_gfx=0,display_time=0;
 static int rec_bytes=0;
@@ -1368,6 +1369,8 @@ void bzero_client(int part) {
         pent_str[0][0]=pent_str[1][0]=pent_str[2][0]=pent_str[3][0]=pent_str[4][0]=pent_str[5][0]=pent_str[6][0]=0;
 
         bzero(may_teleport,sizeof(may_teleport));
+
+        amod_areachange();
     }
 }
 
@@ -1440,6 +1443,7 @@ int poll_network(void) {
         // reset socket
         if (sock!=-1) { closesocket(sock); sock=-1; }
         if (zsinit) { inflateEnd(&zs); zsinit=0; }
+
         change_area=0;
         kicked_out=0;
 

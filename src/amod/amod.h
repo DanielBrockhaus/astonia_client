@@ -12,6 +12,7 @@ void amod_tick(void);
 int amod_display_skill_line(int v,int base,int curr,int cn,char *buf);
 void amod_mouse_move(int x,int y);
 int amod_mouse_click(int x,int y,int what);     // return true if mouse click should NOT be processed by the client
+int amod_keydown(int key);
 
 // --------- Client exported functions -----------
 

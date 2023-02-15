@@ -11,6 +11,8 @@ int amod_display_skill_line(int v,int base,int curr,int cn,char *buf);
 void amod_mouse_move(int x,int y);
 int amod_mouse_click(int x,int y,int what);
 void amod_mouse_capture(int onoff);
+void amod_areachange(void);
+int amod_keydown(int key);
 
 int sharedmem_init(void);
 void sharedmem_update(void);

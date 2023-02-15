@@ -22,7 +22,7 @@
 #define XRES    800
 #define YRES    (__yres)
 #define YRES0   600
-#define YRES1   540
+#define YRES1   650
 #define YRES2   500
 
 #define PARANOIA(a) a

@@ -157,6 +157,7 @@ int sdl_init(int width,int height,char *title) {
 
         if (tmp_scale>sdl_scale || height<YRES0) { sdl_scale=tmp_scale; YRES=height/sdl_scale; }
         YRES=height/sdl_scale;
+        if (YRES>YRES1) YRES=YRES1;
 
         dd_set_offset((width/sdl_scale-XRES)/2,(height/sdl_scale-YRES)/2);
     }

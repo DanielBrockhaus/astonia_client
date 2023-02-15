@@ -159,11 +159,12 @@ static int display_hover(void) {
     if ((slot<INVENTORYSIZE && !item[slot]) || (slot>=INVENTORYSIZE && !container[slot-INVENTORYSIZE])) return 0;
 
     if (hi[slot].valid_till>=tick && tick-last_tick>HOVER_DELAY) {
-        sx=mousex+8;
+        sx=mousex-hi[slot].width/2;
         if (sx<dotx(DOT_TL)) sx=dotx(DOT_TL);
         if (sx>dotx(DOT_BR)-hi[slot].width-8) sx=dotx(DOT_BR)-hi[slot].width-8;
 
-        sy=mousey-hi[slot].cnt*5;
+        if (mousey<YRES/2) sy=mousey+16;
+        else sy=mousey-hi[slot].cnt*10-16;
         if (sy<doty(DOT_TL)) sy=doty(DOT_TL);
         if (sy>doty(DOT_BR)-hi[slot].cnt*10-8) sy=doty(DOT_BR)-hi[slot].cnt*10-8;
 
@@ -194,7 +195,7 @@ static int display_hover(void) {
                 x=dd_drawtext(x,sy+n*10+4,col,0,buf);
             }
         }
-        return 1;
+        return 0;
     } else {
         if (!last_look && hi[slot].valid_till<tick) {
             if (slot<INVENTORYSIZE) cmd_look_inv(slot);
@@ -362,7 +363,7 @@ static int display_hover_skill(void) {
             sy+=10;
         }
 
-        return 1;
+        return 0;
     }
 
     return 0;

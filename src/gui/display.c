@@ -950,6 +950,11 @@ void display_selfbars(void) {
     if (value[0][V_MANA]) manap=100*mana/value[0][V_MANA]; else manap=100;
     if (value[0][V_ENDURANCE]) endup=100*endurance/value[0][V_ENDURANCE]; else endup=100;
 
+    lifep=min(110,lifep);
+    shieldp=min(110,shieldp);
+    manap=min(110,manap);
+    endup=min(110,endup);
+
     display_bar(x,y,lifep,healthcolor,xs,ys);
     display_bar(x+xs+xd,y,shieldp,shieldcolor,xs,ys);
     if (!value[0][V_MANA]) {

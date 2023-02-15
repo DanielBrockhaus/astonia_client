@@ -1589,6 +1589,8 @@ static void exec_cmd(int cmd,int a) {
 void gui_sdl_keyproc(int wparam) {
     int i;
 
+    if (wparam!=SDLK_ESCAPE && wparam!=SDLK_F12 && amod_keydown(wparam)) return;
+
     switch (wparam) {
 
         case SDLK_ESCAPE:       cmd_stop(); context_stop(); show_look=0; display_gfx=0; teleporter=0; show_tutor=0; display_help=0; display_quest=0; show_color=0;
