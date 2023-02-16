@@ -2262,31 +2262,46 @@ SDL_Cursor *sdl_create_cursor(char *filename) {
         }
     }
 
-    // scale up if needed
-    if (sdl_scale>1) {
-        int dst,src,i1,b1,i2,b2,y1,y2;
-        for (y2=0; y2<32*sdl_scale; y2++) {
-            y1=y2/sdl_scale;
+    // scale up if needed and add frame to cross
+    static char cross[11][11]={
+        {0,0,0,0,1,1,1,0,0,0,0},
+        {0,0,0,0,1,0,1,0,0,0,0},
+        {0,0,0,0,1,0,1,0,0,0,0},
+        {0,0,0,0,1,0,1,0,0,0,0},
+        {1,1,1,1,1,0,1,1,1,1,1},
+        {1,0,0,0,0,0,0,0,0,0,1},
+        {1,1,1,1,1,0,1,1,1,1,1},
+        {0,0,0,0,1,0,1,0,0,0,0},
+        {0,0,0,0,1,0,1,0,0,0,0},
+        {0,0,0,0,1,0,1,0,0,0,0},
+        {0,0,0,0,1,1,1,0,0,0,0}
+    };
+    int dst,src,i1,b1,i2,b2,y1,y2;
 
-            for (dst=0; dst<32*sdl_scale; dst++) {
-                src=dst/sdl_scale;
+    for (y2=0; y2<32*sdl_scale; y2++) {
+        y1=y2/sdl_scale;
 
-                i1=src/8+y1*4;
-                b1=128>>(src&7);
+        for (dst=0; dst<32*sdl_scale; dst++) {
+            src=dst/sdl_scale;
 
-                i2=dst/8+y2*4*sdl_scale;
-                b2=128>>(dst&7);
+            i1=src/8+y1*4;
+            b1=128>>(src&7);
 
+            i2=dst/8+y2*4*sdl_scale;
+            b2=128>>(dst&7);
 
+            if (src<12 && y1<12 && cross[y1][src]) {
+                data2[i2]|=b2;
+                mask2[i2]|=b2;
+            } else {
                 if (data[i1]&b1) data2[i2]|=b2;
                 else data2[i2]&=~b2;
                 if (mask[i1]&b1) mask2[i2]|=b2;
                 else mask2[i2]&=~b2;
             }
         }
-        return SDL_CreateCursor(data2,mask2,32*sdl_scale,32*sdl_scale,6*sdl_scale,6*sdl_scale);
     }
-    return SDL_CreateCursor(data,mask,32,32,6,6);
+    return SDL_CreateCursor(data2,mask2,32*sdl_scale,32*sdl_scale,6*sdl_scale,6*sdl_scale);
 }
 
 int sdl_create_cursors(void) {

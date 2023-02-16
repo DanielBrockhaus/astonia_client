@@ -993,7 +993,7 @@ static char* roman(int nr) {
 }
 
 static void display_game_names(void) {
-    int i,mn,scrx,scry,x,y,col;
+    int i,mn,scrx,scry,x,y,col,frame;
     char *sign;
     unsigned short clancolor[33];
 
@@ -1048,8 +1048,12 @@ static void display_game_names(void) {
         y=scry+4+map[mn].yadd+get_chr_height(map[mn].csprite)-25+get_sink(mn,map);
 
         col=whitecolor;
+        frame=DD_FRAME;
 
-        if (player[map[mn].cn].clan) col=clancolor[player[map[mn].cn].clan];
+        if (player[map[mn].cn].clan) {
+            col=clancolor[player[map[mn].cn].clan];
+            if (player[map[mn].cn].clan==3) frame=DD_WFRAME;
+        }
 
         sign="";
         if (player[map[mn].cn].pk_status==5) sign=" **";
@@ -1059,7 +1063,7 @@ static void display_game_names(void) {
         else if (player[map[mn].cn].pk_status==1) sign=" -";
 
         if (namesize!=DD_SMALL) y-=3;
-        dd_drawtext_fmt(x,y,col,DD_CENTER|namesize|DD_FRAME,"%s%s",player[map[mn].cn].name,sign);
+        dd_drawtext_fmt(x,y,col,DD_CENTER|namesize|frame,"%s%s",player[map[mn].cn].name,sign);
 
 
         if (namesize!=DD_SMALL) y+=3;

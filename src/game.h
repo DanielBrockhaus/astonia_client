@@ -15,6 +15,7 @@
 #define DD_FRAME        16
 #define DD_BIG        	32
 #define DD_NOCACHE      64
+#define DD_WFRAME       (DD_FRAME|512)
 
 #define SPR_WALK        11
 

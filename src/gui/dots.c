@@ -141,7 +141,7 @@ void init_dots(void) {
     set_dot(DOT_HL2,222,(!stop ? 40 : 0)+394,0);
 
     // teleporter window
-    set_dot(DOT_TEL,100,40,0);
+    set_dot(DOT_TEL,(XRES-520)/2,(doty(DOT_MBR)-doty(DOT_MTL)-320-(!stop?0:40))/2+doty(DOT_MTL),0);
 
     // look at window
     set_dot(DOT_LOK,150,50,0);

@@ -83,7 +83,7 @@ int sharedmem_init(void) {
 
     sm->pid=pid;
     random_dungeon_tracker();
-#if 1
+#if 0
     printf("base: %p\n",sm->base);
     printf("key: %d\n",sm->key);
     printf("isprite: %d\n",sm->isprite);
