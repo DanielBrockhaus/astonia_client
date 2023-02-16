@@ -686,7 +686,7 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         return -1;
     }
 
-#if 1
+#if 0
     // get patch png
     sprintf(filename,"../gfxp/x%d/%08d/%08d.png",sdl_scale,(sprite/1000)*1000,sprite);
     if (sdl_load_image_png_(si,filename,NULL)==0) return 0;
@@ -725,6 +725,7 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
     sprintf(filename,"%08d.png",sprite);
     warn("%s not found",filename);
 
+    // get unknown sprite image
     sprintf(filename,"%08d.png",2);
     if (sdl_zip1 && sdl_load_image_png(si,filename,sdl_zip1,do_smoothify(sprite))==0) return 0;
 
