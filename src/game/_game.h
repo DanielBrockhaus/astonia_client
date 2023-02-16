@@ -110,7 +110,6 @@ void rseed(int seed);
 
 int dd_init(void);
 int dd_exit(void);
-void dd_pixel(int x,int y,unsigned short col);
 void dd_draw_bless(int x,int y,int ticker,int strength,int front);
 void dd_draw_potion(int x,int y,int ticker,int strength,int front);
 void dd_draw_rain(int x,int y,int ticker,int strength,int front);

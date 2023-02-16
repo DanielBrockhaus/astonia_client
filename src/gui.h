@@ -2,7 +2,7 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
-#define MAXACTIONSLOT       12
+#define MAXACTIONSLOT       13
 
 struct quicks {
     int mn[9];      // 0 for invalid neighbours
@@ -72,4 +72,6 @@ __declspec(dllexport) int _do_display_random(void);
 extern char action_row[2][MAXACTIONSLOT];
 extern int action_enabled;
 void actions_loaded(void);
+
+void minimap_areachange(void);
 

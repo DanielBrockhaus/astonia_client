@@ -162,9 +162,9 @@ int sdl_init(int width,int height,char *title) {
         dd_set_offset((width/sdl_scale-XRES)/2,(height/sdl_scale-YRES)/2);
     }
     if (game_options==-1) {
-        if (YRES>=620) game_options=4;
-        else if (YRES>=580) game_options=12;
-        else game_options=28;
+        if (YRES>=620) game_options=6;
+        else if (YRES>=580) game_options=14;
+        else game_options=30;
     }
     note("SDL using %dx%d scale %d",XRES,YRES,sdl_scale);
 
@@ -2560,6 +2560,14 @@ int sdl_has_focus(void) {
 
 void sdl_set_title(char *title) {
     SDL_SetWindowTitle(sdlwnd,title);
+}
+
+void *sdl_create_texture(int width,int height) {
+    return SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STATIC,width,height);
+}
+
+void sdl_render_copy(void *tex,void *sr,void *dr) {
+    SDL_RenderCopy(sdlren,tex,sr,dr);
 }
 
 

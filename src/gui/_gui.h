@@ -48,12 +48,12 @@
 #define BUT_QUEST	    82
 #define BUT_HELP_DRAG   83
 
-#define BUT_ACT_BEG     84
-#define BUT_ACT_END     95
+#define BUT_TEL_MISC    94
 
-#define BUT_TEL_MISC    96
+#define BUT_ACT_BEG     85
+#define BUT_ACT_END     97
 
-#define MAX_BUT         97
+#define MAX_BUT         98
 
 #define BUTF_NOHIT      (1<<1)  // button is ignored int hit processing
 #define BUTF_CAPTURE    (1<<2)  // button captures mouse on lclick
@@ -358,4 +358,9 @@ int action_slot2key(int slot);
 int has_action_skill(int i);
 void action_set_key(int slot,int key);
 void context_action_enable(int onoff);
+
+void minimap_init(void);
+void minimap_toggle(void);
+void display_minimap(void);
+void minimap_update(void);
 

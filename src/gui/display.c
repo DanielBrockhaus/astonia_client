@@ -786,11 +786,10 @@ void display_game_special(void) {
     }
 }
 
-#define MAXACTIONSLOT       12
 char action_row[2][MAXACTIONSLOT]={
    //012345678901
-    "asd   fg   h",
-    " qwertzuiop "
+    "asd   fg   h ",
+    " qwertzuiop m"
 };
 int action_enabled=1;
 
@@ -806,7 +805,8 @@ static char *action_text[MAXACTIONSLOT]={
     "Warcry",
     "Pulse",
     "Firering",
-    "Take/Use/Give"
+    "Take/Use/Give",
+    "Map"
 };
 
 static int action_skill[MAXACTIONSLOT]={
@@ -821,7 +821,8 @@ static int action_skill[MAXACTIONSLOT]={
     V_WARCRY,
     V_PULSE,
     V_FIREBALL,
-    V_PERCEPT
+    V_PERCEPT,
+    -1
 };
 
 void actions_loaded(void) {
@@ -838,6 +839,7 @@ void actions_loaded(void) {
     action_row[0][8]=' ';
     action_row[0][9]=' ';
     action_row[0][10]=' ';
+    action_row[0][12]=' ';
 
     action_row[1][0]=' ';
     action_row[1][11]=' ';
@@ -884,6 +886,7 @@ void action_set_key(int slot,int key) {
 }
 
 int has_action_skill(int i) {
+    if (action_skill[i]==-1) return 1;
     return value[0][action_skill[i]];
 }
 
@@ -894,7 +897,7 @@ void display_action(void) {
 
     if (!context_action_enabled()) return;
 
-    for (i=0; i<12; i++) {
+    for (i=0; i<MAXACTIONSLOT; i++) {
         if (!has_action_skill(i)) continue;
         bzero(&fx,sizeof(fx));
         fx.sprite=800+i;

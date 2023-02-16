@@ -150,7 +150,7 @@ void init_dots(void) {
     set_dot(DOT_COL,340,210,0);
 
     // action bar
-    set_dot(DOT_ACT,180,doty(DOT_BOT)-12,0);
+    set_dot(DOT_ACT,XRES-MAXACTIONSLOT*40-(XRES-MAXACTIONSLOT*40)/2,doty(DOT_BOT)-12,0);
 
     // buts
     but=xmalloc(MAX_BUT*sizeof(BUT),MEM_GUI);
@@ -163,7 +163,7 @@ void init_dots(void) {
     for (x=0; x<4; x++) for (y=0; y<4; y++) set_but(BUT_INV_BEG+x+y*4,dot[DOT_INV].x+x*FDX,dot[DOT_INV].y+y*FDX,40,0);
     for (x=0; x<4; x++) for (y=0; y<4; y++) set_but(BUT_CON_BEG+x+y*4,dot[DOT_CON].x+x*FDX,dot[DOT_CON].y+y*FDX,40,0);
     for (i=0; i<16; i++) set_but(BUT_SKL_BEG+i,dot[DOT_SKL].x,dot[DOT_SKL].y+i*LINEHEIGHT,40,0);
-    for (i=0; i<12; i++) set_but(BUT_ACT_BEG+i,dot[DOT_ACT].x+i*40,dot[DOT_ACT].y,18,0);
+    for (i=0; i<MAXACTIONSLOT; i++) set_but(BUT_ACT_BEG+i,dot[DOT_ACT].x+i*40,dot[DOT_ACT].y,18,0);
 
     set_but(BUT_SCL_UP,dot[DOT_SCL].x+0,dot[DOT_SCU].y+0,30,0);
     set_but(BUT_SCL_TR,dot[DOT_SCL].x+0,dot[DOT_SCU].y+10,40,BUTF_CAPTURE|BUTF_MOVEEXEC);

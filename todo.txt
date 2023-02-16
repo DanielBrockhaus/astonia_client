@@ -17,9 +17,14 @@ Bugs
 
 - Dragged help window should disable mouse-overs and buttons in top bar.
 
+- Teleport map is off-center.
 
 Probably
 --------
+
+- Black border around mouse cursors.
+
+- White border around dark colored (clan colors) player names.
 
 - Replace Icons with something more in style (and free of 3rd party rights).
 

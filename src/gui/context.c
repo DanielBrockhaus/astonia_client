@@ -471,6 +471,7 @@ void context_keyup(int key) {
         case 108:   cmd_some_spell(CL_WARCRY,0,0,map[plrmn].cn); break;
         case 109:   cmd_some_spell(CL_PULSE,0,0,map[plrmn].cn); break;
         case 110:   cmd_some_spell(CL_FIREBALL,0,0,map[plrmn].cn); break;
+        case 112:   minimap_toggle(); break;
     }
 }
 

@@ -75,4 +75,8 @@ void sdl_pixel(int x,int y,unsigned short color,int x_offset,int y_offset);
 void sdl_line(int fx,int fy,int tx,int ty,unsigned short color,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset);
 uint32_t *sdl_load_png(char *filename,int *dx,int *dy);
 void sdl_set_title(char *title);
+void *sdl_create_texture(int width,int height);
+void sdl_render_copy(void *tex,void *sr,void *dr);
+
+
 

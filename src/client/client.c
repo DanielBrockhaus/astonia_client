@@ -1371,6 +1371,7 @@ void bzero_client(int part) {
         bzero(may_teleport,sizeof(may_teleport));
 
         amod_areachange();
+        minimap_areachange();
     }
 }
 

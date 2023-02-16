@@ -381,15 +381,6 @@ void dl_prefetch(int attick) {
 QUICK *quick;
 int maxquick;
 
-#define MMF_SIGHTBLOCK  (1<<1)  // indicates sight block (set_map_lights)
-#define MMF_DOOR        (1<<2)  // a door - helpful when cutting sprites - (set_map_sprites)
-#define MMF_CUT         (1<<3)  // indicates cut (set_map_cut)
-
-#define MMF_STRAIGHT_T  (1<<5)  // (set_map_straight)
-#define MMF_STRAIGHT_B  (1<<6)  // (set_map_straight)
-#define MMF_STRAIGHT_L  (1<<7)  // (set_map_straight)
-#define MMF_STRAIGHT_R  (1<<8)  // (set_map_straight)
-
 void set_map_lights(struct map *cmap) {
     int i,mn;
 

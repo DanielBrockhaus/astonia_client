@@ -497,6 +497,7 @@ static void display(void) {
     display_game_special();
     display_tutor();
     display_selfbars();
+    display_minimap();
     display_citem();
     context_display(mousex,mousey);
     display_helpandquest(); // display last because it is on top
@@ -1044,6 +1045,7 @@ static void set_button_flags(void) {
         for (b=BUT_CON_BEG; b<=BUT_CON_END; b++) but[b].flags&=~BUTF_NOHIT;
         for (b=BUT_SKL_BEG; b<=BUT_SKL_END; b++) but[b].flags|=BUTF_NOHIT;
     } else {
+        for (b=BUT_CON_BEG; b<=BUT_CON_END; b++) but[b].flags|=BUTF_NOHIT;
         for (b=BUT_SKL_BEG; b<=BUT_SKL_END; b++) {
             i=skloff+b-BUT_SKL_BEG;
             if (i>=skltab_cnt || !skltab[i].button || skltab[i].barsize<=0) but[b].flags|=BUTF_NOHIT;
@@ -1462,6 +1464,7 @@ static void cmd_action(void) {
         case 9:     cmd_some_spell(CL_PULSE,0,0,map[plrmn].cn); break;
         case 10:    cmd_some_spell(CL_FIREBALL,0,0,map[plrmn].cn); break;
         case 11:    action_ovr=actsel; break;
+        case 12:    minimap_toggle(); break;
     }
 }
 
@@ -1855,6 +1858,8 @@ int main_init(void) {
 
     init_game(dotx(DOT_MCT),doty(DOT_MCT));
 
+    minimap_init();
+
     return 0;
 }
 
@@ -1934,6 +1939,7 @@ int main_loop(void) {
                 }
                 amod_tick();
                 sharedmem_update();
+                minimap_update();
             }
         }
 

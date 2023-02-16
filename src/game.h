@@ -40,6 +40,16 @@
 #define DDFX_NLIGHT             15
 #define DDFX_BRIGHT             0
 
+#define MMF_SIGHTBLOCK  (1<<1)  // indicates sight block (set_map_lights)
+#define MMF_DOOR        (1<<2)  // a door - helpful when cutting sprites - (set_map_sprites)
+#define MMF_CUT         (1<<3)  // indicates cut (set_map_cut)
+
+#define MMF_STRAIGHT_T  (1<<5)  // (set_map_straight)
+#define MMF_STRAIGHT_B  (1<<6)  // (set_map_straight)
+#define MMF_STRAIGHT_L  (1<<7)  // (set_map_straight)
+#define MMF_STRAIGHT_R  (1<<8)  // (set_map_straight)
+
+
 #define IGET_R(c) ((((unsigned short int)(c))>>10)&0x1F)
 #define IGET_G(c) ((((unsigned short int)(c))>>5)&0x1F)
 #define IGET_B(c) ((((unsigned short int)(c))>>0)&0x1F)
@@ -74,6 +84,7 @@ extern char user_keys[10];
 extern int namesize;
 extern int stom_off_x,stom_off_y;
 extern int __textdisplay_sy;
+extern int x_offset,y_offset;
 
 int dd_textlength(int flags,const char *text);
 int dd_textlen(int flags,const char *text,int n);
@@ -103,6 +114,7 @@ void dd_text_lineup(void);
 void dd_text_linedown(void);
 int dd_offset_x(void);
 int dd_offset_y(void);
+void dd_pixel(int x,int y,unsigned short col);
 extern int (*trans_asprite)(int mn,int sprite,int attick,unsigned char *pscale,unsigned char *pcr,unsigned char *pcg,unsigned char *pcb,unsigned char *plight,unsigned char *psat,unsigned short *pc1,unsigned short *pc2,unsigned short *pc3,unsigned short *pshine);
 int _trans_asprite(int mn,int sprite,int attick,unsigned char *pscale,unsigned char *pcr,unsigned char *pcg,unsigned char *pcb,unsigned char *plight,unsigned char *psat,unsigned short *pc1,unsigned short *pc2,unsigned short *pc3,unsigned short *pshine);
 extern int (*trans_charno)(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,int *psat,int *pc1,int *pc2,int *pc3,int *pshine,int attick);
