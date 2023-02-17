@@ -61,6 +61,11 @@ __declspec(dllexport) int buty(int bidx) {
 #define stop        (game_options&GO_SMALLTOP)
 #define sbot        (game_options&GO_SMALLBOT)
 
+void dots_update(void) {
+
+    set_dot(DOT_TUT,(XRES-410)/2,doty(DOT_MBR)-100-(context_action_enabled()?30:0),0);
+}
+
 void init_dots(void) {
     int i,x,y,xc,yc;
 
@@ -151,6 +156,9 @@ void init_dots(void) {
 
     // action bar
     set_dot(DOT_ACT,XRES-MAXACTIONSLOT*40-(XRES-MAXACTIONSLOT*40)/2,doty(DOT_BOT)-12,0);
+
+    // tutor window
+    dots_update();
 
     // buts
     but=xmalloc(MAX_BUT*sizeof(BUT),MEM_GUI);

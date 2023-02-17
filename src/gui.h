@@ -21,7 +21,7 @@ extern int playersprite_override;
 extern int mapaddx,mapaddy;
 extern int mapoffx,mapoffy;
 extern int mapaddx,mapaddy;   // small offset to smoothen walking
-
+extern int plrmn;                      // mn of player
 extern int itmsel;                     // mn
 extern int chrsel;                     // mn
 extern int mapsel;                     // mn

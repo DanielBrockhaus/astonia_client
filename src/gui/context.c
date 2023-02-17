@@ -494,6 +494,7 @@ int context_key_enabled(void) {
 
 void context_action_enable(int onoff) {
     action_enabled=onoff;
+    dots_update();
     save_options();
 }
 int context_action_enabled(void) {

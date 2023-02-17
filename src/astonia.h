@@ -103,7 +103,8 @@
 #define DOT_BO2         28      // bottom right of bottom window
 #define DOT_ACT         29      // action bar top left
 #define DOT_SSP         30      // self-spell-bars top left
-#define MAX_DOT         31
+#define DOT_TUT         31      // tutor window top left
+#define MAX_DOT         32
 
 extern int __yres;
 extern int quit;

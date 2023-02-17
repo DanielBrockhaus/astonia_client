@@ -54,7 +54,7 @@ static void set_pix(int x,int y,int val) {
 
         // count how much of the map has changed permanently (not counting characters
         // and formerly unknown tiles or swapping between sightblocks and fsprites)
-        if (val2!=0 && _mmap[x+y*MAXMAP]!=3 && val!=3 && !((val==1 && val2==2) || (val==2 && val2==1))) {
+        if (val2!=0 && val2!=3 && val!=3 && !((val==1 && val2==2) || (val==2 && val2==1))) {
             //note("changed: %d to %d (%d,%d)",_mmap[x+y*MAXMAP],val,x,y);
             rewrite_cnt++;
         }

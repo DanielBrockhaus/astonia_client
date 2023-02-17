@@ -239,7 +239,6 @@ extern int gui_topoff;
 extern DOT *dot;
 extern BUT *but;
 
-extern int plrmn;                      // mn of player
 extern int invsel;                     // index into item
 extern int weasel;                     // index into weatab
 extern int consel;                     // index into item
@@ -364,4 +363,4 @@ void minimap_toggle(void);
 void minimap_hide(void);
 void display_minimap(void);
 void minimap_update(void);
-
+void dots_update(void);

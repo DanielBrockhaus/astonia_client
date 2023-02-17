@@ -14,6 +14,7 @@
 #include "../../src/modder.h"
 #include "../../src/modder/_modder.h"
 #include "../../src/client.h"
+#include "../../src/gui.h"
 
 struct sharedmem {
     unsigned int pid;
@@ -101,22 +102,14 @@ void sharedmem_exit(void) {
     CloseHandle(hMapFile);
 }
 
-static int get_lifeshield_max(void) {
-    if (value[0][V_MAGICSHIELD]) return value[0][V_MAGICSHIELD];
-    return value[0][V_WARCRY];
-}
-
 void sharedmem_update(void) {
-    int lifep,shieldp,endup,manap;
+    int endup;
 
-    if (value[0][V_HP]) lifep=100*hp/value[0][V_HP]; else lifep=100;
-    if (get_lifeshield_max()) shieldp=100*lifeshield/get_lifeshield_max(); else shieldp=100;
-    if (value[0][V_MANA]) manap=100*mana/value[0][V_MANA]; else manap=-1;
     if (value[0][V_ENDURANCE]) endup=100*endurance/value[0][V_ENDURANCE]; else endup=100;
 
-    sm->hp=lifep;
-    sm->shield=shieldp;
-    sm->mana=manap;
+    sm->hp=map[plrmn].health;
+    sm->shield=map[plrmn].shield;
+    sm->mana=map[plrmn].mana;
     sm->end=endup;
 }
 

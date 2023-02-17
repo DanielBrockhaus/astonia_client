@@ -457,23 +457,24 @@ void display_keys(void) {
 }
 
 void display_tutor(void) {
-    int x,y,n,mx=dotx(DOT_BOT)+626,my=doty(DOT_BOT)-370+416-80;
+    int x,y,n,mx=dotx(DOT_TUT)+406,my=doty(DOT_TUT)+80;
     char *ptr,buf[80];
 
     if (!show_tutor) return;
 
-    dd_rect(dotx(DOT_BOT)+220,doty(DOT_BOT)-140,dotx(DOT_BOT)+630,doty(DOT_BOT)-50,IRGB(24,22,16));
-    dd_line(dotx(DOT_BOT)+220,doty(DOT_BOT)-140,dotx(DOT_BOT)+630,doty(DOT_BOT)-140,IRGB(12,10,4));
-    dd_line(dotx(DOT_BOT)+630,doty(DOT_BOT)-140,dotx(DOT_BOT)+630,doty(DOT_BOT)-50,IRGB(12,10,4));
-    dd_line(dotx(DOT_BOT)+220,doty(DOT_BOT)-50,dotx(DOT_BOT)+360,doty(DOT_BOT)-50,IRGB(12,10,4));
-    dd_line(dotx(DOT_BOT)+220,doty(DOT_BOT)-140,dotx(DOT_BOT)+220,doty(DOT_BOT)-50,IRGB(12,10,4));
+    dd_rect(dotx(DOT_TUT),    doty(DOT_TUT),   dotx(DOT_TUT)+410,doty(DOT_TUT)+90,IRGB(24,22,16));
 
-    x=dotx(DOT_BOT)+224; y=doty(DOT_BOT)-136; ptr=tutor_text;
+    dd_line(dotx(DOT_TUT),    doty(DOT_TUT),   dotx(DOT_TUT)+410,doty(DOT_TUT),   IRGB(12,10,4));
+    dd_line(dotx(DOT_TUT)+410,doty(DOT_TUT),   dotx(DOT_TUT)+410,doty(DOT_TUT)+90,IRGB(12,10,4));
+    dd_line(dotx(DOT_TUT),    doty(DOT_TUT)+90,dotx(DOT_TUT)+410,doty(DOT_TUT)+90,IRGB(12,10,4));
+    dd_line(dotx(DOT_TUT),    doty(DOT_TUT),   dotx(DOT_TUT),    doty(DOT_TUT)+90,IRGB(12,10,4));
+
+    x=dotx(DOT_TUT)+6; y=doty(DOT_TUT)+4; ptr=tutor_text;
     while (*ptr) {
         while (*ptr==' ') ptr++;
         while (*ptr=='$') {
             ptr++;
-            x=dotx(DOT_BOT)+224;
+            x=dotx(DOT_TUT)+6;
             y+=10;
             if (y>=my) break;
         }
@@ -482,7 +483,7 @@ void display_tutor(void) {
         while (*ptr && *ptr!=' ' && *ptr!='$' && n<79) buf[n++]=*ptr++;
         buf[n]=0;
         if (x+dd_textlength(DD_LEFT|DD_LARGE,buf)>=mx) {
-            x=dotx(DOT_BOT)+224;
+            x=dotx(DOT_TUT)+6;
             y+=10;
             if (y>=my) break;
         }
@@ -929,11 +930,6 @@ static void display_bar(int sx,int sy,int perc,unsigned short color,int xs,int y
     if (perc>0) dd_shaded_rect(sx,sy+ys-perc,sx+xs,sy+ys,color,95);
 }
 
-static int get_lifeshield_max(void) {
-    if (value[0][V_MAGICSHIELD]) return value[0][V_MAGICSHIELD];
-    return value[0][V_WARCRY];
-}
-
 static int warcryperccost(void) {
     if (value[0][V_ENDURANCE]) return 100*value[0][V_WARCRY]/value[0][V_ENDURANCE]/3+1;
     else return 911;
@@ -948,9 +944,9 @@ void display_selfbars(void) {
     x=dotx(DOT_MTL)+7;
     y=doty(DOT_MTL)+7;
 
-    if (value[0][V_HP]) lifep=100*hp/value[0][V_HP]; else lifep=100;
-    if (get_lifeshield_max()) shieldp=100*lifeshield/get_lifeshield_max(); else shieldp=100;
-    if (value[0][V_MANA]) manap=100*mana/value[0][V_MANA]; else manap=100;
+    lifep=map[plrmn].health;
+    shieldp=map[plrmn].shield;
+    manap=map[plrmn].mana;
     if (value[0][V_ENDURANCE]) endup=100*endurance/value[0][V_ENDURANCE]; else endup=100;
 
     lifep=min(110,lifep);
