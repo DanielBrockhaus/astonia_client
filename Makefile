@@ -44,7 +44,7 @@ src/gui/cmd.o:		src/gui/cmd.c src/astonia.h src/gui.h src/gui/_gui.h src/client.
 src/gui/dots.o:		src/gui/dots.c src/astonia.h src/gui.h src/gui/_gui.h
 src/gui/display.o:	src/gui/display.c src/astonia.h src/gui.h src/gui/_gui.h src/client.h src/game.h
 src/gui/gui.o:		src/gui/gui.c src/astonia.h src/gui.h src/gui/_gui.h src/client.h src/game.h  src/sdl.h src/modder.h
-src/gui/hover.o:	src/gui/hover.c src/astonia.h src/gui.h src/gui/_gui.h src/client.h src/gui.h src/game.h src/sdl.h
+src/gui/hover.o:	src/gui/hover.c src/astonia.h src/gui.h src/gui/_gui.h src/client.h src/gui.h src/game.h src/sdl.h src/modder.h
 src/gui/minimap.o:	src/gui/minimap.c src/astonia.h src/gui.h src/gui/_gui.h src/client.h src/sdl.h src/game.h
 src/gui/teleport.o:	src/gui/teleport.c src/astonia.h src/gui.h src/gui/_gui.h src/client.h src/game.h
 src/gui/questlog.o:	src/gui/questlog.c src/astonia.h src/gui.h src/gui/_gui.h src/client.h src/game.h

@@ -13,6 +13,7 @@ int amod_display_skill_line(int v,int base,int curr,int cn,char *buf);
 void amod_mouse_move(int x,int y);
 int amod_mouse_click(int x,int y,int what);     // return true if mouse click should NOT be processed by the client
 int amod_keydown(int key);
+void amod_update_hover_texts(void);
 
 // --------- Client exported functions -----------
 
@@ -45,6 +46,12 @@ __declspec(dllimport) int buty(int bidx);
 __declspec(dllimport) int get_near_ground(int x,int y);
 __declspec(dllimport) int get_near_item(int x,int y,int flag,int looksize);
 __declspec(dllimport) int get_near_char(int x,int y,int looksize);
+__declspec(dllimport) int mapmn(int x,int y);
+// misc
+__declspec(dllimport) void set_teleport(int idx,int x,int y);
+__declspec(dllimport) int exp2level(int val);
+__declspec(dllimport) int level2exp(int level);
+
 
 // ---------- Client exported data structures -------------
 __declspec(dllimport) extern int skltab_cnt;
@@ -102,6 +109,15 @@ __declspec(dllimport) unsigned short int textcolor;
 
 __declspec(dllimport) struct quest quest[MAXQUEST];
 __declspec(dllimport) struct shrine_ppd shrine;
+
+__declspec(dllimport) char hover_bless_text[120];
+__declspec(dllimport) char hover_freeze_text[120];
+__declspec(dllimport) char hover_potion_text[120];
+__declspec(dllimport) char hover_rage_text[120];
+__declspec(dllimport) char hover_level_text[120];
+__declspec(dllimport) char hover_rank_text[120];
+__declspec(dllimport) char hover_time_text[120];
+
 
 // ---------------- override-able functions, also exported from client ----------------
 __declspec(dllimport) int _is_cut_sprite(int sprite);

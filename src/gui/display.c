@@ -338,7 +338,7 @@ void display_citem(void) {
     fx.align=DD_CENTER;
     fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=FX_ITEMLIGHT;
     dd_push_clip();
-    dd_more_clip(0,0,800,600);
+    dd_more_clip(0,0,XRES,YRES);
     dd_copysprite_fx(&fx,x,y);
     if ((sprite=additional_sprite(csprite,tick))!=0) {
         fx.sprite=sprite;

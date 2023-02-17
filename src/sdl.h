@@ -77,6 +77,8 @@ uint32_t *sdl_load_png(char *filename,int *dx,int *dy);
 void sdl_set_title(char *title);
 void *sdl_create_texture(int width,int height);
 void sdl_render_copy(void *tex,void *sr,void *dr);
+int sdl_tex_xres(int stx);
+int sdl_tex_yres(int stx);
 
 
 

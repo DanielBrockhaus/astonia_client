@@ -1732,18 +1732,18 @@ void cl_ticker(void) {
 }
 
 // X exp yield level Y
-int exp2level(int val) {
+__declspec(dllexport) int exp2level(int val) {
     if (val<1) return 1;
 
     return max(1,(int)(sqrt(sqrt(val))));
 }
 
 // to reach level X you need Y exp
-int level2exp(int level) {
+__declspec(dllexport) int level2exp(int level) {
     return pow(level,4);
 }
 
-int mapmn(int x,int y) {
+__declspec(dllexport) int mapmn(int x,int y) {
     if (x<0 || y<0 || x>=MAPDX || y>=MAPDY) {
         return -1;
     }

@@ -361,6 +361,7 @@ void context_action_enable(int onoff);
 
 void minimap_init(void);
 void minimap_toggle(void);
+void minimap_hide(void);
 void display_minimap(void);
 void minimap_update(void);
 

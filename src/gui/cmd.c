@@ -278,7 +278,7 @@ void display_cmd(void) {
 
     for (x=0,n=cmdcursor; n>cmddisplay; n--) {
         x+=dd_char_len(cmdline[n]);
-        if (x>dotx(DOT_TXT)+390) {
+        if (x>dotx(DOT_TX2)-dotx(DOT_TXT)-16) {
             cmddisplay=n;
             break;
         }

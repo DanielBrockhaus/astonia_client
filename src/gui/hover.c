@@ -18,14 +18,15 @@
 #include "../../src/game.h"
 #include "../../src/client.h"
 #include "../../src/sdl.h"
+#include "../../src/modder.h"
 
-char hover_bless_text[120];
-char hover_freeze_text[120];
-char hover_potion_text[120];
-char hover_rage_text[120];
-char hover_level_text[120];
-char hover_rank_text[120];
-char hover_time_text[120];
+__declspec(dllexport) char hover_bless_text[120];
+__declspec(dllexport) char hover_freeze_text[120];
+__declspec(dllexport) char hover_potion_text[120];
+__declspec(dllexport) char hover_rage_text[120];
+__declspec(dllexport) char hover_level_text[120];
+__declspec(dllexport) char hover_rank_text[120];
+__declspec(dllexport) char hover_time_text[120];
 
 static int display_hover(void);
 static void display_hover_update(void);
@@ -33,6 +34,8 @@ static int display_hover_skill(void);
 
 void display_mouseover(void) {
     int hide;
+
+    amod_update_hover_texts();
 
     if (mousey>=doty(DOT_SSP) && mousey<=doty(DOT_SSP)+53) {
         if (mousex>=dotx(DOT_SSP)+28 && mousex<=dotx(DOT_SSP)+35) dd_drawtext(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,hover_rage_text);

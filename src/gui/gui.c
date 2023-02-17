@@ -481,6 +481,7 @@ static void display(void) {
     if (show_look) display_look();
     display_wear();
     display_inventory();
+    display_action();
     if (con_cnt) display_container();
     else display_skill();
     display_scrollbars();
@@ -490,7 +491,6 @@ static void display(void) {
     display_selfspells();
     display_exp();
     display_military();
-    display_action();
     display_teleport();
     display_color();
     display_rage();
@@ -1597,7 +1597,7 @@ void gui_sdl_keyproc(int wparam) {
     switch (wparam) {
 
         case SDLK_ESCAPE:       cmd_stop(); context_stop(); show_look=0; display_gfx=0; teleporter=0; show_tutor=0; display_help=0; display_quest=0; show_color=0;
-                                context_key_reset(); action_ovr=-1; return;
+                                context_key_reset(); action_ovr=-1; minimap_hide(); return;
         case SDLK_F1:           if (fkeyitem[0]) exec_cmd(CMD_USE_FKEYITEM,0); return;
         case SDLK_F2:           if (fkeyitem[1]) exec_cmd(CMD_USE_FKEYITEM,1); return;
         case SDLK_F3:           if (fkeyitem[2]) exec_cmd(CMD_USE_FKEYITEM,2); return;
@@ -1939,7 +1939,6 @@ int main_loop(void) {
                 }
                 amod_tick();
                 sharedmem_update();
-                minimap_update();
             }
         }
 
@@ -1958,6 +1957,7 @@ int main_loop(void) {
                 sdl_clear();
                 display();
                 amod_frame();
+                minimap_update();
             }
 
             timediff=nextframe-SDL_GetTicks();

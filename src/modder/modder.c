@@ -32,6 +32,7 @@ struct mod {
     void (*_amod_mouse_capture)(int onoff);
     void (*_amod_areachange)(void);
     int (*_amod_keydown)(int);
+    void(*_amod_update_hover_texts)(void);
 };
 
 struct mod mod[MAXMOD]={{NULL}};
@@ -63,6 +64,7 @@ int amod_init(void) {
         if ((tmp=GetProcAddress(dll_instance,"amod_mouse_capture"))) mod[i]._amod_mouse_capture=tmp;
         if ((tmp=GetProcAddress(dll_instance,"amod_areachange"))) mod[i]._amod_areachange=tmp;
         if ((tmp=GetProcAddress(dll_instance,"amod_keydown"))) mod[i]._amod_keydown=tmp;
+        if ((tmp=GetProcAddress(dll_instance,"amod_update_hover_texts"))) mod[i]._amod_update_hover_texts=tmp;
         if (i!=0) continue; // only amod is allowed to override client stuff, the others can only add stuff
 
         if ((tmp=GetProcAddress(dll_instance,"amod_display_skill_line"))) _amod_display_skill_line=tmp;  // not really a variable, but...
@@ -164,5 +166,11 @@ int amod_keydown(int key) {
         if (mod[i]._amod_areachange) return mod[i]._amod_keydown(key);
     }
     return 0;
+}
+
+void amod_update_hover_texts(void) {
+    for (int i=0; i<MAXMOD; i++) {
+        if (mod[i]._amod_update_hover_texts) mod[i]._amod_update_hover_texts();
+    }
 }
 

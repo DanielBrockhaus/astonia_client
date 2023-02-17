@@ -20,7 +20,7 @@
 #define MAXMAP  256
 #define IRGBA(r,g,b,a)  (((a)<<24)|((r)<<16)|((g)<<8)|((b)<<0))
 
-static int sx,sy,visible,mx,my,update1,update2,orx,ory;
+static int sx,sy,visible,mx,my,update1,update2,orx,ory,rewrite_cnt;
 
 static unsigned char _mmap[MAXMAP*MAXMAP];
 
@@ -49,6 +49,13 @@ void minimap_init(void) {
 
 static void set_pix(int x,int y,int val) {
     if (_mmap[x+y*MAXMAP]!=val) {
+
+        // count how much of the map has changed permanently (not counting characters
+        // and formerly unknown tiles)
+        if (_mmap[x+y*MAXMAP]!=0 && _mmap[x+y*MAXMAP]!=3 && val!=3) {
+            rewrite_cnt++;
+        }
+
         _mmap[x+y*MAXMAP]=val;
         update1=update2=1;
     }
@@ -60,6 +67,7 @@ void minimap_update(void) {
     ox=originx-DIST;
     oy=originy-DIST;
 
+    rewrite_cnt=0;
     for (y=1; y<DIST*2; y++) {
         if (y+oy<0) continue;
         if (y+oy>=MAXMAP) continue;
@@ -72,11 +80,19 @@ void minimap_update(void) {
             if (x+ox>=MAXMAP) continue;
             if (!(map[x+y*MAPDX].flags&CMF_VISIBLE)) continue;
 
-            if (map[x+y*MAPDX].mmf&MMF_SIGHTBLOCK) set_pix(ox+x,oy+y,1);
-            else if (map[x+y*MAPDX].fsprite) set_pix(ox+x,oy+y,2);
+
+            if (map[x+y*MAPDX].mmf&MMF_SIGHTBLOCK) {
+                if (map[x+y*MAPDX].flags&CMF_USE) set_pix(ox+x,oy+y,5);
+                else set_pix(ox+x,oy+y,1);
+            } else if (map[x+y*MAPDX].fsprite) set_pix(ox+x,oy+y,2);
             else if (map[x+y*MAPDX].csprite) set_pix(ox+x,oy+y,3);
             else set_pix(ox+x,oy+y,4);
         }
+    }
+    if (rewrite_cnt>4) {
+        memset(_mmap,0,sizeof(_mmap));
+        update1=update2=1;
+        note("MAP CHANGED: %d",rewrite_cnt);
     }
 }
 
@@ -87,6 +103,7 @@ static uint32_t pix_col(int x,int y) {
         case 2: return IRGBA(140,140,220,255);
         case 3: return IRGBA(60,220,60,255);
         case 4: return IRGBA(60,60,60,255);
+        case 5: return IRGBA(120,80,80,255);
         case 0:
         default: return IRGBA(25,25,25,255);
     }
@@ -171,5 +188,9 @@ void minimap_areachange(void) {
 
 void minimap_toggle(void) {
     visible^=1;
+}
+
+void minimap_hide(void) {
+    visible=0;
 }
 

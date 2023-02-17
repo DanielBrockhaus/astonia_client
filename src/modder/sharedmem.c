@@ -16,7 +16,7 @@
 #include "../../src/client.h"
 
 struct sharedmem {
-    int pid;
+    unsigned int pid;
     char hp,shield,end,mana;
 
     char *base;
@@ -49,11 +49,11 @@ static void random_dungeon_tracker(void) {
 }
 
 int sharedmem_init(void) {
-    int pid;
+    unsigned int pid;
     char fname[80];
 
     pid=GetProcessId(GetCurrentProcess());
-    sprintf(fname,"MOAC%d",pid);
+    sprintf(fname,"MOAC%u",pid);
 
     hMapFile = CreateFileMapping(
                  INVALID_HANDLE_VALUE,    // use paging file
@@ -111,7 +111,7 @@ void sharedmem_update(void) {
 
     if (value[0][V_HP]) lifep=100*hp/value[0][V_HP]; else lifep=100;
     if (get_lifeshield_max()) shieldp=100*lifeshield/get_lifeshield_max(); else shieldp=100;
-    if (value[0][V_MANA]) manap=100*mana/value[0][V_MANA]; else manap=100;
+    if (value[0][V_MANA]) manap=100*mana/value[0][V_MANA]; else manap=-1;
     if (value[0][V_ENDURANCE]) endup=100*endurance/value[0][V_ENDURANCE]; else endup=100;
 
     sm->hp=lifep;

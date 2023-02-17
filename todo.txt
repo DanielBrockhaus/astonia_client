@@ -17,6 +17,7 @@ Bugs
 
 - Dragged help window should disable mouse-overs and buttons in top bar.
 
+
 Probably
 --------
 

@@ -732,8 +732,7 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
     char *txt="The client could not locate the graphics file gx1.zip. "
         "Please make sure you start the client from the main folder, "
         "not from within the bin-folder.\n\n"
-        "You can either create a shortcut with the working directory set to the main folder, "
-        "or use a batch file like the supplied moac.bat";
+        "You can create a shortcut with the working directory set to the main folder.";
     display_messagebox("Graphics Not Found",txt);
     exit(1);
     return -1;
@@ -1039,6 +1038,10 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
 
     if (si->xres==0 || si->yres==0) scale=100;    // !!! needs better handling !!!
     else scale=st->scale;
+
+    // hack to adjust the size of mages to old client levels
+    // this was originally done during loading from PAKs.
+    if (st->sprite>=160000 && st->sprite<170000) scale*=0.88;
 
     if (scale!=100) {
         st->xres=ceil((double)(si->xres-1)*scale/100.0);
@@ -2291,7 +2294,7 @@ SDL_Cursor *sdl_create_cursor(char *filename) {
             i2=dst/8+y2*4*sdl_scale;
             b2=128>>(dst&7);
 
-            if (src<12 && y1<12 && cross[y1][src]) {
+            if (src<11 && y1<11 && cross[y1][src]) {
                 data2[i2]|=b2;
                 mask2[i2]|=b2;
             } else {
@@ -2586,6 +2589,13 @@ void sdl_render_copy(void *tex,void *sr,void *dr) {
     SDL_RenderCopy(sdlren,tex,sr,dr);
 }
 
+int sdl_tex_xres(int stx) {
+    return sdlt[stx].xres;
+}
+
+int sdl_tex_yres(int stx) {
+    return sdlt[stx].yres;
+}
 
 /*
 
