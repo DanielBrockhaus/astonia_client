@@ -48,11 +48,14 @@ void minimap_init(void) {
 }
 
 static void set_pix(int x,int y,int val) {
-    if (_mmap[x+y*MAXMAP]!=val) {
+    int val2;
+
+    if ((val2=_mmap[x+y*MAXMAP])!=val) {
 
         // count how much of the map has changed permanently (not counting characters
-        // and formerly unknown tiles)
-        if (_mmap[x+y*MAXMAP]!=0 && _mmap[x+y*MAXMAP]!=3 && val!=3) {
+        // and formerly unknown tiles or swapping between sightblocks and fsprites)
+        if (val2!=0 && _mmap[x+y*MAXMAP]!=3 && val!=3 && !((val==1 && val2==2) || (val==2 && val2==1))) {
+            //note("changed: %d to %d (%d,%d)",_mmap[x+y*MAXMAP],val,x,y);
             rewrite_cnt++;
         }
 
@@ -85,7 +88,7 @@ void minimap_update(void) {
                 if (map[x+y*MAPDX].flags&CMF_USE) set_pix(ox+x,oy+y,5);
                 else set_pix(ox+x,oy+y,1);
             } else if (map[x+y*MAPDX].fsprite) set_pix(ox+x,oy+y,2);
-            else if (map[x+y*MAPDX].csprite) set_pix(ox+x,oy+y,3);
+            else if (map[x+y*MAPDX].csprite && x+y*MAPDX!=plrmn) set_pix(ox+x,oy+y,3);
             else set_pix(ox+x,oy+y,4);
         }
     }
