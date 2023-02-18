@@ -367,6 +367,7 @@ void context_keydown(int key) {
         case 6:
         case 7:     lcmd_override=CMD_CHR_CAST_K; break;
         case 11:    lcmd_override=CMD_ITM_USE; break;
+        case 13:    lcmd_override=CMD_ITM_LOOK; break;
 
         case 101:   lcmd_override=CMD_MAP_CAST_L; break;
         case 102:   lcmd_override=CMD_MAP_CAST_R; break;
@@ -390,9 +391,28 @@ int context_key_set_cmd(void) {
         case CMD_CHR_ATTACK:
         case CMD_CHR_CAST_L:
         case CMD_CHR_CAST_R:
-        case CMD_CHR_CAST_K:    chrsel=get_near_char(mousex,mousey,3); break;
+        case CMD_CHR_CAST_K:
+            chrsel=get_near_char(mousex,mousey,3);
+            break;
         case CMD_MAP_CAST_L:
-        case CMD_MAP_CAST_R:    mapsel=get_near_ground(mousex,mousey); break;
+        case CMD_MAP_CAST_R:
+            mapsel=get_near_ground(mousex,mousey);
+            break;
+
+        case CMD_ITM_LOOK:
+        case CMD_CHR_LOOK:
+        case CMD_MAP_LOOK:
+            itmsel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,3);
+            lcmd_override=CMD_ITM_LOOK;
+            if (itmsel==-1) {
+                chrsel=get_near_char(mousex,mousey,3);
+                lcmd_override=CMD_CHR_LOOK;
+            }
+            if (itmsel==-1 && chrsel==-1) {
+                mapsel=get_near_ground(mousex,mousey);
+                lcmd_override=CMD_MAP_LOOK;
+            }
+            break;
 
         case CMD_ITM_USE:
         case CMD_ITM_USE_WITH:
@@ -458,6 +478,13 @@ void context_keyup(int key) {
             } else if (isel!=-1) {
                 if (map[isel].flags&CMF_TAKE) cmd_take(originx-MAPDX/2+isel%MAPDX,originy-MAPDY/2+isel/MAPDX);
                 else if (map[isel].flags&CMF_USE) cmd_use(originx-MAPDX/2+isel%MAPDX,originy-MAPDY/2+isel/MAPDX);
+            }
+            break;
+        case 13:
+            if (mousex>=dotx(DOT_MTL) && mousey>=doty(DOT_MTL) && mousex<dotx(DOT_MBR) && mousey<doty(DOT_MBR)) {
+                if (isel!=-1) cmd_look_item(originx-MAPDX/2+isel%MAPDX,originy-MAPDY/2+isel/MAPDX);
+                else if (csel!=-1) cmd_look_char(map[csel].cn);
+                else if (msel!=-1) cmd_look_map(originx-MAPDX/2+msel%MAPDX,originy-MAPDY/2+msel/MAPDX);
             }
             break;
 

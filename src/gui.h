@@ -2,7 +2,7 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
-#define MAXACTIONSLOT       13
+#define MAXACTIONSLOT       14
 
 struct quicks {
     int mn[9];      // 0 for invalid neighbours

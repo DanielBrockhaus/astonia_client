@@ -1295,11 +1295,17 @@ static void set_cmd_states(void) {
 
     // hit map
     if (!hitsel[0] && butsel==-1 && mousex>=dotx(DOT_MTL) && mousey>=doty(DOT_MTL) && doty(DOT_MBR) && mousey<doty(DOT_MBR)) {
+        if (action_ovr==13) {
+            itmsel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,3);
+            if (itmsel==-1) chrsel=get_near_char(mousex,mousey,3);
+            if (itmsel==-1 && chrsel==-1) mapsel=get_near_ground(mousex,mousey);
+        } else {
             if (vk_char || (action_ovr!=-1 && (action_ovr!=11 || csprite))) chrsel=get_near_char(mousex,mousey,vk_char?MAPDX:3);
             if (chrsel==-1 && (vk_item || action_ovr==11)) itmsel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,csprite?0:MAPDX);
             if (chrsel==-1 && itmsel==-1 && !vk_char && (!vk_item || csprite)) mapsel=get_near_ground(mousex,mousey);
 
             if (mapsel!=-1 || itmsel!=-1 || chrsel!=-1)  butsel=BUT_MAP;
+        }
     }
 
     // skill text lines for hover text
@@ -1331,9 +1337,9 @@ static void set_cmd_states(void) {
     if (context_key_set_cmd()) ;
     else if (action_ovr!=-1) {
         if (action_ovr==0 && chrsel!=-1) lcmd=CMD_CHR_ATTACK;
-        if (action_ovr==1 && chrsel!=-1) lcmd=CMD_CHR_CAST_L;
-        if (action_ovr==2 && chrsel!=-1) lcmd=CMD_CHR_CAST_R;
-        if (action_ovr==11) {
+        else if (action_ovr==1 && chrsel!=-1) lcmd=CMD_CHR_CAST_L;
+        else if (action_ovr==2 && chrsel!=-1) lcmd=CMD_CHR_CAST_R;
+        else if (action_ovr==11) {
             if (itmsel!=-1) {
                 if (map[itmsel].flags&CMF_TAKE) {   // take needs to come first as dropped items can be usable
                     lcmd=CMD_ITM_TAKE;
@@ -1343,6 +1349,10 @@ static void set_cmd_states(void) {
                 }
             } else if (chrsel!=-1 && csprite) lcmd=CMD_CHR_GIVE;
             else if (mapsel!=-1 && csprite) lcmd=CMD_MAP_DROP;
+        } else if (action_ovr==13) {
+            if (itmsel!=-1) lcmd=CMD_ITM_LOOK;
+            else if (chrsel!=-1) lcmd=CMD_CHR_LOOK;
+            else if (mapsel!=-1) lcmd=CMD_MAP_LOOK;
         }
     } else {
         if (mapsel!=-1 && !vk_item && !vk_char) lcmd=CMD_MAP_MOVE;
@@ -1454,7 +1464,10 @@ static void cmd_action(void) {
     switch (actsel) {
         case 0:
         case 1:
-        case 2:     action_ovr=actsel; break;
+        case 2:
+        case 11:
+        case 13:    action_ovr=actsel; break;
+
         case 3:     cmd_some_spell(CL_FLASH,0,0,map[plrmn].cn); break;
         case 4:     cmd_some_spell(CL_FREEZE,0,0,map[plrmn].cn); break;
         case 5:     cmd_some_spell(CL_MAGICSHIELD,0,0,map[plrmn].cn); break;
@@ -1463,7 +1476,6 @@ static void cmd_action(void) {
         case 8:     cmd_some_spell(CL_WARCRY,0,0,map[plrmn].cn); break;
         case 9:     cmd_some_spell(CL_PULSE,0,0,map[plrmn].cn); break;
         case 10:    cmd_some_spell(CL_FIREBALL,0,0,map[plrmn].cn); break;
-        case 11:    action_ovr=actsel; break;
         case 12:    minimap_toggle(); break;
     }
 }

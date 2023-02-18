@@ -806,8 +806,9 @@ static char *action_text[MAXACTIONSLOT]={
     "Warcry",
     "Pulse",
     "Firering",
-    "Take/Use/Give",
-    "Map"
+    "Take/Use/Give/Drop",
+    "Map",
+    "Look"
 };
 
 static int action_skill[MAXACTIONSLOT]={
@@ -823,6 +824,7 @@ static int action_skill[MAXACTIONSLOT]={
     V_PULSE,
     V_FIREBALL,
     V_PERCEPT,
+    -1,
     -1
 };
 
@@ -844,6 +846,7 @@ void actions_loaded(void) {
 
     action_row[1][0]=' ';
     action_row[1][11]=' ';
+    action_row[1][13]=' ';
 }
 
 int action_key2slot(int key) {
@@ -906,7 +909,6 @@ void display_action(void) {
         fx.sat=14;
         fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=(i==actsel || i==action_ovr)?DDFX_BRIGHT:DDFX_NLIGHT;
         dd_copysprite_fx(&fx,butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i));
-        //dd_copysprite(800+i,butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i),(i==actsel || i==action_ovr)?DDFX_BRIGHT:DDFX_NLIGHT,0);
         if (i==actsel) {
             dd_drawtext(butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i)-30,IRGB(31,31,31),DD_FRAME|DD_CENTER,action_text[i]);
         }

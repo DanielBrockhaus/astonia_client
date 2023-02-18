@@ -51,9 +51,9 @@
 #define BUT_TEL_MISC    94
 
 #define BUT_ACT_BEG     85
-#define BUT_ACT_END     97
+#define BUT_ACT_END     98
 
-#define MAX_BUT         98
+#define MAX_BUT         99
 
 #define BUTF_NOHIT      (1<<1)  // button is ignored int hit processing
 #define BUTF_CAPTURE    (1<<2)  // button captures mouse on lclick
