@@ -329,7 +329,7 @@ __declspec(dllexport) int dd_drawtext(int sx,int sy,unsigned short int color,int
 __declspec(dllexport) int dd_drawtext_break(int x,int y,int breakx,unsigned short color,int flags,const char *ptr) {
     char buf[256];
     int xp,n;
-    float size;
+    int size;
 
     xp=x;
 
@@ -349,10 +349,26 @@ __declspec(dllexport) int dd_drawtext_break(int x,int y,int breakx,unsigned shor
     return y+10;
 }
 
+__declspec(dllexport) int dd_drawtext_nl(int x,int y,int unsigned short color,int flags,const char *ptr) {
+    char buf[256];
+    int n;
+
+    while (*ptr) {
+        while (*ptr=='\n') ptr++;
+
+        for (n=0; n<256 && *ptr && *ptr!='\n'; buf[n++]=*ptr++);
+        buf[n]=0;
+        if (flags&DD_BIG) y+=12;
+        else y+=10;
+        dd_drawtext(x,y,color,flags,buf);
+    }
+    return y+10;
+}
+
 __declspec(dllexport) int dd_drawtext_break_length(int x,int y,int breakx,unsigned short color,int flags,const char *ptr) {
     char buf[256];
     int xp,n;
-    float size;
+    int size;
 
     xp=x;
 

@@ -37,6 +37,7 @@ __declspec(dllimport) int dd_drawtext_break_length(int x,int y,int breakx,unsign
 __declspec(dllimport) void dd_pixel(int x,int y,unsigned short col);
 __declspec(dllimport) int dd_drawtext_fmt(int sx,int sy,unsigned short int color,int flags,const char *format,...);
 __declspec(dllimport) int dd_drawtext_break_fmt(int sx,int sy,int breakx,unsigned short int color,int flags,const char *format,...);
+__declspec(dllimport) int dd_drawtext_nl(int x,int y,int unsigned short color,int flags,const char *ptr);
 // gui, dots and buttons
 __declspec(dllimport) int dotx(int didx);
 __declspec(dllimport) int doty(int didx);
@@ -51,6 +52,7 @@ __declspec(dllimport) int mapmn(int x,int y);
 __declspec(dllimport) void set_teleport(int idx,int x,int y);
 __declspec(dllimport) int exp2level(int val);
 __declspec(dllimport) int level2exp(int level);
+__declspec(dllimport) int mil_rank(int exp);
 
 
 // ---------- Client exported data structures -------------

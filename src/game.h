@@ -92,6 +92,7 @@ int dd_textlen(int flags,const char *text,int n);
 int dd_drawtext(int sx,int sy,unsigned short int color,int flags,const char *text);
 int dd_drawtext_fmt(int sx,int sy,unsigned short int color,int flags,const char *format,...) __attribute__((format(printf, 5, 6)));
 int dd_drawtext_break_fmt(int sx,int sy,int breakx,unsigned short int color,int flags,const char *format,...)  __attribute__((format(printf, 6, 7)));
+int dd_drawtext_nl(int x,int y,int unsigned short color,int flags,const char *ptr);
 int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry);
 void dd_copysprite(int sprite,int scrx,int scry,int light,int align);
 void dd_copysprite_callfx(int sprite,int scrx,int scry,int light,int mli,int align);
