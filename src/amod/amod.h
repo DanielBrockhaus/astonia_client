@@ -122,7 +122,7 @@ __declspec(dllimport) char hover_time_text[120];
 
 __declspec(dllimport) char username[40];
 __declspec(dllimport) int tick;
-__declspec(dllimport) int mirror=0;
+__declspec(dllimport) int mirror;
 __declspec(dllimport) int realtime;
 
 
