@@ -120,6 +120,11 @@ __declspec(dllimport) char hover_level_text[120];
 __declspec(dllimport) char hover_rank_text[120];
 __declspec(dllimport) char hover_time_text[120];
 
+__declspec(dllimport) char username[40];
+__declspec(dllimport) int tick;
+__declspec(dllimport) int mirror=0;
+__declspec(dllimport) int realtime;
+
 
 // ---------------- override-able functions, also exported from client ----------------
 __declspec(dllimport) int _is_cut_sprite(int sprite);

@@ -48,12 +48,13 @@
 #define BUT_QUEST	    82
 #define BUT_HELP_DRAG   83
 
-#define BUT_TEL_MISC    94
+#define BUT_TEL_MISC    84
 
-#define BUT_ACT_BEG     85
-#define BUT_ACT_END     98
+#define BUT_ACT_LCK     85
+#define BUT_ACT_BEG     86
+#define BUT_ACT_END     99
 
-#define MAX_BUT         99
+#define MAX_BUT        100
 
 #define BUTF_NOHIT      (1<<1)  // button is ignored int hit processing
 #define BUTF_CAPTURE    (1<<2)  // button captures mouse on lclick
@@ -169,6 +170,8 @@
 
 #define CMD_ACTION              77
 #define CMD_ACTION_CANCEL       78
+
+#define CMD_ACTION_LOCK	        79
 
 #define STV_EMPTYLINE           -1
 #define STV_JUSTAVALUE          -2      // value is in curr
@@ -364,3 +367,4 @@ void minimap_hide(void);
 void display_minimap(void);
 void minimap_update(void);
 void dots_update(void);
+void display_action_lock(void);

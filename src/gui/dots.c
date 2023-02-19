@@ -173,6 +173,8 @@ void init_dots(void) {
     for (i=0; i<16; i++) set_but(BUT_SKL_BEG+i,dot[DOT_SKL].x,dot[DOT_SKL].y+i*LINEHEIGHT,40,0);
     for (i=0; i<MAXACTIONSLOT; i++) set_but(BUT_ACT_BEG+i,dot[DOT_ACT].x+i*40,dot[DOT_ACT].y,18,0);
 
+    set_but(BUT_ACT_LCK,dot[DOT_ACT].x-60,dot[DOT_ACT].y,18,0);
+
     set_but(BUT_SCL_UP,dot[DOT_SCL].x+0,dot[DOT_SCU].y+0,30,0);
     set_but(BUT_SCL_TR,dot[DOT_SCL].x+0,dot[DOT_SCU].y+10,40,BUTF_CAPTURE|BUTF_MOVEEXEC);
     set_but(BUT_SCL_DW,dot[DOT_SCL].x+0,dot[DOT_SCD].y+0,30,0);

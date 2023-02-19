@@ -32,16 +32,18 @@ static unsigned int unique=0;
 static unsigned int usum=0;
 int target_port=5556;
 int target_server=0;
-char username[40];
 char password[16];
 static int zsinit;
 static struct z_stream_s zs;
 
-int tick;
-int mirror=0,newmirror=0;
+__declspec(dllexport) char username[40];
+__declspec(dllexport) int tick;
+__declspec(dllexport) int mirror=0;
+__declspec(dllexport) int realtime;
+
+int newmirror=0;
 int lasttick;           // ticks in inbuf
 static int lastticksize;       // size inbuf must reach to get the last tick complete in the queue
-int realtime;
 
 static struct queue queue[Q_SIZE];
 int q_in,q_out,q_size;
@@ -1438,8 +1440,6 @@ int poll_network(void) {
         unsigned long one=1;
 
         if (SDL_GetTicks()<socktime) return 0;
-
-        //note("create nonblocking socket");
 
         // reset socket
         if (sock!=-1) { closesocket(sock); sock=-1; }

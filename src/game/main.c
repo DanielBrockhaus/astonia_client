@@ -294,7 +294,6 @@ void* xmalloc(int size,int ID) {
     unsigned char *head,*tail,*rptr;
 
     if (!memcheckset) {
-        note("initialized memcheck");
         for (memcheckset=0; memcheckset<sizeof(memcheck); memcheckset++) memcheck[memcheckset]=rrand(256);
         sprintf(memcheck,"!MEMCKECK MIGHT FAIL!");
         myheap=HeapCreate(0,0,0);

@@ -158,16 +158,14 @@ void display_minimap(void) {
             for (ix=-MINIMAP; ix<=MINIMAP; ix++) {
 
                 dist=sqrtf(ix*ix+iy*iy);
-                if (dist>=MINIMAP) continue;
+                if (dist>MINIMAP) continue;
 
                 x=originx+ix;
                 y=originy+iy;
 
-                if (x<0 || x>=MAXMAP || y<0 || y>=MAXMAP) {
-                    continue;
-                }
-
-                if (_mmap[x+y*MAXMAP]) mapix2[MINIMAP+ix+iy*MINIMAP*2+MINIMAP*MINIMAP*2]=pix_col(x,y);
+                if (x<0 || x>=MAXMAP || y<0 || y>=MAXMAP)
+                    mapix2[MINIMAP+ix+iy*MINIMAP*2+MINIMAP*MINIMAP*2]=IRGBA(25,25,25,255);
+                else mapix2[MINIMAP+ix+iy*MINIMAP*2+MINIMAP*MINIMAP*2]=pix_col(x,y);
             }
         }
         SDL_UpdateTexture(maptex2,NULL,mapix2,MINIMAP*2*sizeof(uint32_t));

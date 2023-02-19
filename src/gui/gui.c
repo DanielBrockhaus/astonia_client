@@ -417,26 +417,14 @@ void display_helpandquest(void) {
 char perf_text[256];
 static void set_cmd_states(void);
 
-static void display(void) {
-    extern int memptrs[MAX_MEM];
-    extern int memsize[MAX_MEM];
-    extern int memused;
-    extern int memptrused;
-    extern long long sdl_time_make,sdl_time_tex,sdl_time_tex_main,sdl_time_text,sdl_time_blit;
-    int t;
-    long long start=SDL_GetTicks64();
+static void display_toplogic(void) {
     static int top_opening=0,top_closing=1,top_open=0;
+    static int topframes=0;
 
-#if 0
-    // Performance for stuff happening during the actual tick only.
-    // So zero them now after preload is done.
-    sdl_time_make=0;
-    sdl_time_tex=0;
-    sdl_time_text=0;
-    sdl_time_blit=0;
-#endif
+    if (mousey<10) topframes++;
+    else topframes=0;
 
-    if (mousey<23 && !top_opening && !top_open) { top_opening=1; top_closing=0; }
+    if (topframes>frames_per_second/2 && !top_opening && !top_open) { top_opening=1; top_closing=0; }
     if (mousey>60 && !top_closing && top_open) { top_closing=1; top_opening=0; }
 
     if (top_opening) {
@@ -450,7 +438,27 @@ static void display(void) {
         gui_topoff=-top_closing; top_closing+=6;
         if (top_closing>=38) { top_open=0; top_closing=0; }
     }
+}
 
+static void display(void) {
+    extern int memptrs[MAX_MEM];
+    extern int memsize[MAX_MEM];
+    extern int memused;
+    extern int memptrused;
+    extern long long sdl_time_make,sdl_time_tex,sdl_time_tex_main,sdl_time_text,sdl_time_blit;
+    int t;
+    long long start=SDL_GetTicks64();
+
+#if 0
+    // Performance for stuff happening during the actual tick only.
+    // So zero them now after preload is done.
+    sdl_time_make=0;
+    sdl_time_tex=0;
+    sdl_time_text=0;
+    sdl_time_blit=0;
+#endif
+
+    display_toplogic();
     set_cmd_states();
 
     if (sockstate<4 && ((t=time(NULL)-socktimeout)>10 || !originx)) {
@@ -516,7 +524,7 @@ static void display(void) {
         static unsigned char pre1_graph[100],pre2_graph[100],pre3_graph[100];
         //static int frame_min=99,frame_max=0,frame_step=0;
         //static int tick_min=99,tick_max=0,tick_step=0;
-        int px=800-110,py=35+(!(game_options&GO_SMALLBOT) ? 0 : gui_topoff);
+        int px=800-110,py=35+(!(game_options&GO_SMALLTOP) ? 0 : gui_topoff);
         PROCESS_MEMORY_COUNTERS mi;
 
         GetProcessMemoryInfo(GetCurrentProcess(),&mi,sizeof(mi));
@@ -1290,6 +1298,7 @@ static void set_cmd_states(void) {
     if (butsel==-1 && context_action_enabled()) {
         butsel=get_near_button(mousex,mousey);
         if (butsel>=BUT_ACT_BEG && butsel<=BUT_ACT_END && has_action_skill(butsel-BUT_ACT_BEG)) actsel=butsel-BUT_ACT_BEG;
+        if (butsel==BUT_ACT_LCK) ;
         else butsel=-1;
     }
 
@@ -1407,6 +1416,8 @@ static void set_cmd_states(void) {
         if (butsel==BUT_HELP) lcmd=CMD_HELP;
         if (butsel==BUT_QUEST) lcmd=CMD_QUEST;
         if (butsel==BUT_NOLOOK) lcmd=CMD_NOLOOK;
+
+        if (butsel==BUT_ACT_LCK) lcmd=CMD_ACTION_LOCK;
     }
 
     // set rcmd
@@ -1597,6 +1608,7 @@ static void exec_cmd(int cmd,int a) {
 
         case CMD_ACTION:    cmd_action(); return;
         case CMD_ACTION_CANCEL: return; // action gets cancelled on top
+        case CMD_ACTION_LOCK:   display_action_lock(); return;
     }
     return;
 }

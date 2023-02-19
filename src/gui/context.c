@@ -481,11 +481,9 @@ void context_keyup(int key) {
             }
             break;
         case 13:
-            if (mousex>=dotx(DOT_MTL) && mousey>=doty(DOT_MTL) && mousex<dotx(DOT_MBR) && mousey<doty(DOT_MBR)) {
-                if (isel!=-1) cmd_look_item(originx-MAPDX/2+isel%MAPDX,originy-MAPDY/2+isel/MAPDX);
-                else if (csel!=-1) cmd_look_char(map[csel].cn);
-                else if (msel!=-1) cmd_look_map(originx-MAPDX/2+msel%MAPDX,originy-MAPDY/2+msel/MAPDX);
-            }
+            if (isel!=-1) cmd_look_item(originx-MAPDX/2+isel%MAPDX,originy-MAPDY/2+isel/MAPDX);
+            else if (csel!=-1) cmd_look_char(map[csel].cn);
+            else if (msel!=-1) cmd_look_map(originx-MAPDX/2+msel%MAPDX,originy-MAPDY/2+msel/MAPDX);
             break;
 
         case 101:   if (msel!=-1) cmd_some_spell(CL_FIREBALL,originx-MAPDX/2+msel%MAPDX,originy-MAPDY/2+msel/MAPDX,0); break;

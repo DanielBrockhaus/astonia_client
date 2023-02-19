@@ -109,18 +109,15 @@ int sdl_init(int width,int height,char *title) {
 
     len=sizeof(struct sdl_image)*MAXSPRITE;
     sdli=xcalloc(len*1,MEM_SDL_BASE);
-    note("SDL Image cache needs %.2fM for image cache index",len/(1024.0*1024.0));
     if (!sdli) return fail("Out of memory in sdl_init");
 
     sdlt_cache=xcalloc(MAX_TEXHASH*sizeof(int),MEM_SDL_BASE);
-    note("SDL texture cache needs %.2fM for cache index",MAX_TEXHASH*sizeof(int)/(1024.0*1024.0));
     if (!sdlt_cache) return fail("Out of memory in sdl_init");
 
     for (i=0; i<MAX_TEXHASH; i++)
         sdlt_cache[i]=STX_NONE;
 
     sdlt=xcalloc(MAX_TEXCACHE*sizeof(struct sdl_texture),MEM_SDL_BASE);
-    note("SDL texture cache needs %.2fM for cache",MAX_TEXCACHE*sizeof(struct sdl_texture)/(1024.0*1024.0));
     if (!sdlt) return fail("Out of memory in sdl_init");
 
     for (i=0; i<MAX_TEXCACHE; i++) {

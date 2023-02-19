@@ -789,8 +789,8 @@ void display_game_special(void) {
 
 char action_row[2][MAXACTIONSLOT]={
    //012345678901
-    "asd   fg   h ",
-    " qwertzuiop m"
+    "asd   fg   h l",
+    " qwertzuiop m "
 };
 int action_enabled=1;
 
@@ -869,10 +869,13 @@ int action_slot2key(int slot) {
     return action_row[0][slot];
 }
 
+static int act_lck=1;
+
 void action_set_key(int slot,int key) {
     int row,i;
 
     if (slot<0 || slot>=MAXACTIONSLOT) return;
+    if (act_lck) return;
 
     if (action_row[0][slot]==' ') row=1;
     else if (action_row[1][slot]==' ') row=0;
@@ -901,12 +904,13 @@ void display_action(void) {
 
     if (!context_action_enabled()) return;
 
+    bzero(&fx,sizeof(fx));
+    fx.scale=80;
+    fx.sat=14;
+
     for (i=0; i<MAXACTIONSLOT; i++) {
         if (!has_action_skill(i)) continue;
-        bzero(&fx,sizeof(fx));
         fx.sprite=800+i;
-        fx.scale=80;
-        fx.sat=14;
         fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=(i==actsel || i==action_ovr)?DDFX_BRIGHT:DDFX_NLIGHT;
         dd_copysprite_fx(&fx,butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i));
         if (i==actsel) {
@@ -923,6 +927,14 @@ void display_action(void) {
     }
     dd_drawtext(butx(BUT_ACT_BEG)-25,buty(BUT_ACT_BEG)-5,IRGB(31,31,31),DD_FRAME|DD_CENTER,"-");
     dd_drawtext(butx(BUT_ACT_END)+25,buty(BUT_ACT_BEG)-5,IRGB(31,31,31),DD_FRAME|DD_CENTER,"=");
+
+    fx.sprite=851-act_lck;
+    fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=butsel==BUT_ACT_LCK?DDFX_BRIGHT:DDFX_NLIGHT;
+    dd_copysprite_fx(&fx,butx(BUT_ACT_LCK),buty(BUT_ACT_LCK));
+}
+
+void display_action_lock(void) {
+    act_lck=act_lck^1;
 }
 
 static void display_bar(int sx,int sy,int perc,unsigned short color,int xs,int ys) {
