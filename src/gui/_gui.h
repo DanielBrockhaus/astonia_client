@@ -260,7 +260,7 @@ extern int weatab[12];
 extern char weaname[12][32];
 
 extern int cur_cursor;
-extern int mousex,mousey,vk_shift,vk_control,vk_alt,vk_rbut,vk_lbut,shift_override,control_override;
+extern int mousex,mousey,vk_shift,vk_control,vk_alt,vk_rbut,vk_lbut,shift_override;
 extern int mousedx,mousedy;
 extern int vk_item,vk_char,vk_spell;
 

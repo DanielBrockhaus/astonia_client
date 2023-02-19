@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
+#include <ctype.h>
 
 #include "../../src/astonia.h"
 #include "../../src/gui.h"
@@ -876,6 +877,7 @@ void action_set_key(int slot,int key) {
 
     if (slot<0 || slot>=MAXACTIONSLOT) return;
     if (act_lck) return;
+    if (!isalnum(key)) return;
 
     if (action_row[0][slot]==' ') row=1;
     else if (action_row[1][slot]==' ') row=0;

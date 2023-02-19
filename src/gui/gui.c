@@ -57,7 +57,7 @@ __declspec(dllexport) unsigned short int lightorangecolor,orangecolor,darkorange
 unsigned int now;
 
 int cur_cursor=0;
-int mousex=300,mousey=300,vk_shift,vk_control,vk_alt,vk_rbut,vk_lbut,shift_override=0,control_override=0;
+int mousex=300,mousey=300,vk_shift,vk_control,vk_alt,vk_rbut,vk_lbut,shift_override=0;
 int mousedx,mousedy;
 int vk_item,vk_char,vk_spell;
 
@@ -798,7 +798,7 @@ void set_cmd_key_states(void) {
     km=sdl_keymode();
 
     vk_shift=(km&SDL_KEYM_SHIFT) || shift_override;
-    vk_control=(km&SDL_KEYM_CTRL) || control_override;
+    vk_control=(km&SDL_KEYM_CTRL);
     vk_alt=(km&SDL_KEYM_ALT)!=0;
 
     vk_char=vk_control;
@@ -1735,14 +1735,19 @@ void gui_sdl_keyproc(int wparam) {
         case SDLK_PAGEDOWN:     dd_text_pagedown(); break;
 
         case '+':
-        case '=':       if (!context_key_isset()) context_action_enable(1); break;
-        case '-':       if (!context_key_isset()) context_action_enable(0); break;
+        case '=':
+            if (!context_key_isset()) context_action_enable(1);
+            break;
+        case '-':
+            if (!context_key_isset()) context_action_enable(0);
+            break;
 
     }
 }
 
 void gui_sdl_mouseproc(int x,int y,int what,int clicks) {
     int delta;
+    static int mdown=0;
 
     switch (what) {
         case SDL_MOUM_NONE:
@@ -1784,6 +1789,10 @@ void gui_sdl_mouseproc(int x,int y,int what,int clicks) {
             break;
 
 
+        case SDL_MOUM_MUP:
+            shift_override=0;
+            mdown=0;
+            // fall through intended
         case SDL_MOUM_LUP:
             vk_lbut=0;
 
@@ -1836,6 +1845,13 @@ void gui_sdl_mouseproc(int x,int y,int what,int clicks) {
 				while (delta<0) { set_invoff(0,invoff+1); delta++; }
 				break;
 			}
+
+            if (mdown) shift_override=1;
+            break;
+
+        case SDL_MOUM_MDOWN:
+            shift_override=1;
+            mdown=1;
             break;
     }
 }

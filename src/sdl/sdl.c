@@ -142,7 +142,7 @@ int sdl_init(int width,int height,char *title) {
 
     // decide on screen format
     if (width!=XRES || height!=YRES) {
-        int tmp_scale=1;
+        int tmp_scale=1,off=0;
 
         if (width/XRES>=4 && height/YRES0>=4) sdl_scale=4;
         else if (width/XRES>=3 && height/YRES0>=3) sdl_scale=3;
@@ -153,8 +153,14 @@ int sdl_init(int width,int height,char *title) {
         else if (width/XRES>=2 && height/YRES2>=2) tmp_scale=2;
 
         if (tmp_scale>sdl_scale || height<YRES0) { sdl_scale=tmp_scale; YRES=height/sdl_scale; }
+
         YRES=height/sdl_scale;
-        if (YRES>YRES1) YRES=YRES1;
+
+        if (game_options!=-1) {
+            if (game_options&GO_SMALLTOP) off+=40;
+            if (game_options&GO_SMALLBOT) off+=40;
+        }
+        if (YRES>YRES1-off) YRES=YRES1-off;
 
         dd_set_offset((width/sdl_scale-XRES)/2,(height/sdl_scale-YRES)/2);
     }
