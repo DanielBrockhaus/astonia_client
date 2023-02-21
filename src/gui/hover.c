@@ -71,7 +71,7 @@ struct hover_item {
     char *desc[MAXDESC];
 };
 
-static struct hover_item hi[INVENTORYSIZE+CONTAINERSIZE];
+static struct hover_item hi[INVENTORYSIZE+CONTAINERSIZE]={0};
 
 static int last_look=0,last_invsel=-1,last_line=0,capture=0,last_tick=0;
 
@@ -206,6 +206,12 @@ static int display_hover(void) {
             last_line=0;
             last_look=20;
             last_invsel=slot;
+            for (i=0; i<MAXDESC; i++)
+                if (hi[slot].desc[i]) {
+                    xfree(hi[slot].desc[i]);
+                    hi[slot].desc[i]=NULL;
+                }
+            hi[slot].width=hi[slot].cnt=0;
         }
         return 0;
     }

@@ -103,7 +103,7 @@ static void makemenu(void) {
             menu.linecnt++;
         }
     }
-    if (csprite && !map[msel].isprite) {
+    if (csprite && !map[msel].isprite && !map[msel].csprite) {
         sprintf(menu.line[menu.linecnt],"Drop");
         menu.cmd[menu.linecnt]=CMD_MAP_DROP;
         menu.opt1[menu.linecnt]=originx-MAPDX/2+msel%MAPDX;
@@ -112,7 +112,7 @@ static void makemenu(void) {
     }
 
     if (csel!=-1) {
-        if (csprite) {
+        if (csprite && csel!=MAPDX*MAPDY/2) {
             sprintf(menu.line[menu.linecnt],"Give to %s",name);
             menu.cmd[menu.linecnt]=CMD_CHR_GIVE;
             menu.opt1[menu.linecnt]=map[csel].cn;
@@ -243,8 +243,8 @@ int context_open(int mx,int my) {
 
     if (!(game_options&GO_CONTEXT)) return 0;
 
-    csel=get_near_char(mx,my,3);
-    isel=get_near_item(mx,my,CMF_USE|CMF_TAKE,3);
+    csel=get_near_char(mx,my,1);
+    isel=get_near_item(mx,my,CMF_USE|CMF_TAKE,1);
     msel=get_near_ground(mx,my);
     ori_x=originx;
     ori_y=originy;

@@ -115,6 +115,7 @@ extern int frames_per_second;
 #define GO_ACTION   (1<<2)  // Action Bar and Key Bindings
 #define GO_SMALLBOT (1<<3)  // Smaller Bottom Window
 #define GO_SMALLTOP (1<<4)  // Smaller Top Window
+#define GO_BIGBAR   (1<<5)  // Show big health bar etc.
 
 extern uint64_t game_options;
 

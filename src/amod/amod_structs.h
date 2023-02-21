@@ -75,7 +75,11 @@
 #define DOT_TEL         25      // teleporter top left
 #define DOT_COL         26      // color picker top left
 #define DOT_LOK         27      // look at character window (show_look), top left
-#define MAX_DOT         28
+#define DOT_BO2         28      // bottom right of bottom window
+#define DOT_ACT         29      // action bar top left
+#define DOT_SSP         30      // self-spell-bars top left
+#define DOT_TUT         31      // tutor window top left
+#define MAX_DOT         32
 
 #define V_HP		0
 #define V_ENDURANCE	1

@@ -512,7 +512,7 @@ void display_usage(void) {
     buf+=sprintf(buf,"threads is the number of background threads the game should use. Use 0 to disable. Default is 4.\n\n");
     buf+=sprintf(buf,"options is a bitfield. Bit 0 (value of 1) enables the Dark GUI by Tegra. ");
     buf+=sprintf(buf,"Bit 1 enables the context menu, bit 2 the new keybindings, bit 3 the smaller bottom GUI ");
-    buf+=sprintf(buf,"and bit 4 the sliding away of the top GUI. Default depends on screen height.\n\n");
+    buf+=sprintf(buf,"and bit 4 the sliding away of the top GUI. Bit 5 enables the bigger health/mana bars. Default depends on screen height.\n\n");
     buf+=sprintf(buf,"cachesize is the size of the texture cache. Default is 8000. Very low numbers will crash!\n\n");
     buf+=sprintf(buf,"framespersecond will set the display rate in frames per second.\n\n");
 

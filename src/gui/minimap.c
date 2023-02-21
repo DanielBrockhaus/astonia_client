@@ -31,14 +31,17 @@ SDL_Texture *maptex1=NULL,*maptex2=NULL;
 
 void minimap_init(void) {
 
-    sx=(dotx(DOT_MTL)+dotx(DOT_MBR))/2-MAXMAP/2;
-    sy=(doty(DOT_MTL)+doty(DOT_MBR))/2-MAXMAP/2;
+    //sx=(dotx(DOT_MTL)+dotx(DOT_MBR))/2-MAXMAP/2;
+    //sy=(doty(DOT_MTL)+doty(DOT_MBR))/2-MAXMAP/2;
+
+    sx=dotx(DOT_MBR)-MAXMAP-10;
+    sy=doty(DOT_MTL)+10;
 
     mx=dotx(DOT_MBR)-MINIMAP*2-10;
     my=doty(DOT_MTL)+10;
 
     memset(_mmap,0,sizeof(_mmap));
-    visible=0;
+    visible=1;
     update1=update2=1;
 
     maptex1=sdl_create_texture(MAXMAP,MAXMAP);
@@ -125,7 +128,7 @@ void display_minimap(void) {
     float dist;
     SDL_Rect dr,sr;
 
-    if (visible) {  // display big map
+    if (visible&2) {  // display big map
         if (update1) {
             for (y=0; y<MAXMAP; y++) {
                 for (x=0; x<MAXMAP; x++) {
@@ -152,34 +155,36 @@ void display_minimap(void) {
         ory=originy;
     }
 
-    if (update2) {
-        bzero(mapix2,sizeof(mapix2));
-        for (iy=-MINIMAP; iy<=MINIMAP; iy++) {
-            for (ix=-MINIMAP; ix<=MINIMAP; ix++) {
+    if (visible&1) {
+        if (update2) {
+            bzero(mapix2,sizeof(mapix2));
+            for (iy=-MINIMAP; iy<=MINIMAP; iy++) {
+                for (ix=-MINIMAP; ix<=MINIMAP; ix++) {
 
-                dist=sqrtf(ix*ix+iy*iy);
-                if (dist>MINIMAP) continue;
+                    dist=sqrtf(ix*ix+iy*iy);
+                    if (dist>MINIMAP) continue;
 
-                x=originx+ix;
-                y=originy+iy;
+                    x=originx+ix;
+                    y=originy+iy;
 
-                if (x<0 || x>=MAXMAP || y<0 || y>=MAXMAP)
-                    mapix2[MINIMAP+ix+iy*MINIMAP*2+MINIMAP*MINIMAP*2]=IRGBA(25,25,25,255);
-                else mapix2[MINIMAP+ix+iy*MINIMAP*2+MINIMAP*MINIMAP*2]=pix_col(x,y);
+                    if (x<0 || x>=MAXMAP || y<0 || y>=MAXMAP)
+                        mapix2[MINIMAP+ix+iy*MINIMAP*2+MINIMAP*MINIMAP*2]=IRGBA(25,25,25,255);
+                    else mapix2[MINIMAP+ix+iy*MINIMAP*2+MINIMAP*MINIMAP*2]=pix_col(x,y);
+                }
             }
+            SDL_UpdateTexture(maptex2,NULL,mapix2,MINIMAP*2*sizeof(uint32_t));
+            update2=0;
         }
-        SDL_UpdateTexture(maptex2,NULL,mapix2,MINIMAP*2*sizeof(uint32_t));
-        update2=0;
+
+        dr.x=(mx+x_offset)*sdl_scale; dr.w=MINIMAP*2*sdl_scale;
+        dr.y=(my+y_offset)*sdl_scale; dr.h=MINIMAP*2*sdl_scale;
+
+        sr.x=0; sr.w=MINIMAP*2;
+        sr.y=0; sr.h=MINIMAP*2;
+
+        sdl_render_copy(maptex2,&sr,&dr);
+        draw_center(mx+MINIMAP,my+MINIMAP);
     }
-
-    dr.x=(mx+x_offset)*sdl_scale; dr.w=MINIMAP*2*sdl_scale;
-    dr.y=(my+y_offset)*sdl_scale; dr.h=MINIMAP*2*sdl_scale;
-
-    sr.x=0; sr.w=MINIMAP*2;
-    sr.y=0; sr.h=MINIMAP*2;
-
-    sdl_render_copy(maptex2,&sr,&dr);
-    draw_center(mx+MINIMAP,my+MINIMAP);
 }
 
 void minimap_areachange(void) {
@@ -188,10 +193,10 @@ void minimap_areachange(void) {
 }
 
 void minimap_toggle(void) {
-    visible^=1;
+    visible=(visible+1)%3;
 }
 
 void minimap_hide(void) {
-    visible=0;
+    visible&=~2;
 }
 

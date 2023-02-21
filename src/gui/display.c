@@ -905,6 +905,7 @@ void display_action(void) {
     DDFX fx;
 
     if (!context_action_enabled()) return;
+    if (vk_control || vk_alt) return;
 
     bzero(&fx,sizeof(fx));
     fx.scale=80;
@@ -956,6 +957,8 @@ void display_selfbars(void) {
     if (plrmn==-1) return;
     int x,y;
     int xs=7,ys=67,xd=3;
+
+    if (!(game_options&GO_BIGBAR)) return;
 
     x=dotx(DOT_MTL)+7;
     y=doty(DOT_MTL)+7;

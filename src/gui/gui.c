@@ -1099,7 +1099,10 @@ static void cmd_look_skill(int nr) {
 }
 
 static void set_cmd_invsel(void) {
-    if (context_key_enabled() && (!con_cnt || con_type==1)) {
+    if (context_key_enabled() && con_type==2 && con_cnt&& csprite && invsel!=-1) {
+        if (item[invsel]) lcmd=CMD_INV_SWAP;
+        else lcmd=CMD_INV_DROP;
+    } else if (context_key_enabled() && (!con_cnt || con_type==1)) {
         if (invsel==-1) return;
         if (item[invsel]) {
             if (csprite) lcmd=CMD_INV_SWAP;
@@ -1258,8 +1261,8 @@ static void set_cmd_states(void) {
             if (display_quest && mousex>=dotx(DOT_HLP)+165 && mousex<=dotx(DOT_HLP)+199) {
                 int tmp,y;
 
-                tmp=(mousey-(doty(DOT_HLP)+54))/40;
-                y=tmp*40+doty(DOT_HLP)+54;
+                tmp=(mousey-(doty(DOT_HLP)+16))/40;
+                y=tmp*40+doty(DOT_HLP)+16;
                 if (tmp>=0 && tmp<=8 && mousey>=y && mousey<=y+10) {
                     questsel=tmp;
                 }
@@ -1309,7 +1312,7 @@ static void set_cmd_states(void) {
             if (itmsel==-1) chrsel=get_near_char(mousex,mousey,3);
             if (itmsel==-1 && chrsel==-1) mapsel=get_near_ground(mousex,mousey);
         } else {
-            if (vk_char || (action_ovr!=-1 && (action_ovr!=11 || csprite))) chrsel=get_near_char(mousex,mousey,vk_char?MAPDX:3);
+            if (vk_char || (action_ovr!=-1 && (action_ovr!=11 || csprite) && action_ovr!=2)) chrsel=get_near_char(mousex,mousey,vk_char?MAPDX:3);
             if (chrsel==-1 && (vk_item || action_ovr==11)) itmsel=get_near_item(mousex,mousey,CMF_USE|CMF_TAKE,csprite?0:MAPDX);
             if (chrsel==-1 && itmsel==-1 && !vk_char && (!vk_item || csprite)) mapsel=get_near_ground(mousex,mousey);
 
@@ -1347,7 +1350,7 @@ static void set_cmd_states(void) {
     else if (action_ovr!=-1) {
         if (action_ovr==0 && chrsel!=-1) lcmd=CMD_CHR_ATTACK;
         else if (action_ovr==1 && chrsel!=-1) lcmd=CMD_CHR_CAST_L;
-        else if (action_ovr==2 && chrsel!=-1) lcmd=CMD_CHR_CAST_R;
+        else if (action_ovr==2) lcmd=CMD_MAP_CAST_R;
         else if (action_ovr==11) {
             if (itmsel!=-1) {
                 if (map[itmsel].flags&CMF_TAKE) {   // take needs to come first as dropped items can be usable
