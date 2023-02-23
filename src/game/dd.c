@@ -358,9 +358,9 @@ __declspec(dllexport) int dd_drawtext_nl(int x,int y,int unsigned short color,in
 
         for (n=0; n<256 && *ptr && *ptr!='\n'; buf[n++]=*ptr++);
         buf[n]=0;
+        dd_drawtext(x,y,color,flags,buf);
         if (flags&DD_BIG) y+=12;
         else y+=10;
-        dd_drawtext(x,y,color,flags,buf);
     }
     return y+10;
 }

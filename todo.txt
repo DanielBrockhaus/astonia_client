@@ -17,13 +17,12 @@ Bugs
 
 - Dragged help window should disable mouse-overs and buttons in top bar.
 
-
 Probably
 --------
 
-- Replace Icons with something more in style (and free of 3rd party rights).
-
 - Command line option for server port.
+
+- Multi-Monitor support (command line option to determine on which monitor the game window is opened).
 
 - Continue cleanup of GUI. Use DOTs instead of hardcoded pixel positions.
 

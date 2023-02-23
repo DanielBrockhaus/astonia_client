@@ -10,7 +10,7 @@ releases: https://github.com/DanielBrockhaus/astonia_client/releases
 ## Build from Source
 If you wish to build your own, install https://www.msys2.org/
 
-Make sure that "C:\msys64\bin" and "C:\msys64\usr\bin" (if you installed
+Make sure that "c:\msys64\mingw64\bin" and "C:\msys64\usr\bin" (if you installed
 into the default directory) end up in your Windows PATH.
 
 Open a shell (CMD.EXE or Powershell) and run

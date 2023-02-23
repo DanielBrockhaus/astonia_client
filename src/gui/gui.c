@@ -1803,7 +1803,7 @@ void gui_sdl_mouseproc(int x,int y,int what,int clicks) {
             if (context_click(mousex,mousey)) break;
 
             if (capbut!=-1) {
-                sdl_set_cursor_pos(but[capbut].x*sdl_scale+dd_offset_x(),but[capbut].y*sdl_scale+dd_offset_y());
+                sdl_set_cursor_pos((but[capbut].x+dd_offset_x())*sdl_scale,(but[capbut].y+dd_offset_y())*sdl_scale);
                 sdl_capture_mouse(0);
                 sdl_show_cursor(1);
                 amod_mouse_capture(0);

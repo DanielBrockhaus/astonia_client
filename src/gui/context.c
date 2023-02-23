@@ -452,8 +452,8 @@ void context_keyup(int key) {
 
     if (!(game_options&GO_ACTION)) return;
     if (keymode) return;
-
     if (key=='-') return;
+    if (key&0xffffff00) return;
 
     if (actsel!=-1) {
         action_set_key(actsel,key);

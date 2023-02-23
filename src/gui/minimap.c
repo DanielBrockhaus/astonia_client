@@ -124,7 +124,7 @@ static void draw_center(int x,int y) {
 }
 
 void display_minimap(void) {
-    int x,y,ix,iy;
+    int x,y,ix,iy,i;
     float dist;
     SDL_Rect dr,sr;
 
@@ -184,6 +184,10 @@ void display_minimap(void) {
 
         sdl_render_copy(maptex2,&sr,&dr);
         draw_center(mx+MINIMAP,my+MINIMAP);
+
+        for (i=0; i<sdl_scale; i++) {
+            sdl_render_circle((mx+MINIMAP+x_offset)*sdl_scale,(my+MINIMAP+y_offset)*sdl_scale,(MINIMAP)*sdl_scale+i,0xffffffff);
+        }
     }
 }
 
