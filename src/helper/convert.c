@@ -135,16 +135,16 @@ int convert_to_wall(struct sdl_image *si,int sprite,int sdl_scale,struct png_hel
         return 0;
     }
 
-    switch (sprite) {
-        case 14030:
-        case 14031:
-        case 14032:
-        case 14033: scale=4; off=(sprite-14030); break;
+    switch (sprite%10) {
+        case 0:
+        case 1:
+        case 2:
+        case 3: scale=4; off=(sprite-(sprite/10)*10); break;
 
-        case 14034:
-        case 14035:
-        case 14036:
-        case 14037: cutoff=1; scale=4; off=(sprite-14034); break;
+        case 4:
+        case 5:
+        case 6:
+        case 7: cutoff=1; scale=4; off=(sprite-(sprite/10)*10-4); break;
     }
 
     si->flags=1;

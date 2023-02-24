@@ -330,6 +330,9 @@ __declspec(dllexport) int _is_cut_sprite(int sprite) {
         case 14456: case 14457: case 14458: case 14459: // DB - check this in your maps, we have a small bug here
             return -(sprite-19);
 
+        case 26020: case 26021: case 26022: case 26023:
+            return sprite+4;
+
     }
 
     return sprite;
@@ -2597,6 +2600,17 @@ int __declspec(dllexport) _no_lighting_sprite(int sprite) {
         case 21425:
         case 21426:
         case 21427:     return 1;
+
+        case 26010:
+        case 26011:
+        case 26012:
+        case 26013:
+        case 26014:
+        case 26015:
+        case 26016:
+        case 26017:
+        case 26018:
+        case 26019:     return 1;
     }
     return 0;
 }

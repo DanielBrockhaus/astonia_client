@@ -20,6 +20,8 @@ Bugs
 Probably
 --------
 
+- Add icons for opening / closing the action bar.
+
 - Command line option for server port.
 
 - Multi-Monitor support (command line option to determine on which monitor the game window is opened).

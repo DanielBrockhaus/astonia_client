@@ -120,10 +120,20 @@ __declspec(dllimport) char hover_level_text[120];
 __declspec(dllimport) char hover_rank_text[120];
 __declspec(dllimport) char hover_time_text[120];
 
+__declspec(dllimport) int target_server;
+
+__declspec(dllimport) char password[16];
 __declspec(dllimport) char username[40];
 __declspec(dllimport) int tick;
 __declspec(dllimport) int mirror;
 __declspec(dllimport) int realtime;
+__declspec(dllimport) char server_url[256];
+__declspec(dllimport) int want_width;
+__declspec(dllimport) int want_height;
+__declspec(dllimport) int sdl_frames;
+__declspec(dllimport) int sdl_multi;
+__declspec(dllimport) int sdl_cache_size;
+__declspec(dllimport) uint64_t game_options;
 
 
 // ---------------- override-able functions, also exported from client ----------------

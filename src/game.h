@@ -79,7 +79,6 @@ typedef struct ddfx DDFX;
 
 extern int dd_gamma;
 extern int dd_lighteffect;
-extern int largetext;
 extern float mouse_scale;   // mouse input needs to be scaled by this factor because the display window is stretched
 extern char user_keys[10];
 extern int namesize;

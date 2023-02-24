@@ -904,36 +904,39 @@ void display_action(void) {
     char buf[4];
     DDFX fx;
 
-    if (!context_action_enabled()) return;
+    if (!context_key_enabled()) return;
     if (vk_control || vk_alt) return;
 
-    bzero(&fx,sizeof(fx));
-    fx.scale=80;
-    fx.sat=14;
+    if (context_action_enabled()) {
+        bzero(&fx,sizeof(fx));
+        fx.scale=80;
+        fx.sat=14;
 
-    for (i=0; i<MAXACTIONSLOT; i++) {
-        if (!has_action_skill(i)) continue;
-        fx.sprite=800+i;
-        fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=(i==actsel || i==action_ovr)?DDFX_BRIGHT:DDFX_NLIGHT;
-        dd_copysprite_fx(&fx,butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i));
-        if (i==actsel) {
-            dd_drawtext(butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i)-30,IRGB(31,31,31),DD_FRAME|DD_CENTER,action_text[i]);
+        for (i=0; i<MAXACTIONSLOT; i++) {
+            if (!has_action_skill(i)) continue;
+            fx.sprite=800+i;
+            fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=(i==actsel || i==action_ovr)?DDFX_BRIGHT:DDFX_NLIGHT;
+            dd_copysprite_fx(&fx,butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i));
+            if (i==actsel) {
+                dd_drawtext(butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i)-30,IRGB(31,31,31),DD_FRAME|DD_CENTER,action_text[i]);
+            }
+            if (action_row[0][i]>' ') {
+                buf[0]=action_slot2key(i); buf[1]=0;
+                dd_drawtext(butx(BUT_ACT_BEG+i)-8,buty(BUT_ACT_BEG+i)-11,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
+            }
+            if (action_row[1][i]>' ') {
+                buf[0]=action_slot2key(i+100); buf[1]=0;
+                dd_drawtext(butx(BUT_ACT_BEG+i)+8,buty(BUT_ACT_BEG+i)-11,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
+            }
         }
-        if (action_row[0][i]>' ') {
-            buf[0]=action_slot2key(i); buf[1]=0;
-            dd_drawtext(butx(BUT_ACT_BEG+i)-8,buty(BUT_ACT_BEG+i)-11,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
-        }
-        if (action_row[1][i]>' ') {
-            buf[0]=action_slot2key(i+100); buf[1]=0;
-            dd_drawtext(butx(BUT_ACT_BEG+i)+8,buty(BUT_ACT_BEG+i)-11,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
-        }
+        dd_drawtext(butx(BUT_ACT_BEG)-25,buty(BUT_ACT_BEG)-5,IRGB(31,31,31),DD_FRAME|DD_CENTER,"-");
+
+        fx.sprite=851-act_lck;
+        fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=butsel==BUT_ACT_LCK?DDFX_BRIGHT:DDFX_NLIGHT;
+        dd_copysprite_fx(&fx,butx(BUT_ACT_LCK),buty(BUT_ACT_LCK));
+        if (butsel==BUT_ACT_LCK) dd_drawtext(5,buty(BUT_ACT_LCK)-30,IRGB(31,31,31),DD_FRAME,"Lock / Unlock redefining keys");
     }
-    dd_drawtext(butx(BUT_ACT_BEG)-25,buty(BUT_ACT_BEG)-5,IRGB(31,31,31),DD_FRAME|DD_CENTER,"-");
     dd_drawtext(butx(BUT_ACT_END)+25,buty(BUT_ACT_BEG)-5,IRGB(31,31,31),DD_FRAME|DD_CENTER,"=");
-
-    fx.sprite=851-act_lck;
-    fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=butsel==BUT_ACT_LCK?DDFX_BRIGHT:DDFX_NLIGHT;
-    dd_copysprite_fx(&fx,butx(BUT_ACT_LCK),buty(BUT_ACT_LCK));
 }
 
 void display_action_lock(void) {

@@ -110,12 +110,16 @@ extern int __yres;
 extern int quit;
 extern int frames_per_second;
 
-#define GO_DARK     (1<<0)  // Dark GUI by Tegra
-#define GO_CONTEXT  (1<<1)  // Right-Click Context Menu
-#define GO_ACTION   (1<<2)  // Action Bar and Key Bindings
-#define GO_SMALLBOT (1<<3)  // Smaller Bottom Window
-#define GO_SMALLTOP (1<<4)  // Smaller Top Window
-#define GO_BIGBAR   (1<<5)  // Show big health bar etc.
+#define GO_DARK     (1ull<<0)  // Dark GUI by Tegra
+#define GO_CONTEXT  (1ull<<1)  // Right-Click Context Menu
+#define GO_ACTION   (1ull<<2)  // Action Bar and Key Bindings
+#define GO_SMALLBOT (1ull<<3)  // Smaller Bottom Window
+#define GO_SMALLTOP (1ull<<4)  // Smaller Top Window
+#define GO_BIGBAR   (1ull<<5)  // Show big health bar etc.
+#define GO_SOUND    (1ull<<6)  // Enable sound
+#define GO_LARGE    (1ull<<7)  // Use large font
+#define GO_FULL     (1ull<<8)  // Use true full screen mode
+#define GO_NOTSET   (1ull<<63) // No -o given on command line
 
 extern uint64_t game_options;
 

@@ -742,7 +742,7 @@ void dd_display_text(void) {
             if (lastcolor!=text[pos].color || text[pos].c<32) {
                 if (bp!=buf) {
                     *bp=0;
-                    if (largetext) x=dd_drawtext(x,y,palette[lastcolor],DD_BIG,buf);
+                    if (game_options&GO_LARGE) x=dd_drawtext(x,y,palette[lastcolor],DD_BIG,buf);
                     else x=dd_drawtext(x,y,palette[lastcolor],0,buf);
                 }
                 bp=buf; lastcolor=text[pos].color;
@@ -765,7 +765,7 @@ void dd_display_text(void) {
 
         if (bp!=buf) {
             *bp=0;
-            if (largetext) dd_drawtext(x,y,palette[lastcolor],DD_BIG,buf);
+            if (game_options&GO_LARGE) dd_drawtext(x,y,palette[lastcolor],DD_BIG,buf);
             else dd_drawtext(x,y,palette[lastcolor],0,buf);
         }
     }

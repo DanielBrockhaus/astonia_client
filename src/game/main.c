@@ -27,11 +27,10 @@ int quit=0;
 static int quickstart=0;
 static int panic_reached=0;
 static int xmemcheck_failed=0;
-int largetext=0;
 int vendor=1;
 char user_keys[10]={'Q','W','E','A','S','D','Z','X','C','V'};
 
-uint64_t game_options=-1;
+__declspec(dllexport) uint64_t game_options=GO_NOTSET;
 
 static char memcheck_failed_str[]={"memcheck failed"};
 static char panic_reached_str[]={"panic failure"};
@@ -504,15 +503,16 @@ void display_usage(void) {
 
     txt=buf=malloc(1024*4);
     buf+=sprintf(buf,"The Astonia Client can only be started from the command line or with a specially created shortcut.\n\n");
-    buf+=sprintf(buf,"Usage: moac -u playername -p password -d url\n ... [-w width] [-h height] [-l largetextenable] [-s soundenable]\n");
-    buf+=sprintf(buf," ... [-m threads] [-o options] [-f fullscreen] [-c cachesize]\n ... [-k framespersecond]\n\n");
+    buf+=sprintf(buf,"Usage: moac -u playername -p password -d url\n ... [-w width] [-h height]\n");
+    buf+=sprintf(buf," ... [-m threads] [-o options] [-c cachesize]\n ... [-k framespersecond]\n\n");
     buf+=sprintf(buf,"url being, for example, \"server.astonia.com\" or \"192.168.77.132\" (without the quotes).\n\n");
     buf+=sprintf(buf,"width and height are the desired window size. If this matches the desktop size the client will start in windowed borderless pseudo-fullscreen mode.\n\n");
-    buf+=sprintf(buf,"fullscreen, largetextenable and soundenable can be either 0 or 1, for off or on.\n\n");
     buf+=sprintf(buf,"threads is the number of background threads the game should use. Use 0 to disable. Default is 4.\n\n");
     buf+=sprintf(buf,"options is a bitfield. Bit 0 (value of 1) enables the Dark GUI by Tegra. ");
     buf+=sprintf(buf,"Bit 1 enables the context menu, bit 2 the new keybindings, bit 3 the smaller bottom GUI ");
-    buf+=sprintf(buf,"and bit 4 the sliding away of the top GUI. Bit 5 enables the bigger health/mana bars. Default depends on screen height.\n\n");
+    buf+=sprintf(buf,"and bit 4 the sliding away of the top GUI. Bit 5 enables the bigger health/mana bars. ");
+    buf+=sprintf(buf,"Bit 6 enables sound, bit 7 the large font and bit 8 true full screen mode. ");
+    buf+=sprintf(buf,"Default depends on screen height.\n\n");
     buf+=sprintf(buf,"cachesize is the size of the texture cache. Default is 8000. Very low numbers will crash!\n\n");
     buf+=sprintf(buf,"framespersecond will set the display rate in frames per second.\n\n");
 
@@ -523,8 +523,9 @@ void display_usage(void) {
     free(txt);
 }
 
-char server_url[256];
-int want_width=0,want_height=0;
+__declspec(dllexport) char server_url[256];
+__declspec(dllexport) int want_width=0;
+__declspec(dllexport) int want_height=0;
 
 int parse_cmd(char *s) {
     int n;
@@ -561,17 +562,6 @@ int parse_cmd(char *s) {
                 while (isspace(*s)) s++;
                 want_width=strtol(s,&end,10);
                 s=end;
-                if (!want_width) want_width=800;
-            } else if (tolower(*s)=='l') { // -l Large Text
-                s++;
-                while (isspace(*s)) s++;
-                largetext=strtol(s,&end,10);
-                s=end;
-            } else if (tolower(*s)=='s') { // -s Sound
-                s++;
-                while (isspace(*s)) s++;
-                enable_sound=strtol(s,&end,10);
-                s=end;
             } else if (tolower(*s)=='m') { // -m Multi-Threaded
                 s++;
                 while (isspace(*s)) s++;
@@ -581,11 +571,6 @@ int parse_cmd(char *s) {
                 s++;
                 while (isspace(*s)) s++;
                 game_options=strtoull(s,&end,10);
-                s=end;
-            } else if (tolower(*s)=='f') { // -f fullscreen
-                s++;
-                while (isspace(*s)) s++;
-                sdl_fullscreen=strtol(s,&end,10);
                 s=end;
             } else if (tolower(*s)=='c') { // -c cachesize
                 s++;
@@ -716,7 +701,7 @@ int main(int argc,char *args[]) {
     dd_init();
     init_sound();
 
-    if (largetext) {
+    if (game_options&GO_LARGE) {
         namesize=0;
         dd_set_textfont(1);
     }

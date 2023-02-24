@@ -109,7 +109,7 @@ void sharedmem_update(void) {
 
     sm->hp=map[plrmn].health;
     sm->shield=map[plrmn].shield;
-    sm->mana=map[plrmn].mana;
+    if (value[0][V_MANA]) sm->mana=map[plrmn].mana; else sm->mana=-1;
     sm->end=endup;
 }
 

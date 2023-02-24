@@ -15,7 +15,6 @@
 #include "../../src/sdl.h"
 #include "../../src/sdl/_sdl.h"
 
-int enable_sound=0;
 int sound_volume=128;
 static uint64_t time_play_sound=0;
 
@@ -31,12 +30,12 @@ int init_sound(void) {
     SDL_RWops *rw;
     char *buf;
 
-    if (!enable_sound) return -1;
+    if (!(game_options&GO_SOUND)) return -1;
 
     sz=zip_open("res/sx.zip",ZIP_RDONLY,&err);
     if (!sz) {
         warn("Opening sx.zip failed with error code %d.",err);
-        enable_sound=0;
+        game_options&=~GO_SOUND;
         return -1;
     }
 
@@ -102,7 +101,7 @@ void play_sdl_sound(int nr,int distance,int angle)
 	uint64_t time_start;
 
 	// Check if sound is enabled
-	if (!enable_sound) return;
+	if (!(game_options&GO_SOUND)) return;
 
     if (nr<1 || nr>=sfx_name_cnt) return;
 
@@ -134,7 +133,7 @@ void play_sdl_sound(int nr,int distance,int angle)
 
 void play_sound(int nr,int vol,int p) {
     int dist,angle;
-    if (!enable_sound) return;
+    if (!(game_options&GO_SOUND)) return;
 
     // force volume and pan to sane values
     if (vol>0) vol=0;

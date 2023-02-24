@@ -47,10 +47,9 @@ long long sdl_time_pre2=0;
 long long sdl_time_pre3=0;
 
 int sdl_scale=1;
-int sdl_frames=0;
-int sdl_multi=4;
-int sdl_fullscreen=0;
-int sdl_cache_size=8000;
+__declspec(dllexport) int sdl_frames=0;
+__declspec(dllexport) int sdl_multi=4;
+__declspec(dllexport) int sdl_cache_size=8000;
 
 static zip_t *sdl_zip1=NULL;
 static zip_t *sdl_zip2=NULL;
@@ -72,7 +71,7 @@ int sdl_init(int width,int height,char *title) {
     int len,i;
     SDL_DisplayMode DM;
 
-    if (SDL_Init(SDL_INIT_VIDEO|(enable_sound?SDL_INIT_AUDIO:0)) != 0){
+    if (SDL_Init(SDL_INIT_VIDEO|((game_options&GO_SOUND)?SDL_INIT_AUDIO:0)) != 0){
         fail("SDL_Init Error: %s",SDL_GetError());
 	    return 0;
     }
@@ -93,7 +92,7 @@ int sdl_init(int width,int height,char *title) {
 	    return 0;
     }
 
-    if (sdl_fullscreen) {
+    if (game_options&GO_FULL) {
         SDL_SetWindowFullscreen(sdlwnd,SDL_WINDOW_FULLSCREEN);          // true full screen
     } else if (DM.w==width && DM.h==height) {
         SDL_SetWindowFullscreen(sdlwnd,SDL_WINDOW_FULLSCREEN_DESKTOP);  // borderless windowed
@@ -156,18 +155,17 @@ int sdl_init(int width,int height,char *title) {
 
         YRES=height/sdl_scale;
 
-        if (game_options!=-1) {
-            if (game_options&GO_SMALLTOP) off+=40;
-            if (game_options&GO_SMALLBOT) off+=40;
-        }
+        if (game_options&GO_SMALLTOP) off+=40;
+        if (game_options&GO_SMALLBOT) off+=40;
+
         if (YRES>YRES1-off) YRES=YRES1-off;
 
         dd_set_offset((width/sdl_scale-XRES)/2,(height/sdl_scale-YRES)/2);
     }
-    if (game_options==-1) {
-        if (YRES>=620) game_options=6;
-        else if (YRES>=580) game_options=14;
-        else game_options=30;
+    if (game_options&GO_NOTSET) {
+        if (YRES>=620) game_options=GO_CONTEXT|GO_ACTION|GO_BIGBAR;
+        else if (YRES>=580) game_options=GO_CONTEXT|GO_ACTION|GO_SMALLBOT|GO_BIGBAR;
+        else game_options=GO_CONTEXT|GO_ACTION|GO_SMALLBOT|GO_SMALLTOP|GO_BIGBAR;
     }
     note("SDL using %dx%d scale %d",XRES,YRES,sdl_scale);
 
@@ -195,12 +193,12 @@ int sdl_init(int width,int height,char *title) {
             break;
     }
 
-    if (enable_sound && Mix_OpenAudio(44100,MIX_DEFAULT_FORMAT,2,2048)<0) {
+    if ((game_options&GO_SOUND) && Mix_OpenAudio(44100,MIX_DEFAULT_FORMAT,2,2048)<0) {
         warn("initializing audio failed");
-        enable_sound=0;
+        game_options&=~GO_SOUND;
     }
 
-    if (enable_sound) {
+    if (game_options&GO_SOUND) {
         int number_of_sound_channels = Mix_AllocateChannels(MAX_SOUND_CHANNELS);
         note("Allocated %d sound channels", number_of_sound_channels);
     }
@@ -1877,7 +1875,7 @@ void sdl_exit(void) {
     if (sdl_zip1) zip_close(sdl_zip1);
     if (sdl_zip2) zip_close(sdl_zip2);
 
-    if (enable_sound) Mix_Quit();
+    if (game_options&GO_SOUND) Mix_Quit();
 #ifdef DEVELOPER
     sdl_dump_spritechache();
 #endif

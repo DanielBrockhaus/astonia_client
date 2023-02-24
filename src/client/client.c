@@ -31,8 +31,8 @@ int kicked_out=0;
 static unsigned int unique=0;
 static unsigned int usum=0;
 int target_port=5556;
-int target_server=0;
-char password[16];
+__declspec(dllexport) int target_server=0;
+__declspec(dllexport) char password[16];
 static int zsinit;
 static struct z_stream_s zs;
 
