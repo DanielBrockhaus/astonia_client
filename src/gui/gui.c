@@ -1951,7 +1951,6 @@ int main_loop(void) {
     nextframe=SDL_GetTicks()+MPF;
 
     while (!quit) {
-
         now=SDL_GetTicks();
 
         start=SDL_GetTicks64();

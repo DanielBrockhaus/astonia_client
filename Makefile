@@ -52,7 +52,7 @@ src/gui/questlog.o:	src/gui/questlog.c src/astonia.h src/gui.h src/gui/_gui.h sr
 src/helper/helper.o:	src/helper/helper.c src/astonia.h
 src/helper/convert.o:	src/helper/convert.c src/astonia.h src/sdl.h src/sdl/_sdl.h
 
-src/modder/modder.o:	src/modder/modder.c src/astonia.h src/modder.h src/modder/_modder.h
+src/modder/modder.o:	src/modder/modder.c src/astonia.h src/modder.h src/modder/_modder.h src/client.h
 src/modder/sharedmem.o:	src/modder/sharedmem.c src/astonia.h src/modder.h src/modder/_modder.h src/client.h
 
 src/sdl/sdl.o:		src/sdl/sdl.c src/astonia.h src/sdl.h src/sdl/_sdl.h

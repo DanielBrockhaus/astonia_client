@@ -38,6 +38,8 @@ struct mod {
 struct mod mod[MAXMOD]={{NULL}};
 
 int (*_amod_display_skill_line)(int v,int base,int curr,int cn,char *buf)=NULL;
+int (*_amod_process)(char *buf)=NULL;
+int (*_amod_prefetch)(char *buf)=NULL;
 
 char *game_email_main="<no one>";
 char *game_email_cash="<no one>";
@@ -67,7 +69,9 @@ int amod_init(void) {
         if ((tmp=GetProcAddress(dll_instance,"amod_update_hover_texts"))) mod[i]._amod_update_hover_texts=tmp;
         if (i!=0) continue; // only amod is allowed to override client stuff, the others can only add stuff
 
-        if ((tmp=GetProcAddress(dll_instance,"amod_display_skill_line"))) _amod_display_skill_line=tmp;  // not really a variable, but...
+        if ((tmp=GetProcAddress(dll_instance,"amod_process"))) _amod_process=tmp;
+        if ((tmp=GetProcAddress(dll_instance,"amod_prefetch"))) _amod_prefetch=tmp;
+        if ((tmp=GetProcAddress(dll_instance,"amod_display_skill_line"))) _amod_display_skill_line=tmp;
 
         // client functions
         if ((tmp=GetProcAddress(dll_instance,"is_cut_sprite"))) is_cut_sprite=tmp;
@@ -150,11 +154,6 @@ void amod_mouse_capture(int onoff) {
     }
 }
 
-int amod_display_skill_line(int v,int base,int curr,int cn,char *buf) {
-    if (_amod_display_skill_line) return _amod_display_skill_line(v,base,curr,cn,buf);
-    return 0;
-}
-
 void amod_areachange(void) {
     for (int i=0; i<MAXMOD; i++) {
         if (mod[i]._amod_areachange) mod[i]._amod_areachange();
@@ -172,5 +171,20 @@ void amod_update_hover_texts(void) {
     for (int i=0; i<MAXMOD; i++) {
         if (mod[i]._amod_update_hover_texts) mod[i]._amod_update_hover_texts();
     }
+}
+
+int amod_display_skill_line(int v,int base,int curr,int cn,char *buf) {
+    if (_amod_display_skill_line) return _amod_display_skill_line(v,base,curr,cn,buf);
+    return 0;
+}
+
+int amod_process(char *buf) {
+    if ((_amod_process)) return _amod_process(buf);
+    return 0;
+}
+
+int amod_prefetch(char *buf) {
+    if ((_amod_prefetch)) return _amod_prefetch(buf);
+    return 0;
 }
 

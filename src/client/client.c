@@ -907,7 +907,12 @@ void process(unsigned char *buf,int size) {
                 case SV_UNIQUE:			        sv_unique(buf); len=5; break;
                 case SV_QUESTLOG:		        sv_questlog(buf); len=101+sizeof(struct shrine_ppd); break;
 
-                default:                        fail("got illegal command %d",buf[0]); exit(1);
+                default:                        len=amod_process(buf);
+                                                if (!len) {
+                                                    fail("got illegal command %d",buf[0]);
+                                                    exit(1);
+                                                }
+                                                break;
             }
 
         size-=len; buf+=len;
@@ -990,7 +995,12 @@ int prefetch(unsigned char *buf,int size) {
                 case SV_UNIQUE:			        len=5; break;
                 case SV_QUESTLOG:		        len=101+sizeof(struct shrine_ppd); break;
 
-                default:                        fail("got illegal command %d",buf[0]); exit(1);
+                default:                        len=amod_prefetch(buf);
+                                                if (!len) {
+                                                    fail("got illegal command %d",buf[0]);
+                                                    exit(1);
+                                                }
+                                                break;
             }
 
         size-=len; buf+=len;
@@ -1005,7 +1015,7 @@ int prefetch(unsigned char *buf,int size) {
     return prefetch_tick;
 }
 
-void client_send(void *buf,int len) {
+__declspec(dllexport) void client_send(void *buf,int len) {
     if (len>MAX_OUTBUF-outused) return;
 
     memcpy(outbuf+outused,buf,len);

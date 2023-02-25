@@ -2367,8 +2367,10 @@ __declspec(dllexport) int _get_player_sprite(int nr,int zdir,int action,int step
                 step=attick%16;
                 duration=16;
                 break;
-            case 120:      // 120 is our test slot, to be kept empty. It is also used to showcase slower idle animations
+
+            case 120:
             case 121:
+            case 122:
                 action=60;
                 step=attick%32;
                 duration=32;
@@ -2580,7 +2582,7 @@ __declspec(dllexport) int _opt_sprite(int sprite) {
 // The client will use uniform light instead. Should return
 // true for anything that is not a basic wall or floor.
 int (*no_lighting_sprite)(int sprite)=_no_lighting_sprite;
-int __declspec(dllexport) _no_lighting_sprite(int sprite) {
+__declspec(dllexport) int _no_lighting_sprite(int sprite) {
     switch (sprite) {
         case 21410:
         case 21411:

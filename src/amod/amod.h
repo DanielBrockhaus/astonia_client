@@ -14,6 +14,9 @@ void amod_mouse_move(int x,int y);
 int amod_mouse_click(int x,int y,int what);     // return true if mouse click should NOT be processed by the client
 int amod_keydown(int key);
 void amod_update_hover_texts(void);
+int amod_process(char *buf);    // return length of server command, 0 = unknown
+int amod_prefetch(char *buf);   // return length of server command, 0 = unknown
+
 
 // --------- Client exported functions -----------
 
@@ -53,6 +56,8 @@ __declspec(dllimport) void set_teleport(int idx,int x,int y);
 __declspec(dllimport) int exp2level(int val);
 __declspec(dllimport) int level2exp(int level);
 __declspec(dllimport) int mil_rank(int exp);
+// client / server communication
+__declspec(dllimport) void client_send(void *buf,int len);
 
 
 // ---------- Client exported data structures -------------

@@ -145,7 +145,11 @@ void play_sound(int nr,int vol,int p) {
     // translate parameters to SDL
     // TODO: change client server protocol to provide angle instead of position
     dist=-(int)(vol)*255.0/10000.0;
-    angle=(int)p/10000.0*180.0+90.0;
+    angle=(int)p/10000.0*180.0;
+
+#if 0
+	note("nr = %d: %s, distance = %d, angle = %d (vol=%d, p=%d)", nr, sfx_name[nr], dist, angle, vol, p);
+#endif
 
     play_sdl_sound(nr,dist,angle);
 }
