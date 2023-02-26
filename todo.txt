@@ -5,27 +5,13 @@ Astonia To-Do List
 Bugs
 ----
 
-- Client should check the state of shift, ctrl, ... when coming into focus before registering a click.
-
 - Shaded text in 2X has single pixel gaps.
 
 
 Soon
 ----
 
-- Control should highlight player further away than 0 tiles in old mode.
-
-- Option to re-enable quick-equip.
-
 - Old mouse wheel code as an option
-
-- Left click in inventory while depot is open becomes quick depot.
-
-- Block action bar keys that are already pressed when enter is pressed.
-
-- Ignore mouse clicks outside the map area.
-
-- Add icons for opening / closing the action bar.
 
 - Multi-Monitor support (command line option to determine on which monitor the game window is opened).
 

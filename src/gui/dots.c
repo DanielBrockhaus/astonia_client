@@ -170,10 +170,11 @@ void init_dots(void) {
     for (i=0; i<12; i++) set_but(BUT_WEA_BEG+i,dot[DOT_WEA].x+i*FDX,dot[DOT_WEA].y+0,40,!stop ? 0 : BUTF_TOPOFF);
     for (x=0; x<4; x++) for (y=0; y<4; y++) set_but(BUT_INV_BEG+x+y*4,dot[DOT_INV].x+x*FDX,dot[DOT_INV].y+y*FDX,40,0);
     for (x=0; x<4; x++) for (y=0; y<4; y++) set_but(BUT_CON_BEG+x+y*4,dot[DOT_CON].x+x*FDX,dot[DOT_CON].y+y*FDX,40,0);
-    for (i=0; i<16; i++) set_but(BUT_SKL_BEG+i,dot[DOT_SKL].x,dot[DOT_SKL].y+i*LINEHEIGHT,40,0);
+    for (i=0; i<16; i++) set_but(BUT_SKL_BEG+i,dot[DOT_SKL].x,dot[DOT_SKL].y+i*LINEHEIGHT,10,0);
     for (i=0; i<MAXACTIONSLOT; i++) set_but(BUT_ACT_BEG+i,dot[DOT_ACT].x+i*40,dot[DOT_ACT].y,18,0);
 
-    set_but(BUT_ACT_LCK,dot[DOT_ACT].x-60,dot[DOT_ACT].y,18,0);
+    set_but(BUT_ACT_LCK,dot[DOT_ACT].x-40,dot[DOT_ACT].y,18,0);
+    set_but(BUT_ACT_OPN,dot[DOT_ACT].x+MAXACTIONSLOT*40,dot[DOT_ACT].y,18,0);
 
     set_but(BUT_SCL_UP,dot[DOT_SCL].x+0,dot[DOT_SCU].y+0,30,0);
     set_but(BUT_SCL_TR,dot[DOT_SCL].x+0,dot[DOT_SCU].y+10,40,BUTF_CAPTURE|BUTF_MOVEEXEC);

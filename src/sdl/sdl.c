@@ -2111,20 +2111,6 @@ void sdl_loop(void) {
     }
 }
 
-
-int sdl_keymode(void) {
-    SDL_Keymod km;
-    int ret=0;
-
-    km=SDL_GetModState();
-
-    if (km&KMOD_ALT) ret|=SDL_KEYM_ALT;
-    if (km&KMOD_CTRL) ret|=SDL_KEYM_CTRL;
-    if (km&KMOD_SHIFT) ret|=SDL_KEYM_SHIFT;
-
-    return ret;
-}
-
 void sdl_set_cursor_pos(int x,int y) {
     SDL_WarpMouseInWindow(sdlwnd,x,y);
 }

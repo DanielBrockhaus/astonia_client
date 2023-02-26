@@ -850,10 +850,17 @@ void actions_loaded(void) {
     action_row[1][13]=' ';
 }
 
+int has_action_skill(int i) {
+    if (action_skill[i]==-1) return 1;
+    return value[0][action_skill[i]];
+}
+
+
 int action_key2slot(int key) {
     int i;
 
     for (i=0; i<MAXACTIONSLOT; i++) {
+        if (!has_action_skill(i)) continue;
         if (action_row[0][i]==key) return i;
         if (action_row[1][i]==key) return i+100;
     }
@@ -894,11 +901,6 @@ void action_set_key(int slot,int key) {
     save_options();
 }
 
-int has_action_skill(int i) {
-    if (action_skill[i]==-1) return 1;
-    return value[0][action_skill[i]];
-}
-
 void display_action(void) {
     int i;
     char buf[4];
@@ -907,11 +909,10 @@ void display_action(void) {
     if (!context_key_enabled()) return;
     if (vk_control || vk_alt) return;
 
+    bzero(&fx,sizeof(fx));
+    fx.scale=80;
+    fx.sat=14;
     if (context_action_enabled()) {
-        bzero(&fx,sizeof(fx));
-        fx.scale=80;
-        fx.sat=14;
-
         for (i=0; i<MAXACTIONSLOT; i++) {
             if (!has_action_skill(i)) continue;
             fx.sprite=800+i;
@@ -920,27 +921,42 @@ void display_action(void) {
             if (i==actsel) {
                 dd_drawtext(butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i)-30,IRGB(31,31,31),DD_FRAME|DD_CENTER,action_text[i]);
             }
-            if (action_row[0][i]>' ') {
+            if (i==actsel && action_row[0][i]>' ') {
                 buf[0]=action_slot2key(i); buf[1]=0;
                 dd_drawtext(butx(BUT_ACT_BEG+i)-8,buty(BUT_ACT_BEG+i)-11,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
             }
-            if (action_row[1][i]>' ') {
+            if (i==actsel && action_row[1][i]>' ') {
                 buf[0]=action_slot2key(i+100); buf[1]=0;
                 dd_drawtext(butx(BUT_ACT_BEG+i)+8,buty(BUT_ACT_BEG+i)-11,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
             }
         }
-        dd_drawtext(butx(BUT_ACT_BEG)-25,buty(BUT_ACT_BEG)-5,IRGB(31,31,31),DD_FRAME|DD_CENTER,"-");
+
+        fx.sprite=853;
+        fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=butsel==BUT_ACT_OPN?DDFX_BRIGHT:DDFX_NLIGHT;
+        dd_copysprite_fx(&fx,butx(BUT_ACT_OPN),buty(BUT_ACT_OPN));
+        if (butsel==BUT_ACT_OPN) {
+            dd_drawtext(butx(BUT_ACT_OPN)-8,buty(BUT_ACT_OPN)-11,IRGB(31,31,31),DD_FRAME|DD_CENTER,"-");
+            dd_drawtext(butx(BUT_ACT_OPN)+8,buty(BUT_ACT_OPN)-11,IRGB(31,31,31),DD_FRAME|DD_CENTER,"=");
+            dd_drawtext(butx(BUT_ACT_OPN),buty(BUT_ACT_OPN)-30,IRGB(31,31,31),DD_FRAME|DD_CENTER,"Hide/Show");
+        }
 
         fx.sprite=851-act_lck;
         fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=butsel==BUT_ACT_LCK?DDFX_BRIGHT:DDFX_NLIGHT;
         dd_copysprite_fx(&fx,butx(BUT_ACT_LCK),buty(BUT_ACT_LCK));
         if (butsel==BUT_ACT_LCK) dd_drawtext(5,buty(BUT_ACT_LCK)-30,IRGB(31,31,31),DD_FRAME,"Lock / Unlock redefining keys");
+    } else {
+        fx.sprite=852;
+        fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=butsel==BUT_ACT_OPN?DDFX_BRIGHT:DDFX_NLIGHT;
+        dd_copysprite_fx(&fx,butx(BUT_ACT_OPN),buty(BUT_ACT_OPN));
     }
-    dd_drawtext(butx(BUT_ACT_END)+25,buty(BUT_ACT_BEG)-5,IRGB(31,31,31),DD_FRAME|DD_CENTER,"=");
 }
 
 void display_action_lock(void) {
-    act_lck=act_lck^1;
+    act_lck^=1;
+}
+
+void display_action_open(void) {
+    action_enabled^=1;
 }
 
 static void display_bar(int sx,int sy,int perc,unsigned short color,int xs,int ys) {

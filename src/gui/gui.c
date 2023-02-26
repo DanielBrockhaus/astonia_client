@@ -171,14 +171,30 @@ void mtos(int mapx,int mapy,int *scrx,int *scry) {
 }
 
 // screen to map
-void stom(int scrx,int scry,int *mapx,int *mapy) {
+int stom(int scrx,int scry,int *mapx,int *mapy) {
+
+    if (scrx<dotx(DOT_MTL) || scrx>=dotx(DOT_MBR) || scry<doty(DOT_MTL) || scry>=dotx(DOT_MBR)) return 0;
+
     scrx-=stom_off_x;
     scry-=stom_off_y;
     scrx-=(mapoffx+mapaddx);
     scry-=(mapoffy+mapaddy)-10;
     *mapy=(40*scry-20*scrx-1)/(20*40);      // ??? -1 ???
     *mapx=(40*scry+20*scrx)/(20*40);
+
+    return 1;
 }
+
+int gui_keymode(void) {
+    int ret=0;
+
+    if (GetAsyncKeyState(VK_SHIFT)&0x8000) ret|=SDL_KEYM_SHIFT;
+    if (GetAsyncKeyState(VK_CONTROL)&0x8000) ret|=SDL_KEYM_CTRL;
+    if (GetAsyncKeyState(VK_MENU)&0x8000) ret|=SDL_KEYM_ALT;
+
+    return ret;
+}
+
 
 // dx
 
@@ -795,7 +811,7 @@ static void set_cmd_cursor(int cmd) {
 void set_cmd_key_states(void) {
     int km;
 
-    km=sdl_keymode();
+    km=gui_keymode();
 
     vk_shift=(km&SDL_KEYM_SHIFT) || shift_override;
     vk_control=(km&SDL_KEYM_CTRL);
@@ -809,7 +825,7 @@ void set_cmd_key_states(void) {
 __declspec(dllexport) int get_near_ground(int x,int y) {
     int mapx,mapy;
 
-    stom(x,y,&mapx,&mapy);
+    if (!stom(x,y,&mapx,&mapy)) return -1;
 
     if (mapx<0 || mapy<0 || mapx>=MAPDX || mapy>=MAPDY) return -1;
 
@@ -820,7 +836,7 @@ __declspec(dllexport) int get_near_item(int x,int y,int flag,int looksize) {
     int mapx,mapy,sx,sy,ex,ey,mn,scrx,scry,nearest=-1;
     double dist,nearestdist=100000000;
 
-    stom(mousex,mousey,&mapx,&mapy);
+    if (!stom(mousex,mousey,&mapx,&mapy)) return -1;
 
     sx=max(0,mapx-looksize);
     sy=max(0,mapy-looksize);;
@@ -854,7 +870,7 @@ __declspec(dllexport) int get_near_char(int x,int y,int looksize) {
     int mapx,mapy,sx,sy,ex,ey,mn,scrx,scry,nearest=-1;
     double dist,nearestdist=100000000;
 
-    stom(mousex,mousey,&mapx,&mapy);
+    if (!stom(mousex,mousey,&mapx,&mapy)) return -1;
 
     mn=mapmn(mapx,mapy);
     if (mn==MAPDX*MAPDY/2) return mn;   // return player character if clicked directly
@@ -869,7 +885,7 @@ __declspec(dllexport) int get_near_char(int x,int y,int looksize) {
 
             mn=mapmn(mapx,mapy);
 
-            if (mn==MAPDX*MAPDY/2) continue; // ignore player character if NOT clicked directly
+            if (context_key_enabled() && mn==MAPDX*MAPDY/2) continue; // ignore player character if NOT clicked directly
 
             if (!(map[mn].rlight)) continue;
             if (!(map[mn].csprite)) continue;
@@ -936,7 +952,6 @@ static void set_skloff(int bymouse,int ny) {
 
 static void set_conoff(int bymouse,int ny) {
     if (bymouse) {
-        // conoff=(ny-(but[BUT_SCL_UP].y+10))*max_conoff/(but[BUT_SCL_DW].y-but[BUT_SCL_UP].y-20); // DIVISION BY ZERO can't happen
         conoff+=mousedy/LINEHEIGHT;
         mousedy=mousedy%LINEHEIGHT;
     } else conoff=ny;
@@ -1098,11 +1113,12 @@ static void cmd_look_skill(int nr) {
     } else addline("Unknown.");
 }
 
+// con_type: 1=grave or depot, 2=merchant
 static void set_cmd_invsel(void) {
-    if (context_key_enabled() && con_type==2 && con_cnt&& csprite && invsel!=-1) {
+    if (context_key_enabled() && con_type==2 && con_cnt && csprite && invsel!=-1) {
         if (item[invsel]) lcmd=CMD_INV_SWAP;
         else lcmd=CMD_INV_DROP;
-    } else if (context_key_enabled() && (!con_cnt || con_type==1)) {
+    } else if (context_key_enabled() && !con_cnt) {
         if (invsel==-1) return;
         if (item[invsel]) {
             if (csprite) lcmd=CMD_INV_SWAP;
@@ -1298,11 +1314,16 @@ static void set_cmd_states(void) {
 
     if (show_look && mousex>=dotx(DOT_LOK)+493 && mousex<=dotx(DOT_LOK)+500 && mousey>=doty(DOT_LOK)+3 && mousey<=doty(DOT_LOK)+10) butsel=BUT_NOLOOK;
 
-    if (butsel==-1 && context_action_enabled()) {
+    if (butsel==-1 && context_key_enabled()) {
         butsel=get_near_button(mousex,mousey);
-        if (butsel>=BUT_ACT_BEG && butsel<=BUT_ACT_END && has_action_skill(butsel-BUT_ACT_BEG)) actsel=butsel-BUT_ACT_BEG;
-        if (butsel==BUT_ACT_LCK) ;
-        else butsel=-1;
+        if (context_action_enabled()) {
+            if (butsel>=BUT_ACT_BEG && butsel<=BUT_ACT_END && has_action_skill(butsel-BUT_ACT_BEG)) actsel=butsel-BUT_ACT_BEG;
+            if (butsel==BUT_ACT_LCK || butsel==BUT_ACT_OPN) ;
+            else butsel=-1;
+        } else {
+            if (butsel==BUT_ACT_OPN && mousey>buty(BUT_ACT_OPN)) ;
+            else butsel=-1;
+        }
     }
 
     // hit map
@@ -1325,7 +1346,7 @@ static void set_cmd_states(void) {
         for (i=0; i<=BUT_SKL_END-BUT_SKL_BEG; i++) {
             x=butx(i+BUT_SKL_BEG);
             y=buty(i+BUT_SKL_BEG);
-            if (mousex>x+16 && mousex<x+SKLWIDTH && mousey>y-5 && mousey<y+5) {
+            if (mousex>x+10 && mousex<x+SKLWIDTH && mousey>y-5 && mousey<y+5) {
                 sklsel2=i;
                 break;
             }
@@ -1421,6 +1442,7 @@ static void set_cmd_states(void) {
         if (butsel==BUT_NOLOOK) lcmd=CMD_NOLOOK;
 
         if (butsel==BUT_ACT_LCK) lcmd=CMD_ACTION_LOCK;
+        if (butsel==BUT_ACT_OPN) lcmd=CMD_ACTION_OPEN;
     }
 
     // set rcmd
@@ -1433,8 +1455,8 @@ static void set_cmd_states(void) {
             if (itmsel!=-1) rcmd=CMD_ITM_LOOK;
             if (chrsel!=-1) rcmd=CMD_CHR_LOOK;
             if (context_key_enabled()) {
-                if (invsel!=-1 && ((item_flags[invsel]&IF_USE) || !item[invsel])) rcmd=CMD_INV_USE;
-                if (weasel!=-1 && ((item_flags[weatab[weasel]]&IF_USE) || !item[weatab[weasel]])) rcmd=CMD_WEA_USE;
+                if (invsel!=-1) rcmd=CMD_INV_USE;
+                if (weasel!=-1) rcmd=CMD_WEA_USE;
             } else {
                 if (invsel!=-1) rcmd=CMD_INV_LOOK;
                 if (weasel!=-1) rcmd=CMD_WEA_LOOK;
@@ -1612,6 +1634,7 @@ static void exec_cmd(int cmd,int a) {
         case CMD_ACTION:    cmd_action(); return;
         case CMD_ACTION_CANCEL: return; // action gets cancelled on top
         case CMD_ACTION_LOCK:   display_action_lock(); return;
+        case CMD_ACTION_OPEN:   display_action_open(); return;
     }
     return;
 }

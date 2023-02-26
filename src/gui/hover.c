@@ -268,7 +268,7 @@ static char *nicenumber(int n) {
 
 static int display_hover_skill(void) {
     int sx,sy,height=0,width=200,v;
-    int v1,v2,v3,base=0,cap=0,offense=0,defense=0,speed=0,armor=0,weapon=0,raisecost=0,immune=0,spells=0;
+    int v1,v2,v3,base=0,cap=0,offense=0,defense=0,speed=0,armor=0,weapon=0,raisecost=0,immune=0,spells=0,tactics=0;
 
     if (sklsel2!=-1 && tick-last_tick>HOVER_DELAY) {
         v=skltab[sklsel2+skloff].v;
@@ -315,6 +315,12 @@ static int display_hover_skill(void) {
             armor=value[0][v]*5;
             weapon=value[0][v]/4;
             height+=20;
+        } else if (v==V_PULSE || v==V_BLESS || v==V_HEAL || v==V_FREEZE || v==V_MAGICSHIELD || v==V_FLASH || v==V_FIREBALL) {
+            tactics=tactics2spell(value[0][V_TACTICS]);
+            height+=10;
+        } else if (v==V_IMMUNITY) {
+            tactics=tactics2immune(value[0][V_TACTICS]);
+            height+=10;
         }
 
         if (height) height+=10; // add a free line if there are more lines to display
@@ -339,6 +345,10 @@ static int display_hover_skill(void) {
             else dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gets +%d from (%s+%s+%s)",base,basename(v1),basename(v2),basename(v3));
             sy+=10;
         }
+        if (tactics) {
+            dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gets +%d hidden bonus from tactics",tactics);
+            sy+=10;
+        }
         if (offense) {
             dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gives +%d to offense",offense);
             sy+=10;
@@ -348,11 +358,11 @@ static int display_hover_skill(void) {
             sy+=10;
         }
         if (immune) {
-            dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gives +%d to immunity",immune);
+            dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gives +%d hidden bonus to immunity",immune);
             sy+=10;
         }
         if (spells) {
-            dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gives +%d to spell power",spells);
+            dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gives +%d hidden bonus to spell power",spells);
             sy+=10;
         }
         if (speed) {

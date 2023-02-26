@@ -51,7 +51,6 @@ void play_sound(int nr,int vol,int p);
 void sdl_bargraph_add(int dx,unsigned char *data,int val);
 void sdl_bargraph(int sx,int sy,int dx,unsigned char *data,int x_offset,int y_offset);
 int sdl_has_focus(void);
-int sdl_keymode(void);
 void sdl_set_cursor_pos(int x,int y);
 void sdl_show_cursor(int flag);
 void sdl_capture_mouse(int flag);

@@ -328,15 +328,24 @@ int context_click(int mx,int my) {
 }
 
 static int keymode=0;
+
+// block the next key coming UP unless any key has been pressed DOWN first
+// this is to avoid registering the last letter typed before pressing enter
+// as an action
+static int keyupblock=0;
+
 int context_key(int key) {
 
     if (!(game_options&GO_ACTION)) return 0;
+
+    keyupblock=0;
 
     if (key=='#' || key==CMD_UP || key==CMD_DOWN || key==9 || key=='/') {
         keymode=1;
     } else if (key==CMD_RETURN) {
         if (keymode==1) {
             keymode=0;
+            keyupblock=1;
             return 0;
         }
         keymode=1;
@@ -452,6 +461,7 @@ void context_keyup(int key) {
 
     if (!(game_options&GO_ACTION)) return;
     if (keymode) return;
+    if (keyupblock) return;
     if (key=='-') return;
     if (key&0xffffff00) return;
 

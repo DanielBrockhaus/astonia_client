@@ -42,7 +42,7 @@ extern int show_look;
 extern int vendor;
 
 void mtos(int mapx,int mapy,int *scrx,int *scry);
-void stom(int scrx,int scry,int *mapx,int *mapy);
+int stom(int scrx,int scry,int *mapx,int *mapy);
 void set_mapoff(int cx,int cy,int mdx,int mdy);
 void set_mapadd(int addx,int addy);
 void update_user_keys(void);
