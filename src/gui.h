@@ -39,7 +39,6 @@ extern int teleporter;
 extern int show_tutor;
 extern char tutor_text[1024];
 extern int show_look;
-extern int vendor;
 
 void mtos(int mapx,int mapy,int *scrx,int *scry);
 int stom(int scrx,int scry,int *mapx,int *mapy);

@@ -105,6 +105,7 @@ __declspec(dllimport) char look_name[80];
 __declspec(dllimport) char look_desc[1024];
 __declspec(dllimport) char pent_str[7][80];
 __declspec(dllimport) int pspeed;
+__declspec(dllimport) int protocol_version;
 
 __declspec(dllimport) unsigned short int healthcolor,manacolor,endurancecolor,shieldcolor;
 __declspec(dllimport) unsigned short int whitecolor,lightgraycolor,graycolor,darkgraycolor,blackcolor;

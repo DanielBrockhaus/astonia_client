@@ -482,6 +482,7 @@ extern int container[CONTAINERSIZE];
 extern int price[CONTAINERSIZE];
 extern int itemprice[CONTAINERSIZE];
 extern int cprice;
+extern int protocol_version;
 
 extern int lookinv[12];
 extern int looklevel;

@@ -11,8 +11,6 @@ Bugs
 Soon
 ----
 
-- Old mouse wheel code as an option
-
 - Multi-Monitor support (command line option to determine on which monitor the game window is opened).
 
 - Find an up-scaling algorithm that works with floor and wall tiles without creating edges around the tiles.

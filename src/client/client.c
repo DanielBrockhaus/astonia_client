@@ -40,6 +40,7 @@ __declspec(dllexport) char username[40];
 __declspec(dllexport) int tick;
 __declspec(dllexport) int mirror=0;
 __declspec(dllexport) int realtime;
+__declspec(dllexport) int protocol_version=0;
 
 int newmirror=0;
 int lasttick;           // ticks in inbuf
@@ -835,6 +836,11 @@ void sv_unique(unsigned char *buf) {
     }
 }
 
+void sv_protocol(unsigned char *buf) {
+    protocol_version=buf[1];
+    note("Astonia Protocol Version %d established!",protocol_version);
+}
+
 void process(unsigned char *buf,int size) {
     int len=0,panic=0,last=-1;
 
@@ -906,6 +912,7 @@ void process(unsigned char *buf,int size) {
                 case SV_PING:			        len=sv_ping(buf); break;
                 case SV_UNIQUE:			        sv_unique(buf); len=5; break;
                 case SV_QUESTLOG:		        sv_questlog(buf); len=101+sizeof(struct shrine_ppd); break;
+                case SV_PROTOCOL:               sv_protocol(buf); len=2; break;
 
                 default:                        len=amod_process(buf);
                                                 if (!len) {
@@ -994,6 +1001,7 @@ int prefetch(unsigned char *buf,int size) {
                 case SV_PING:			        len=svl_ping(buf); break;
                 case SV_UNIQUE:			        len=5; break;
                 case SV_QUESTLOG:		        len=101+sizeof(struct shrine_ppd); break;
+                case SV_PROTOCOL:               len=2; break;
 
                 default:                        len=amod_prefetch(buf);
                                                 if (!len) {
@@ -1558,7 +1566,7 @@ int poll_network(void) {
         decrypt(username,tmp);
         send(sock,tmp,16,0);
 
-        *(unsigned int *)(tmp)=vendor;
+        *(unsigned int *)(tmp)=(0x8fd46100|0x01);   // magic code + version 1
         send(sock,tmp,4,0);
         send_info(sock);
 
