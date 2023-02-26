@@ -2,31 +2,32 @@
 Astonia To-Do List
 ==================
 
-Server Patches
---------------
-
-- Add "log_char(cn,LOG_SYSTEM,0,"°c5.");" to the very end of int look_item() in tool.c.
-
-
 Bugs
 ----
 
-- originx and originy are not correctly set for prefetch.
+- Client should check the state of shift, ctrl, ... when coming into focus before registering a click.
 
 - Shaded text in 2X has single pixel gaps.
 
-- Dragged help window should disable mouse-overs and buttons in top bar.
 
-Probably
---------
+Soon
+----
+
+- Control should highlight player further away than 0 tiles in old mode.
+
+- Option to re-enable quick-equip.
+
+- Old mouse wheel code as an option
+
+- Left click in inventory while depot is open becomes quick depot.
+
+- Block action bar keys that are already pressed when enter is pressed.
+
+- Ignore mouse clicks outside the map area.
 
 - Add icons for opening / closing the action bar.
 
-- Command line option for server port.
-
 - Multi-Monitor support (command line option to determine on which monitor the game window is opened).
-
-- Continue cleanup of GUI. Use DOTs instead of hardcoded pixel positions.
 
 - Find an up-scaling algorithm that works with floor and wall tiles without creating edges around the tiles.
 - ... or, add a list of all non-tile sprites to do_smoothify().
@@ -35,25 +36,45 @@ Probably
 
 - Lighting calculations are better now, but not completely right. Fix them again. Re-add shaded lighting for items.
 
-- Create mod for V3.5.
-
-- Redo the part of the character sprite tutorial that use the discontinued keyMate. Use the standard timeline instead.
-
 
 Possibly
 --------
 
-- Add stuff to the client window to make it 960 pixels wide to fill a standard 16:9 display.
+- Continue cleanup of GUI. Use DOTs instead of hardcoded pixel positions.
+
+- Command line option for server port.
 
 - Port the winsock stuff to SDL_net
 
-- A Linux port. Once all is SDL it should be possible.
+- Add stuff to the client window to make it 960 pixels wide to fill a standard 16:9 display.
+
+- Create mod for V3.5.
+
+
+Maybe Later: Bugs
+-----------------
+
+- originx and originy are not correctly set for prefetch.
+
+- Dragged help window should disable mouse-overs and buttons in top bar.
+
 
 
 Maybe Later
 -----------
 
+- Redo the part of the character sprite tutorial that use the discontinued keyMate. Use the standard timeline instead.
+
 - Move all parts of the client into separate windows, including the different chat channels.
+
+- A Linux port. Once all is SDL it should be possible.
+
+
+Server Patches
+--------------
+
+- Add "log_char(cn,LOG_SYSTEM,0,"°c5.");" to the very end of int look_item() in tool.c.
+
 
 
 Notes:
@@ -70,6 +91,5 @@ git merge --squash <feature branch>
 
 Delete branch on remote
 git push origin --delete <branch>
-
 
 
