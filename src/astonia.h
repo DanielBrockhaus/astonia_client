@@ -119,6 +119,8 @@ extern int frames_per_second;
 #define GO_SOUND    (1ull<<6)  // Enable sound
 #define GO_LARGE    (1ull<<7)  // Use large font
 #define GO_FULL     (1ull<<8)  // Use true full screen mode
+#define GO_WHEEL    (1ull<<9)  // Use old mouse wheel logic
+
 #define GO_NOTSET   (1ull<<63) // No -o given on command line
 
 extern uint64_t game_options;

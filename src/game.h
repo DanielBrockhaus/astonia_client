@@ -97,7 +97,6 @@ void dd_copysprite(int sprite,int scrx,int scry,int light,int align);
 void dd_copysprite_callfx(int sprite,int scrx,int scry,int light,int mli,int align);
 int dd_drawtext_break(int x,int y,int breakx,unsigned short color,int flags,const char *ptr);
 int dd_drawtext_break_length(int x,int y,int breakx,unsigned short color,int flags,const char *ptr);
-void dd_darken_rect(int sx,int sy,int ex,int ey);
 void dd_rect(int sx,int sy,int ex,int ey,unsigned short int color);
 void dd_push_clip(void);
 void dd_pop_clip(void);

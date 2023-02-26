@@ -57,9 +57,11 @@ __declspec(dllexport) unsigned short int lightorangecolor,orangecolor,darkorange
 unsigned int now;
 
 int cur_cursor=0;
-int mousex=300,mousey=300,vk_shift,vk_control,vk_alt,vk_rbut,vk_lbut,shift_override=0;
+int mousex=300,mousey=300,vk_shift,vk_control,vk_alt,vk_rbut,vk_lbut,shift_override=0,control_override=0;
 int mousedx,mousedy;
 int vk_item,vk_char,vk_spell;
+
+int vk_special=0,vk_special_time=0;
 
 // globals wea
 
@@ -102,6 +104,35 @@ KEYTAB keytab[]={
 };
 
 int max_keytab=sizeof(keytab)/sizeof(KEYTAB);
+
+struct special_tab {
+    char *name;
+    int shift_over;
+    int control_over;
+    int spell,target;
+    int req;
+};
+
+struct special_tab special_tab[]={
+    {"Walk",0,0,0,0,0},
+    {"Use/Take",1,0,0,0,0},
+    {"Attack/Give",0,1,0,0,0},
+    {"Warcry",0,0,CL_WARCRY,TGT_SLF,V_WARCRY},
+    {"Pulse",0,0,CL_PULSE,TGT_SLF,V_PULSE},
+    {"Fireball-CHAR",0,1,CL_FIREBALL,TGT_CHR,V_FIREBALL},
+    {"Fireball-MAP",0,0,CL_FIREBALL,TGT_MAP,V_FIREBALL},
+    {"Firering",0,0,CL_FIREBALL,TGT_SLF,V_FIREBALL},
+    {"LBall-CHAR",0,1,CL_BALL,TGT_CHR,V_FLASH},
+    {"LBall-MAP",0,0,CL_BALL,TGT_MAP,V_FLASH},
+    {"Flash",0,0,CL_FLASH,TGT_SLF,V_FLASH},
+    {"Freeze",0,0,CL_FREEZE,TGT_SLF,V_FREEZE},
+    {"Shield",0,0,CL_MAGICSHIELD,TGT_SLF,V_MAGICSHIELD},
+    {"Bless-SELF",0,0,CL_BLESS,TGT_SLF,V_BLESS},
+    {"Bless-CHAR",0,1,CL_BLESS,TGT_CHR,V_BLESS},
+    {"Heal-SELF",0,0,CL_HEAL,TGT_SLF,V_HEAL},
+    {"Heal-CHAR",0,1,CL_HEAL,TGT_CHR,V_HEAL}
+};
+int max_special=sizeof(special_tab)/sizeof(special_tab[0]);
 
 int fkeyitem[4];
 
@@ -456,6 +487,59 @@ static void display_toplogic(void) {
     }
 }
 
+static int vk_special_dec(void) {
+    int n,panic=99;
+
+    for (n=(vk_special+max_special-1)%max_special; panic--; n=(n+max_special-1)%max_special) {
+        if (!special_tab[n].req || value[0][special_tab[n].req]) {
+            vk_special=n;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int vk_special_inc(void) {
+    int n,panic=99;
+
+    for (n=(vk_special+1)%max_special; panic--; n=(n+1)%max_special) {
+        if (!special_tab[n].req || value[0][special_tab[n].req]) {
+            vk_special=n;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void display_wheel(void) {
+    int i;
+
+    dd_push_clip();
+    dd_more_clip(0,0,800,600);
+
+    if (now-vk_special_time<2000) {
+        int n,panic=99;
+
+        dd_shaded_rect(mousex+5,mousey-7-20,mousex+71,mousey+31,0x0000,95);
+
+        for (n=(vk_special+1)%max_special,i=-1; panic-- && i>-3; n=(n+1)%max_special) {
+            if (!special_tab[n].req || value[0][special_tab[n].req]) {
+                dd_drawtext(mousex+9,mousey-3+i*10,graycolor,DD_LEFT,special_tab[n].name);
+                i--;
+            }
+        }
+        dd_drawtext(mousex+9,mousey-3,whitecolor,DD_LEFT,special_tab[vk_special].name);
+
+        for (n=(vk_special+max_special-1)%max_special,i=1; panic-- && i<3; n=(n+max_special-1)%max_special) {
+            if (!special_tab[n].req || value[0][special_tab[n].req]) {
+                dd_drawtext(mousex+9,mousey-3+i*10,graycolor,DD_LEFT,special_tab[n].name);
+                i++;
+            }
+        }
+    }
+    dd_pop_clip();
+}
+
 static void display(void) {
     extern int memptrs[MAX_MEM];
     extern int memsize[MAX_MEM];
@@ -502,6 +586,7 @@ static void display(void) {
     display_screen();
 
     display_keys();
+    if (game_options&GO_WHEEL) display_wheel();
     if (show_look) display_look();
     display_wear();
     display_inventory();
@@ -814,7 +899,7 @@ void set_cmd_key_states(void) {
     km=gui_keymode();
 
     vk_shift=(km&SDL_KEYM_SHIFT) || shift_override;
-    vk_control=(km&SDL_KEYM_CTRL);
+    vk_control=(km&SDL_KEYM_CTRL) || control_override;
     vk_alt=(km&SDL_KEYM_ALT)!=0;
 
     vk_char=vk_control;
@@ -1817,7 +1902,14 @@ void gui_sdl_mouseproc(int x,int y,int what,int clicks) {
 
         case SDL_MOUM_MUP:
             shift_override=0;
+            control_override=0;
             mdown=0;
+            if ((game_options&GO_WHEEL) &&special_tab[vk_special].spell) {
+                if (special_tab[vk_special].target==TGT_MAP) exec_cmd(CMD_MAP_CAST_K,special_tab[vk_special].spell);
+                else if (special_tab[vk_special].target==TGT_CHR) exec_cmd(CMD_CHR_CAST_K,special_tab[vk_special].spell);
+                else if (special_tab[vk_special].target==TGT_SLF) exec_cmd(CMD_SLF_CAST_K,special_tab[vk_special].spell);
+                break;
+            }
             // fall through intended
         case SDL_MOUM_LUP:
             vk_lbut=0;
@@ -1872,11 +1964,23 @@ void gui_sdl_mouseproc(int x,int y,int what,int clicks) {
 				break;
 			}
 
-            if (mdown) shift_override=1;
+            if (game_options&GO_WHEEL) {
+                while (delta>0) { vk_special_inc(); delta--; }
+                while (delta<0) { vk_special_dec(); delta++; }
+                vk_special_time=now;
+
+                if (mdown) {
+                    shift_override=special_tab[vk_special].shift_over;
+                    control_override=special_tab[vk_special].control_over;
+                }
+            }
             break;
 
         case SDL_MOUM_MDOWN:
-            shift_override=1;
+            if (game_options&GO_WHEEL) {
+                shift_override=special_tab[vk_special].shift_over;
+                control_override=special_tab[vk_special].control_over;
+            } else shift_override=1;
             mdown=1;
             break;
     }

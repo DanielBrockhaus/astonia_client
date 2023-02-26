@@ -511,7 +511,7 @@ void display_usage(void) {
     buf+=sprintf(buf,"options is a bitfield. Bit 0 (value of 1) enables the Dark GUI by Tegra. ");
     buf+=sprintf(buf,"Bit 1 enables the context menu, bit 2 the new keybindings, bit 3 the smaller bottom GUI ");
     buf+=sprintf(buf,"and bit 4 the sliding away of the top GUI. Bit 5 enables the bigger health/mana bars. ");
-    buf+=sprintf(buf,"Bit 6 enables sound, bit 7 the large font and bit 8 true full screen mode. ");
+    buf+=sprintf(buf,"Bit 6 enables sound, bit 7 the large font and bit 8 true full screen mode. Bit 9 enabled the legacy mouse wheel logic. ");
     buf+=sprintf(buf,"Default depends on screen height.\n\n");
     buf+=sprintf(buf,"cachesize is the size of the texture cache. Default is 8000. Very low numbers will crash!\n\n");
     buf+=sprintf(buf,"framespersecond will set the display rate in frames per second.\n\n");
