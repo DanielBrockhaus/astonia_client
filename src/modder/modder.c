@@ -32,7 +32,8 @@ struct mod {
     void (*_amod_mouse_capture)(int onoff);
     void (*_amod_areachange)(void);
     int (*_amod_keydown)(int);
-    void(*_amod_update_hover_texts)(void);
+    void (*_amod_update_hover_texts)(void);
+    int (*_amod_client_cmd)(char *buf);
 };
 
 struct mod mod[MAXMOD]={{NULL}};
@@ -67,6 +68,7 @@ int amod_init(void) {
         if ((tmp=GetProcAddress(dll_instance,"amod_areachange"))) mod[i]._amod_areachange=tmp;
         if ((tmp=GetProcAddress(dll_instance,"amod_keydown"))) mod[i]._amod_keydown=tmp;
         if ((tmp=GetProcAddress(dll_instance,"amod_update_hover_texts"))) mod[i]._amod_update_hover_texts=tmp;
+        if ((tmp=GetProcAddress(dll_instance,"amod_client_cmd"))) mod[i]._amod_client_cmd=tmp;
         if (i!=0) continue; // only amod is allowed to override client stuff, the others can only add stuff
 
         if ((tmp=GetProcAddress(dll_instance,"amod_process"))) _amod_process=tmp;
@@ -162,7 +164,7 @@ void amod_areachange(void) {
 
 int amod_keydown(int key) {
     for (int i=0; i<MAXMOD; i++) {
-        if (mod[i]._amod_areachange) return mod[i]._amod_keydown(key);
+        if (mod[i]._amod_keydown) return mod[i]._amod_keydown(key);
     }
     return 0;
 }
@@ -171,6 +173,13 @@ void amod_update_hover_texts(void) {
     for (int i=0; i<MAXMOD; i++) {
         if (mod[i]._amod_update_hover_texts) mod[i]._amod_update_hover_texts();
     }
+}
+
+int amod_client_cmd(char *buf) {
+    for (int i=0; i<MAXMOD; i++) {
+        if (mod[i]._amod_client_cmd) return mod[i]._amod_client_cmd(buf);
+    }
+    return 0;
 }
 
 int amod_display_skill_line(int v,int base,int curr,int cn,char *buf) {
@@ -187,4 +196,6 @@ int amod_prefetch(char *buf) {
     if ((_amod_prefetch)) return _amod_prefetch(buf);
     return 0;
 }
+
+
 

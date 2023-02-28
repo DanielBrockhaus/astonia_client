@@ -2553,7 +2553,7 @@ void sdl_bargraph(int sx,int sy,int dx,unsigned char *data,int x_offset,int y_of
     }
 }
 
-int sdl_has_focus(void) {
+int sdl_is_shown(void) {
     uint32_t flags;
 
     flags=SDL_GetWindowFlags(sdlwnd);
@@ -2562,6 +2562,16 @@ int sdl_has_focus(void) {
     if (flags&SDL_WINDOW_MINIMIZED) return 0;
 
     return 1;
+}
+
+int sdl_has_focus(void) {
+    uint32_t flags;
+
+    flags=SDL_GetWindowFlags(sdlwnd);
+
+    if (flags&SDL_WINDOW_MOUSE_FOCUS) return 1;
+
+    return 0;
 }
 
 void sdl_set_title(char *title) {

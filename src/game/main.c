@@ -559,8 +559,10 @@ int parse_cmd(char *s) {
             } else if (tolower(*s)=='w') {    // -w <vertical_resolution>
                 s++;
                 while (isspace(*s)) s++;
-                want_width=strtol(s,&end,10);
-                s=end;
+                if (isdigit(*s)) {
+                    want_width=strtol(s,&end,10);
+                    s=end;
+                } else want_width=800;
             } else if (tolower(*s)=='m') { // -m Multi-Threaded
                 s++;
                 while (isspace(*s)) s++;
@@ -684,10 +686,12 @@ int main(int argc,char *args[]) {
     }
     if (!want_width) {
         if (want_height==600) want_width=800;
+        else if (want_height==1000) want_width=1600;
         else if (want_height==1200) want_width=1600;
         else if (want_height==1800) want_width=2400;
+        else if (want_height==2000) want_width=3200;
         else if (want_height==2400) want_width=3200;
-        else if (!want_height) want_width=want_height*16/9;
+        else if (want_height) want_width=want_height*16/9;
     }
 
     sprintf(buf,"Astonia 3 v%d.%d.%d",(VERSION>>16)&255,(VERSION>>8)&255,(VERSION)&255);

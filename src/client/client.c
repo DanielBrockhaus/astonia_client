@@ -109,7 +109,7 @@ __declspec(dllexport) int pspeed=0;   // 0=normal   1=fast      2=stealth     - 
 
 int may_teleport[64+32];
 
-int frames_per_second=TICKS;
+__declspec(dllexport) int frames_per_second=TICKS;
 
 int sv_map01(unsigned char *buf,int *last,struct map *cmap) {
     int p,c;

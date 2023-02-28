@@ -2052,11 +2052,11 @@ void flip_at(unsigned int t) {
 
     do {
         sdl_loop();
-        if (!sdl_has_focus() || !sdl_pre_do(tick)) SDL_Delay(1);
+        if (!sdl_is_shown() || !sdl_pre_do(tick)) SDL_Delay(1);
         tnow=SDL_GetTicks();
     } while (t>tnow);
 
-    if (sdl_has_focus())
+    if (sdl_is_shown())
         sdl_render();
 }
 
@@ -2122,7 +2122,7 @@ int main_loop(void) {
             gui_frametime=SDL_GetTicks64()-gui_last_frame;
             gui_last_frame=SDL_GetTicks64();
 
-            if (sdl_has_focus()) {
+            if (sdl_is_shown()) {
                 sdl_clear();
                 display();
                 amod_frame();

@@ -17,6 +17,7 @@
 #include "../../src/sdl.h"
 #include "../../src/client.h"
 #include "../../src/game.h"
+#include "../../src/modder.h"
 
 #define MAXCMDLINE	199
 #define MAXHIST		20
@@ -141,7 +142,7 @@ int client_cmd(char *buf) {
         return 1;
     }
 
-    return 0;
+    return amod_client_cmd(buf);
 }
 
 char rem_buf[10][256]={""};

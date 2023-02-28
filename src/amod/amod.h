@@ -16,6 +16,7 @@ int amod_keydown(int key);
 void amod_update_hover_texts(void);
 int amod_process(char *buf);    // return length of server command, 0 = unknown
 int amod_prefetch(char *buf);   // return length of server command, 0 = unknown
+int amod_client_cmd(char *buf);
 
 
 // --------- Client exported functions -----------
@@ -139,6 +140,7 @@ __declspec(dllimport) int want_height;
 __declspec(dllimport) int sdl_frames;
 __declspec(dllimport) int sdl_multi;
 __declspec(dllimport) int sdl_cache_size;
+__declspec(dllimport) int frames_per_second;
 __declspec(dllimport) uint64_t game_options;
 
 

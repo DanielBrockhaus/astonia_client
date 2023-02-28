@@ -37,6 +37,8 @@ void display_mouseover(void) {
 
     amod_update_hover_texts();
 
+    if (mousex<0 || mousex>=XRES || mousey<0 || mousey>=YRES || !sdl_has_focus()) return;
+
     if (mousey>=doty(DOT_SSP) && mousey<=doty(DOT_SSP)+53) {
         if (mousex>=dotx(DOT_SSP)+28 && mousex<=dotx(DOT_SSP)+35) dd_drawtext_nl(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,hover_rage_text);
         if (mousex>=dotx(DOT_SSP)+18 && mousex<=dotx(DOT_SSP)+25) dd_drawtext_nl(mousex,mousey-16,0xffff,DD_BIG|DD_FRAME|DD_CENTER,hover_bless_text);

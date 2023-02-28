@@ -8,6 +8,7 @@
  */
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -21,29 +22,27 @@
 
 
 __declspec(dllexport) void amod_gamestart(void) {
-    note("Restart Client Demo v0.1 loaded.");
+    note("Restart Client Demo v0.2 loaded.");
 }
 
-__declspec(dllexport) void amod_update_hover_texts(void) {
-}
+__declspec(dllexport) int amod_client_cmd(char *buf) {
+    static unsigned long long option_ovr=0;
 
-__declspec(dllexport) void amod_frame(void) {
+    if (!strncmp(buf, "#option ", 8)) {
+    	option_ovr=strtoull(&buf[8],NULL,10);
+        addline("Old options=%llu, new options=%llu",game_options,option_ovr);
+    	return 1;
+    }
 
-}
-
-__declspec(dllexport) void amod_areachange(void) {
-}
-
-__declspec(dllexport) int amod_keydown(int key) {
-    if (key=='.') {
+    if (!strncmp(buf,"#reset",6)) {
         char opt[20][100];
         sprintf(opt[0],"-u%s",username);
         sprintf(opt[1],"-p%s",password);
         sprintf(opt[2],"-d%s",server_url);
         sprintf(opt[3],"-w%d",want_width);
         sprintf(opt[4],"-h%d",want_height);
-        sprintf(opt[5],"-o%llu",game_options);
-        sprintf(opt[6],"-k%d",sdl_frames);
+        sprintf(opt[5],"-o%llu",option_ovr?option_ovr:game_options);
+        sprintf(opt[6],"-k%d",frames_per_second);
         sprintf(opt[7],"-c%d",sdl_cache_size);
         sprintf(opt[8],"-m%d",sdl_multi);
 
