@@ -18,6 +18,7 @@
 #include "../../src/game/_game.h"
 #include "../../src/client.h"
 #include "../../src/gui.h"
+#include "../../src/sdl.h"
 
 #define MAXMOD  6
 
@@ -32,6 +33,7 @@ struct mod {
     void (*_amod_mouse_capture)(int onoff);
     void (*_amod_areachange)(void);
     int (*_amod_keydown)(int);
+    int (*_amod_keyup)(int);
     void (*_amod_update_hover_texts)(void);
     int (*_amod_client_cmd)(char *buf);
 };
@@ -67,6 +69,7 @@ int amod_init(void) {
         if ((tmp=GetProcAddress(dll_instance,"amod_mouse_capture"))) mod[i]._amod_mouse_capture=tmp;
         if ((tmp=GetProcAddress(dll_instance,"amod_areachange"))) mod[i]._amod_areachange=tmp;
         if ((tmp=GetProcAddress(dll_instance,"amod_keydown"))) mod[i]._amod_keydown=tmp;
+        if ((tmp=GetProcAddress(dll_instance,"amod_keyup"))) mod[i]._amod_keyup=tmp;
         if ((tmp=GetProcAddress(dll_instance,"amod_update_hover_texts"))) mod[i]._amod_update_hover_texts=tmp;
         if ((tmp=GetProcAddress(dll_instance,"amod_client_cmd"))) mod[i]._amod_client_cmd=tmp;
         if (i!=0) continue; // only amod is allowed to override client stuff, the others can only add stuff
@@ -170,6 +173,18 @@ int amod_keydown(int key) {
     int ret=0,tmp;
     for (int i=0; i<MAXMOD; i++) {
         if (mod[i]._amod_keydown && (tmp=mod[i]._amod_keydown(key))) {
+            sdl_flush_textinput();
+            if (tmp>0) return 1;
+            else ret=1;
+        }
+    }
+    return ret;
+}
+
+int amod_keyup(int key) {
+    int ret=0,tmp;
+    for (int i=0; i<MAXMOD; i++) {
+        if (mod[i]._amod_keyup && (tmp=mod[i]._amod_keyup(key))) {
             if (tmp>0) return 1;
             else ret=1;
         }

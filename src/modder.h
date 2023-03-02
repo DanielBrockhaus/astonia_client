@@ -13,6 +13,8 @@ int amod_mouse_click(int x,int y,int what);
 void amod_mouse_capture(int onoff);
 void amod_areachange(void);
 int amod_keydown(int key);
+int amod_keyup(int key);
+int amod_textinput(int key);
 void amod_update_hover_texts(void);
 int amod_client_cmd(char *buf);
 int amod_process(char *buf);

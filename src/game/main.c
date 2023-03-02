@@ -523,6 +523,7 @@ void display_usage(void) {
 }
 
 __declspec(dllexport) char server_url[256];
+__declspec(dllexport) int server_port=0;
 __declspec(dllexport) int want_width=0;
 __declspec(dllexport) int want_height=0;
 
@@ -582,6 +583,11 @@ int parse_cmd(char *s) {
                 s++;
                 while (isspace(*s)) s++;
                 frames_per_second=strtol(s,&end,10);
+                s=end;
+            } else if (tolower(*s)=='t') { // -t server port
+                s++;
+                while (isspace(*s)) s++;
+                server_port=strtol(s,&end,10);
                 s=end;
             } else { display_usage(); return -1; }
         } else { display_usage(); return -2; }
@@ -672,7 +678,9 @@ int main(int argc,char *args[]) {
         }
     }
 
-    note("Using login server at %u.%u.%u.%u",(target_server>>24)&255,(target_server>>16)&255,(target_server>>8)&255,(target_server>>0)&255);
+    if (server_port) target_port=server_port;
+
+    note("Using login server at %u.%u.%u.%u:%u",(target_server>>24)&255,(target_server>>16)&255,(target_server>>8)&255,(target_server>>0)&255,target_port);
 
     // init random
     rrandomize();

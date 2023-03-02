@@ -22,7 +22,7 @@
 
 
 __declspec(dllexport) void amod_gamestart(void) {
-    note("Restart Client Demo v0.2 loaded.");
+    note("Restart Client Demo v0.3 loaded.");
 }
 
 __declspec(dllexport) int amod_client_cmd(char *buf) {
@@ -45,13 +45,14 @@ __declspec(dllexport) int amod_client_cmd(char *buf) {
         sprintf(opt[6],"-k%d",frames_per_second);
         sprintf(opt[7],"-c%d",sdl_cache_size);
         sprintf(opt[8],"-m%d",sdl_multi);
+        sprintf(opt[9],"-t%d",server_port);
 
         printf("bin\\moac.exe ");
-        for (int i=0; i<9; i++) {
+        for (int i=0; i<10; i++) {
             printf("%s ",opt[i]);
         }
         printf("\n");
-        execl("bin\\moac.exe","bin\\moac.exe",opt[0],opt[1],opt[2],opt[3],opt[4],opt[5],opt[6],opt[7],opt[8],NULL);
+        execl("bin\\moac.exe","bin\\moac.exe",opt[0],opt[1],opt[2],opt[3],opt[4],opt[5],opt[6],opt[7],opt[8],opt[9],NULL);
     }
 
     if (!strncmp(buf,"#echo",5)) {
@@ -61,4 +62,10 @@ __declspec(dllexport) int amod_client_cmd(char *buf) {
     return 0;
 }
 
+__declspec(dllexport)int amod_keydown(int key) {
+    return 0;
+}
+__declspec(dllexport)int amod_keyup(int key) {
+    return 0;
+}
 

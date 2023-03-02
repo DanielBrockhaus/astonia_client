@@ -459,6 +459,8 @@ void context_keyup(int key) {
 
     lcmd_override=CMD_NONE;
 
+    if (amod_keyup(key)) return;
+
     if (!(game_options&GO_ACTION)) return;
     if (keymode) return;
     if (keyupblock) return;

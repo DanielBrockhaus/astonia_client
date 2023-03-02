@@ -1778,6 +1778,10 @@ void gui_sdl_keyproc(int wparam) {
         case SDLK_KP_8:         wparam='8'; goto spellbindkey;
         case SDLK_KP_9:         wparam='9'; goto spellbindkey;
 
+        case 'm':               if (vk_shift && vk_control && !context_key_enabled()) minimap_toggle();
+                                else goto spellbindkey;
+                                return;
+
         case '0':
         case '1':
         case '2':
@@ -1800,7 +1804,6 @@ void gui_sdl_keyproc(int wparam) {
         case 'j':
         case 'k':
         case 'l':
-        case 'm':
         case 'n':
         case 'o':
         case 'p':

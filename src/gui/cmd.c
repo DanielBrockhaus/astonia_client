@@ -262,13 +262,6 @@ void cmd_add_text(char *buf,int typ) {
     context_key_set(1);
 
     while (*buf) cmd_proc(*buf++);
-
-#if 0
-    if (typ==1) {
-        cmd_proc(CMD_RETURN);
-        context_key_set(old);
-    }
-#endif
 }
 
 void display_cmd(void) {

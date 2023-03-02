@@ -9,15 +9,22 @@ void amod_exit(void);
 void amod_gamestart(void);
 void amod_frame(void);
 void amod_tick(void);
-int amod_display_skill_line(int v,int base,int curr,int cn,char *buf);
 void amod_mouse_move(int x,int y);
-int amod_mouse_click(int x,int y,int what);     // return true if mouse click should NOT be processed by the client
-int amod_keydown(int key);
 void amod_update_hover_texts(void);
-int amod_process(char *buf);    // return length of server command, 0 = unknown
-int amod_prefetch(char *buf);   // return length of server command, 0 = unknown
+
+// the following functions should return 1 if they process the event and want the client
+// and all later mods to ignore it.
+// return -1 if you want the client to ignore it, but allow other mods to process it.
+// return 0 otherwise
+int amod_mouse_click(int x,int y,int what);
+int amod_keydown(int key);  // if you catch keydown ...
+int amod_keyup(int key);    // ... you must also catch keyup
 int amod_client_cmd(char *buf);
 
+// main mod only:
+int amod_process(char *buf);    // return length of server command, 0 = unknown
+int amod_prefetch(char *buf);   // return length of server command, 0 = unknown
+int amod_display_skill_line(int v,int base,int curr,int cn,char *buf);
 
 // --------- Client exported functions -----------
 
@@ -135,6 +142,7 @@ __declspec(dllimport) int tick;
 __declspec(dllimport) int mirror;
 __declspec(dllimport) int realtime;
 __declspec(dllimport) char server_url[256];
+__declspec(dllimport) int server_port;
 __declspec(dllimport) int want_width;
 __declspec(dllimport) int want_height;
 __declspec(dllimport) int sdl_frames;
