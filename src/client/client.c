@@ -838,7 +838,7 @@ void sv_unique(unsigned char *buf) {
 
 void sv_protocol(unsigned char *buf) {
     protocol_version=buf[1];
-    note("Astonia Protocol Version %d established!",protocol_version);
+    //note("Astonia Protocol Version %d established!",protocol_version);
 }
 
 void process(unsigned char *buf,int size) {

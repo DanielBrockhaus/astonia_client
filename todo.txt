@@ -7,9 +7,18 @@ Bugs
 
 - Shaded text in 2X has single pixel gaps.
 
+- when returning non zero on amod_keydown. SDL_TEXTINPUT event still gets triggered
 
 Soon
 ----
+
+- Command line option for server port.
+
+- gs2 / fs2 to break up monotony of the new walls and floors
+
+- Optionally turn the minimap and map by 45°.
+
+- add N E S W to the big map
 
 - Multi-Monitor support (command line option to determine on which monitor the game window is opened).
 
@@ -20,13 +29,12 @@ Soon
 
 - Lighting calculations are better now, but not completely right. Fix them again. Re-add shaded lighting for items.
 
+- Save map data, reload once the client recognizes it.
 
 Possibly
 --------
 
 - Continue cleanup of GUI. Use DOTs instead of hardcoded pixel positions.
-
-- Command line option for server port.
 
 - Port the winsock stuff to SDL_net
 

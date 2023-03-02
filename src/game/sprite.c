@@ -332,6 +332,8 @@ __declspec(dllexport) int _is_cut_sprite(int sprite) {
 
         case 26020: case 26021: case 26022: case 26023:
             return sprite+4;
+        case 26040: case 26041: case 26042: case 26043:
+            return sprite+4;
 
     }
 
@@ -1274,6 +1276,29 @@ __declspec(dllexport) int _trans_asprite(int mn,int sprite,int attick,unsigned c
         case 22508: // sewer ground
             sprite=sprite+(int)((mn%MAPDX+originx)+(mn/MAPDX+originy)*256+(attick)/2)%8;
             break;
+
+        case 26040:
+        case 26041:
+        case 26042:
+        case 26043:
+        case 26044:
+        case 26045:
+        case 26046:
+        case 26047: cr=20; light=-60; cb=-10; break;
+        case 26070:
+        case 26170:
+        case 26270: sprite=sprite+((mn%MAPDX+originx)+(mn/MAPDX+originy)*256+attick*2)%64; break;
+
+        case 26050:
+        case 26051:
+        case 26052:
+        case 26053:
+        case 26054:
+        case 26055:
+        case 26056:
+        case 26057:
+        case 26058: cr=24; light=-60; break;
+
         case 50132: // green creeper lights
         case 50136:
             sprite=sprite+(int)((mn%MAPDX+originx)+(mn/MAPDX+originy)*256+(attick)/2)%4;
@@ -2613,6 +2638,19 @@ __declspec(dllexport) int _no_lighting_sprite(int sprite) {
         case 26017:
         case 26018:
         case 26019:     return 1;
+
+        case 26028:
+        case 26029:
+        case 26030:
+        case 26031:
+        case 26032:
+        case 26033:
+        case 26034:
+        case 26035:
+        case 26036:
+        case 26037:
+        case 26038:
+        case 26039:     return 1;
     }
     return 0;
 }

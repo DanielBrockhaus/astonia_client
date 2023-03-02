@@ -53,6 +53,11 @@ __declspec(dllexport) int amod_client_cmd(char *buf) {
         printf("\n");
         execl("bin\\moac.exe","bin\\moac.exe",opt[0],opt[1],opt[2],opt[3],opt[4],opt[5],opt[6],opt[7],opt[8],NULL);
     }
+
+    if (!strncmp(buf,"#echo",5)) {
+        addline("Echo from mod!");
+    	return -1;
+    }
     return 0;
 }
 

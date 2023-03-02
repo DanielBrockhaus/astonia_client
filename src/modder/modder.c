@@ -144,10 +144,14 @@ void amod_mouse_move(int x,int y) {
 }
 
 int amod_mouse_click(int x,int y,int what) {
+    int ret=0,tmp;
     for (int i=0; i<MAXMOD; i++) {
-        if (mod[i]._amod_mouse_click) return mod[i]._amod_mouse_click(x,y,what);
+        if (mod[i]._amod_mouse_click && (tmp=mod[i]._amod_mouse_click(x,y,what))) {
+            if (tmp>0) return 1;
+            else ret=1;
+        }
     }
-    return 0;
+    return ret;
 }
 
 void amod_mouse_capture(int onoff) {
@@ -163,10 +167,14 @@ void amod_areachange(void) {
 }
 
 int amod_keydown(int key) {
+    int ret=0,tmp;
     for (int i=0; i<MAXMOD; i++) {
-        if (mod[i]._amod_keydown) return mod[i]._amod_keydown(key);
+        if (mod[i]._amod_keydown && (tmp=mod[i]._amod_keydown(key))) {
+            if (tmp>0) return 1;
+            else ret=1;
+        }
     }
-    return 0;
+    return ret;
 }
 
 void amod_update_hover_texts(void) {
@@ -176,10 +184,13 @@ void amod_update_hover_texts(void) {
 }
 
 int amod_client_cmd(char *buf) {
-    for (int i=0; i<MAXMOD; i++) {
-        if (mod[i]._amod_client_cmd) return mod[i]._amod_client_cmd(buf);
-    }
-    return 0;
+    int ret=0,tmp;
+    for (int i=0; i<MAXMOD; i++)
+        if (mod[i]._amod_client_cmd && (tmp=mod[i]._amod_client_cmd(buf))) {
+            if (tmp>0) return 1;
+            else ret=1;
+        }
+    return ret;
 }
 
 int amod_display_skill_line(int v,int base,int curr,int cn,char *buf) {
