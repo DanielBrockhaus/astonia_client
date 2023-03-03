@@ -40,6 +40,7 @@ struct mod {
 
 struct mod mod[MAXMOD]={{NULL}};
 
+int (*_amod_is_playersprite)(int sprite)=NULL;
 int (*_amod_display_skill_line)(int v,int base,int curr,int cn,char *buf)=NULL;
 int (*_amod_process)(char *buf)=NULL;
 int (*_amod_prefetch)(char *buf)=NULL;
@@ -77,6 +78,7 @@ int amod_init(void) {
         if ((tmp=GetProcAddress(dll_instance,"amod_process"))) _amod_process=tmp;
         if ((tmp=GetProcAddress(dll_instance,"amod_prefetch"))) _amod_prefetch=tmp;
         if ((tmp=GetProcAddress(dll_instance,"amod_display_skill_line"))) _amod_display_skill_line=tmp;
+        if ((tmp=GetProcAddress(dll_instance,"amod_is_playersprite"))) _amod_is_playersprite=tmp;
 
         // client functions
         if ((tmp=GetProcAddress(dll_instance,"is_cut_sprite"))) is_cut_sprite=tmp;
@@ -214,14 +216,17 @@ int amod_display_skill_line(int v,int base,int curr,int cn,char *buf) {
 }
 
 int amod_process(char *buf) {
-    if ((_amod_process)) return _amod_process(buf);
+    if (_amod_process) return _amod_process(buf);
     return 0;
 }
 
 int amod_prefetch(char *buf) {
-    if ((_amod_prefetch)) return _amod_prefetch(buf);
+    if (_amod_prefetch) return _amod_prefetch(buf);
     return 0;
 }
 
-
+int amod_is_playersprite(int sprite) {
+    if (_amod_is_playersprite) return _amod_is_playersprite(sprite);
+    return 0;
+}
 

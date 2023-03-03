@@ -2475,7 +2475,7 @@ __declspec(dllexport) void _trans_csprite(int mn,struct map *cmap,int attick) {
     cmap[mn].rc.light=light;
     cmap[mn].rc.sat=sat;
 
-    if (cmap[mn].csprite<120) {
+    if (cmap[mn].csprite<120 || amod_is_playersprite(cmap[mn].csprite)) {
         cmap[mn].rc.c1=player[cmap[mn].cn].c1;
         cmap[mn].rc.c2=player[cmap[mn].cn].c2;
         cmap[mn].rc.c3=player[cmap[mn].cn].c3;

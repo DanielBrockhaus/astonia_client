@@ -7,12 +7,9 @@ Bugs
 
 - Shaded text in 2X has single pixel gaps.
 
-- when returning non zero on amod_keydown. SDL_TEXTINPUT event still gets triggered
 
 Soon
 ----
-
-- Command line option for server port.
 
 - gs2 / fs2 to break up monotony of the new walls and floors
 

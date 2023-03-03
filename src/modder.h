@@ -19,6 +19,7 @@ void amod_update_hover_texts(void);
 int amod_client_cmd(char *buf);
 int amod_process(char *buf);
 int amod_prefetch(char *buf);
+int amod_is_playersprite(int sprite);
 
 int sharedmem_init(void);
 void sharedmem_update(void);

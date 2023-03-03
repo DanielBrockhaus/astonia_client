@@ -25,6 +25,7 @@ int amod_client_cmd(char *buf);
 int amod_process(char *buf);    // return length of server command, 0 = unknown
 int amod_prefetch(char *buf);   // return length of server command, 0 = unknown
 int amod_display_skill_line(int v,int base,int curr,int cn,char *buf);
+int amod_is_playersprite(int sprite);
 
 // --------- Client exported functions -----------
 

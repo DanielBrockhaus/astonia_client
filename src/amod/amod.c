@@ -22,7 +22,7 @@
 
 
 __declspec(dllexport) void amod_gamestart(void) {
-    note("Restart Client Demo v0.3 loaded.");
+    note("Restart Client Demo v0.4 loaded.");
 }
 
 __declspec(dllexport) int amod_client_cmd(char *buf) {
@@ -62,10 +62,14 @@ __declspec(dllexport) int amod_client_cmd(char *buf) {
     return 0;
 }
 
-__declspec(dllexport)int amod_keydown(int key) {
+__declspec(dllexport) int amod_keydown(int key) {
     return 0;
 }
-__declspec(dllexport)int amod_keyup(int key) {
+__declspec(dllexport) int amod_keyup(int key) {
     return 0;
+}
+
+__declspec(dllexport) int amod_is_playersprite(int sprite) {
+    return (sprite==800 || sprite==801);
 }
 

@@ -789,7 +789,7 @@ void display_game_special(void) {
 }
 
 char action_row[2][MAXACTIONSLOT]={
-   //012345678901
+   //01234567890123
     "asd   fg   h l",
     " qwertzuiop m "
 };
@@ -884,7 +884,7 @@ void action_set_key(int slot,int key) {
 
     if (slot<0 || slot>=MAXACTIONSLOT) return;
     if (act_lck) return;
-    if (!isalnum(key)) return;
+    if (key<'a' || key>'z') return;
 
     if (action_row[0][slot]==' ') row=1;
     else if (action_row[1][slot]==' ') row=0;
