@@ -2,10 +2,11 @@ all: bin/moac.exe
 
 CC=gcc
 OPT=-O3
-CFLAGS=$(OPT) -ggdb -Wall -Wno-pointer-sign -Wno-char-subscripts
-LDFLAGS=$(OPT) -ggdb -Wl,-subsystem,windows
+DEBUG=-gdwarf-4
+CFLAGS=$(OPT) $(DEBUG) -Wall -Wno-pointer-sign -Wno-char-subscripts -fno-omit-frame-pointer
+LDFLAGS=$(OPT) $(DEBUG) -Wl,-subsystem,windows
 
-LIBS = -lwsock32 -lws2_32 -lz -lpng -lsdl2 -lSDL2_mixer -lsdl2main -lzip
+LIBS = -lwsock32 -lws2_32 -lz -lpng -lsdl2 -lSDL2_mixer -lsdl2main -lzip -lbacktrace -ldwarfstack
 
 OBJS	=		src/gui/gui.o src/client/client.o src/client/skill.o src/game/dd.o src/game/font.o\
 			src/game/main.o src/game/sprite.o src/game/game.o src/modder/modder.o\
@@ -15,18 +16,18 @@ OBJS	=		src/gui/gui.o src/client/client.o src/client/skill.o src/game/dd.o src/g
 			src/gui/minimap.o
 
 bin/moac.exe lib/moac.a &:	$(OBJS)
-			$(CC) $(LDFLAGS) -Wl,--out-implib,lib/moac.a -o bin/moac.exe $(OBJS) $(LIBS)
+			$(CC) $(LDFLAGS) -Wl,--out-implib,lib/moac.a -o bin/moac.exe $(OBJS)  $(LIBS)
 
 bin/amod.dll:		src/amod/amod.o lib/moac.a
-			$(CC) $(LDFLAGS) -shared -o bin/amod.dll src/amod/amod.o lib/moac.a
+			$(CC) $(LDFLAGS) $(OPT) $(DEBUG) -shared -o bin/amod.dll src/amod/amod.o lib/moac.a
 
 src/amod/amod.o:	src/amod/amod.c src/amod/amod.h src/amod/amod_structs.h
 
 bin/anicopy.exe:	src/helper/anicopy.c
-			$(CC) -O3 -ggdb -Wall -o bin/anicopy.exe src/helper/anicopy.c
+			$(CC) $(OPT) $(DEBUG) -Wall -o bin/anicopy.exe src/helper/anicopy.c
 
 bin/convert.exe:	src/helper/convert.c
-			$(CC) -O3 -ggdb -Wall -DSTANDALONE -o bin/convert.exe src/helper/convert.c -lpng -lzip
+			$(CC) $(OPT) $(DEBUG) -Wall -DSTANDALONE -o bin/convert.exe src/helper/convert.c -lpng -lzip
 
 
 src/client/client.o:	src/client/client.c src/astonia.h src/client.h src/client/_client.h src/sdl.h

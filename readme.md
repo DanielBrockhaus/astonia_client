@@ -18,6 +18,7 @@ Open a shell (CMD.EXE or Powershell) and run
 ```
 pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-SDL2 mingw-w64-x86_64-libpng
 pacman -S mingw-w64-x86_64-SDL2_mixer mingw-w64-x86_64-libzip make zip
+pacman -S mingw64/mingw-w64-x86_64-dwarfstack
 ```
 
 to install the 64 bit GCC compiler toolchain, a bunch of libraries, make and

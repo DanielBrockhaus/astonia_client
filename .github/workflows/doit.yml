@@ -18,7 +18,7 @@ jobs:
         lfs: true
     - uses: msys2/setup-msys2@v2
       with:
-        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-SDL2 mingw-w64-x86_64-libpng mingw-w64-x86_64-SDL2_mixer mingw-w64-x86_64-libzip make zip
+        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-SDL2 mingw-w64-x86_64-libpng mingw-w64-x86_64-SDL2_mixer mingw-w64-x86_64-libzip mingw64/mingw-w64-x86_64-dwarfstack make zip
     - run: make CC=gcc
     - run: make distrib
     - uses: softprops/action-gh-release@v1

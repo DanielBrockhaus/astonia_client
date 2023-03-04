@@ -15,6 +15,7 @@
 #include "../../src/game/_game.h"
 #include "../../src/gui.h"
 #include "../../src/client.h"
+#include "../../src/modder.h"
 
 // is_..._sprite
 int (*is_cut_sprite)(int sprite)=_is_cut_sprite;
