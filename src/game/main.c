@@ -14,7 +14,6 @@
 #include <time.h>
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
-#include <signal.h>
 #include <dwarfstack.h>
 
 #include "../../src/astonia.h"
