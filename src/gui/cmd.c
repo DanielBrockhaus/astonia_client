@@ -215,7 +215,8 @@ void cmd_proc(int key) {
         case CMD_END:	for (cmdcursor=MAXCMDLINE-2; cmdcursor>=0; cmdcursor--) if (cmdline[cmdcursor]) break; cmdcursor++;
             break;
 
-        case CMD_UP:	if (histpos<MAXHIST-1 && history[histpos+1]) histpos++;
+        case CMD_UP:
+            if (histpos<MAXHIST-1 && history[histpos+1]) histpos++;
             else break;
             bzero(cmdline,sizeof(cmdline));
             strcpy(cmdline,history[histpos]);

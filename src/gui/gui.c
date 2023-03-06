@@ -1732,7 +1732,7 @@ void gui_sdl_keyproc(int wparam) {
     switch (wparam) {
 
         case SDLK_ESCAPE:       cmd_stop(); context_stop(); show_look=0; display_gfx=0; teleporter=0; show_tutor=0; display_help=0; display_quest=0; show_color=0;
-                                context_key_reset(); action_ovr=-1; minimap_hide(); return;
+                                context_key_reset(); action_ovr=-1; minimap_hide(); context_key_set(0); return;
         case SDLK_F1:           if (fkeyitem[0]) exec_cmd(CMD_USE_FKEYITEM,0); return;
         case SDLK_F2:           if (fkeyitem[1]) exec_cmd(CMD_USE_FKEYITEM,1); return;
         case SDLK_F3:           if (fkeyitem[2]) exec_cmd(CMD_USE_FKEYITEM,2); return;

@@ -349,6 +349,7 @@ int context_key(int key) {
             return 0;
         }
         keymode=1;
+        return 1;
     }
     if (keymode) return 0;
 

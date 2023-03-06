@@ -335,7 +335,12 @@ __declspec(dllexport) int _is_cut_sprite(int sprite) {
             return sprite+4;
         case 26040: case 26041: case 26042: case 26043:
             return sprite+4;
-
+        case 26560: case 26561: case 26562: case 26563:
+            return sprite+4;
+        case 26570: case 26571: case 26572: case 26573:
+            return sprite+4;
+        case 26580: case 26581: case 26582: case 26583:
+            return sprite+4;
     }
 
     return sprite;
@@ -1299,6 +1304,26 @@ __declspec(dllexport) int _trans_asprite(int mn,int sprite,int attick,unsigned c
         case 26056:
         case 26057:
         case 26058: cr=24; light=-60; break;
+
+        case 26530:
+        case 26531:
+        case 26532:
+        case 26533:
+        case 26534:
+        case 26535:
+        case 26536:
+        case 26537:
+        case 26538: cr=18; light=-40; sat=-10; break;
+
+        case 26560:
+        case 26561:
+        case 26562:
+        case 26563:
+        case 26564:
+        case 26565:
+        case 26566:
+        case 26567:
+        case 26568: cr=14; light=-30; sat=-10; break;
 
         case 50132: // green creeper lights
         case 50136:

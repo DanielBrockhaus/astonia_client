@@ -8,8 +8,8 @@ The software is provided "as is" without warranty of any kind.
 
 If you are an end-user ("a player") then this software is free to use.
 
-If you are intending to re-distribute this software, or parts thereof,
-please see license.txt instead.
+If you intend to re-distribute this software, or parts thereof, please
+see license.txt instead.
 
 You can find a list of servers at https://astonia.com
 

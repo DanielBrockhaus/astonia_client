@@ -10,15 +10,3 @@ If you are an end-user ("a player"), please see eula.txt instead.
 
 For the current license to use this software, please see https://brockhaus.org/astonia3.html
 
-3rd Party Copyright Notices:
-
-The action icons (sprites 800 to 899) are from a Humble Bundle called
-"Dev Icons", and you will need to replace them, or buy your own license.
-
-If you still use the images from Luis Royo (Girl with Golem, Lady with Sword.
-They were used for a lot of the old advertisements and were part of the front
-wepage). You will also need a license for those.
-
-To the best of my knowledge everything else is free of 3rd party rights.
-However, I do NOT GUARANTEE that this is the case!
-

@@ -957,6 +957,7 @@ void display_action_lock(void) {
 
 void display_action_open(void) {
     action_enabled^=1;
+    save_options();
 }
 
 static void display_bar(int sx,int sy,int perc,unsigned short color,int xs,int ys) {

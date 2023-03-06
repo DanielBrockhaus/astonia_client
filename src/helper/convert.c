@@ -183,7 +183,7 @@ int convert_to_wall(struct sdl_image *si,int sprite,int sdl_scale,struct png_hel
 
             if (y<abs(x-xres/2)/2 || cres-y<abs(x-xres/2)/2) { // corners
                 r=b=g=a=0;
-            } else if (sy<0) {
+            } else if (sy<0) {  // top
                 sx=(x-xres/2+y*2)*sc/2+off*p->xres/scale;
                 sy=(xres/2-x+y*2)*sc/2;
                 if (sx>=0 && sy>=0 && sx<p->xres && sy<p->yres) {
@@ -199,7 +199,7 @@ int convert_to_wall(struct sdl_image *si,int sprite,int sdl_scale,struct png_hel
                         a=255;
                     }
                 } else r=g=b=a=0;
-            } else {
+            } else {    // sides
                 if (p->bpp==32) {
                     r=p->row[(sy)][(sx)*4+0];
                     g=p->row[(sy)][(sx)*4+1];
@@ -271,8 +271,8 @@ int convert_to_floor(struct sdl_image *si,int sprite,int sdl_scale,struct png_he
 
     si->pixel=malloc(xres*yres*sizeof(uint32_t));
 
-    scx=0.98*p->xres/(xres+2)/scale;
-    scy=0.45*p->yres/(yres)/scale;
+    scx=1.0*p->xres/xres/scale;
+    scy=0.5*p->yres/yres/scale;
 
     for (y=0; y<yres; y++) {
         for (x=0; x<xres; x++) {
@@ -283,8 +283,8 @@ int convert_to_floor(struct sdl_image *si,int sprite,int sdl_scale,struct png_he
             if (y<l || yres-y<=l) { // corners
                 r=b=g=a=0;
             } else {
-                sx=(x-xres/2+y*2)*scx+offx*(p->xres)/scale+12/sdl_scale;
-                sy=(xres/2-x+y*2)*scy+offy*(p->yres)/scale+12/sdl_scale;
+                sx=(x-xres/2+y*2)*scx+offx*(p->xres)/scale;
+                sy=(xres/2-x+y*2)*scy+offy*(p->yres)/scale;
 
                 if (sx>=0 && sy>=0 && sx<p->xres && sy<p->yres) {
                     if (p->bpp==32) {
