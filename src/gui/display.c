@@ -158,7 +158,7 @@ void display_look(void) {
         fx.clight=light;
         fx.sat=sat;
 
-        if (looksprite<120) {
+        if (looksprite<120 || amod_is_playersprite(looksprite)) {
             fx.c1=lookc1;
             fx.c2=lookc2;
             fx.c3=lookc3;

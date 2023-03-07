@@ -1724,6 +1724,16 @@ static void exec_cmd(int cmd,int a) {
     return;
 }
 
+void gui_insert(void) {
+    char *text;
+
+    text=SDL_GetClipboardText();
+
+    cmd_add_text(text,0);
+
+    SDL_free(text);
+}
+
 void gui_sdl_keyproc(int wparam) {
     int i;
 
@@ -1856,6 +1866,9 @@ void gui_sdl_keyproc(int wparam) {
             if (!context_key_isset()) context_action_enable(0);
             break;
 
+        case SDLK_INSERT:
+            if (vk_shift && !vk_control && !vk_alt) gui_insert();
+            break;
     }
 }
 

@@ -120,6 +120,7 @@ extern int frames_per_second;
 #define GO_LARGE    (1ull<<7)  // Use large font
 #define GO_FULL     (1ull<<8)  // Use true full screen mode
 #define GO_WHEEL    (1ull<<9)  // Use old mouse wheel logic
+#define GO_PREDICT  (1ull<<10) // Process some commands early for faster responses (prefetch() instead of process())
 
 #define GO_NOTSET   (1ull<<63) // No -o given on command line
 

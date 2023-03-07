@@ -957,13 +957,16 @@ int prefetch(unsigned char *buf,int size) {
                 case SV_ENDURANCE:		        len=3; break;
                 case SV_LIFESHIELD:		        len=3; break;
 
-                case SV_SETITEM:                len=10; break;
+                case SV_SETITEM:                if (game_options&GO_PREDICT) sv_setitem(buf);
+                                                len=10; break;
 
                 case SV_SETORIGIN:              len=5; break;
                 case SV_SETTICK:                prefetch_tick=*(unsigned int *)(buf+1); len=5; break;
-                case SV_SETCITEM:               len=9; break;
+                case SV_SETCITEM:               if (game_options&GO_PREDICT) sv_setcitem(buf);
+                                                len=9; break;
 
-                case SV_ACT:                    len=7; break;
+                case SV_ACT:                    if (game_options&GO_PREDICT) sv_act(buf);
+                                                len=7; break;
 
                 case SV_TEXT:                   len=svl_text(buf); break;
                 case SV_EXIT:                   len=svl_exit(buf); break;
