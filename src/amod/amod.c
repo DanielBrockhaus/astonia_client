@@ -18,8 +18,8 @@
 #include "strings.c"
 #include "ranks.c"
 #include "skills.c"
+#include "quests.c"
 #endif
-
 
 __declspec(dllexport) void amod_gamestart(void) {
     note("Restart Client Demo v0.4 loaded.");

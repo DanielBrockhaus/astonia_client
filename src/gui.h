@@ -74,3 +74,6 @@ void actions_loaded(void);
 
 void minimap_areachange(void);
 
+extern struct questlog *game_questlog;
+extern int *game_questcount;
+

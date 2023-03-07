@@ -17,10 +17,10 @@
 #include "../../src/game.h"
 #include "../../src/client.h"
 
+static int havequest=0;
+
 #define QLF_REPEATABLE	(1u<<0)
 #define QLF_XREPEAT	(1u<<1)
-
-static int havequest=0;
 
 struct questlog {
     char *name;
@@ -31,7 +31,7 @@ struct questlog {
     unsigned int flags;
 };
 
-struct questlog questlog[]={
+struct questlog _game_questlog[]={
     {"Lydia's Potion",1,2,"James","Cameron",15,QLF_REPEATABLE},         //0,
     {"Find the Magic Item",2,3,"Gwendylon","Cameron",75,QLF_REPEATABLE},        //1,
     {"The Second Skull",3,5,"Gwendylon","Cameron",150,QLF_REPEATABLE},      //2,
@@ -116,6 +116,10 @@ struct questlog questlog[]={
 
 
 };
+__declspec(dllexport) struct questlog *game_questlog=_game_questlog;
+int _game_questcount=ARRAYSIZE(_game_questlog);
+__declspec(dllexport) int *game_questcount=&_game_questcount;
+
 static int questonscreen[10];
 
 int questproz(int cnt) {
@@ -132,8 +136,8 @@ int questlist[MAXQUEST],questinit=0;
 int questcmp(const void *a,const void *b) {
     int *va=(int *)a,*vb=(int *)b;
 
-    if (questlog[*va].minlevel!=questlog[*vb].minlevel) return questlog[*vb].minlevel-questlog[*va].minlevel;
-    if (questlog[*va].maxlevel!=questlog[*vb].maxlevel) return questlog[*vb].maxlevel-questlog[*va].maxlevel;
+    if (game_questlog[*va].minlevel!=game_questlog[*vb].minlevel) return game_questlog[*vb].minlevel-game_questlog[*va].minlevel;
+    if (game_questlog[*va].maxlevel!=game_questlog[*vb].maxlevel) return game_questlog[*vb].maxlevel-game_questlog[*va].maxlevel;
     return *va-*vb;
 }
 
@@ -268,8 +272,8 @@ int do_display_questlog(int nr) {
     char buf[256];
 
     if (!questinit) {
-        for (n=0; n<sizeof(questlog)/sizeof(questlog[0]); n++) questlist[n]=n;
-        qsort(questlist,sizeof(questlog)/sizeof(questlog[0]),sizeof(int),questcmp);
+        for (n=0; n<*game_questcount; n++) questlist[n]=n;
+        qsort(questlist,*game_questcount,sizeof(int),questcmp);
     }
 
     if (!havequest) {
@@ -284,20 +288,20 @@ int do_display_questlog(int nr) {
     for (n=0; n<10; n++) questonscreen[n]=-1;
 
     for (pass=cnt=0; pass<2; pass++) {
-        for (m=0; m<sizeof(questlog)/sizeof(questlog[0]); m++) {
+        for (m=0; m<*game_questcount; m++) {
             n=questlist[m];
 
             if ((pass==0 && (quest[n].flags)==QF_OPEN && quest[n].done<10) || (pass==1 && (quest[n].flags)==QF_DONE)) {
                 if (cnt>=off) {
-                    if ((questlog[n].flags&QLF_REPEATABLE) && (quest[n].flags&QF_DONE) && quest[n].done<10) dd_drawtext(dotx(DOT_HLP)+200,y,lightbluecolor,DD_RIGHT,"Re-Open");
-                    if ((questlog[n].flags&QLF_XREPEAT) && (quest[n].flags&QF_DONE)) dd_drawtext(dotx(DOT_HLP)+200,y,graycolor,DD_RIGHT,"(Junk Item)");
-                    sprintf(buf,"Quest: %s",questlog[n].name);
+                    if ((game_questlog[n].flags&QLF_REPEATABLE) && (quest[n].flags&QF_DONE) && quest[n].done<10) dd_drawtext(dotx(DOT_HLP)+200,y,lightbluecolor,DD_RIGHT,"Re-Open");
+                    if ((game_questlog[n].flags&QLF_XREPEAT) && (quest[n].flags&QF_DONE)) dd_drawtext(dotx(DOT_HLP)+200,y,graycolor,DD_RIGHT,"(Junk Item)");
+                    sprintf(buf,"Quest: %s",game_questlog[n].name);
                     dd_drawtext(dotx(DOT_HLP)+10,y,whitecolor,0,buf); y+=10;
 
-                    sprintf(buf,"From: %s in %s.",questlog[n].giver,questlog[n].area);
+                    sprintf(buf,"From: %s in %s.",game_questlog[n].giver,game_questlog[n].area);
                     dd_drawtext(dotx(DOT_HLP)+10,y,graycolor,0,buf); y+=10;
 
-                    if (questlog[n].flags&(QLF_REPEATABLE|QLF_XREPEAT)) {
+                    if (game_questlog[n].flags&(QLF_REPEATABLE|QLF_XREPEAT)) {
                         sprintf(buf,"Done: %d time%s (%d%% exp). %s.",quest[n].done,quest[n].done!=1?"s":"",questproz(quest[n].done),(quest[n].flags&QF_DONE)?"Done":"Open");
                         dd_drawtext(dotx(DOT_HLP)+10,y,graycolor,0,buf); y+=10;
                     } else {

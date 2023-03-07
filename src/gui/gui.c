@@ -1860,7 +1860,7 @@ void gui_sdl_keyproc(int wparam) {
 }
 
 void gui_sdl_mouseproc(int x,int y,int what,int clicks) {
-    int delta;
+    int delta,tmp;
     static int mdown=0;
 
     switch (what) {
@@ -1927,7 +1927,10 @@ void gui_sdl_mouseproc(int x,int y,int what,int clicks) {
                 amod_mouse_capture(0);
                 if (!(but[capbut].flags&BUTF_MOVEEXEC)) exec_cmd(lcmd,0);
                 capbut=-1;
-            } else exec_cmd(lcmd,0);
+            } else {
+                if ((tmp=context_key_click())!=CMD_NONE) exec_cmd(tmp,0);
+                else exec_cmd(lcmd,0);
+            }
             break;
 
         case SDL_MOUM_RDOWN:

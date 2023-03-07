@@ -348,6 +348,7 @@ int context_key_isset(void);
 int context_key_enabled(void);
 int context_key_set_cmd(void);
 void context_key_reset(void);
+int context_key_click(void);
 
 extern char hover_bless_text[];
 extern char hover_freeze_text[];

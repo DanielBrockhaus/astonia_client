@@ -109,6 +109,8 @@ int amod_init(void) {
         if ((tmp=GetProcAddress(dll_instance,"game_skill"))) game_skill=tmp;
         if ((tmp=GetProcAddress(dll_instance,"game_skilldesc"))) game_skilldesc=tmp;
         if ((tmp=GetProcAddress(dll_instance,"game_v_profbase"))) game_v_profbase=tmp;
+        if ((tmp=GetProcAddress(dll_instance,"game_questlog"))) game_questlog=tmp;
+        if ((tmp=GetProcAddress(dll_instance,"game_questcount"))) game_questcount=tmp;
     }
 
     for (int i=0; i<MAXMOD; i++) {

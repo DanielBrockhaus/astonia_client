@@ -362,6 +362,11 @@ void context_key_reset(void) {
     lcmd_override=CMD_NONE;
 }
 
+int context_key_click(void) {
+    if (lcmd_override!=CMD_NONE) return CMD_MAP_MOVE;
+    return CMD_NONE;
+}
+
 void context_keydown(int key) {
 
     if (!(game_options&GO_ACTION)) return;
