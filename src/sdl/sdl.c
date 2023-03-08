@@ -1381,7 +1381,7 @@ int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,in
                    sdlt[stx].ul,sdlt[stx].dl,sdlt[stx].text);
             if (panic>1099) {
 #ifdef DEVELOPER
-                sdl_dump_spritechache();
+                sdl_dump_spritecache();
 #endif
                 exit(42);
             }
@@ -1822,7 +1822,7 @@ int dump_cmp(const void *ca,const void *cb) {
     return sdlt[a].dl-sdlt[b].dl;
 }
 
-void sdl_dump_spritechache(void) {
+void sdl_dump_spritecache(void) {
     int i,n,cnt=0,uni=0,text=0;
     long long size=0;
     FILE *fp;
@@ -1893,7 +1893,7 @@ void sdl_exit(void) {
 
     if (game_options&GO_SOUND) Mix_Quit();
 #ifdef DEVELOPER
-    sdl_dump_spritechache();
+    sdl_dump_spritecache();
 #endif
 }
 

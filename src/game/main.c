@@ -748,7 +748,7 @@ static LONG WINAPI exceptionPrinter( LPEXCEPTION_POINTERS ep )
 
     display_messagebox("Application Crashed","Details written to bin\\data\\moac.log.");
 
-    sdl_dump_spritechache();
+    sdl_dump_spritecache();
 
     return( EXCEPTION_EXECUTE_HANDLER );
 }
