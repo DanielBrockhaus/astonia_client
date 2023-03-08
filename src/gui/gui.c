@@ -57,7 +57,8 @@ __declspec(dllexport) unsigned short int lightorangecolor,orangecolor,darkorange
 unsigned int now;
 
 int cur_cursor=0;
-int mousex=300,mousey=300,vk_shift,vk_control,vk_alt,vk_rbut,vk_lbut,shift_override=0,control_override=0;
+int mousex=300,mousey=300,vk_rbut,vk_lbut,shift_override=0,control_override=0;
+__declspec(dllexport) int vk_shift,vk_control,vk_alt;
 int mousedx,mousedy;
 int vk_item,vk_char,vk_spell;
 
@@ -621,7 +622,7 @@ static void display(void) {
         extern int x_offset,y_offset; //pre_2,pre_in,pre_3;
         //static int dur=0,make=0,tex=0,text=0,blit=0,stay=0;
         static int size;
-        static unsigned char dur_graph[100],size1_graph[100],size2_graph[100]; //,size3_graph[100]; //,size_graph[100];load_graph[100],
+        static unsigned char dur_graph[100],size1_graph[100],size2_graph[100],size3_graph[100]; //,size_graph[100];load_graph[100],
         static unsigned char pre1_graph[100],pre2_graph[100],pre3_graph[100];
         //static int frame_min=99,frame_max=0,frame_step=0;
         //static int tick_min=99,tick_max=0,tick_step=0;
@@ -681,12 +682,12 @@ static void display(void) {
         sdl_bargraph(px,py+=40,sizeof(size1_graph),size3_graph,x_offset,y_offset);
 #endif
 
-#if 0
-        size=gui_time_misc;
-        dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_SMALL|DD_LEFT|DD_FRAME,"misc");
-        sdl_bargraph_add(sizeof(pre2_graph),pre2_graph,size<42?size:42);
-        sdl_bargraph(px,py+=40,sizeof(pre2_graph),pre2_graph,x_offset,y_offset);
 
+        size=(lasttick+q_size)*2;
+        dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_FRAME|DD_LEFT,"Queue %d",size/2);
+        sdl_bargraph_add(sizeof(pre2_graph),size3_graph,size<42?size:42);
+        sdl_bargraph(px,py+=40,sizeof(pre2_graph),size3_graph,x_offset,y_offset);
+#if 0
         size=sdl_time_alloc;
         dd_drawtext(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME,"Alloc");
         sdl_bargraph_add(sizeof(size1_graph),load_graph,size<42?size:42);
@@ -2084,6 +2085,45 @@ uint64_t gui_time_network=0;
 uint64_t gui_frametime=0;
 uint64_t gui_ticktime=0;
 
+int calc_tick_delay_short(int size) {
+    int tmp;
+    switch (size) {
+        case 0:     tmp=MPT*2.00; break;
+        case 1:     tmp=MPT*1.25; break;
+        case 2:     tmp=MPT*1.10; break;
+        case 3:     tmp=MPT; break; // optimal
+        case 4:     tmp=MPT-1; break;
+        case 5:     tmp=MPT-1; break;
+        case 6:     tmp=MPT*0.90; break;
+        case 7:     tmp=MPT*0.75; break;
+        case 8:     tmp=MPT*0.60; break;
+        case 9:     tmp=MPT*0.50; break;
+        default:    tmp=MPT*0.25; break;
+    }
+    return tmp;
+}
+
+int calc_tick_delay_normal(int size) {
+    int tmp;
+    switch (size) {
+        case 0:     tmp=MPT*2.00; break;
+        case 1:     tmp=MPT*1.50; break;
+        case 2:     tmp=MPT*1.40; break;
+        case 3:     tmp=MPT*1.25; break;
+        case 4:     tmp=MPT*1.10; break;
+        case 5:     tmp=MPT+1; break;
+        case 6:     tmp=MPT; break; // optimal
+        case 7:     tmp=MPT-1; break;
+        case 8:     tmp=MPT-1; break;
+        case 9:     tmp=MPT*0.90; break;
+        case 10:    tmp=MPT*0.75; break;
+        case 11:    tmp=MPT*0.60; break;
+        case 12:    tmp=MPT*0.50; break;
+        default:    tmp=MPT*0.25; break;
+    }
+    return tmp;
+}
+
 int main_loop(void) {
     void prefetch_game(int attick);
     int tmp,timediff,ltick=0,attick;
@@ -2165,22 +2205,8 @@ int main_loop(void) {
         }
 
         if (do_one_tick) {
-            switch (lasttick+q_size) {
-                case 0:     tmp=MPT*2.00; break;
-                case 1:     tmp=MPT*1.50; break;
-                case 2:     tmp=MPT*1.40; break;
-                case 3:     tmp=MPT*1.25; break;
-                case 4:     tmp=MPT*1.10; break;
-                case 5:     tmp=MPT+1; break;
-                case 6:     tmp=MPT; break; // optimal
-                case 7:     tmp=MPT-1; break;
-                case 8:     tmp=MPT-1; break;
-                case 9:     tmp=MPT*0.90; break;
-                case 10:    tmp=MPT*0.75; break;
-                case 11:    tmp=MPT*0.60; break;
-                case 12:    tmp=MPT*0.50; break;
-                default:    tmp=MPT*0.25; break;
-            }
+            if (game_options&GO_SHORT) tmp=calc_tick_delay_short(lasttick+q_size);
+            else tmp=calc_tick_delay_normal(lasttick+q_size);
             nexttick+=tmp;
             tota+=tmp;
             if (tick%24==0) { tota/=2; skip/=2; idle/=2; frames/=2; }

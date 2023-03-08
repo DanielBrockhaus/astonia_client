@@ -43,8 +43,8 @@ void display_wear(void) {
         y=buty(b);
         yt=y+23;
 
-        dd_copysprite(SPR_ITPAD,x,y,DDFX_NLIGHT,DD_CENTER);
-        if (i==weasel) dd_copysprite(SPR_ITSEL,x,y,DDFX_NLIGHT,DD_CENTER);
+        dd_copysprite(opt_sprite(SPR_ITPAD),x,y,DDFX_NLIGHT,DD_CENTER);
+        if (i==weasel) dd_copysprite(opt_sprite(SPR_ITSEL),x,y,DDFX_NLIGHT,DD_CENTER);
         if (item[weatab[i]]) {
 
             bzero(&fx,sizeof(fx));
@@ -106,7 +106,7 @@ void display_look(void) {
         x=dotx(DOT_LOK)+but[b].x-dotx(DOT_WEA)+30;
         y=doty(DOT_LOK)+20;
 
-        dd_copysprite(SPR_ITPAD,x,y,DDFX_NLIGHT,DD_CENTER);
+        dd_copysprite(opt_sprite(SPR_ITPAD),x,y,DDFX_NLIGHT,DD_CENTER);
         if (lookinv[weatab[i]]) {
 
             bzero(&fx,sizeof(fx));
@@ -195,8 +195,8 @@ void display_inventory(void) {
         if (y>doty(DOT_IN2)-20) break;
         yt=y+12;
 
-        dd_copysprite(SPR_ITPAD,x,y,DDFX_NLIGHT,DD_CENTER);
-        if (i==invsel) dd_copysprite(SPR_ITSEL,x,y,DDFX_NLIGHT,DD_CENTER);
+        dd_copysprite(opt_sprite(SPR_ITPAD),x,y,DDFX_NLIGHT,DD_CENTER);
+        if (i==invsel) dd_copysprite(opt_sprite(SPR_ITSEL),x,y,DDFX_NLIGHT,DD_CENTER);
         if (item[i]) {
 
             bzero(&fx,sizeof(fx));
@@ -236,7 +236,7 @@ void display_container(void) {
     unsigned char scale,cr,cg,cb,light,sat;
     DDFX fx;
 
-    dd_copysprite(SPR_TEXTF,dot[DOT_CON].x-20,dot[DOT_CON].y-55,DDFX_NLIGHT,DD_NORMAL);
+    dd_copysprite(opt_sprite(SPR_TEXTF),dot[DOT_CON].x-20,dot[DOT_CON].y-55,DDFX_NLIGHT,DD_NORMAL);
     if (con_type==1) dd_drawtext(dot[DOT_CON].x,dot[DOT_CON].y-50+2,textcolor,DD_LEFT|DD_LARGE,con_name);
     else dd_drawtext_fmt(dot[DOT_CON].x,dot[DOT_CON].y-50+2,textcolor,DD_LEFT|DD_LARGE,"%s's Shop",con_name);
 
@@ -248,8 +248,8 @@ void display_container(void) {
         y=buty(b);
         yt=y+12;
 
-        dd_copysprite(SPR_ITPAD,x,y,DDFX_NLIGHT,DD_CENTER);
-        if (i==consel) dd_copysprite(SPR_ITSEL,x,y,DDFX_NLIGHT,DD_CENTER);
+        dd_copysprite(opt_sprite(SPR_ITPAD),x,y,DDFX_NLIGHT,DD_CENTER);
+        if (i==consel) dd_copysprite(opt_sprite(SPR_ITSEL),x,y,DDFX_NLIGHT,DD_CENTER);
         if (i>=con_cnt) continue;
         if (container[i]) {
             bzero(&fx,sizeof(fx));
@@ -1007,4 +1007,6 @@ void display_selfbars(void) {
         }
     } else display_bar(x+xs*2+xd*2,y,manap,manacolor,xs,ys);
 }
+
+
 

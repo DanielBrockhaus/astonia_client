@@ -80,6 +80,10 @@ int client_cmd(char *buf) {
         addline("using gamma %d",dd_gamma);
         return 1;
     }
+    if (!strncmp(buf,"#crash",6) || !strncmp(buf,"/crash",6)) {
+        *(int*)0=42;
+        return 1;
+    }
     if (!strncmp(buf,"#light ",7)) {
         exec_gen(GEN_SET_LIGHTEFFECT,atoi(&buf[7]),NULL);
         addline("using light %d",dd_lighteffect);

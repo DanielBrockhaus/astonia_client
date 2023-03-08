@@ -2610,8 +2610,8 @@ __declspec(dllexport) int _opt_sprite(int sprite) {
         case 35:
             if (game_options&GO_DARK) return 302;
             break;
-        case 992:
-            if (game_options&GO_DARK) return 307;
+        case 991:
+            if (game_options&GO_DARK) return 308;
             break;
         case 994:
             if (game_options&GO_DARK) return 303;

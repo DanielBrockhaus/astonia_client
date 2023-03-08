@@ -78,6 +78,8 @@ __declspec(dllimport) int act;
 __declspec(dllimport) int actx;
 __declspec(dllimport) int acty;
 
+__declspec(dllimport) int vk_shift,vk_control,vk_alt;
+
 __declspec(dllimport) unsigned int cflags;        // current item flags
 __declspec(dllimport) unsigned int csprite;       // and sprite
 

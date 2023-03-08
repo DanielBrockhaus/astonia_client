@@ -121,6 +121,7 @@ extern int frames_per_second;
 #define GO_FULL     (1ull<<8)  // Use true full screen mode
 #define GO_WHEEL    (1ull<<9)  // Use old mouse wheel logic
 #define GO_PREDICT  (1ull<<10) // Process some commands early for faster responses (prefetch() instead of process())
+#define GO_SHORT    (1ull<<11) // Less command delay, more stutter in animations
 
 #define GO_NOTSET   (1ull<<63) // No -o given on command line
 

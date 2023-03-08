@@ -873,7 +873,8 @@ void process(unsigned char *buf,int size) {
                 case SV_SETTICK:                sv_settick(buf); len=5; break;
                 case SV_SETCITEM:               sv_setcitem(buf); len=9; break;
 
-                case SV_ACT:                    sv_act(buf); len=7; break;
+                case SV_ACT:                    if (!(game_options&GO_PREDICT)) sv_act(buf);
+                                                len=7; break;
                 case SV_EXIT:			        len=sv_exit(buf); break;
                 case SV_TEXT:                   len=sv_text(buf); break;
 

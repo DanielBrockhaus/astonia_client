@@ -163,9 +163,9 @@ int sdl_init(int width,int height,char *title) {
         dd_set_offset((width/sdl_scale-XRES)/2,(height/sdl_scale-YRES)/2);
     }
     if (game_options&GO_NOTSET) {
-        if (YRES>=620) game_options=GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT;
-        else if (YRES>=580) game_options=GO_CONTEXT|GO_ACTION|GO_SMALLBOT|GO_BIGBAR|GO_PREDICT;
-        else game_options=GO_CONTEXT|GO_ACTION|GO_SMALLBOT|GO_SMALLTOP|GO_BIGBAR|GO_PREDICT;
+        if (YRES>=620) game_options=GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_SHORT;
+        else if (YRES>=580) game_options=GO_CONTEXT|GO_ACTION|GO_SMALLBOT|GO_BIGBAR|GO_PREDICT|GO_SHORT;
+        else game_options=GO_CONTEXT|GO_ACTION|GO_SMALLBOT|GO_SMALLTOP|GO_BIGBAR|GO_PREDICT|GO_SHORT;
     }
     note("SDL using %dx%d scale %d",XRES,YRES,sdl_scale);
 
@@ -2650,5 +2650,7 @@ zip -0 gx1_patch.zip -r -j -q x1
 zip -0 gx2_patch.zip -r -j -q x2
 zip -0 gx3_patch.zip -r -j -q x3
 zip -0 gx4_patch.zip -r -j -q x4
+
+mogrify +profile "*" *.png
 
 */

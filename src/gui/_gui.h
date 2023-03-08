@@ -372,3 +372,4 @@ void minimap_update(void);
 void dots_update(void);
 void display_action_lock(void);
 void display_action_open(void);
+
