@@ -37,6 +37,20 @@ int x_offset,y_offset;
 static int clipsx,clipsy,clipex,clipey;
 static int clipstore[32][4],clippos=0;
 
+void dd_dump(FILE *fp) {
+    fprintf(fp,"DD datadump:\n");
+
+    fprintf(fp,"x_offset: %d\n",x_offset);
+    fprintf(fp,"y_offset: %d\n",y_offset);
+
+    fprintf(fp,"clipsx: %d\n",clipsx);
+    fprintf(fp,"clipsy: %d\n",clipsy);
+    fprintf(fp,"clipex: %d\n",clipex);
+    fprintf(fp,"clipey: %d\n",clipey);
+
+    fprintf(fp,"\n");
+}
+
 __declspec(dllexport) void dd_push_clip(void) {
     if (clippos>=32) return;
 

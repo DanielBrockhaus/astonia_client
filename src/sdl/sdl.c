@@ -46,7 +46,7 @@ long long sdl_time_pre1=0;
 long long sdl_time_pre2=0;
 long long sdl_time_pre3=0;
 
-int sdl_scale=1;
+__declspec(dllexport) int sdl_scale=1;
 __declspec(dllexport) int sdl_frames=0;
 __declspec(dllexport) int sdl_multi=4;
 __declspec(dllexport) int sdl_cache_size=8000;
@@ -65,7 +65,25 @@ static SDL_mutex *premutex=NULL;
 
 int __yres=YRES0;
 
-//struct sdl sdl = { .flag = true, .value = 123, .stuff = 0.456 };
+void sdl_dump(FILE *fp) {
+    fprintf(fp,"SDL datadump:\n");
+
+    fprintf(fp,"XRES: %d\n",XRES);
+    fprintf(fp,"YRES: %d\n",YRES);
+
+    fprintf(fp,"sdl_scale: %d\n",sdl_scale);
+    fprintf(fp,"sdl_frames: %d\n",sdl_frames);
+    fprintf(fp,"sdl_multi: %d\n",sdl_multi);
+    fprintf(fp,"sdl_cache_size: %d\n",sdl_cache_size);
+
+    fprintf(fp,"mem_png: %lld\n",mem_png);
+    fprintf(fp,"mem_tex: %lld\n",mem_tex);
+    fprintf(fp,"texc_hit: %lld\n",texc_hit);
+    fprintf(fp,"texc_miss: %lld\n",texc_miss);
+    fprintf(fp,"texc_pre: %lld\n",texc_pre);
+
+    fprintf(fp,"\n");
+}
 
 int sdl_init(int width,int height,char *title) {
     int len,i;
@@ -1363,8 +1381,6 @@ int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,in
                    sdlt[stx].ul,sdlt[stx].dl,sdlt[stx].text);
             if (panic>1099) {
 #ifdef DEVELOPER
-                void sdl_dump_spritechache(void);
-
                 sdl_dump_spritechache();
 #endif
                 exit(42);

@@ -148,6 +148,7 @@ __declspec(dllimport) char server_url[256];
 __declspec(dllimport) int server_port;
 __declspec(dllimport) int want_width;
 __declspec(dllimport) int want_height;
+__declspec(dllimport) int sdl_scale;
 __declspec(dllimport) int sdl_frames;
 __declspec(dllimport) int sdl_multi;
 __declspec(dllimport) int sdl_cache_size;

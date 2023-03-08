@@ -239,7 +239,6 @@ struct spell {
 
 typedef struct spell SPELL;
 
-extern int winxres,winyres;
 extern int gui_topoff;
 extern DOT *dot;
 extern BUT *but;

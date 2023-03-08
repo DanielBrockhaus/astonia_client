@@ -31,7 +31,6 @@ void cmd_add_text(char *buf,int typ);
 // globals
 
 int skip=1,idle=0,tota=1,frames=0;
-int winxres,winyres;
 
 // globals display
 
@@ -182,6 +181,17 @@ int rcmd;
 
 int mapoffx,mapoffy;
 int mapaddx,mapaddy;   // small offset to smoothen walking
+
+void gui_dump(FILE *fp) {
+    fprintf(fp,"GUI datadump:\n");
+
+    fprintf(fp,"skip: %d\n",skip);
+    fprintf(fp,"idle: %d\n",idle);
+    fprintf(fp,"tota: %d\n",tota);
+    fprintf(fp,"frames: %d\n",frames);
+
+    fprintf(fp,"\n");
+}
 
 // set where to place the *center* of the map on the screen
 void set_mapoff(int cx,int cy,int mdx,int mdy) {

@@ -690,59 +690,67 @@ static void errPrint(uint64_t addr,const char *filename,int lineno,const char *f
 
 static LONG WINAPI exceptionPrinter( LPEXCEPTION_POINTERS ep )
 {
-  fprintf( stderr,"\nApplication crashed\n" );
-  fprintf( errorfp,"\n\nApplication crashed\n" );
+    void sdl_dump(FILE *fp);
+    void dd_dump(FILE *fp);
+    void gui_dump(FILE *fp);
 
-  DWORD code = ep->ExceptionRecord->ExceptionCode;
-  const char *desc = "";
-  switch( code )
-  {
+    fprintf( stderr,"\nApplication crashed!\n\n");
+    fprintf( errorfp,"\n\nApplication crashed!\n\n");
+
+    sdl_dump(stderr); sdl_dump(errorfp);
+    dd_dump(stderr); dd_dump(errorfp);
+    gui_dump(stderr); gui_dump(errorfp);
+
+    DWORD code = ep->ExceptionRecord->ExceptionCode;
+    const char *desc = "";
+    switch( code ) {
 #define EX_DESC( name ) \
     case EXCEPTION_##name: desc = " (" #name ")"; \
                            break
 
-    EX_DESC( ACCESS_VIOLATION );
-    EX_DESC( ARRAY_BOUNDS_EXCEEDED );
-    EX_DESC( BREAKPOINT );
-    EX_DESC( DATATYPE_MISALIGNMENT );
-    EX_DESC( FLT_DENORMAL_OPERAND );
-    EX_DESC( FLT_DIVIDE_BY_ZERO );
-    EX_DESC( FLT_INEXACT_RESULT );
-    EX_DESC( FLT_INVALID_OPERATION );
-    EX_DESC( FLT_OVERFLOW );
-    EX_DESC( FLT_STACK_CHECK );
-    EX_DESC( FLT_UNDERFLOW );
-    EX_DESC( ILLEGAL_INSTRUCTION );
-    EX_DESC( IN_PAGE_ERROR );
-    EX_DESC( INT_DIVIDE_BY_ZERO );
-    EX_DESC( INT_OVERFLOW );
-    EX_DESC( INVALID_DISPOSITION );
-    EX_DESC( NONCONTINUABLE_EXCEPTION );
-    EX_DESC( PRIV_INSTRUCTION );
-    EX_DESC( SINGLE_STEP );
-    EX_DESC( STACK_OVERFLOW );
-  }
-  fprintf( stderr,"code: 0x%08lX%s\n",code,desc );
-  fprintf( errorfp,"code: 0x%08lX%s\n",code,desc );
+        EX_DESC( ACCESS_VIOLATION );
+        EX_DESC( ARRAY_BOUNDS_EXCEEDED );
+        EX_DESC( BREAKPOINT );
+        EX_DESC( DATATYPE_MISALIGNMENT );
+        EX_DESC( FLT_DENORMAL_OPERAND );
+        EX_DESC( FLT_DIVIDE_BY_ZERO );
+        EX_DESC( FLT_INEXACT_RESULT );
+        EX_DESC( FLT_INVALID_OPERATION );
+        EX_DESC( FLT_OVERFLOW );
+        EX_DESC( FLT_STACK_CHECK );
+        EX_DESC( FLT_UNDERFLOW );
+        EX_DESC( ILLEGAL_INSTRUCTION );
+        EX_DESC( IN_PAGE_ERROR );
+        EX_DESC( INT_DIVIDE_BY_ZERO );
+        EX_DESC( INT_OVERFLOW );
+        EX_DESC( INVALID_DISPOSITION );
+        EX_DESC( NONCONTINUABLE_EXCEPTION );
+        EX_DESC( PRIV_INSTRUCTION );
+        EX_DESC( SINGLE_STEP );
+        EX_DESC( STACK_OVERFLOW );
+    }
+    fprintf( stderr,"code: 0x%08lX%s\n",code,desc );
+    fprintf( errorfp,"code: 0x%08lX%s\n",code,desc );
 
-  if( code==EXCEPTION_ACCESS_VIOLATION &&
-      ep->ExceptionRecord->NumberParameters==2 )
-  {
-    ULONG_PTR flag = ep->ExceptionRecord->ExceptionInformation[0];
-    ULONG_PTR addr = ep->ExceptionRecord->ExceptionInformation[1];
-    fprintf( stderr,"%s violation at 0x%p\n",flag==8?"data execution prevention":(flag?"write access":"read access"),(void*)addr );
-    fprintf( errorfp,"%s violation at 0x%p\n",flag==8?"data execution prevention":(flag?"write access":"read access"),(void*)addr );
-  }
+    if( code==EXCEPTION_ACCESS_VIOLATION &&
+      ep->ExceptionRecord->NumberParameters==2 ){
+        ULONG_PTR flag = ep->ExceptionRecord->ExceptionInformation[0];
+        ULONG_PTR addr = ep->ExceptionRecord->ExceptionInformation[1];
+        fprintf( stderr,"%s violation at 0x%p\n",flag==8?"data execution prevention":(flag?"write access":"read access"),(void*)addr );
+        fprintf( errorfp,"%s violation at 0x%p\n",flag==8?"data execution prevention":(flag?"write access":"read access"),(void*)addr );
+    }
 
-  int count=0;
-  dwstOfException(ep->ContextRecord,&errPrint,&count);
+    int count=0;
+    dwstOfException(ep->ContextRecord,&errPrint,&count);
 
-  fflush( stderr );
-  fflush( errorfp ); fclose(errorfp);
+    fflush( stderr );
+    fflush( errorfp ); fclose(errorfp);
 
-  display_messagebox("Application Crashed","Details written to bin\\data\\moac.log.");
+    display_messagebox("Application Crashed","Details written to bin\\data\\moac.log.");
 
-  return( EXCEPTION_EXECUTE_HANDLER );
+    sdl_dump_spritechache();
+
+    return( EXCEPTION_EXECUTE_HANDLER );
 }
 
 // main
