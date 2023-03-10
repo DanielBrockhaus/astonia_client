@@ -13,11 +13,17 @@ Bugs
 Soon
 ----
 
+- put all logging (crash log, sdlt.txt, etc.) in main/logs
+
 - gs2 / fs2 to break up monotony of the new walls and floors
 
 - Optionally turn the minimap and map by 45°.
 
 - add N E S W to the big map
+
+- A nice QoL change around stats now that have have tooltips could be when hovering over each
+  stat display a tooltip that shows information such as current max mod, amount of mods added
+  from equipment, percentage exp to raise
 
 - Multi-Monitor support (command line option to determine on which monitor the game window is opened).
 
@@ -40,6 +46,11 @@ Possibly
 - Add stuff to the client window to make it 960 pixels wide to fill a standard 16:9 display.
 
 - Create mod for V3.5.
+
+- Also is it possible to have a way to bind the space bar key? And is it possible to bind the stop
+  action (currently 'esc' to another key). it'd be great to also have the toggles for fast/normal/stealth
+  mode on the mousewheel now that there's no mouse menu e.g. mouse up for fast mode, down to bring it back
+  to normal and down again to stealth
 
 
 Maybe Later: Bugs

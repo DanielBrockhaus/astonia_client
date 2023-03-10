@@ -25,7 +25,6 @@
 #include "../../src/modder.h"
 
 int quit=0;
-static int quickstart=0;
 static int panic_reached=0;
 static int xmemcheck_failed=0;
 char user_keys[10]={'Q','W','E','A','S','D','Z','X','C','V'};
@@ -36,6 +35,23 @@ static char memcheck_failed_str[]={"memcheck failed"};
 static char panic_reached_str[]={"panic failure"};
 
 static FILE *errorfp;
+
+void main_dump(FILE *fp) {
+    int i;
+    unsigned long long tmp;
+
+    fprintf(fp,"Main datadump:\n");
+
+    fprintf(fp,"game_options: %llu\n",game_options);
+    for (i=0; i<64; i++) {
+        tmp=1llu<<i;
+        if (game_options&tmp)
+            fprintf(fp,"game_option: %llu\n",tmp);
+    }
+
+
+    fprintf(fp,"\n");
+}
 
 // note, warn, fail, paranoia, addline
 
@@ -543,7 +559,6 @@ int parse_cmd(char *s) {
                 while (isspace(*s)) s++;
                 n=0; while (n<40 && *s && !isspace(*s)) username[n++]=*s++;
                 username[n]=0;
-                quickstart=1;
             } else if (tolower(*s)=='p') {  // -p <password>
                 s++;
                 while (isspace(*s)) s++;
@@ -697,6 +712,7 @@ static LONG WINAPI exceptionPrinter( LPEXCEPTION_POINTERS ep )
     fprintf( stderr,"\nApplication crashed!\n\n");
     fprintf( errorfp,"\n\nApplication crashed!\n\n");
 
+    main_dump(stderr); main_dump(errorfp);
     sdl_dump(stderr); sdl_dump(errorfp);
     dd_dump(stderr); dd_dump(errorfp);
     gui_dump(stderr); gui_dump(errorfp);

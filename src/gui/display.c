@@ -812,6 +812,23 @@ static char *action_text[MAXACTIONSLOT]={
     "Look"
 };
 
+static char *action_desc[MAXACTIONSLOT]={
+    "Attacks another character using your equipped weapon, or your hands.",
+    "Throws a fireball. Explodes for huge splash damage when it hits.",
+    "Throws a slow moving ball of lightning. It will deal medium damage over time to enemies it passes.",
+    "Summons a small ball of lightning to your side. It will deal medium damage over time to enemies near you.",
+    "Slows down enemies close to you.",
+    "Summons a magic shield that will protect you from damage. Collapses when used up.",
+    "Increases the basic attributes (WIS/INT/AGI/STR) of the target.",
+    "Restores some of the target's hitpoints.",
+    "Gives you a temporary Life Shield, blocking some damage. Slows enemies and might interrupt spellcasting in a fairly wide radius around you.",
+    "Deals some damage to adjacent enemies. If an enemy is killed you will receive a small amount of their life force as mana.",
+    "Deals high damage to adjacent enemies.",
+    "Interact with items. Can be used to take or use an item on the ground, or to drop or give an item on your mouse cursor.",
+    "Cycles between the minimap, the big map and no map.",
+    "Look at characters or items in the world."
+};
+
 static int action_skill[MAXACTIONSLOT]={
     V_PERCEPT,
     V_FIREBALL,
@@ -877,7 +894,16 @@ int action_slot2key(int slot) {
     return action_row[0][slot];
 }
 
-static int act_lck=1;
+int act_lck=1;
+
+static int get_action_key_row(int slot) {
+
+    if (action_row[0][slot]==' ') return 1;
+    else if (action_row[1][slot]==' ') return 0;
+    else if (actsel>=0 && actsel<MAXACTIONSLOT && butx(BUT_ACT_BEG+actsel)<mousex) return 1;
+
+    return 0;
+}
 
 void action_set_key(int slot,int key) {
     int row,i;
@@ -886,10 +912,7 @@ void action_set_key(int slot,int key) {
     if (act_lck) return;
     if (key<'a' || key>'z') return;
 
-    if (action_row[0][slot]==' ') row=1;
-    else if (action_row[1][slot]==' ') row=0;
-    else if (actsel>=0 && actsel<MAXACTIONSLOT && butx(BUT_ACT_BEG+actsel)<mousex) row=1;
-    else row=0;
+    row=get_action_key_row(slot);
 
     if (action_row[row][slot]==' ') return;
 
@@ -902,12 +925,18 @@ void action_set_key(int slot,int key) {
 }
 
 void display_action(void) {
-    int i;
+    int i,y;
     char buf[4];
     DDFX fx;
+    static int hoover_start=0,hoover_sel=0;
 
-    if (!context_key_enabled()) return;
-    if (vk_control || vk_alt) return;
+    if (!context_key_enabled()) { hoover_sel=0; return; }
+    if (vk_control || vk_alt) { hoover_sel=0; return; }
+
+    if (hoover_sel!=actsel) {
+        hoover_sel=actsel;
+        hoover_start=tick+HOVER_DELAY;
+    }
 
     bzero(&fx,sizeof(fx));
     fx.scale=80;
@@ -919,15 +948,44 @@ void display_action(void) {
             fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=(i==actsel || i==action_ovr)?DDFX_BRIGHT:DDFX_NLIGHT;
             dd_copysprite_fx(&fx,butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i));
             if (i==actsel) {
-                dd_drawtext(butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i)-30,IRGB(31,31,31),DD_FRAME|DD_CENTER,action_text[i]);
-            }
-            if (i==actsel && action_row[0][i]>' ') {
-                buf[0]=action_slot2key(i); buf[1]=0;
-                dd_drawtext(butx(BUT_ACT_BEG+i)-8,buty(BUT_ACT_BEG+i)-11,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
-            }
-            if (i==actsel && action_row[1][i]>' ') {
-                buf[0]=action_slot2key(i+100); buf[1]=0;
-                dd_drawtext(butx(BUT_ACT_BEG+i)+8,buty(BUT_ACT_BEG+i)-11,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
+                if (act_lck) { // non-keybinding mode
+                    if (hoover_start>tick) { // display just the name first
+                        dd_drawtext(butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i)-30,IRGB(31,31,31),DD_FRAME|DD_CENTER,action_text[i]);
+                    } else {    // display name and desc after hovering for a short while
+                        y=40+dd_drawtext_break_length(0,0,120,IRGB(31,31,31),0,action_desc[i]);
+                        dd_shaded_rect(butx(BUT_ACT_BEG+i)-64,buty(BUT_ACT_BEG+i)-y-4,butx(BUT_ACT_BEG+i)+64,buty(BUT_ACT_BEG+i)-15,0,130);
+                        dd_drawtext(butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i)-y,IRGB(31,31,31),DD_BIG|DD_CENTER,action_text[i]);
+                        dd_drawtext_break(butx(BUT_ACT_BEG+i)-60,buty(BUT_ACT_BEG+i)-y+15,butx(BUT_ACT_BEG+i)+60,IRGB(31,31,31),0,action_desc[i]);
+                    }
+                    // display key-bindings
+                    if (action_row[0][i]>' ') {
+                        buf[0]=action_slot2key(i); buf[1]=0;
+                        dd_drawtext(butx(BUT_ACT_BEG+i)-8,buty(BUT_ACT_BEG+i)-11,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
+                    }
+                    if (action_row[1][i]>' ') {
+                        buf[0]=action_slot2key(i+100); buf[1]=0;
+                        dd_drawtext(butx(BUT_ACT_BEG+i)+8,buty(BUT_ACT_BEG+i)-11,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
+                    }
+                } else { // keybinding mode
+                    int row=get_action_key_row(i);
+                    // display key-bindings
+                    if (row==0 && action_row[0][i]>' ') {
+                        buf[0]=action_slot2key(i); buf[1]=0;
+                        dd_drawtext(butx(BUT_ACT_BEG+i)-8,buty(BUT_ACT_BEG+i)-11,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
+                    }
+                    if (row==1 && action_row[1][i]>' ') {
+                        buf[0]=action_slot2key(i+100); buf[1]=0;
+                        dd_drawtext(butx(BUT_ACT_BEG+i)+8,buty(BUT_ACT_BEG+i)-11,IRGB(31,31,31),DD_FRAME|DD_CENTER,buf);
+                    }
+                    y=30;
+                    if (action_row[0][i]>' ' && action_row[1][i]>' ') {
+                        if (row==0) dd_drawtext(butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i)-y,IRGB(31,31,31),DD_FRAME|DD_CENTER,"(Aimed at character version)");
+                        else if (action_skill[i]==V_BLESS || action_skill[i]==V_HEAL) dd_drawtext(butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i)-y,IRGB(31,31,31),DD_FRAME|DD_CENTER,"(Aimed at self version)");
+                        else dd_drawtext(butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i)-y,IRGB(31,31,31),DD_FRAME|DD_CENTER,"(Aimed at map tile version)");
+                        y+=10;
+                    }
+                    dd_drawtext_fmt(butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i)-y,IRGB(31,31,31),DD_FRAME|DD_CENTER,"Press key to assign to %s",action_text[i]);
+                }
             }
         }
 

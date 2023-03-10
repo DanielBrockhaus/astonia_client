@@ -183,6 +183,8 @@
 #define TGT_CHR 3
 #define TGT_SLF 4
 
+#define HOVER_DELAY (TICKS/4)
+
 struct dot {
     int flags;
 
@@ -294,6 +296,7 @@ extern int show_color_c[];
 extern int show_cx;
 extern char hitsel[];
 extern int hittype;
+extern int act_lck;
 
 void dx_copysprite_emerald(int scrx,int scry,int emx,int emy);
 void display_cmd(void);

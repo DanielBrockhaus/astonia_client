@@ -1593,6 +1593,10 @@ void help_drag(void) {
 }
 
 static void cmd_action(void) {
+
+    // nag the player to click the lock again
+    if (!act_lck) addline("Please disable key-binding mode (the padlock to the left)!");
+
     switch (actsel) {
         case 0:
         case 1:

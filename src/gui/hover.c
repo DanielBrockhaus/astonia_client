@@ -63,7 +63,6 @@ void display_mouseover(void) {
 
 
 #define MAXVALID    (TICKS*60*2)
-#define HOVER_DELAY (TICKS/4)
 #define MAXDESC 20
 
 struct hover_item {
