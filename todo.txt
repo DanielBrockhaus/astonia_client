@@ -9,6 +9,9 @@ Bugs
 
 - Handle empty sprites (texture cannot dimensions cannot be 0)
 
+- When you examine an item without a name, there is no response
+
+- Blue (link) text sometimes produces random text instead of the linked text
 
 Soon
 ----

@@ -909,7 +909,6 @@ void action_set_key(int slot,int key) {
     int row,i;
 
     if (slot<0 || slot>=MAXACTIONSLOT) return;
-    if (act_lck) return;
     if (key<'a' || key>'z') return;
 
     row=get_action_key_row(slot);
@@ -924,11 +923,14 @@ void action_set_key(int slot,int key) {
     save_options();
 }
 
+static char *unlocked_desc="Move the mouse over one of the other icons and press the key you want to assign to it.";
+static char *locked_desc="Change the keys assigned to the icons.";
+
 void display_action(void) {
     int i,y;
     char buf[4];
     DDFX fx;
-    static int hoover_start=0,hoover_sel=0;
+    static int hoover_start=0,hoover_sel=0,hoover_start2=0;
 
     if (!context_key_enabled()) { hoover_sel=0; return; }
     if (vk_control || vk_alt) { hoover_sel=0; return; }
@@ -1001,7 +1003,16 @@ void display_action(void) {
         fx.sprite=851-act_lck;
         fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=butsel==BUT_ACT_LCK?DDFX_BRIGHT:DDFX_NLIGHT;
         dd_copysprite_fx(&fx,butx(BUT_ACT_LCK),buty(BUT_ACT_LCK));
-        if (butsel==BUT_ACT_LCK) dd_drawtext(5,buty(BUT_ACT_LCK)-30,IRGB(31,31,31),DD_FRAME,"Lock / Unlock redefining keys");
+        if (butsel==BUT_ACT_LCK) {
+            if (hoover_start2>tick) { // display just the name first
+                        dd_drawtext(butx(BUT_ACT_LCK),buty(BUT_ACT_LCK)-30,IRGB(31,31,31),DD_FRAME|DD_CENTER,act_lck?"Assign Keys":"Lock Keys");
+                    } else {    // display name and desc after hovering for a short while
+                        y=40+dd_drawtext_break_length(0,0,120,IRGB(31,31,31),0,act_lck?locked_desc:unlocked_desc);
+                        dd_shaded_rect(butx(BUT_ACT_LCK)-64,buty(BUT_ACT_LCK)-y-4,butx(BUT_ACT_LCK)+64,buty(BUT_ACT_LCK)-15,0,130);
+                        dd_drawtext(butx(BUT_ACT_LCK),buty(BUT_ACT_LCK)-y,IRGB(31,31,31),DD_FRAME|DD_CENTER|DD_BIG,act_lck?"Assign Keys":"Lock Keys");
+                        dd_drawtext_break(butx(BUT_ACT_LCK)-60,buty(BUT_ACT_LCK)-y+15,butx(BUT_ACT_LCK)+60,IRGB(31,31,31),0,act_lck?locked_desc:unlocked_desc);
+                    }
+        } else hoover_start2=tick+HOVER_DELAY;
     } else {
         fx.sprite=852;
         fx.ml=fx.ll=fx.rl=fx.ul=fx.dl=butsel==BUT_ACT_OPN?DDFX_BRIGHT:DDFX_NLIGHT;

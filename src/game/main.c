@@ -122,6 +122,23 @@ __declspec(dllexport) void paranoia(const char *format,...) {
     exit(-1);
 }
 
+void xlog(FILE *logfp,char *format,...) {
+    va_list args;
+    char buf[1024];
+    struct tm *tm;
+    time_t time_now;
+    time(&time_now);
+
+    va_start(args,format);
+    vsnprintf(buf,1024,format,args);
+    va_end(args);
+
+    tm=localtime(&time_now);
+    if (tm) fprintf(logfp,"%02d.%02d.%02d %02d:%02d:%02d: %s\n",tm->tm_mday,tm->tm_mon+1,tm->tm_year-100,tm->tm_hour,tm->tm_min,tm->tm_sec,buf);
+    else fprintf(logfp,"%s\n",buf);
+    fflush(logfp);
+}
+
 static int _addlinesep=0;
 
 void addlinesep(void) {
@@ -710,7 +727,8 @@ static LONG WINAPI exceptionPrinter( LPEXCEPTION_POINTERS ep )
     void gui_dump(FILE *fp);
 
     fprintf( stderr,"\nApplication crashed!\n\n");
-    fprintf( errorfp,"\n\nApplication crashed!\n\n");
+    fprintf(errorfp,"\n\n");
+    xlog( errorfp,"Application crashed!\n");
 
     main_dump(stderr); main_dump(errorfp);
     sdl_dump(stderr); sdl_dump(errorfp);

@@ -65,6 +65,10 @@ static SDL_mutex *premutex=NULL;
 
 int __yres=YRES0;
 
+static int sdlm_sprite=0;
+static int sdlm_scale=0;
+static void *sdlm_pixel=NULL;
+
 void sdl_dump(FILE *fp) {
     fprintf(fp,"SDL datadump:\n");
 
@@ -81,6 +85,10 @@ void sdl_dump(FILE *fp) {
     fprintf(fp,"texc_hit: %lld\n",texc_hit);
     fprintf(fp,"texc_miss: %lld\n",texc_miss);
     fprintf(fp,"texc_pre: %lld\n",texc_pre);
+
+    fprintf(fp,"sdlm_sprite: %d\n",sdlm_sprite);
+    fprintf(fp,"sdlm_scale: %d\n",sdlm_scale);
+    fprintf(fp,"sdlm_pixel: %p\n",sdlm_pixel);
 
     fprintf(fp,"\n");
 }
@@ -1091,6 +1099,10 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
         st->flags|=SF_DIDALLOC;
     }
 
+    sdlm_sprite=st->sprite;
+    sdlm_scale=scale;
+    sdlm_pixel=si->pixel;
+
     if (!preload || preload==2) {
         if (!(st->flags&SF_DIDALLOC)) {
             fail("cannot make without alloc for sprite %d (%p)",st->sprite,st);
@@ -1111,6 +1123,10 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
                 if (scale!=100) {
                     ix=x*100.0/scale;
                     iy=y*100.0/scale;
+
+                    if (ceil(ix)>=si->xres*sdl_scale) ix=si->xres*sdl_scale-1.001;
+
+                    if (ceil(iy)>=si->yres*sdl_scale) iy=si->yres*sdl_scale-1.001;
 
                     high_x=ix-floor(ix);
                     high_y=iy-floor(iy);
@@ -1889,7 +1905,11 @@ void sdl_dump_spritecache(void) {
 void sdl_exit(void) {
 
     if (sdl_zip1) zip_close(sdl_zip1);
+    if (sdl_zip1m) zip_close(sdl_zip1m);
+    if (sdl_zip1p) zip_close(sdl_zip1p);
     if (sdl_zip2) zip_close(sdl_zip2);
+    if (sdl_zip2m) zip_close(sdl_zip2m);
+    if (sdl_zip2p) zip_close(sdl_zip2p);
 
     if (game_options&GO_SOUND) Mix_Quit();
 #ifdef DEVELOPER

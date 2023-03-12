@@ -473,7 +473,7 @@ void context_keyup(int key) {
     if (key=='-') return;
     if (key&0xffffff00) return;
 
-    if (actsel!=-1) {
+    if (actsel!=-1 && !act_lck) {
         action_set_key(actsel,key);
         return;
     }
