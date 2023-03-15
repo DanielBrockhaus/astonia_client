@@ -73,12 +73,12 @@ struct ddfx {
     char align;             // blitpos_fx:          DDFX_NORMAL, DDFX_OFFSET, DDFX_CENTER
     short int clipsx,clipex; // blitpos_fx:          additional x - clipping around the offset
     short int clipsy,clipey; // blitpos_fx:          additional y - clipping around the offset
+
+    unsigned char alpha;
 };
 
 typedef struct ddfx DDFX;
 
-extern int dd_gamma;
-extern int dd_lighteffect;
 extern float mouse_scale;   // mouse input needs to be scaled by this factor because the display window is stretched
 extern char user_keys[10];
 extern int namesize;
@@ -114,6 +114,7 @@ void dd_text_lineup(void);
 void dd_text_linedown(void);
 int dd_offset_x(void);
 int dd_offset_y(void);
+void dd_list_text(void);
 void dd_pixel(int x,int y,unsigned short col);
 extern int (*trans_asprite)(int mn,int sprite,int attick,unsigned char *pscale,unsigned char *pcr,unsigned char *pcg,unsigned char *pcb,unsigned char *plight,unsigned char *psat,unsigned short *pc1,unsigned short *pc2,unsigned short *pc3,unsigned short *pshine);
 int _trans_asprite(int mn,int sprite,int attick,unsigned char *pscale,unsigned char *pcr,unsigned char *pcg,unsigned char *pcb,unsigned char *plight,unsigned char *psat,unsigned short *pc1,unsigned short *pc2,unsigned short *pc3,unsigned short *pshine);

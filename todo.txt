@@ -16,13 +16,13 @@ Bugs
 Soon
 ----
 
+- "Clean up" zoomed map so it looks less pixelated
+
 - put all logging (crash log, sdlt.txt, etc.) in main/logs
 
 - gs2 / fs2 to break up monotony of the new walls and floors
 
-- Optionally turn the minimap and map by 45°.
-
-- add N E S W to the big map
+- Flash the "action icon", no matter how the spell was cast
 
 - A nice QoL change around stats now that have have tooltips could be when hovering over each
   stat display a tooltip that shows information such as current max mod, amount of mods added

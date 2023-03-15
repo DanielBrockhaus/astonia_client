@@ -330,7 +330,7 @@ int get_teleport(int x,int y);
 void display_color(void);
 int get_color(int x,int y);
 void cmd_color(int nr);
-
+void cmd_reset(void);
 void cmd_proc(int key);
 
 int get_near_char(int x,int y,int looksize);

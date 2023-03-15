@@ -73,3 +73,33 @@ __declspec(dllexport) int amod_is_playersprite(int sprite) {
     return (sprite==800 || sprite==801);
 }
 
+
+__declspec(dllexport) int amod_process(char *buf) {
+    switch (buf[0]) {
+        case SV_MOD1:
+            addline("process got sv_mod1");
+            return 5;
+    }
+    return 0;
+}
+__declspec(dllexport) int amod_prefetch(char *buf) {
+    switch (buf[0]) {
+        case SV_MOD1:   return 5;
+    }
+    return 0;
+}
+
+// testing new alpha
+__declspec(dllexport) void amod_frame(void) {
+    DDFX ddfx;
+    bzero(&ddfx,sizeof(ddfx));
+    ddfx.alpha=tick%255;
+    ddfx.sprite=20692;
+    ddfx.scale=100;
+    ddfx.light=DDFX_NLIGHT;
+    ddfx.align=DD_CENTER;
+    ddfx.ml=ddfx.ll=ddfx.rl=ddfx.ul=ddfx.dl=DDFX_NLIGHT;
+
+    dd_copysprite_fx(&ddfx,XRES/2,YRES/2);
+}
+

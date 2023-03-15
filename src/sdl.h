@@ -75,10 +75,11 @@ uint32_t *sdl_load_png(char *filename,int *dx,int *dy);
 void sdl_set_title(char *title);
 void *sdl_create_texture(int width,int height);
 void sdl_render_copy(void *tex,void *sr,void *dr);
+void sdl_render_copy_ex(void *tex,void *sr,void *dr,double angle);
 int sdl_tex_xres(int stx);
 int sdl_tex_yres(int stx);
 void sdl_render_circle(int32_t centreX, int32_t centreY, int32_t radius,uint32_t color);
 void sdl_flush_textinput(void);
 void sdl_dump_spritecache(void);
-
+void sdl_tex_alpha(int stx,int alpha);
 

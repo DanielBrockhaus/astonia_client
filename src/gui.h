@@ -72,7 +72,7 @@ extern char action_row[2][MAXACTIONSLOT];
 extern int action_enabled;
 void actions_loaded(void);
 
-void minimap_areachange(void);
+void minimap_clear(void);
 
 extern struct questlog *game_questlog;
 extern int *game_questcount;

@@ -29,10 +29,6 @@ DDFONT *fontb_framed=NULL;
 DDFONT *fontc_shaded=NULL;
 DDFONT *fontc_framed=NULL;
 
-// TODO: these should get used again for light calculations!
-int dd_gamma=8;
-int dd_lighteffect=16;
-int newlight=0;
 int x_offset,y_offset;
 static int clipsx,clipsy,clipex,clipey;
 static int clipstore[32][4],clippos=0;
@@ -103,7 +99,7 @@ int dd_exit(void) {
     return 0;
 }
 
-int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry) {
+__declspec(dllexport) int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry) {
     int stx;
 
     PARANOIA(if (!ddfx) paranoia("dd_copysprite_fx: ddfx=NULL"); )
@@ -149,7 +145,9 @@ int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry) {
     }
 
     // blit it
+    if (ddfx->alpha) sdl_tex_alpha(stx,ddfx->alpha);
     sdl_blit(stx,scrx,scry,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
+    if (ddfx->alpha) sdl_tex_alpha(stx,255);
 
     // remove additional cliprect
     if (ddfx->clipsx!=ddfx->clipex || ddfx->clipsy!=ddfx->clipey) dd_pop_clip();
@@ -185,10 +183,7 @@ __declspec(dllexport) void dd_copysprite(int sprite,int scrx,int scry,int light,
     ddfx.align=align;
 
     ddfx.ml=ddfx.ll=ddfx.rl=ddfx.ul=ddfx.dl=light;
-    ddfx.sink=0;
     ddfx.scale=100;
-    ddfx.cr=ddfx.cg=ddfx.cb=ddfx.clight=ddfx.sat=0;
-    ddfx.c1=ddfx.c2=ddfx.c3=ddfx.shine=0;
 
     dd_copysprite_fx(&ddfx,scrx,scry);
 }
@@ -902,13 +897,17 @@ int dd_scantext(int x,int y,char *hit) {
     return 0;
 }
 
+void dd_list_text(void) {
+    note("textlines=%d, textdisplayline=%d",textlines,textdisplayline);
+}
+
 void dd_text_lineup(void) {
     int tmp;
 
     if (textlines<=TEXTDISPLAYLINES) return;
 
     tmp=(textdisplayline+MAXTEXTLINES-1)%MAXTEXTLINES;
-    if (textlines<MAXTEXTLETTERS && tmp>textlines) return;
+    if (textlines<MAXTEXTLINES-1 && tmp>textlines) return;
     if (tmp!=textnextline) textdisplayline=tmp;
 }
 

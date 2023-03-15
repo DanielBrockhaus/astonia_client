@@ -48,26 +48,6 @@ char* strcasestr(const char *haystack,const char *needle) {
     return NULL;
 }
 
-#define GEN_SET_GAMMA           2 // a
-#define GEN_SET_LIGHTEFFECT	5
-
-int exec_gen(int gen,int a,char *c) {
-    switch (gen) {
-        case GEN_SET_GAMMA:
-            if (a<1) return -1;
-            if (a>31) return -1;
-            dd_gamma=a;
-            return dd_gamma;
-        case GEN_SET_LIGHTEFFECT:
-            if (a<1) return -1;
-            if (a>31) return -1;
-            dd_lighteffect=a;
-            return dd_lighteffect;
-    }
-    return 0;
-}
-
-
 int client_cmd(char *buf) {
 
     if (!strncmp(buf,"#ps ",3)) {
@@ -75,20 +55,16 @@ int client_cmd(char *buf) {
         return 1;
     }
 
-    if (!strncmp(buf,"#gamma ",7)) {
-        exec_gen(GEN_SET_GAMMA,atoi(&buf[7]),NULL);
-        addline("using gamma %d",dd_gamma);
-        return 1;
-    }
     if (!strncmp(buf,"#crash",6) || !strncmp(buf,"/crash",6)) {
         *(int*)0=42;
         return 1;
     }
-    if (!strncmp(buf,"#light ",7)) {
-        exec_gen(GEN_SET_LIGHTEFFECT,atoi(&buf[7]),NULL);
-        addline("using light %d",dd_lighteffect);
+
+    if (!strncmp(buf,"#clearmap",7) || !strncmp(buf,"/clearmap",7)) {
+        minimap_clear();
         return 1;
     }
+
     if (!strncmp(buf,"#col1",5) || !strncmp(buf,"#col2",5) || !strncmp(buf,"#col3",5) ||
         !strncmp(buf,"/col1",5) || !strncmp(buf,"/col2",5) || !strncmp(buf,"/col3",5)) {
         show_color=1;
@@ -297,5 +273,9 @@ void display_cmd(void) {
         x+=tmp;
         if (x>dotx(DOT_TX2)-dotx(DOT_TXT)-8) break;
     }
+}
+
+void cmd_reset(void) {
+    bzero(cmdline,sizeof(cmdline)); cmdcursor=0; histpos=-1;
 }
 

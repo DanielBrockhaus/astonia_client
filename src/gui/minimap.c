@@ -31,14 +31,11 @@ SDL_Texture *maptex1=NULL,*maptex2=NULL;
 
 void minimap_init(void) {
 
-    //sx=(dotx(DOT_MTL)+dotx(DOT_MBR))/2-MAXMAP/2;
-    //sy=(doty(DOT_MTL)+doty(DOT_MBR))/2-MAXMAP/2;
+    sx=dotx(DOT_MBR)-MAXMAP-6;
+    sy=doty(DOT_MTL)+6;
 
-    sx=dotx(DOT_MBR)-MAXMAP-10;
-    sy=doty(DOT_MTL)+10;
-
-    mx=dotx(DOT_MBR)-MINIMAP*2-10;
-    my=doty(DOT_MTL)+10;
+    mx=dotx(DOT_MBR)-MINIMAP*2-6;
+    my=doty(DOT_MTL)+6;
 
     memset(_mmap,0,sizeof(_mmap));
     visible=1;
@@ -116,11 +113,24 @@ static uint32_t pix_col(int x,int y) {
 }
 
 static void draw_center(int x,int y) {
-    dd_pixel(x,y,IRGB(15,8,8));
-    dd_pixel(x+1,y,IRGB(15,8,8));
-    dd_pixel(x,y+1,IRGB(15,8,8));
-    dd_pixel(x-1,y,IRGB(15,8,8));
-    dd_pixel(x,y-1,IRGB(15,8,8));
+    dd_pixel(x,y,IRGB(31,8,8));
+    dd_pixel(x+1,y,IRGB(31,8,8));
+    dd_pixel(x,y+1,IRGB(31,8,8));
+    dd_pixel(x-1,y,IRGB(31,8,8));
+    dd_pixel(x,y-1,IRGB(31,8,8));
+}
+
+static void draw_center2(int x,int y) {
+    int i;
+
+    dd_pixel(x,y,IRGB(31,8,8));
+
+    for (i=0; i<3; i++) {
+        dd_pixel(x+i,y,IRGB(31,8,8));
+        dd_pixel(x,y+i,IRGB(31,8,8));
+        dd_pixel(x-i,y,IRGB(31,8,8));
+        dd_pixel(x,y-i,IRGB(31,8,8));
+    }
 }
 
 void display_minimap(void) {
@@ -142,11 +152,32 @@ void display_minimap(void) {
         dr.x=(sx+x_offset)*sdl_scale; dr.w=MAXMAP*sdl_scale;
         dr.y=(sy+y_offset)*sdl_scale; dr.h=MAXMAP*sdl_scale;
 
-        sr.x=0; sr.w=MAXMAP;
-        sr.y=0; sr.h=MAXMAP;
+        if (visible&1) {
+            sr.x=0; sr.w=MAXMAP;
+            sr.y=0; sr.h=MAXMAP;
+            sdl_render_copy(maptex1,&sr,&dr);
+            draw_center(sx+originx,sy+originy);
+        } else {
+            x=originx-MAXMAP/6;
+            y=originy-MAXMAP/6;
+            if (x<0) x=0;
+            if (x>MAXMAP-MAXMAP/3) x=MAXMAP-MAXMAP/3;
+            if (y<0) y=0;
+            if (y>MAXMAP-MAXMAP/3) y=MAXMAP-MAXMAP/3;
 
-        sdl_render_copy(maptex1,&sr,&dr);
-        draw_center(sx+originx,sy+originy);
+            sr.x=x; sr.w=MAXMAP/3;
+            sr.y=y; sr.h=MAXMAP/3;
+
+            sdl_render_copy(maptex1,&sr,&dr);
+            draw_center2(sx+(originx-x)*3+2,sy+(originy-y)*3+2);
+        }
+
+        dd_line(sx,sy,sx,sy+MAXMAP,0xffff);
+        dd_line(sx,sy+MAXMAP,sx+MAXMAP,sy+MAXMAP,0xffff);
+        dd_line(sx+MAXMAP,sy+MAXMAP,sx+MAXMAP,sy,0xffff);
+        dd_line(sx+MAXMAP,sy,sx,sy,0xffff);
+
+        dd_drawtext(sx+6,sy+6,0xffff,0,"N");
     }
 
     if (orx!=originx || ory!=originy) {
@@ -155,7 +186,7 @@ void display_minimap(void) {
         ory=originy;
     }
 
-    if (visible&1) {
+    if (visible==1) {
         if (update2) {
             bzero(mapix2,sizeof(mapix2));
             for (iy=-MINIMAP; iy<=MINIMAP; iy++) {
@@ -182,25 +213,26 @@ void display_minimap(void) {
         sr.x=0; sr.w=MINIMAP*2;
         sr.y=0; sr.h=MINIMAP*2;
 
-        sdl_render_copy(maptex2,&sr,&dr);
+        sdl_render_copy_ex(maptex2,&sr,&dr,45.0);
         draw_center(mx+MINIMAP,my+MINIMAP);
 
         for (i=0; i<sdl_scale; i++) {
             sdl_render_circle((mx+MINIMAP+x_offset)*sdl_scale,(my+MINIMAP+y_offset)*sdl_scale,(MINIMAP)*sdl_scale+i,0xffffffff);
         }
+        dd_drawtext(mx+MINIMAP,my+4,0xffff,0,"N");
     }
 }
 
-void minimap_areachange(void) {
+void minimap_clear(void) {
     memset(_mmap,0,sizeof(_mmap));
     update1=update2=1;
 }
 
 void minimap_toggle(void) {
-    visible=(visible+1)%3;
+    visible=(visible+1)%4;
 }
 
 void minimap_hide(void) {
-    visible&=~2;
+    visible=1;
 }
 

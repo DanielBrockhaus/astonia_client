@@ -63,7 +63,7 @@ static zip_t *sdl_zip2m=NULL;
 static SDL_sem *prework=NULL;
 static SDL_mutex *premutex=NULL;
 
-int __yres=YRES0;
+__declspec(dllexport) int __yres=YRES0;
 
 static int sdlm_sprite=0;
 static int sdlm_scale=0;
@@ -2622,6 +2622,10 @@ void sdl_render_copy(void *tex,void *sr,void *dr) {
     SDL_RenderCopy(sdlren,tex,sr,dr);
 }
 
+void sdl_render_copy_ex(void *tex,void *sr,void *dr,double angle) {
+    SDL_RenderCopyEx(sdlren,tex,sr,dr,angle,0,SDL_FLIP_NONE);
+}
+
 int sdl_tex_xres(int stx) {
     return sdlt[stx].xres;
 }
@@ -2666,6 +2670,10 @@ void sdl_render_circle(int32_t centreX, int32_t centreY, int32_t radius,uint32_t
 
 void sdl_flush_textinput(void) {
     SDL_FlushEvent(SDL_TEXTINPUT);
+}
+
+void sdl_tex_alpha(int stx,int alpha) {
+    SDL_SetTextureAlphaMod(sdlt[stx].tex,alpha);
 }
 
 /*

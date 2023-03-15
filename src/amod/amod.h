@@ -40,6 +40,7 @@ __declspec(dllimport) void dd_push_clip(void);
 __declspec(dllimport) void dd_pop_clip(void);
 __declspec(dllimport) void dd_more_clip(int sx,int sy,int ex,int ey);
 __declspec(dllimport) void dd_copysprite(int sprite,int scrx,int scry,int light,int align);
+__declspec(dllimport) int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry);
 __declspec(dllimport) void dd_rect(int sx,int sy,int ex,int ey,unsigned short int color);
 __declspec(dllimport) void dd_line(int fx,int fy,int tx,int ty,unsigned short col);
 __declspec(dllimport) int dd_textlength(int flags,const char *text);
@@ -77,6 +78,7 @@ __declspec(dllimport) extern int weatab[];
 __declspec(dllimport) int act;
 __declspec(dllimport) int actx;
 __declspec(dllimport) int acty;
+__declspec(dllimport) extern int __yres;
 
 __declspec(dllimport) int vk_shift,vk_control,vk_alt;
 

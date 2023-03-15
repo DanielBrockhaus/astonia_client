@@ -18,6 +18,8 @@
 #define ARRAYSIZE(a) (sizeof(a)/sizeof((a)[0]))
 #endif
 
+#define bzero(ptr,size) memset(ptr,0,size)
+
 #define V_MAX	        200
 #define DIST		    25
 #define MAPDX			(DIST*2+1)
@@ -155,6 +157,41 @@
 #define MMF_SIGHTBLOCK  (1<<1)  // indicates sight block (set_map_lights)
 #define MMF_DOOR        (1<<2)  // a door - helpful when cutting sprites - (set_map_sprites)
 #define MMF_CUT         (1<<3)  // indicates cut (set_map_cut)
+
+#define SV_MOD1         58
+#define SV_MOD2         59
+#define SV_MOD3         60
+#define SV_MOD4         61
+#define SV_MOD5         62
+
+#define DDFX_NLIGHT             15
+#define DDFX_BRIGHT             0
+
+#define XRES    800
+#define YRES    (__yres)
+
+struct ddfx {
+    int sprite;             // sprite_fx:           primary sprite number - should be the first entry cause dl_qcmp sorts the by this
+
+    signed char sink;
+    unsigned char scale;        // scale in percent
+    char cr,cg,cb;          // color balancing
+    char clight,sat;        // lightness, saturation
+    unsigned short c1,c2,c3,shine;  // color replacer
+
+    char light;             // videocache_fx:       0=bright(DDFX_BRIGHT) 1=almost black; 15=normal (DDFX_NLIGHT)
+    char freeze;            // videocache_fx:       0 to DDFX_MAX_FREEZE-1  !!! exclusive DDFX_MAX_FREEZE
+
+    char ml,ll,rl,ul,dl;
+
+    char align;             // blitpos_fx:          DDFX_NORMAL, DDFX_OFFSET, DDFX_CENTER
+    short int clipsx,clipex; // blitpos_fx:          additional x - clipping around the offset
+    short int clipsy,clipey; // blitpos_fx:          additional y - clipping around the offset
+
+    unsigned char alpha;
+};
+
+typedef struct ddfx DDFX;
 
 struct complex_sprite {
     unsigned int sprite;
