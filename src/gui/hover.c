@@ -63,7 +63,7 @@ void display_mouseover(void) {
 
 
 #define MAXVALID    (TICKS*60*2)
-#define MAXDESC 20
+#define MAXDESC     20
 
 struct hover_item {
     int valid_till;
@@ -163,6 +163,11 @@ static int display_hover(void) {
     if ((slot<INVENTORYSIZE && !item[slot]) || (slot>=INVENTORYSIZE && !container[slot-INVENTORYSIZE])) return 0;
 
     if (hi[slot].valid_till>=tick && tick-last_tick>HOVER_DELAY) {
+
+        // do not invalidate cache if the player keeps hovering over the item
+        // this would prevent idle logout
+        hi[slot].valid_till=max(hi[slot].valid_till,tick+TICKS);
+
         sx=mousex-hi[slot].width/2;
         if (sx<dotx(DOT_TL)) sx=dotx(DOT_TL);
         if (sx>dotx(DOT_BR)-hi[slot].width-8) sx=dotx(DOT_BR)-hi[slot].width-8;

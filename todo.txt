@@ -7,18 +7,16 @@ Bugs
 
 - Shaded text in 2X has single pixel gaps.
 
-- Handle empty sprites (texture cannot dimensions cannot be 0)
-
 - When you examine an item without a name, there is no response
 
 - Blue (link) text sometimes produces random text instead of the linked text
+
+- Item hover descriptions sometimes get assigned to the wrong slot. Add a slot marker server side.
 
 Soon
 ----
 
 - "Clean up" zoomed map so it looks less pixelated
-
-- put all logging (crash log, sdlt.txt, etc.) in main/logs
 
 - gs2 / fs2 to break up monotony of the new walls and floors
 

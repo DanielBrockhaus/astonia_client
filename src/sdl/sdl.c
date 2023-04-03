@@ -1058,6 +1058,7 @@ static uint32_t sdl_colorbalance(uint32_t irgb,char cr,char cg,char cb,char ligh
 }
 
 static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
+    SDL_Texture *texture;
     int x,y,scale;
     double ix,iy,low_x,low_y,high_x,high_y,dbr,dbg,dbb,dba;
     uint32_t irgb;
@@ -1291,13 +1292,15 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
 
         start=SDL_GetTicks64();
 
-        SDL_Texture *texture = SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STATIC,st->xres*sdl_scale,st->yres*sdl_scale);
-        if (!texture) {
-            warn("SDL_texture Error: %s in sprite %d (%s, %d,%d) preload=%d",SDL_GetError(),st->sprite,st->text,st->xres,st->yres,preload);
-            return;
-        }
-        SDL_UpdateTexture(texture,NULL,st->pixel,st->xres*sizeof(uint32_t)*sdl_scale);
-        SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
+        if (st->xres>0 && st->yres>0) {
+            texture=SDL_CreateTexture(sdlren,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STATIC,st->xres*sdl_scale,st->yres*sdl_scale);
+            if (!texture) {
+                warn("SDL_texture Error: %s in sprite %d (%s, %d,%d) preload=%d",SDL_GetError(),st->sprite,st->text,st->xres,st->yres,preload);
+                return;
+            }
+            SDL_UpdateTexture(texture,NULL,st->pixel,st->xres*sizeof(uint32_t)*sdl_scale);
+            SDL_SetTextureBlendMode(texture,SDL_BLENDMODE_BLEND);
+        } else texture=NULL;
 #ifdef SDL_FAST_MALLOC
         free(st->pixel);
 #else
@@ -1593,7 +1596,7 @@ int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,in
 
         if (sdlt[stx].flags&SF_DIDTEX) {
             mem_tex-=sdlt[stx].xres*sdlt[stx].yres*sizeof(uint32_t);
-            SDL_DestroyTexture(sdlt[stx].tex);
+            if (sdlt[stx].tex) SDL_DestroyTexture(sdlt[stx].tex);
         } else {
             warn("Delete unfinished texture?? stx=%d, sprite=%d",stx,sdlt[stx].sprite);
         }
@@ -1718,7 +1721,7 @@ static void sdl_blit_tex(SDL_Texture *tex,int sx,int sy,int clipsx,int clipsy,in
 }
 
 void sdl_blit(int stx,int sx,int sy,int clipsx,int clipsy,int clipex,int clipey,int x_offset,int y_offset) {
-    sdl_blit_tex(sdlt[stx].tex,sx,sy,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
+    if (sdlt[stx].tex) sdl_blit_tex(sdlt[stx].tex,sx,sy,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 }
 
 #define DD_LEFT         0
@@ -2673,7 +2676,7 @@ void sdl_flush_textinput(void) {
 }
 
 void sdl_tex_alpha(int stx,int alpha) {
-    SDL_SetTextureAlphaMod(sdlt[stx].tex,alpha);
+    if (sdlt[stx].tex) SDL_SetTextureAlphaMod(sdlt[stx].tex,alpha);
 }
 
 /*

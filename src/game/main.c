@@ -780,7 +780,7 @@ static LONG WINAPI exceptionPrinter( LPEXCEPTION_POINTERS ep )
     fflush( stderr );
     fflush( errorfp ); fclose(errorfp);
 
-    display_messagebox("Application Crashed","Details written to bin\\data\\moac.log.");
+    display_messagebox("Application Crashed","Details written to moac.log.");
 
     sdl_dump_spritecache();
 
@@ -793,7 +793,7 @@ int main(int argc,char *args[]) {
     char buf[80],buffer[1024];
     struct hostent *he;
 
-    errorfp=fopen("bin/data/moac.log","a");
+    errorfp=fopen("moac.log","a");
     if (!errorfp) errorfp=stderr;
 
     SetUnhandledExceptionFilter(exceptionPrinter);
@@ -811,6 +811,8 @@ int main(int argc,char *args[]) {
         display_usage();
         return 0;
     }
+
+    xlog(errorfp,"Client started with -h%d -w%d -o%d",want_height,want_width,game_options);
 
     SetProcessDPIAware(); // I hate Windows very much.
 
@@ -888,6 +890,9 @@ int main(int argc,char *args[]) {
     if (xmemcheck_failed) MessageBox(NULL,memcheck_failed_str,"memory panic",MB_APPLMODAL|MB_OK|MB_ICONSTOP);
 
     net_exit();
+
+    xlog(errorfp,"Clean client shutdown. Thank you for playing!");
+    fclose(errorfp);
     return 0;
 }
 

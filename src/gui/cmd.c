@@ -78,7 +78,7 @@ int client_cmd(char *buf) {
     	play_sound(atoi(&buf[7]),0,0);
     	return 1;
     }
-    if (!strncmp(buf, "#volume ", 8)) {
+    if (!strncmp(buf, "#volume ", 8) || !strncmp(buf, "/volume ", 8)) {
     	int new_sound_volume = atoi(&buf[8]);
     	if (new_sound_volume < 0) new_sound_volume = 0;
     	if (new_sound_volume >= 128) new_sound_volume = 128;

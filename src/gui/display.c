@@ -130,7 +130,7 @@ void display_look(void) {
         }
     }
     dd_drawtext(dotx(DOT_LOK)+70,doty(DOT_LOK)+50,0xffff,DD_LEFT,look_name);
-    dd_drawtext_break(dotx(DOT_LOK)+70,doty(DOT_LOK)+60,dotx(DOT_LOK)+290,0xffff,DD_LEFT,look_desc);
+    dd_drawtext_break(dotx(DOT_LOK)+70,doty(DOT_LOK)+60,dotx(DOT_LOK)+270,0xffff,DD_LEFT,look_desc);
 
     {
         int csprite,scale,cr,cg,cb,light,sat,c1,c2,c3,shine;
