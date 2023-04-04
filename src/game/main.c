@@ -737,6 +737,7 @@ static LONG WINAPI exceptionPrinter( LPEXCEPTION_POINTERS ep )
     void sdl_dump(FILE *fp);
     void dd_dump(FILE *fp);
     void gui_dump(FILE *fp);
+    char filename[MAX_PATH+128];
 
     fprintf( stderr,"\nApplication crashed!\n\n");
     fprintf(errorfp,"\n\n");
@@ -792,7 +793,9 @@ static LONG WINAPI exceptionPrinter( LPEXCEPTION_POINTERS ep )
     fflush( stderr );
     fflush( errorfp ); fclose(errorfp);
 
-    display_messagebox("Application Crashed","Details written to moac.log.");
+    if (game_options&GO_APPDATA) sprintf(filename,"Details written to %s\\Astonia\\%s",localdata,"moac.log");
+    else sprintf(filename,"Details written to %s","moac.log");
+    display_messagebox("Application Crashed",filename);
 
     sdl_dump_spritecache();
 
