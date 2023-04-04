@@ -106,9 +106,14 @@
 #define DOT_TUT         31      // tutor window top left
 #define MAX_DOT         32
 
+#ifndef MAX_PATH
+#define MAX_PATH 260
+#endif
+
 extern int __yres;
 extern int quit;
 extern int frames_per_second;
+extern char localdata[MAX_PATH];
 
 #define GO_DARK     (1ull<<0)  // Dark GUI by Tegra
 #define GO_CONTEXT  (1ull<<1)  // Right-Click Context Menu
@@ -122,6 +127,7 @@ extern int frames_per_second;
 #define GO_WHEEL    (1ull<<9)  // Use old mouse wheel logic
 #define GO_PREDICT  (1ull<<10) // Process some commands early for faster responses (prefetch() instead of process())
 #define GO_SHORT    (1ull<<11) // Less command delay, more stutter in animations
+#define GO_APPDATA  (1ull<<12) // Use Windows %appdata% to store configuration and logs
 
 #define GO_NOTSET   (1ull<<63) // No -o given on command line
 

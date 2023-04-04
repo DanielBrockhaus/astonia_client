@@ -1844,6 +1844,7 @@ int dump_cmp(const void *ca,const void *cb) {
 void sdl_dump_spritecache(void) {
     int i,n,cnt=0,uni=0,text=0;
     long long size=0;
+    char filename[MAX_PATH];
     FILE *fp;
 
     dumpidx=xmalloc(sizeof(int)*MAX_TEXCACHE,MEM_TEMP);
@@ -1851,7 +1852,9 @@ void sdl_dump_spritecache(void) {
 
     qsort(dumpidx,MAX_TEXCACHE,sizeof(int),dump_cmp);
 
-    fp=fopen("sdlt.txt","w");
+    if (game_options&GO_APPDATA) sprintf(filename,"%s\\Astonia\\%s",localdata,"sdlt.txt");
+    else sprintf(filename,"%s","sdlt.txt");
+    fp=fopen(filename,"w");
 
     for (i=0; i<MAX_TEXCACHE; i++) {
 

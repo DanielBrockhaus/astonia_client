@@ -9,6 +9,7 @@
  */
 
 #include <windows.h>
+#include <shlobj.h>
 #include <stdint.h>
 #include <fcntl.h>
 #include <time.h>
@@ -25,6 +26,9 @@
 #include "../../src/modder.h"
 
 int quit=0;
+
+char localdata[MAX_PATH];
+
 static int panic_reached=0;
 static int xmemcheck_failed=0;
 char user_keys[10]={'Q','W','E','A','S','D','Z','X','C','V'};
@@ -632,8 +636,12 @@ int parse_cmd(char *s) {
 
 void save_options(void) {
     int handle;
+    char filename[MAX_PATH];
 
-    handle=open("bin/data/moac.dat",O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,0666);
+    if (game_options&GO_APPDATA) sprintf(filename,"%s\\Astonia\\%s",localdata,"moac.dat");
+    else sprintf(filename,"%s","bin/data/moac.dat");
+
+    handle=open(filename,O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,0666);
     if (handle==-1) return;
 
     write(handle,&user_keys,sizeof(user_keys));
@@ -644,8 +652,12 @@ void save_options(void) {
 
 void load_options(void) {
     int handle;
+    char filename[MAX_PATH];
 
-    handle=open("bin/data/moac.dat",O_RDONLY|O_BINARY);
+    if (game_options&GO_APPDATA) sprintf(filename,"%s\\Astonia\\%s",localdata,"moac.dat");
+    else sprintf(filename,"%s","bin/data/moac.dat");
+
+    handle=open(filename,O_RDONLY|O_BINARY);
     if (handle==-1) return;
 
     read(handle,&user_keys,sizeof(user_keys));
@@ -792,8 +804,20 @@ int main(int argc,char *args[]) {
     int ret;
     char buf[80],buffer[1024];
     struct hostent *he;
+    char filename[MAX_PATH];
 
-    errorfp=fopen("moac.log","a");
+    convert_cmd_line(buffer,argc,args,1000);
+    if ((ret=parse_cmd(buffer))!=0) return -1;
+
+    if (game_options&GO_APPDATA) {
+        SHGetFolderPath(NULL,CSIDL_APPDATA,NULL,0,localdata);
+        sprintf(filename,"%s\\Astonia",localdata);
+        mkdir(filename);
+
+        sprintf(filename,"%s\\Astonia\\%s",localdata,"moac.log");
+    } else sprintf(filename,"%s","moac.log");
+
+    errorfp=fopen(filename,"a");
     if (!errorfp) errorfp=stderr;
 
     SetUnhandledExceptionFilter(exceptionPrinter);
@@ -802,9 +826,6 @@ int main(int argc,char *args[]) {
     sharedmem_init();
 
     load_options();
-
-    convert_cmd_line(buffer,argc,args,1000);
-    if ((ret=parse_cmd(buffer))!=0) return -1;
 
     // set some stuff
     if (!*username || !*password || !*server_url) {
