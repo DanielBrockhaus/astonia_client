@@ -76,4 +76,5 @@ void minimap_clear(void);
 
 extern struct questlog *game_questlog;
 extern int *game_questcount;
+extern int gear_lock;
 

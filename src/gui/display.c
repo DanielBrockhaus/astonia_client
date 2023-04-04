@@ -28,6 +28,11 @@ static void dx_drawtext_gold(int x,int y,unsigned short int color,int amount) {
     else dd_drawtext_fmt(x,y,color,DD_CENTER|DD_FRAME|DD_SMALL,"%ds",amount);
 }
 
+int gear_lock=0;
+void display_wear_lock(void) {
+    gear_lock=1-gear_lock;
+    save_options();
+}
 void display_wear(void) {
     int b,i,x,y,yt;
     unsigned int sprite;
@@ -88,6 +93,10 @@ void display_wear(void) {
 
         if (con_cnt && con_type==2 && itemprice[weatab[i]]) dx_drawtext_gold(x,y+12,textcolor,itemprice[weatab[i]]);
     }
+
+    dx_copysprite_emerald(butx(BUT_WEA_LCK),buty(BUT_WEA_LCK),2-gear_lock,2);
+    dd_drawtext(butx(BUT_WEA_LCK)+6,buty(BUT_WEA_LCK)-4,textcolor,DD_SMALL|DD_FRAME,gear_lock ? "Gear locked" : "Gear free");
+
 }
 
 void display_look(void) {

@@ -1539,6 +1539,7 @@ static void set_cmd_states(void) {
 
         if (butsel==BUT_ACT_LCK) lcmd=CMD_ACTION_LOCK;
         if (butsel==BUT_ACT_OPN) lcmd=CMD_ACTION_OPEN;
+        if (butsel==BUT_WEA_LCK) lcmd=CMD_WEAR_LOCK;
     }
 
     // set rcmd
@@ -1564,6 +1565,20 @@ static void set_cmd_states(void) {
             if (chrsel!=-1) rcmd=CMD_CHR_CAST_R;
         }
     } else rcmd=CMD_ACTION_CANCEL;
+
+    if (gear_lock) { // gear lock resets cmds to none if on
+        // no fast-equip from inventory
+        if (invsel!=-1 && lcmd==CMD_INV_USE && !(item_flags[invsel]&IF_USE)) lcmd=CMD_NONE;
+        if (invsel!=-1 && rcmd==CMD_INV_USE && !(item_flags[invsel]&IF_USE)) rcmd=CMD_NONE;
+
+        // no fast-unequip from equipment
+        if (weasel!=-1 && lcmd==CMD_WEA_USE && !(item_flags[weatab[weasel]]&IF_USE)) lcmd=CMD_NONE;
+        if (weasel!=-1 && rcmd==CMD_WEA_USE && !(item_flags[weatab[weasel]]&IF_USE)) rcmd=CMD_NONE;
+
+        // no take/swap/drop from equipment unless it is the left-hand-slot (for torches)
+        if (weasel!=2 && (lcmd==CMD_WEA_TAKE || lcmd==CMD_WEA_DROP || lcmd==CMD_WEA_SWAP)) lcmd=CMD_NONE;
+        if (weasel!=2 && (rcmd==CMD_WEA_TAKE || rcmd==CMD_WEA_DROP || rcmd==CMD_WEA_SWAP)) rcmd=CMD_NONE;
+    }
 
     // set cursor
     if (vk_rbut) set_cmd_cursor(rcmd);
@@ -1735,6 +1750,7 @@ static void exec_cmd(int cmd,int a) {
         case CMD_ACTION_CANCEL: return; // action gets cancelled on top
         case CMD_ACTION_LOCK:   display_action_lock(); return;
         case CMD_ACTION_OPEN:   display_action_open(); return;
+        case CMD_WEAR_LOCK:     display_wear_lock(); return;
     }
     return;
 }
