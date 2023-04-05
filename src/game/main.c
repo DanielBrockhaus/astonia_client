@@ -550,6 +550,9 @@ void display_usage(void) {
     buf+=sprintf(buf,"and bit 4 the sliding away of the top GUI. Bit 5 enables the bigger health/mana bars. ");
     buf+=sprintf(buf,"Bit 6 enables sound, bit 7 the large font and bit 8 true full screen mode. Bit 9 enables the legacy mouse wheel logic. ");
     buf+=sprintf(buf,"Bit 10 enables out-of-order execution (read: faster) of inventory access and command feedback. ");
+    buf+=sprintf(buf,"Bit 11 reduces the animation buffer for faster reactions and more stutter. ");
+    buf+=sprintf(buf,"Bit 12 writes application files to %%appdata%% instead of the current folder. ");
+    buf+=sprintf(buf,"Bit 13 enables the loading and saving of minimaps (EXPERIMETAL). ");
     buf+=sprintf(buf,"Default depends on screen height.\n\n");
     buf+=sprintf(buf,"cachesize is the size of the texture cache. Default is 8000. Very low numbers will crash!\n\n");
     buf+=sprintf(buf,"framespersecond will set the display rate in frames per second.\n\n");

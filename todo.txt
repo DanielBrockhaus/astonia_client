@@ -35,8 +35,6 @@ Soon
 
 - Lighting calculations are better now, but not completely right. Fix them again. Re-add shaded lighting for items.
 
-- Save map data, reload once the client recognizes it.
-
 Possibly
 --------
 

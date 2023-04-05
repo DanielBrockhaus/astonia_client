@@ -73,6 +73,7 @@ extern int action_enabled;
 void actions_loaded(void);
 
 void minimap_clear(void);
+void minimap_compact(void);
 
 extern struct questlog *game_questlog;
 extern int *game_questcount;

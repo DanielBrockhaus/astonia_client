@@ -64,6 +64,10 @@ int client_cmd(char *buf) {
         minimap_clear();
         return 1;
     }
+    if (!strncmp(buf,"#compactmap",7) || !strncmp(buf,"/compactmap",7)) {
+        minimap_compact();
+        return 1;
+    }
 
     if (!strncmp(buf,"#col1",5) || !strncmp(buf,"#col2",5) || !strncmp(buf,"#col3",5) ||
         !strncmp(buf,"/col1",5) || !strncmp(buf,"/col2",5) || !strncmp(buf,"/col3",5)) {

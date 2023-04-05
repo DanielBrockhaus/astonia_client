@@ -8,6 +8,8 @@
 
 #include <stdint.h>
 #include <SDL2/SDL.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #include "../../src/astonia.h"
 #include "../../src/gui.h"
@@ -20,12 +22,15 @@
 #define MAXMAP  256
 #define IRGBA(r,g,b,a)  (((a)<<24)|((r)<<16)|((g)<<8)|((b)<<0))
 
-static int sx,sy,visible,mx,my,update1,update2,orx,ory,rewrite_cnt;
+static int sx,sy,visible,mx,my,update1,update2,update3,orx,ory,rewrite_cnt;
 
 static unsigned char _mmap[MAXMAP*MAXMAP];
 
 static uint32_t mapix1[MAXMAP*MAXMAP];
 static uint32_t mapix2[MINIMAP*MINIMAP*4];
+
+#define MAXSAVEMAP  100
+static int mapnr=-1;
 
 SDL_Texture *maptex1=NULL,*maptex2=NULL;
 
@@ -39,7 +44,7 @@ void minimap_init(void) {
 
     memset(_mmap,0,sizeof(_mmap));
     visible=1;
-    update1=update2=1;
+    update1=update2=update3=1;
 
     maptex1=sdl_create_texture(MAXMAP,MAXMAP);
     maptex2=sdl_create_texture(MINIMAP*2,MINIMAP*2);
@@ -60,9 +65,12 @@ static void set_pix(int x,int y,int val) {
         }
 
         _mmap[x+y*MAXMAP]=val;
-        update1=update2=1;
+        update1=update2=update3=1;
     }
 }
+
+static void map_save(void);
+static int map_load(void);
 
 void minimap_update(void) {
     int x,y,xs,xe,ox,oy;
@@ -93,9 +101,12 @@ void minimap_update(void) {
         }
     }
     if (rewrite_cnt>4) {
-        memset(_mmap,0,sizeof(_mmap));
-        update1=update2=1;
+        minimap_clear();
         note("MAP CHANGED: %d",rewrite_cnt);
+    }
+    if (mapnr==-1 && update3) {
+        update3=0;
+        if (game_options&GO_MAPSAVE) mapnr=map_load();
     }
 }
 
@@ -224,8 +235,10 @@ void display_minimap(void) {
 }
 
 void minimap_clear(void) {
+    if (game_options&GO_MAPSAVE) map_save();
+    mapnr=-1;
     memset(_mmap,0,sizeof(_mmap));
-    update1=update2=1;
+    update1=update2=update3=1;
 }
 
 void minimap_toggle(void) {
@@ -234,5 +247,146 @@ void minimap_toggle(void) {
 
 void minimap_hide(void) {
     visible=1;
+}
+
+static char *mapname(int i) {
+    static char filename[MAX_PATH];
+
+    if (game_options&GO_APPDATA) sprintf(filename,"%s\\Astonia\\map%03d.dat",localdata,i);
+    else sprintf(filename,"bin/data/map%03d.dat",i);
+
+    return filename;
+}
+
+static void map_save(void) {
+    int i,cnt,handle;
+    char *filename;
+
+    for (i=cnt=0; i<MAXMAP*MAXMAP; i++) {
+        if (_mmap[i]) cnt++;
+    }
+    if (cnt<250) return;
+
+    if (mapnr==-1) {
+        for (i=0; i<MAXSAVEMAP; i++) {
+            filename=mapname(i);
+            handle=open(filename,O_RDONLY);
+            if (handle==-1) break;
+        }
+        if (i==MAXSAVEMAP) {
+            warn("Area map storage full! Please use /compactmap to merge duplicate maps.");
+            return;
+        }
+        mapnr=i;
+    }
+    filename=mapname(mapnr);
+    //note("saving area map to %s",filename);
+    handle=open(filename,O_RDWR|O_BINARY|O_TRUNC|O_CREAT,0644);
+    write(handle,_mmap,sizeof(_mmap));
+    close(handle);
+}
+
+static int map_compare(char *tmap,char *xmap) {
+    int i,hit,miss;
+
+    for (i=hit=miss=0; i<MAXMAP*MAXMAP; i++) {
+        // sightblock, fsprite or usable sightblock
+        if (tmap[i]==1 || tmap[i]==2 || tmap[i]==5) {
+            if (xmap[i]==1 || xmap[i]==2 || xmap[i]==5) hit++;
+            else if (xmap[i]!=0) miss++;
+        }
+        // empty or csprite
+        if (tmap[i]==3 || tmap[i]==4) {
+            if (xmap[i]==3 || xmap[i]==4) hit++;
+            else if (xmap[i]!=0) miss++;
+        }
+    }
+    if (hit<200) return 0;
+    if (miss>hit/100) return 0;
+
+    return hit;
+}
+
+static void map_merge(char *xmap,char *tmap) {
+    int i;
+
+    // only overwrite empty parts of the map with loaded data.
+    for (i=0; i<MAXMAP*MAXMAP; i++) {
+        if (!xmap[i]) {
+            if (tmap[i]==3) xmap[i]=4; // do not load csprites, they move too much
+            else xmap[i]=tmap[i];
+        }
+    }
+}
+
+static int map_load(void) {
+    int i,hit,handle,besti=-1,besthit=0;
+    unsigned char tmap[MAXMAP*MAXMAP];
+    char *filename;
+
+    for (i=0; i<MAXSAVEMAP; i++) {
+        filename=mapname(i);
+        handle=open(filename,O_RDONLY|O_BINARY);
+        if (handle==-1) continue;
+        read(handle,tmap,sizeof(tmap));
+        close(handle);
+
+        if (!(hit=map_compare(tmap,_mmap))) continue;
+
+        if (hit>besthit) {
+            besti=i;
+            besthit=hit;
+        }
+    }
+    if (besti!=-1) {
+        filename=mapname(besti);
+        //note("loading area map from %s (%d hits)",filename,besthit);
+        handle=open(filename,O_RDONLY);
+        if (handle==-1) return -1;
+        read(handle,tmap,sizeof(tmap));
+        close(handle);
+
+        map_merge(_mmap,tmap);
+
+        return besti;
+    }
+
+    return -1;
+}
+
+
+
+void minimap_compact(void) {
+    int i,j,handle;
+    char *filename,tmap[MAXMAP*MAXMAP],xmap[MAXMAP*MAXMAP];
+
+    for (i=0; i<MAXSAVEMAP; i++) {
+        filename=mapname(i);
+        handle=open(filename,O_RDONLY|O_BINARY);
+        if (handle==-1) continue;
+        read(handle,tmap,sizeof(tmap));
+        close(handle);
+
+        for (j=i+1; j<MAXSAVEMAP; j++) {
+            filename=mapname(j);
+            handle=open(filename,O_RDONLY|O_BINARY);
+            if (handle==-1) continue;
+            read(handle,xmap,sizeof(xmap));
+            close(handle);
+
+            if (map_compare(tmap,xmap)) {
+                map_merge(tmap,xmap);
+                filename=mapname(i);
+                handle=open(filename,O_RDONLY|O_BINARY);
+                if (handle==-1) continue;
+                write(handle,tmap,sizeof(tmap));
+                close(handle);
+
+                filename=mapname(j);
+                unlink(filename);
+                note("merged map %d into map %d",j,i);
+            }
+        }
+    }
 }
 

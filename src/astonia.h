@@ -128,6 +128,7 @@ extern char localdata[MAX_PATH];
 #define GO_PREDICT  (1ull<<10) // Process some commands early for faster responses (prefetch() instead of process())
 #define GO_SHORT    (1ull<<11) // Less command delay, more stutter in animations
 #define GO_APPDATA  (1ull<<12) // Use Windows %appdata% to store configuration and logs
+#define GO_MAPSAVE  (1ull<<13) // Load/Save minimap data
 
 #define GO_NOTSET   (1ull<<63) // No -o given on command line
 

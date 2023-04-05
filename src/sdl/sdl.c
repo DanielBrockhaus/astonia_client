@@ -189,9 +189,9 @@ int sdl_init(int width,int height,char *title) {
         dd_set_offset((width/sdl_scale-XRES)/2,(height/sdl_scale-YRES)/2);
     }
     if (game_options&GO_NOTSET) {
-        if (YRES>=620) game_options=GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_SHORT;
-        else if (YRES>=580) game_options=GO_CONTEXT|GO_ACTION|GO_SMALLBOT|GO_BIGBAR|GO_PREDICT|GO_SHORT;
-        else game_options=GO_CONTEXT|GO_ACTION|GO_SMALLBOT|GO_SMALLTOP|GO_BIGBAR|GO_PREDICT|GO_SHORT;
+        if (YRES>=620) game_options=GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE;
+        else if (YRES>=580) game_options=GO_CONTEXT|GO_ACTION|GO_SMALLBOT|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE;
+        else game_options=GO_CONTEXT|GO_ACTION|GO_SMALLBOT|GO_SMALLTOP|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE;
     }
     note("SDL using %dx%d scale %d",XRES,YRES,sdl_scale);
 
