@@ -267,6 +267,11 @@ static void map_save(void) {
     }
     if (cnt<250) return;
 
+    // check if another client wrote the same map
+    // in the meantime
+    mapnr=map_load();
+
+    // new map, find a save-slot
     if (mapnr==-1) {
         for (i=0; i<MAXSAVEMAP; i++) {
             filename=mapname(i);
@@ -279,6 +284,7 @@ static void map_save(void) {
         }
         mapnr=i;
     }
+
     filename=mapname(mapnr);
     //note("saving area map to %s",filename);
     handle=open(filename,O_RDWR|O_BINARY|O_TRUNC|O_CREAT,0644);
