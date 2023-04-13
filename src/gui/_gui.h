@@ -57,6 +57,9 @@
 
 #define BUT_WEA_LCK    101
 
+#define BUT_VNQ_CLOSE  102
+#define BUT_VNQ_ACCEPT 103
+
 #define MAX_BUT        102
 
 #define BUTF_NOHIT      (1<<1)  // button is ignored int hit processing
@@ -178,6 +181,9 @@
 #define CMD_ACTION_OPEN	        80
 
 #define CMD_WEAR_LOCK           81
+
+#define CMD_VNQ_CLOSE           82
+#define CMD_VNQ_ACCEPT          84
 
 #define STV_EMPTYLINE           -1
 #define STV_JUSTAVALUE          -2      // value is in curr
@@ -379,4 +385,4 @@ void dots_update(void);
 void display_action_lock(void);
 void display_action_open(void);
 void display_wear_lock(void);
-
+void display_vnquest(void);

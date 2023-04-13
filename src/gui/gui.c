@@ -620,6 +620,7 @@ static void display(void) {
     display_minimap();
     display_citem();
     context_display(mousex,mousey);
+    display_vnquest();
     display_helpandquest(); // display last because it is on top
 
     int duration=SDL_GetTicks64()-start;
@@ -1356,6 +1357,12 @@ static void set_cmd_states(void) {
     // reset
     butsel=mapsel=itmsel=chrsel=invsel=weasel=consel=sklsel=sklsel2=telsel=helpsel=colsel=skl_look_sel=questsel=actsel=-1;
 
+    if (vnq.title) {
+        if (mousex>=642 && mousey>=60 && mousex<=650 && mousey<=68) butsel=BUT_VNQ_CLOSE;
+        if (mousex>=568 && mousey>=338 && mousex<=612  && mousey<=350) butsel=BUT_VNQ_CLOSE;
+        if (mousex>=490 && mousey>=338 && mousex<=535  && mousey<=350) butsel=BUT_VNQ_ACCEPT;
+    }
+
     if ((display_help || display_quest) && mousex>=dotx(DOT_HLP) && mousex<=dotx(DOT_HL2)-40 && mousey>=doty(DOT_HLP) && mousey<=doty(DOT_HLP)+12)
         butsel=BUT_HELP_DRAG;
 
@@ -1527,6 +1534,8 @@ static void set_cmd_states(void) {
 
         if (butsel>=BUT_MOD_WALK0 && butsel<=BUT_MOD_WALK2) lcmd=CMD_SPEED0+butsel-BUT_MOD_WALK0;
 
+        if (butsel==BUT_VNQ_CLOSE) lcmd=CMD_VNQ_CLOSE;
+        if (butsel==BUT_VNQ_ACCEPT) lcmd=CMD_VNQ_ACCEPT;
         if (butsel==BUT_HELP_MISC) lcmd=CMD_HELP_MISC;
         if (butsel==BUT_HELP_PREV) lcmd=CMD_HELP_PREV;
         if (butsel==BUT_HELP_NEXT) lcmd=CMD_HELP_NEXT;
@@ -1751,6 +1760,8 @@ static void exec_cmd(int cmd,int a) {
         case CMD_ACTION_LOCK:   display_action_lock(); return;
         case CMD_ACTION_OPEN:   display_action_open(); return;
         case CMD_WEAR_LOCK:     display_wear_lock(); return;
+        case CMD_VNQ_CLOSE:     vnq.title=NULL; return;
+        case CMD_VNQ_ACCEPT:    return; // TODO: write me
     }
     return;
 }
