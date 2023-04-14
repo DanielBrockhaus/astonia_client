@@ -1358,9 +1358,14 @@ static void set_cmd_states(void) {
     butsel=mapsel=itmsel=chrsel=invsel=weasel=consel=sklsel=sklsel2=telsel=helpsel=colsel=skl_look_sel=questsel=actsel=-1;
 
     if (vnq.title) {
-        if (mousex>=642 && mousey>=60 && mousex<=650 && mousey<=68) butsel=BUT_VNQ_CLOSE;
-        if (mousex>=568 && mousey>=338 && mousex<=612  && mousey<=350) butsel=BUT_VNQ_CLOSE;
-        if (mousex>=490 && mousey>=338 && mousex<=535  && mousey<=350) butsel=BUT_VNQ_ACCEPT;
+        x=dotx(DOT_MTL)+(dotx(DOT_MBR)-dotx(DOT_MTL)-500)/2;
+        y=doty(DOT_MTL)+(doty(DOT_MBR)-doty(DOT_MTL)-300)/2;
+        if (mousex>=x && mousex<x+500 && mousey>=y && mousey<y+300) {
+            if (mousex>=x+490 && mousey>=y+0 && mousex<=x+499 && mousey<=y+8) butsel=BUT_VNQ_CLOSE;
+            else if (mousex>=x+340 && mousey>=y+278 && mousex<=x+384  && mousey<=y+291) butsel=BUT_VNQ_ACCEPT;
+            else if (mousex>=x+418 && mousey>=y+278 && mousex<=x+462  && mousey<=y+291) butsel=BUT_VNQ_CLOSE;
+            else butsel=BUT_VNQ_MISC;
+        }
     }
 
     if ((display_help || display_quest) && mousex>=dotx(DOT_HLP) && mousex<=dotx(DOT_HL2)-40 && mousey>=doty(DOT_HLP) && mousey<=doty(DOT_HLP)+12)
@@ -1639,6 +1644,14 @@ static void cmd_action(void) {
         case 12:    minimap_toggle(); break;
     }
 }
+static void vnq_accept(void) {
+    char buf[80];
+
+    sprintf(buf,"accept quest %d",vnq.ID);
+    cmd_text(buf);
+
+    vnq.title=NULL;
+}
 
 static void exec_cmd(int cmd,int a) {
     action_ovr=-1;
@@ -1761,7 +1774,7 @@ static void exec_cmd(int cmd,int a) {
         case CMD_ACTION_OPEN:   display_action_open(); return;
         case CMD_WEAR_LOCK:     display_wear_lock(); return;
         case CMD_VNQ_CLOSE:     vnq.title=NULL; return;
-        case CMD_VNQ_ACCEPT:    return; // TODO: write me
+        case CMD_VNQ_ACCEPT:    vnq_accept(); return;
     }
     return;
 }

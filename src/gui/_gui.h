@@ -59,8 +59,9 @@
 
 #define BUT_VNQ_CLOSE  102
 #define BUT_VNQ_ACCEPT 103
+#define BUT_VNQ_MISC   104
 
-#define MAX_BUT        102
+#define MAX_BUT        105
 
 #define BUTF_NOHIT      (1<<1)  // button is ignored int hit processing
 #define BUTF_CAPTURE    (1<<2)  // button captures mouse on lclick
@@ -183,7 +184,7 @@
 #define CMD_WEAR_LOCK           81
 
 #define CMD_VNQ_CLOSE           82
-#define CMD_VNQ_ACCEPT          84
+#define CMD_VNQ_ACCEPT          83
 
 #define STV_EMPTYLINE           -1
 #define STV_JUSTAVALUE          -2      // value is in curr
