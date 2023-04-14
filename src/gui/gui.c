@@ -1650,6 +1650,7 @@ static void vnq_accept(void) {
     sprintf(buf,"accept quest %d",vnq.ID);
     cmd_text(buf);
 
+    if (vnq.title) xfree(vnq.title);
     vnq.title=NULL;
 }
 
@@ -1773,7 +1774,9 @@ static void exec_cmd(int cmd,int a) {
         case CMD_ACTION_LOCK:   display_action_lock(); return;
         case CMD_ACTION_OPEN:   display_action_open(); return;
         case CMD_WEAR_LOCK:     display_wear_lock(); return;
-        case CMD_VNQ_CLOSE:     vnq.title=NULL; return;
+        case CMD_VNQ_CLOSE:     if (vnq.title) xfree(vnq.title);
+                                vnq.title=NULL;
+                                return;
         case CMD_VNQ_ACCEPT:    vnq_accept(); return;
     }
     return;

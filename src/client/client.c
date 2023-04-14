@@ -963,12 +963,12 @@ void process(unsigned char *buf,int size) {
                 case SV_UNIQUE:			        sv_unique(buf); len=5; break;
                 case SV_QUESTLOG:		        sv_questlog(buf); len=101+sizeof(struct shrine_ppd); break;
                 case SV_PROTOCOL:               sv_protocol(buf); len=2; break;
-                case SV_VNQUEST:                len+=sv_vnquest(buf); break;
+                case SV_VNQUEST:                len=sv_vnquest(buf); break;
 
                 default:                        len=amod_process(buf);
                                                 if (!len) {
                                                     fail("got illegal command %d",buf[0]);
-                                                    exit(1);
+                                                    exit(101);
                                                 }
                                                 break;
             }
@@ -977,7 +977,7 @@ void process(unsigned char *buf,int size) {
     }
 
     if (size) {
-        fail("PANIC! size=%d",size); exit(1);
+        fail("PANIC! size=%d",size); exit(102);
     }
 }
 
@@ -1032,7 +1032,7 @@ int prefetch(unsigned char *buf,int size) {
                 case SV_CONTYPE:		        len=2; break;
                 case SV_CONNAME:		        len=svl_conname(buf); break;
 
-                case SV_MIRROR:                len=5; break;
+                case SV_MIRROR:                 len=5; break;
 
                 case SV_GOLD:			        len=5; break;
 
@@ -1056,12 +1056,12 @@ int prefetch(unsigned char *buf,int size) {
                 case SV_UNIQUE:			        len=5; break;
                 case SV_QUESTLOG:		        len=101+sizeof(struct shrine_ppd); break;
                 case SV_PROTOCOL:               len=2; break;
-                case SV_VNQUEST:                len+=svl_vnquest(buf); break;
+                case SV_VNQUEST:                len=svl_vnquest(buf); break;
 
                 default:                        len=amod_prefetch(buf);
                                                 if (!len) {
                                                     fail("got illegal command %d",buf[0]);
-                                                    exit(1);
+                                                    exit(103);
                                                 }
                                                 break;
             }
@@ -1070,7 +1070,7 @@ int prefetch(unsigned char *buf,int size) {
     }
 
     if (size) {
-        printf("2 PANIC! size=%d",size); exit(1);
+        fail("2 PANIC! size=%d",size); exit(104);
     }
 
     prefetch_tick++;

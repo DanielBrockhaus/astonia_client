@@ -761,7 +761,7 @@ int sdl_load_image(struct sdl_image *si,int sprite) {
         "not from within the bin-folder.\n\n"
         "You can create a shortcut with the working directory set to the main folder.";
     display_messagebox("Graphics Not Found",txt);
-    exit(1);
+    exit(105);
     return -1;
 }
 
