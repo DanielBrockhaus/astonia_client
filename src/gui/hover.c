@@ -308,7 +308,7 @@ static int display_hover_skill(void) {
         } else if (v==V_TACTICS) {
             offense=tactics2melee(value[0][v]);
             defense=tactics2melee(value[0][v]);
-            immune=tactics2immune(value[0][v]);
+            immune=tactics2immune(value[0][v]+14);
             if (value[0][V_BLESS]) {
                 spells=tactics2spell(value[0][v]);
                 height+=10;
@@ -325,7 +325,7 @@ static int display_hover_skill(void) {
             tactics=tactics2spell(value[0][V_TACTICS]);
             height+=10;
         } else if (v==V_IMMUNITY) {
-            tactics=tactics2immune(value[0][V_TACTICS]);
+            tactics=tactics2immune(value[0][V_TACTICS]+14);
             height+=10;
         }
 

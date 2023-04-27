@@ -246,7 +246,7 @@ void minimap_toggle(void) {
 }
 
 void minimap_hide(void) {
-    visible=1;
+    if (visible) visible=1;
 }
 
 static char *mapname(int i) {
