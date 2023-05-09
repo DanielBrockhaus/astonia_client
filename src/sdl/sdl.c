@@ -93,8 +93,8 @@ void sdl_dump(FILE *fp) {
     fprintf(fp,"\n");
 }
 
-//#define GO_DEFAULTS (GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE)
-#define GO_DEFAULTS (GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_MAPSAVE)
+#define GO_DEFAULTS (GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE)
+//#define GO_DEFAULTS (GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE|GO_LIGHTER2)
 
 int sdl_init(int width,int height,char *title) {
     int len,i;
@@ -789,6 +789,18 @@ int sdl_ic_load(int sprite) {
 
 #define DDFX_MAX_FREEZE         8
 
+static inline int light_calc(int val,int light) {
+    int v1,v2,m=3,d=4;
+
+    if (game_options&(GO_LIGHTER|GO_LIGHTER2)) {
+        v1=val*light/15;
+        v2=val*sqrt(light)/3.87;
+        if (game_options&GO_LIGHTER) { m--; d--; }
+        if (game_options&GO_LIGHTER2) { m-=2; d-=2; }
+        return (v1*m+v2)/d;
+    } else return val*light/15;
+}
+
 static inline uint32_t sdl_light(int light,uint32_t irgb) {
     int r,g,b,a;
 
@@ -802,9 +814,9 @@ static inline uint32_t sdl_light(int light,uint32_t irgb) {
         g=min(255,g*2+4);
         b=min(255,b*2+4);
     } else {
-        r=r*light/15;
-        g=g*light/15;
-        b=b*light/15;
+        r=light_calc(r,light);
+        g=light_calc(g,light);
+        b=light_calc(b,light);
     }
 
     return IRGBA(r,g,b,a);

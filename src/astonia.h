@@ -129,6 +129,8 @@ extern char localdata[MAX_PATH];
 #define GO_SHORT    (1ull<<11) // Less command delay, more stutter in animations
 #define GO_APPDATA  (1ull<<12) // Use Windows %appdata% to store configuration and logs
 #define GO_MAPSAVE  (1ull<<13) // Load/Save minimap data
+#define GO_LIGHTER  (1ull<<14) // Gamma increase, sort of
+#define GO_LIGHTER2 (1ull<<15) // More gamma increase
 
 #define GO_NOTSET   (1ull<<63) // No -o given on command line
 
