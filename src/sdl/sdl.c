@@ -1622,6 +1622,15 @@ int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,in
         if (sdlt[stx].flags&SF_DIDTEX) {
             mem_tex-=sdlt[stx].xres*sdlt[stx].yres*sizeof(uint32_t);
             if (sdlt[stx].tex) SDL_DestroyTexture(sdlt[stx].tex);
+        } else if (sdlt[stx].flags&SF_DIDALLOC) {
+            if (sdlt[stx].pixel) {
+#ifdef SDL_FAST_MALLOC
+                free(sdlt[stx].pixel);
+#else
+                xfree(sdlt[stx].pixel);
+#endif
+                sdlt[stx].pixel=NULL;
+            }
         }
 #ifdef SDL_FAST_MALLOC
         if (sdlt[stx].flags&SF_TEXT) {
