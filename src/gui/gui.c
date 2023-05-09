@@ -1927,6 +1927,8 @@ void gui_sdl_keyproc(int wparam) {
             if (!context_key_isset()) context_action_enable(0);
             break;
 
+        //case '<':               dd_sceweup(); break;
+
         case SDLK_INSERT:
             if (vk_shift && !vk_control && !vk_alt) gui_insert();
             break;

@@ -552,9 +552,9 @@ void display_usage(void) {
     buf+=sprintf(buf,"Bit 10 enables out-of-order execution (read: faster) of inventory access and command feedback. ");
     buf+=sprintf(buf,"Bit 11 reduces the animation buffer for faster reactions and more stutter. ");
     buf+=sprintf(buf,"Bit 12 writes application files to %%appdata%% instead of the current folder. ");
-    buf+=sprintf(buf,"Bit 13 enables the loading and saving of minimaps (EXPERIMETAL). ");
+    buf+=sprintf(buf,"Bit 13 enables the loading and saving of minimaps (EXPERIMENTAL). ");
     buf+=sprintf(buf,"Default depends on screen height.\n\n");
-    buf+=sprintf(buf,"cachesize is the size of the texture cache. Default is 8000. Very low numbers will crash!\n\n");
+    buf+=sprintf(buf,"cachesize is the size of the texture cache. Default is 8000. Lower numbers might crash!\n\n");
     buf+=sprintf(buf,"framespersecond will set the display rate in frames per second.\n\n");
 
     MessageBox(NULL,txt,"Usage",MB_APPLMODAL|MB_OK|MB_ICONEXCLAMATION);

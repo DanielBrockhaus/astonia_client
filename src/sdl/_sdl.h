@@ -31,6 +31,8 @@ struct sdl_texture {
 
     uint16_t flags;
 
+    int fortick;        // pre-cached for tick X
+
     // ---------- sprites ------------
     // fx
     int32_t sprite;

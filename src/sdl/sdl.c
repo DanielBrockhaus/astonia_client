@@ -93,6 +93,9 @@ void sdl_dump(FILE *fp) {
     fprintf(fp,"\n");
 }
 
+//#define GO_DEFAULTS (GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE)
+#define GO_DEFAULTS (GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_MAPSAVE)
+
 int sdl_init(int width,int height,char *title) {
     int len,i;
     SDL_DisplayMode DM;
@@ -190,9 +193,9 @@ int sdl_init(int width,int height,char *title) {
         dd_set_offset((width/sdl_scale-XRES)/2,(height/sdl_scale-YRES)/2);
     }
     if (game_options&GO_NOTSET) {
-        if (YRES>=620) game_options=GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE;
-        else if (YRES>=580) game_options=GO_CONTEXT|GO_ACTION|GO_SMALLBOT|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE;
-        else game_options=GO_CONTEXT|GO_ACTION|GO_SMALLBOT|GO_SMALLTOP|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE;
+        if (YRES>=620) game_options=GO_DEFAULTS;
+        else if (YRES>=580) game_options=GO_DEFAULTS|GO_SMALLBOT;
+        else game_options=GO_DEFAULTS|GO_SMALLBOT|GO_SMALLTOP;
     }
     note("SDL using %dx%d scale %d",XRES,YRES,sdl_scale);
 
@@ -1281,7 +1284,9 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
 
     if (!preload || preload==3) {
         if (!(st->flags&SF_DIDMAKE)) {
+#if 0
             fail("cannot texture without make for sprite %d (%d)",st->sprite,preload);
+#endif
             //note("... sprite=%d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)",st->sprite,st->sink,st->freeze,st->scale,st->cr,st->cg,st->cb,st->light,st->sat,st->c1,st->c2,st->c3,st->shine,st->ml,st->ll,st->rl,st->ul,st->dl);
             return;
         }
@@ -1378,7 +1383,7 @@ static inline unsigned int hashfunc_text(const char *text,int color,int flags) {
 SDL_Texture *sdl_maketext(const char *text,struct ddfont *font,uint32_t color,int flags);
 
 int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,int light,int sat,int c1,int c2,int c3,int shine,int ml,int ll,int rl,int ul,int dl,
-                const char *text,int text_color,int text_flags,void *text_font,int checkonly,int preload) {
+                const char *text,int text_color,int text_flags,void *text_font,int checkonly,int preload,int fortick) {
     int stx,ptx,ntx,panic=0;
     int hash;
 
@@ -1529,6 +1534,9 @@ int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,in
         sdlt[stx].hnext=ntx;
 
         sdlt_cache[hash]=stx;
+
+        // update statistics
+        if (fortick) sdlt[stx].fortick=fortick;
 #if 0
         if (!preload && sdl_frames>10 && sprite) {    // wait for things to stabilize before reporting misses
             printf("hit  sprite=%5d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d) M\n",
@@ -1555,22 +1563,36 @@ int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,in
 
         if (sdlt[stx].flags&SF_SPRITE) {
             if (sdl_multi) {
-                while (sdlt[stx].flags&(SF_BUSY)) {
-                    note("Delete: Busy");
+                panic=0;
+                while (42) {
+                    SDL_LockMutex(premutex);
+                    if (!(sdlt[stx].flags&(SF_BUSY))) {
+                        sdlt[stx].flags|=SF_BUSY;
+                        SDL_UnlockMutex(premutex);
+                        break;
+                    }
+                    SDL_UnlockMutex(premutex);
+                    //note("Delete: Busy");
                     SDL_Delay(1);
+                    if (panic++>100) { fail("texture cache too small (Delete: BUSY)"); exit(42); }
                 }
+#if 0
+                panic=0;
                 while (!(sdlt[stx].flags&(SF_DIDMAKE))) {
-                    note("Delete: Busy2");
+                    //note("Delete: Busy2");
                     SDL_Delay(1);
+                    if (panic++>100) { fail("texture cache too small (Delete: DIDMAKE)"); exit(42); }
                 }
-
+#endif
             }
+#if 0
             if (!(sdlt[stx].flags&(SF_DIDALLOC)))
                 warn("Delete: noalloc");
             if (!(sdlt[stx].flags&(SF_DIDMAKE)))
                 warn("Delete: nomake");
             if (!(sdlt[stx].flags&(SF_DIDTEX)))
                 warn("Delete: notex");
+#endif
         }
 
         if (sdlt[stx].flags&SF_SPRITE) hash2=hashfunc(sdlt[stx].sprite,sdlt[stx].ml,sdlt[stx].ll,sdlt[stx].rl,sdlt[stx].ul,sdlt[stx].dl);
@@ -1594,14 +1616,15 @@ int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,in
             sdlt[ntx].hprev=sdlt[stx].hprev;
         }
 
-
         if (sdlt[stx].flags&SF_DIDTEX) {
             mem_tex-=sdlt[stx].xres*sdlt[stx].yres*sizeof(uint32_t);
             if (sdlt[stx].tex) SDL_DestroyTexture(sdlt[stx].tex);
-        } else {
+        }
+#if 0
+        else {
             warn("Delete unfinished texture?? stx=%d, sprite=%d",stx,sdlt[stx].sprite);
         }
-
+#endif
 #ifdef SDL_FAST_MALLOC
         if (sdlt[stx].flags&SF_TEXT) {
             free(sdlt[stx].text);
@@ -1675,6 +1698,9 @@ int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,in
     sdlt_cache[hash]=stx;
 
     sdl_tx_best(stx);
+
+    // update statistics
+    if (fortick) sdlt[stx].fortick=fortick;
 
     if (preload) texc_pre++;
     else if (sprite) {  // Do not count missed text sprites. Those are expected.
@@ -1870,7 +1896,16 @@ void sdl_dump_spritecache(void) {
         }
 
         if (sdlt[n].flags&SF_SPRITE)
-            fprintf(fp,"Sprite: %6d, Lights: %2d,%2d,%2d,%2d,%2d, Light: %3d, Colors: %3d,%3d,%3d, Colors: %4X,%4X,%4X, Sink: %2d, Freeze: %2d, Scale: %3d, Sat: %3d, Shine: %3d, %dx%d\n",
+            fprintf(fp,"Sprite: %6d (%06d) %s%s%s%s%s\n",
+                    sdlt[n].sprite,
+                    sdlt[n].fortick,
+                    (sdlt[n].flags&SF_USED)?"SF_USED ":"",
+                    (sdlt[n].flags&SF_DIDALLOC)?"SF_DIDALLOC ":"",
+                    (sdlt[n].flags&SF_DIDMAKE)?"SF_DIDMAKE ":"",
+                    (sdlt[n].flags&SF_DIDTEX)?"SF_DIDTEX ":"",
+                    (sdlt[n].flags&SF_BUSY)?"SF_BUSY ":"");
+
+            /*fprintf(fp,"Sprite: %6d, Lights: %2d,%2d,%2d,%2d,%2d, Light: %3d, Colors: %3d,%3d,%3d, Colors: %4X,%4X,%4X, Sink: %2d, Freeze: %2d, Scale: %3d, Sat: %3d, Shine: %3d, %dx%d\n",
                    sdlt[n].sprite,
                    sdlt[n].ml,
                    sdlt[n].ll,
@@ -1890,7 +1925,7 @@ void sdl_dump_spritecache(void) {
                    sdlt[n].sat,
                    sdlt[n].shine,
                    sdlt[n].xres,
-                   sdlt[n].yres);
+                   sdlt[n].yres);*/
         if (sdlt[n].flags&SF_TEXT)
             fprintf(fp,"Color: %08X, Flags: %04X, Font: %p, Text: %s (%dx%d)\n",
                     sdlt[n].text_color,
@@ -1940,7 +1975,7 @@ int sdl_drawtext(int sx,int sy,unsigned short int color,int flags,const char *te
     if (flags&DD_NOCACHE) {
         tex=sdl_maketext(text,font,IRGBA(r,g,b,a),flags);
     } else {
-        stx=sdl_tx_load(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,text,IRGBA(r,g,b,a),flags,font,0,0);
+        stx=sdl_tx_load(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,text,IRGBA(r,g,b,a),flags,font,0,0,0);
         tex=sdlt[stx].tex;
     }
 
@@ -2371,16 +2406,6 @@ struct prefetch {
     int attick;
 
     int stx;
-
-    int32_t sprite;
-    int8_t sink;
-    uint8_t scale;
-    int16_t cr,cg,cb,light,sat;
-    uint16_t c1,c2,c3,shine;
-
-    uint8_t freeze;
-
-    int8_t ml,ll,rl,ul,dl;
 };
 
 #define MAXPRE (16384)
@@ -2401,42 +2426,12 @@ void sdl_pre_add(int attick,int sprite,signed char sink,unsigned char freeze,uns
     // Find in texture cache
     // Will allocate a new entry if not found, or return -1 if already in cache
     start=SDL_GetTicks64();
-    n=sdl_tx_load(sprite,sink,freeze,scale,cr,cg,cb,light,sat,c1,c2,c3,shine,ml,ll,rl,ul,dl,NULL,0,0,NULL,0,1);
+    n=sdl_tx_load(sprite,sink,freeze,scale,cr,cg,cb,light,sat,c1,c2,c3,shine,ml,ll,rl,ul,dl,NULL,0,0,NULL,0,1,attick);
     sdl_time_alloc+=SDL_GetTicks64()-start;
     if (n==-1) return;
 
     pre[pre_in].stx=n;
     pre[pre_in].attick=attick;
-    pre[pre_in].sprite=sprite;
-    pre[pre_in].sink=sink;
-    pre[pre_in].freeze=freeze;
-    pre[pre_in].scale=scale;
-    pre[pre_in].cr=cr;
-    pre[pre_in].cg=cg;
-    pre[pre_in].cb=cb;
-    pre[pre_in].light=light;
-    pre[pre_in].sat=sat;
-    pre[pre_in].c1=c1;
-    pre[pre_in].c2=c2;
-    pre[pre_in].c3=c3;
-    pre[pre_in].shine=shine;
-    pre[pre_in].ml=ml;
-    pre[pre_in].ll=ll;
-    pre[pre_in].rl=rl;
-    pre[pre_in].dl=dl;
-    pre[pre_in].ul=ul;
-
-#if 0
-    if (1) {
-        printf("add  sprite=%5d (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d) A\n",
-                   sprite,
-                   pre[pre_in].sink,pre[pre_in].freeze,pre[pre_in].scale,
-                   pre[pre_in].cr,pre[pre_in].cg,pre[pre_in].cb,pre[pre_in].light,
-                   pre[pre_in].sat,pre[pre_in].c1,pre[pre_in].c2,pre[pre_in].c3,
-                   pre[pre_in].shine,pre[pre_in].ml,pre[pre_in].ll,pre[pre_in].rl,
-                   pre[pre_in].ul,pre[pre_in].dl);
-    }
-#endif
     pre_in=(pre_in+1)%MAXPRE;
 }
 
@@ -2453,19 +2448,15 @@ int sdl_pre_1(void) {
 
     if (pre_in==pre_1) return 0;  // prefetch buffer is empty
 
-    //printf("Preload1: Slot %d, sprite %d (%d, %d, %d, %d)\n",pre_1,pre[pre_1].sprite,pre_in,pre_1,pre_2,pre_3); fflush(stdout);
-
     if (!(sdlt[pre[pre_1].stx].flags&SF_DIDALLOC)) {
 
-        sdl_ic_load(pre[pre_1].sprite);
+        sdl_ic_load(sdlt[pre[pre_1].stx].sprite);
 
-        sdl_make(sdlt+pre[pre_1].stx,sdli+pre[pre_1].sprite,1);
+        sdl_make(sdlt+pre[pre_1].stx,sdli+sdlt[pre[pre_1].stx].sprite,1);
 
         if (sdl_multi) SDL_SemPost(prework);
     }
     pre_1=(pre_1+1)%MAXPRE;
-
-    //printf("Preload1: done.\n"); fflush(stdout);
 
     return 1;
 
@@ -2487,7 +2478,7 @@ int sdl_pre_2(void) {
             sdlt[pre[i].stx].flags|=SF_BUSY;
             if (sdl_multi) SDL_UnlockMutex(premutex);
 
-            sdl_make(sdlt+pre[i].stx,sdli+pre[i].sprite,2);
+            sdl_make(sdlt+pre[i].stx,sdli+sdlt[pre[i].stx].sprite,2);
 
             if (sdl_multi) SDL_LockMutex(premutex);
             sdlt[pre[i].stx].flags&=~SF_BUSY;
@@ -2502,13 +2493,11 @@ int sdl_pre_2(void) {
     }
 
     if (sdl_multi) SDL_LockMutex(premutex);
-    while (pre[pre_2].stx!=STX_NONE && (sdlt[pre[pre_2].stx].flags&SF_DIDMAKE) && pre_1!=pre_2) {
+    while ((pre[pre_2].stx==STX_NONE || (sdlt[pre[pre_2].stx].flags&SF_DIDMAKE)) && pre_1!=pre_2) {
         work=1;
         pre_2=(pre_2+1)%MAXPRE;
     }
     if (sdl_multi) SDL_UnlockMutex(premutex);
-
-    //printf("Preload2: done.\n"); fflush(stdout);
 
     return work;
 }
@@ -2517,12 +2506,9 @@ int sdl_pre_3(void) {
 
     if (pre_2==pre_3) return 0;  // prefetch buffer is empty
 
-    //printf("Preload3: Slot %d, sprite %d (%d, %d, %d, %d)\n",pre_3,pre[pre_3].sprite,pre_in,pre_1,pre_2,pre_3); fflush(stdout);
     if (!(sdlt[pre[pre_3].stx].flags&SF_DIDTEX))
-        sdl_make(sdlt+pre[pre_3].stx,sdli+pre[pre_3].sprite,3);
+        sdl_make(sdlt+pre[pre_3].stx,sdli+sdlt[pre[pre_3].stx].sprite,3);
     pre_3=(pre_3+1)%MAXPRE;
-
-    //printf("Preload3: done.\n"); fflush(stdout);
 
     return 1;
 
@@ -2531,8 +2517,6 @@ int sdl_pre_3(void) {
 int sdl_pre_do(int curtick) {
     long long start;
     int size;
-
-    //printf("Pre Do In\n"); fflush(stdout);
 
     start=SDL_GetTicks64();
     sdl_pre_1();
@@ -2554,8 +2538,6 @@ int sdl_pre_do(int curtick) {
 
     if (pre_2>=pre_3) size+=pre_2-pre_3;
     else size+=MAXPRE+pre_2-pre_3;
-
-    //printf("Pre Do Out\n"); fflush(stdout);
 
     return size;
 }

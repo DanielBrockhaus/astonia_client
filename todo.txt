@@ -16,6 +16,11 @@ Bugs
 Soon
 ----
 
+- Re-write text chat scroll logic to be more understandable (and fix the stuck chat bug)
+
+- "Use With" needs to trump "Give" when using the new keyboard shortcuts. Otherwise Fire Underground station
+  reloading is almost impossible.
+
 - "Clean up" zoomed map so it looks less pixelated
 
 - gs2 / fs2 to break up monotony of the new walls and floors

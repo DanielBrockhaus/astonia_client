@@ -124,7 +124,7 @@ __declspec(dllexport) int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry) {
                  ddfx->rl,
                  ddfx->ul,
                  ddfx->dl,
-                 NULL,0,0,NULL,0,0);
+                 NULL,0,0,NULL,0,0,0);
 
     if (stx==-1) return 0;
 
@@ -901,23 +901,33 @@ void dd_list_text(void) {
     note("textlines=%d, textdisplayline=%d",textlines,textdisplayline);
 }
 
+void dd_sceweup(void) {
+    textdisplayline=textlines+rand()%16;
+}
+
 void dd_text_lineup(void) {
     int tmp;
+
+    //printf("up: textlines=%d,displaylines=%d\n",textlines,textdisplayline); fflush(stdout);
 
     if (textlines<=TEXTDISPLAYLINES) return;
 
     tmp=(textdisplayline+MAXTEXTLINES-1)%MAXTEXTLINES;
-    if (textlines<MAXTEXTLINES-1 && tmp>textlines) return;
+    //printf("up: tmp=%d\n",tmp); fflush(stdout);
+    //if (textlines<MAXTEXTLINES-1 && tmp>textlines) return; // TODO: test if this line causes the "chat will not scroll" bug
     if (tmp!=textnextline) textdisplayline=tmp;
 }
 
 void dd_text_linedown(void) {
     int tmp;
 
+    //printf("down: textlines=%d,displaylines=%d, textnextline=%d\n",textlines,textdisplayline,textnextline); fflush(stdout);
+
     if (textlines<=TEXTDISPLAYLINES) return;
 
     tmp=(textdisplayline+1)%MAXTEXTLINES;
     if (tmp!=(textnextline+MAXTEXTLINES-TEXTDISPLAYLINES+1)%MAXTEXTLINES) textdisplayline=tmp;
+    //printf("down: tmp=%d (%d)\n",tmp,(textnextline+MAXTEXTLINES-TEXTDISPLAYLINES+1)%MAXTEXTLINES); fflush(stdout);
 }
 
 void dd_text_pageup(void) {
