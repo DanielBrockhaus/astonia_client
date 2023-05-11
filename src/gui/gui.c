@@ -23,6 +23,8 @@
 
 uint64_t gui_time_misc=0;
 
+__declspec(dllexport) int game_slowdown=0;
+
 #define MAXHELP		24
 #define MAXQUEST2	10
 
@@ -655,11 +657,14 @@ static void display(void) {
 #endif
 #if 0
         extern int pre_in,pre_1,pre_2,pre_3;
+        extern int texc_used;
         py+=10;
         dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME|DD_NOCACHE,"PreI %d",pre_in);
         dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME|DD_NOCACHE,"Pre1 %d",pre_1);
         dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME|DD_NOCACHE,"Pre2 %d",pre_2);
         dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME|DD_NOCACHE,"Pre3 %d",pre_3);
+        dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME|DD_NOCACHE,"Used %d",texc_used);
+        dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME|DD_NOCACHE,"Size %d",sdl_cache_size);
 #endif
         //dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Miss %lld",texc_miss);
         //dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"Prel %lld",texc_pre);
@@ -2221,7 +2226,7 @@ int main_loop(void) {
             // decode as many ticks as we can
             // and add their contents to the prefetch queue
             while ((attick=next_tick()))
-                prefetch_game(attick);
+                if (!(attick&3) || !game_slowdown) prefetch_game(attick);
 
             // get one tick to display?
             timediff=nexttick-SDL_GetTicks();
@@ -2251,7 +2256,7 @@ int main_loop(void) {
             gui_frametime=SDL_GetTicks64()-gui_last_frame;
             gui_last_frame=SDL_GetTicks64();
 
-            if (sdl_is_shown()) {
+            if (sdl_is_shown() && (!(tick&3) || !game_slowdown)) {
                 sdl_clear();
                 display();
                 amod_frame();

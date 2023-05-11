@@ -28,6 +28,11 @@ __declspec(dllexport) void amod_gamestart(void) {
 __declspec(dllexport) int amod_client_cmd(char *buf) {
     static unsigned long long option_ovr=0;
 
+    if (!strncmp(buf, "#slow",5)) {
+        game_slowdown=1-game_slowdown;
+        return 1;
+    }
+
     if (!strncmp(buf, "#option ", 8)) {
     	option_ovr=strtoull(&buf[8],NULL,10);
         addline("Old options=%llu, new options=%llu",game_options,option_ovr);
@@ -89,17 +94,7 @@ __declspec(dllexport) int amod_prefetch(char *buf) {
     return 0;
 }
 
-// testing new alpha
 __declspec(dllexport) void amod_frame(void) {
-    DDFX ddfx;
-    bzero(&ddfx,sizeof(ddfx));
-    ddfx.alpha=tick%255;
-    ddfx.sprite=20692;
-    ddfx.scale=100;
-    ddfx.light=DDFX_NLIGHT;
-    ddfx.align=DD_CENTER;
-    ddfx.ml=ddfx.ll=ddfx.rl=ddfx.ul=ddfx.dl=DDFX_NLIGHT;
 
-    dd_copysprite_fx(&ddfx,XRES/2,YRES/2);
 }
 

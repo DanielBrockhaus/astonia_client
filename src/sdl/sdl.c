@@ -30,6 +30,7 @@ static SDL_Cursor *curs[20];
 
 static struct sdl_image *sdli=NULL;
 
+int texc_used=0;
 long long mem_png=0,mem_tex=0;
 long long texc_hit=0,texc_miss=0,texc_pre=0;
 
@@ -1645,7 +1646,7 @@ int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,in
 #endif
 
         sdlt[stx].flags=0;
-    }
+    } else texc_used++;
 
     // build
     if (text) {

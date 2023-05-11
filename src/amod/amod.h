@@ -156,6 +156,7 @@ __declspec(dllimport) int sdl_multi;
 __declspec(dllimport) int sdl_cache_size;
 __declspec(dllimport) int frames_per_second;
 __declspec(dllimport) uint64_t game_options;
+__declspec(dllimport) int game_slowdown;
 
 
 // ---------------- override-able functions, also exported from client ----------------
