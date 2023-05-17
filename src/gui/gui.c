@@ -817,7 +817,6 @@ static void display(void) {
             memsize[0]/1024.0/1024.0,memused/1024.0/1024.0,
             memptrs[0]/1024.0,memptrused/1024.0);
 
-    display_mouseover();
 }
 
 // cmd
@@ -2256,10 +2255,11 @@ int main_loop(void) {
             gui_frametime=SDL_GetTicks64()-gui_last_frame;
             gui_last_frame=SDL_GetTicks64();
 
-            if (sdl_is_shown() && (!(tick&3) || !game_slowdown)) {
+            if (sdl_is_shown() && (!(tick&3) || !game_slowdown || sockstate!=4)) {
                 sdl_clear();
                 display();
                 amod_frame();
+                display_mouseover();
                 minimap_update();
             }
 
