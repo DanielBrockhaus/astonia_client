@@ -869,7 +869,7 @@ int dd_scantext(int x,int y,char *hit) {
     n=(n+textdisplayline)%MAXTEXTLINES;
 
     for (pos=n*MAXTEXTLETTERS,dx=m=0; m<MAXTEXTLETTERS && text[pos].c; m++,pos++) {
-        if (text[pos].c>0 && text[pos].c<32) { dx=((int)text[pos].c)*12+dotx(DOT_TXT); continue; }
+        if (text[pos].c>0 && text[pos].c<32) { dx=((int)text[pos].c)*12; continue; }
 
         dx+=textfont[text[pos].c].dim;
 
