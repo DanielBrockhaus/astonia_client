@@ -584,12 +584,10 @@ static void display(void) {
         display_text();
         if ((now/1000)&1) dd_drawtext(800/2,540/2-60,redcolor,DD_CENTER|DD_LARGE,"not connected");
         dd_copysprite(60,800/2,(540-240)/2,DDFX_NLIGHT,DD_CENTER);
-        dd_copysprite(1,mousex,mousey+5,DDFX_BRIGHT,DD_CENTER);
         if (!kicked_out) {
             dd_drawtext_fmt(800/2,540/2-40,textcolor,DD_SMALL|DD_CENTER|DD_FRAME,"Trying to establish connection. %d seconds...",t);
             if (t>15) {
-                dd_drawtext_fmt(800/2,540/2-20,textcolor,DD_LARGE|DD_CENTER|DD_FRAME,"If you have connection problems, please try a different connection in the lower left of the client startup screen.");
-                dd_drawtext_fmt(800/2,540/2-0,textcolor,DD_LARGE|DD_CENTER|DD_FRAME,"Additional information can be found at %s.",game_url);
+                dd_drawtext_fmt(800/2,540/2-0,textcolor,DD_LARGE|DD_CENTER|DD_FRAME,"Please check %s for troubleshooting advice.",game_url);
             }
         }
         return;
