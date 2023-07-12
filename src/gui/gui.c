@@ -559,7 +559,7 @@ static void display(void) {
     extern int memused;
     extern int memptrused;
     extern long long sdl_time_make,sdl_time_tex,sdl_time_tex_main,sdl_time_text,sdl_time_blit;
-    int t;
+    int t,tmp;
     long long start=SDL_GetTicks64();
 
 #if 0
@@ -571,8 +571,10 @@ static void display(void) {
     sdl_time_blit=0;
 #endif
 
-    if (!sdl_check_mouse()) {
-        mousex=mousey=-1;
+    if ((tmp=sdl_check_mouse())) {
+        mousex=-1;
+        if (tmp==-1) mousey=0;
+        else mousey=YRES/2;
     }
 
     display_toplogic();

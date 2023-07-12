@@ -95,7 +95,7 @@ void sdl_dump(FILE *fp) {
 }
 
 #define GO_DEFAULTS (GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE)
-//#define GO_DEFAULTS (GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE|GO_CONTEXT)
+//#define GO_DEFAULTS (GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE|GO_SMALLTOP)
 
 int sdl_init(int width,int height,char *title) {
     int len,i;
@@ -2673,8 +2673,10 @@ int sdl_check_mouse(void)
     SDL_GetWindowPosition(sdlwnd,&x2,&y2);
     SDL_GetWindowSize(sdlwnd,&x3,&y3);
 
-    if (x<x2 || y<y2 || x>x2+x3 || y>y2+y3) return 0;
-    return 1;
+    if (x<x2 || y2-y>100*sdl_scale || x>x2+x3 || y>y2+y3) return 1;
+    if (y<y2) return -1;
+
+    return 0;
 }
 
 /*
