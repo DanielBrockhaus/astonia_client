@@ -95,7 +95,7 @@ void sdl_dump(FILE *fp) {
 }
 
 #define GO_DEFAULTS (GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE)
-//#define GO_DEFAULTS (GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE|GO_SMALLTOP)
+//#define GO_DEFAULTS (GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE|GO_SMALLTOP|GO_TINYTOP)
 
 int sdl_init(int width,int height,char *title) {
     int len,i;
@@ -2667,13 +2667,21 @@ void sdl_tex_alpha(int stx,int alpha) {
 
 int sdl_check_mouse(void)
 {
-    int x,y,x2,y2,x3,y3;
+    int x,y,x2,y2,x3,y3,top;
     SDL_GetGlobalMouseState(&x,&y);
 
     SDL_GetWindowPosition(sdlwnd,&x2,&y2);
     SDL_GetWindowSize(sdlwnd,&x3,&y3);
+    SDL_GetWindowBordersSize(sdlwnd, &top, NULL, NULL, NULL);
 
-    if (x<x2 || y2-y>100*sdl_scale || x>x2+x3 || y>y2+y3) return 1;
+    if (x<x2 || x>x2+x3 || y>y2+y3) return 1;
+
+    if (game_options&GO_TINYTOP) {
+        if (y2-y>top) return 1;
+    } else {
+        if (y2-y>100*sdl_scale) return 1;
+    }
+
     if (y<y2) return -1;
 
     return 0;

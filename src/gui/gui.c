@@ -578,6 +578,11 @@ static void display(void) {
     }
 
     display_toplogic();
+    if (game_slowdown) {
+        display_toplogic();
+        display_toplogic();
+        display_toplogic();
+    }
     set_cmd_states();
 
     if (sockstate<4 && ((t=time(NULL)-socktimeout)>10 || !originx)) {
