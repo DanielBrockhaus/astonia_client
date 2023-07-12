@@ -95,7 +95,7 @@ void sdl_dump(FILE *fp) {
 }
 
 #define GO_DEFAULTS (GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE)
-//#define GO_DEFAULTS (GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE|GO_LIGHTER2)
+//#define GO_DEFAULTS (GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE|GO_CONTEXT)
 
 int sdl_init(int width,int height,char *title) {
     int len,i;
@@ -198,7 +198,7 @@ int sdl_init(int width,int height,char *title) {
         else if (YRES>=580) game_options=GO_DEFAULTS|GO_SMALLBOT;
         else game_options=GO_DEFAULTS|GO_SMALLBOT|GO_SMALLTOP;
     }
-    note("SDL using %dx%d scale %d",XRES,YRES,sdl_scale);
+    note("SDL using %dx%d scale %d, options=%llu",XRES,YRES,sdl_scale,game_options);
 
     sdl_create_cursors();
 
@@ -2663,6 +2663,18 @@ void sdl_flush_textinput(void) {
 
 void sdl_tex_alpha(int stx,int alpha) {
     if (sdlt[stx].tex) SDL_SetTextureAlphaMod(sdlt[stx].tex,alpha);
+}
+
+int sdl_check_mouse(void)
+{
+    int x,y,x2,y2,x3,y3;
+    SDL_GetGlobalMouseState(&x,&y);
+
+    SDL_GetWindowPosition(sdlwnd,&x2,&y2);
+    SDL_GetWindowSize(sdlwnd,&x3,&y3);
+
+    if (x<x2 || y<y2 || x>x2+x3 || y>y2+y3) return 0;
+    return 1;
 }
 
 /*

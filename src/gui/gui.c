@@ -571,6 +571,10 @@ static void display(void) {
     sdl_time_blit=0;
 #endif
 
+    if (!sdl_check_mouse()) {
+        mousex=mousey=-1;
+    }
+
     display_toplogic();
     set_cmd_states();
 
