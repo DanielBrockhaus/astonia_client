@@ -101,7 +101,8 @@ void minimap_update(void) {
         }
     }
     if (rewrite_cnt>4) {
-        minimap_clear();
+        memset(_mmap,0,sizeof(_mmap));
+        update1=update2=1;
         note("MAP CHANGED: %d",rewrite_cnt);
     }
     if (mapnr==-1 && update3) {
