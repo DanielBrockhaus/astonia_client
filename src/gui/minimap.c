@@ -276,6 +276,7 @@ static void map_save(void) {
         for (i=0; i<MAXSAVEMAP; i++) {
             filename=mapname(i);
             handle=open(filename,O_RDONLY);
+            close(handle);
             if (handle==-1) break;
         }
         if (i==MAXSAVEMAP) {
