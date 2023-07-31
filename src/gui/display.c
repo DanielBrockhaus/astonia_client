@@ -330,6 +330,9 @@ void display_citem(void) {
         y=mousey;
     } else return;
 
+    if (x<0 || y>=XRES) return;
+    if (y<0 || y>=YRES) return;
+
     bzero(&fx,sizeof(fx));
 
     sprite=trans_asprite(0,csprite,tick,&scale,&cr,&cg,&cb,&light,&sat,&c1,&c2,&c3,&shine);
