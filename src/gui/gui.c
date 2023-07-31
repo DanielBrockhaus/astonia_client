@@ -572,9 +572,9 @@ static void display(void) {
 #endif
 
     if ((tmp=sdl_check_mouse())) {
-        mousex=-1;
-        if (tmp==-1) mousey=0;
-        else mousey=YRES/2;
+        mousey=-20;
+        if (tmp==-1) mousex=-20;
+        else {mousex=XRES/2; mousey=YRES+20;}
     }
 
     display_toplogic();
