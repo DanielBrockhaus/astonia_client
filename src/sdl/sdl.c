@@ -2624,6 +2624,10 @@ int sdl_tex_yres(int stx) {
 }
 
 void sdl_render_circle(int32_t centreX, int32_t centreY, int32_t radius,uint32_t color) {
+    
+    SDL_Point pts[((radius * 8 * 35 / 49) + (8 - 1)) & -8];
+    int32_t dC = 0;
+
     const int32_t diameter = (radius * 2);
     int32_t x = (radius - 1);
     int32_t y = 0;
@@ -2631,18 +2635,16 @@ void sdl_render_circle(int32_t centreX, int32_t centreY, int32_t radius,uint32_t
     int32_t ty = 1;
     int32_t error = (tx - diameter);
 
-    SDL_SetRenderDrawColor(sdlren,IGET_R(color),IGET_G(color),IGET_B(color),IGET_A(color));
-
-    while (x >= y) {
-        SDL_RenderDrawPoint(sdlren, centreX + x, centreY - y);
-        SDL_RenderDrawPoint(sdlren, centreX + x, centreY + y);
-        SDL_RenderDrawPoint(sdlren, centreX - x, centreY - y);
-        SDL_RenderDrawPoint(sdlren, centreX - x, centreY + y);
-        SDL_RenderDrawPoint(sdlren, centreX + y, centreY - x);
-        SDL_RenderDrawPoint(sdlren, centreX + y, centreY + x);
-        SDL_RenderDrawPoint(sdlren, centreX - y, centreY - x);
-        SDL_RenderDrawPoint(sdlren, centreX - y, centreY + x);
-
+    while (x >= y) {        
+        pts[dC].x = centreX + x; pts[dC].y = centreY - y; dC++;
+        pts[dC].x = centreX + x; pts[dC].y = centreY + y; dC++;
+        pts[dC].x = centreX - x; pts[dC].y = centreY - y; dC++;
+        pts[dC].x = centreX - x; pts[dC].y = centreY + y; dC++;
+        pts[dC].x = centreX + y; pts[dC].y = centreY - x; dC++;
+        pts[dC].x = centreX + y; pts[dC].y = centreY + x; dC++;
+        pts[dC].x = centreX - y; pts[dC].y = centreY - x; dC++;
+        pts[dC].x = centreX - y; pts[dC].y = centreY + x; dC++;
+         
         if (error <= 0) {
             ++y;
             error += ty;
@@ -2655,6 +2657,10 @@ void sdl_render_circle(int32_t centreX, int32_t centreY, int32_t radius,uint32_t
             error += (tx - diameter);
         }
     }
+
+    SDL_SetRenderDrawColor(sdlren,IGET_R(color),IGET_G(color),IGET_B(color),IGET_A(color));
+    SDL_RenderDrawPoints(sdlren, pts, dC);
+
 }
 
 void sdl_flush_textinput(void) {
