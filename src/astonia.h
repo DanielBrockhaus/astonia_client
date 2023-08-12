@@ -132,6 +132,7 @@ extern char localdata[MAX_PATH];
 #define GO_LIGHTER  (1ull<<14) // Gamma increase, sort of
 #define GO_LIGHTER2 (1ull<<15) // More gamma increase
 #define GO_TINYTOP  (1ull<<16) // Slide out top only when mouse cursor is over window border
+#define GO_LOWLIGHT (1ull<<17) // Simplify Light calculations for slow CPUs
 
 #define GO_NOTSET   (1ull<<63) // No -o given on command line
 

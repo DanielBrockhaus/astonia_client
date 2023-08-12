@@ -554,6 +554,8 @@ void display_usage(void) {
     buf+=sprintf(buf,"Bit 12 writes application files to %%appdata%% instead of the current folder. ");
     buf+=sprintf(buf,"Bit 13 enables the loading and saving of minimaps. ");
     buf+=sprintf(buf,"Bit 14 and 15 increase gamma. ");
+    buf+=sprintf(buf,"Bit 16 makes sliding top bar less sensitive. ");
+    buf+=sprintf(buf,"Bit 17 reduces lighting effects (more performance, less pretty). ");
     buf+=sprintf(buf,"Default depends on screen height.\n\n");
     buf+=sprintf(buf,"cachesize is the size of the texture cache. Default is 8000. Lower numbers might crash!\n\n");
     buf+=sprintf(buf,"framespersecond will set the display rate in frames per second.\n\n");

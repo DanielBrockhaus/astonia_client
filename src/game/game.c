@@ -424,6 +424,20 @@ void set_map_lights(struct map *cmap) {
         }
 
         cmap[mn].rlight=15-cmap[mn].rlight;
+
+        if (game_options&GO_LOWLIGHT) {
+            switch (cmap[mn].rlight) {
+                case 2: cmap[mn].rlight=1; break;
+                case 3:
+                case 4: cmap[mn].rlight=5; break;
+                case 6:
+                case 7:
+                case 8: cmap[mn].rlight=9; break;
+                case 10:
+                case 11: cmap[mn].rlight=12; break;
+                case 13: cmap[mn].rlight=14; break;
+            }
+        }
     }
 }
 
