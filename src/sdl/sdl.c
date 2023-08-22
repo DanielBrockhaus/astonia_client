@@ -1291,7 +1291,7 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
                 } else irgb=sdl_light(st->ml,irgb);
 
                 if (st->sink) {
-                    if (st->yres*sdl_scale-st->sink<y) irgb&=0xffffff;    // zero alpha to make it transparent
+                    if (st->yres*sdl_scale-st->sink*sdl_scale<y) irgb&=0xffffff;    // zero alpha to make it transparent
                 }
 
                 if (st->freeze) irgb=sdl_freeze(st->freeze,irgb);
