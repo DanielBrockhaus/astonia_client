@@ -892,6 +892,7 @@ int dd_scantext(int x,int y,char *hit) {
                     if (tmp>0 && text[pos].c==' ' && hit[tmp-1]==' ');
                     else if (text[pos].c) hit[tmp++]=text[pos].c;
                     pos++;
+                    if (pos==MAXTEXTLETTERS*MAXTEXTLINES) pos=0;
                 }
                 if (tmp>0 && hit[tmp-1]==' ') hit[tmp-1]=0;
                 else hit[tmp]=0;
