@@ -104,6 +104,18 @@ int hover_capture_text(char *line) {
 
     while (isspace(*line)) line++;
 
+    if (strncmp(line,"°°°ITEMDESC",11)==0) {
+        last_invsel=atoi(line+11);
+        if (last_invsel>=1000) last_invsel=last_invsel%1000+INVENTORYSIZE;
+        if (last_invsel<0 || last_invsel>INVENTORYSIZE*2) {
+            last_invsel=capture=last_look=0;
+            return 1;
+        }
+        capture=1;
+        last_look=20;
+        return 1;
+    }
+
     if (line[0]=='°' && line[1]=='c' && line[2]=='5' && last_look) {
         capture=1;
     }
