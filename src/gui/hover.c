@@ -334,10 +334,10 @@ static int display_hover_skill(void) {
             armor=value[0][v]*5;
             weapon=value[0][v]/4;
             height+=20;
-        } else if (v==V_PULSE || v==V_BLESS || v==V_HEAL || v==V_FREEZE || v==V_MAGICSHIELD || v==V_FLASH || v==V_FIREBALL) {
+        } else if (value[0][V_TACTICS] && (v==V_PULSE || v==V_WARCRY || v==V_HEAL || v==V_FREEZE || v==V_MAGICSHIELD || v==V_FLASH || v==V_FIREBALL)) {
             tactics=tactics2spell(value[0][V_TACTICS]);
             height+=10;
-        } else if (v==V_IMMUNITY) {
+        } else if (value[0][V_TACTICS] && v==V_IMMUNITY) {
             tactics=tactics2immune(value[0][V_TACTICS]+14);
             height+=10;
         }
@@ -359,7 +359,7 @@ static int display_hover_skill(void) {
         sy=dd_drawtext_break(sx+4,sy+4,sx+width-8,0xffff,0,game_skilldesc[v])+10;
 
         if (base) {
-            if (cap)
+            if (cap && v!=V_SPEED)
                 dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gets +%d from (%s+%s+%s) (capped at %d)",base,basename(v1),basename(v2),basename(v3),cap);
             else dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gets +%d from (%s+%s+%s)",base,basename(v1),basename(v2),basename(v3));
             sy+=10;
