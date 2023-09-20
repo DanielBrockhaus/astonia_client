@@ -113,6 +113,7 @@ int hover_capture_text(char *line) {
         }
         capture=1;
         last_look=20;
+        last_line=0;
         return 1;
     }
 
