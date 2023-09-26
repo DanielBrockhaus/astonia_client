@@ -1079,7 +1079,8 @@ void display_selfbars(void) {
     if (!value[0][V_MANA]) {
         display_bar(x+xs*2+xd*2,y,endup,endurancecolor,xs,ys);
         if (value[0][V_WARCRY]) {
-            for (int i=0; i<100; i+=warcryperccost()) {
+            int wpc = warcryperccost();
+            for (int i=wpc; i<100; i+=wpc) {
                 int j;
                 j=i*ys/100;
                 if (i<endup) dd_line(x+xs*2+xd*2,y+ys-j,x+xs*3+xd*2,y+ys-j,0x0000);
