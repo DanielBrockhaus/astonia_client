@@ -1076,7 +1076,7 @@ static uint32_t sdl_colorbalance(uint32_t irgb,char cr,char cg,char cb,char ligh
 
 static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
     SDL_Texture *texture;
-    int x,y,scale;
+    int x,y,scale,sink;
     double ix,iy,low_x,low_y,high_x,high_y,dbr,dbg,dbb,dba;
     uint32_t irgb;
     long long start;
@@ -1101,7 +1101,8 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
         st->yoff=si->yoff;
     }
 
-    if (st->sink) st->sink=min(st->sink,max(0,st->yres-4));
+    if (st->sink) sink=min(st->sink,max(0,st->yres-4));
+    else sink=0;
 
     if (!preload || preload==1) {
         if (st->flags&SF_DIDALLOC) {
@@ -1290,8 +1291,8 @@ static void sdl_make(struct sdl_texture *st,struct sdl_image *si,int preload) {
 
                 } else irgb=sdl_light(st->ml,irgb);
 
-                if (st->sink) {
-                    if (st->yres*sdl_scale-st->sink*sdl_scale<y) irgb&=0xffffff;    // zero alpha to make it transparent
+                if (sink) {
+                    if (st->yres*sdl_scale-sink*sdl_scale<y) irgb&=0xffffff;    // zero alpha to make it transparent
                 }
 
                 if (st->freeze) irgb=sdl_freeze(st->freeze,irgb);
