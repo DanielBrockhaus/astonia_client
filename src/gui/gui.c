@@ -156,7 +156,7 @@ int questsel;
 int colsel;
 int actsel;
 int skl_look_sel;
-int last_right_click_invsel;
+int last_right_click_invsel=-1;
 
 int action_ovr=-1;
 
