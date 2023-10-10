@@ -78,4 +78,5 @@ void minimap_compact(void);
 extern struct questlog *game_questlog;
 extern int *game_questcount;
 extern int gear_lock;
+extern int last_right_click_invsel;
 

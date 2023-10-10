@@ -156,6 +156,7 @@ int questsel;
 int colsel;
 int actsel;
 int skl_look_sel;
+int last_right_click_invsel=-1;
 
 int action_ovr=-1;
 
@@ -1718,9 +1719,9 @@ static void exec_cmd(int cmd,int a) {
         case CMD_MAP_LOOK:      cmd_look_map(originx-MAPDX/2+mapsel%MAPDX,originy-MAPDY/2+mapsel/MAPDX); return;
         case CMD_ITM_LOOK:      cmd_look_item(originx-MAPDX/2+itmsel%MAPDX,originy-MAPDY/2+itmsel/MAPDX); return;
         case CMD_CHR_LOOK:      cmd_look_char(map[chrsel].cn); return;
-        case CMD_INV_LOOK:      cmd_look_inv(invsel); return;
-        case CMD_WEA_LOOK:      cmd_look_inv(weatab[weasel]); return;
-        case CMD_CON_LOOK:      cmd_look_con(consel); return;
+        case CMD_INV_LOOK:      cmd_look_inv(invsel); last_right_click_invsel=invsel; return;
+        case CMD_WEA_LOOK:      cmd_look_inv(weatab[weasel]); last_right_click_invsel=weatab[weasel]; return;
+        case CMD_CON_LOOK:      cmd_look_con(consel); last_right_click_invsel=INVENTORYSIZE+consel; return;
 
         case CMD_MAP_CAST_L:    cmd_some_spell(CL_FIREBALL,originx-MAPDX/2+mapsel%MAPDX,originy-MAPDY/2+mapsel/MAPDX,0); break;
         case CMD_ITM_CAST_L:    cmd_some_spell(CL_FIREBALL,originx-MAPDX/2+itmsel%MAPDX,originy-MAPDY/2+itmsel/MAPDX,0); break;
