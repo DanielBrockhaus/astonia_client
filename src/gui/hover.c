@@ -123,11 +123,13 @@ int hover_capture_text(char *line) {
 
     if (line[0]=='°' && line[1]=='c' && line[2]=='5' && line[3]=='.') {
         capture=last_look=0;
+        last_right_click_invsel=-1;
         return 1;
     }
 
     if (!strcmp(line,"Empty spaces...")) {
         capture=last_look=0;
+        last_right_click_invsel=-1;
         return 1;
     }
 
@@ -137,6 +139,9 @@ int hover_capture_text(char *line) {
         hi[last_invsel].desc[last_line++]=xstrdup(line,MEM_TEMP11);
         hi[last_invsel].cnt=last_line;
         hi[last_invsel].width=max(hi[last_invsel].width,len);
+
+        if (last_invsel==last_right_click_invsel) return 0;
+        else last_right_click_invsel=-1;
     }
 
     return capture;
