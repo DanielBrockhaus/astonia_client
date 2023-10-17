@@ -9,9 +9,6 @@ Bugs
 
 - When you examine an item without a name, there is no response
 
-- Blue (link) text sometimes produces random text instead of the linked text
-
-- Item hover descriptions sometimes get assigned to the wrong slot. Add a slot marker server side.
 
 Soon
 ----
@@ -22,8 +19,6 @@ Soon
   reloading is almost impossible.
 
 - "Clean up" zoomed map so it looks less pixelated
-
-- gs2 / fs2 to break up monotony of the new walls and floors
 
 - Flash the "action icon", no matter how the spell was cast
 
@@ -64,6 +59,10 @@ Maybe Later: Bugs
 
 - Dragged help window should disable mouse-overs and buttons in top bar.
 
+- Increase number of effects shown per map tile / character. Needs server side change.
+
+- If the client is not focused, starting a mouse capture action (e.g. moving the help window) directly fails. This
+  appears to be an SDL or operating system problem since the calls to SDL_WarpMouseInWindow() do nothing.
 
 
 Maybe Later
@@ -74,13 +73,6 @@ Maybe Later
 - Move all parts of the client into separate windows, including the different chat channels.
 
 - A Linux port. Once all is SDL it should be possible.
-
-
-Server Patches
---------------
-
-- Add "log_char(cn,LOG_SYSTEM,0,"°c5.");" to the very end of int look_item() in tool.c.
-
 
 
 Notes:
