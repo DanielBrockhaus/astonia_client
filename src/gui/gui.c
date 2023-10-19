@@ -1960,9 +1960,7 @@ void gui_sdl_keyproc(int wparam) {
 void gui_sdl_draghack(void) {
     if (butsel!=-1 && (but[butsel].flags&BUTF_CAPTURE)) {
         SDL_Event eventSink;
-        while (SDL_PollEvent(&eventSink)&&eventSink.type!=SDL_MOUSEBUTTONDOWN) {
-            // eat events upto and including MBDOWN
-        }
+        while (SDL_PollEvent(&eventSink)) { /*clear event queue*/ }
 
         //Windows code to fix dragging bug with window inactive
         INPUT input[2];
