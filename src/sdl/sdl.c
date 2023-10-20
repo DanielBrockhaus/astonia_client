@@ -2147,6 +2147,7 @@ void sdl_line(int fx,int fy,int tx,int ty,unsigned short color,int clipsx,int cl
 
 void gui_sdl_keyproc(int wparam);
 void gui_sdl_mouseproc(int x,int y,int but,int clicks);
+void gui_sdl_draghack(void);
 void cmd_proc(int key);
 void context_keyup(int key);
 
@@ -2182,6 +2183,15 @@ void sdl_loop(void) {
                 break;
             case SDL_MOUSEWHEEL:
                 gui_sdl_mouseproc(event.wheel.x,event.wheel.y,SDL_MOUM_WHEEL,0);
+                break;
+            case SDL_WINDOWEVENT:
+                if (event.window.event==SDL_WINDOWEVENT_FOCUS_GAINED) {
+                    int x, y;
+                    Uint32 mouseState = SDL_GetMouseState(&x, &y);
+                    if (mouseState&SDL_BUTTON(SDL_BUTTON_LEFT)) {
+                        gui_sdl_draghack();                        
+                    }
+                }
                 break;
         }
     }
