@@ -294,6 +294,8 @@ static int display_hover_skill(void) {
     int sx,sy,height=0,width=200,v;
     int v1,v2,v3,base=0,cap=0,offense=0,defense=0,speed=0,armor=0,weapon=0,raisecost=0,immune=0,spells=0,tactics=0;
 
+    if (capbut!=-1) return 0; //dont display hover when dragging scrollthumb
+
     if (sklsel2!=-1 && tick-last_tick>HOVER_DELAY) {
         v=skltab[sklsel2+skloff].v;
         if (v<0 || v>=*game_v_max) return 0;
