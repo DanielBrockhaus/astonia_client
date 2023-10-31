@@ -538,24 +538,25 @@ void display_messagebox(char *title,char *text) {
 void display_usage(void) {
     char *buf,*txt;
 
-    txt=buf=malloc(1024*4);
+    txt=buf=malloc(1024*8);
     buf+=sprintf(buf,"The Astonia Client can only be started from the command line or with a specially created shortcut.\n\n");
     buf+=sprintf(buf,"Usage: moac -u playername -p password -d url\n ... [-w width] [-h height]\n");
     buf+=sprintf(buf," ... [-m threads] [-o options] [-c cachesize]\n ... [-k framespersecond]\n\n");
     buf+=sprintf(buf,"url being, for example, \"server.astonia.com\" or \"192.168.77.132\" (without the quotes).\n\n");
     buf+=sprintf(buf,"width and height are the desired window size. If this matches the desktop size the client will start in windowed borderless pseudo-fullscreen mode.\n\n");
     buf+=sprintf(buf,"threads is the number of background threads the game should use. Use 0 to disable. Default is 4.\n\n");
-    buf+=sprintf(buf,"options is a bitfield. Bit 0 (value of 1) enables the Dark GUI by Tegra. ");
-    buf+=sprintf(buf,"Bit 1 enables the context menu, bit 2 the new keybindings, bit 3 the smaller bottom GUI ");
-    buf+=sprintf(buf,"and bit 4 the sliding away of the top GUI. Bit 5 enables the bigger health/mana bars. ");
-    buf+=sprintf(buf,"Bit 6 enables sound, bit 7 the large font and bit 8 true full screen mode. Bit 9 enables the legacy mouse wheel logic. ");
-    buf+=sprintf(buf,"Bit 10 enables out-of-order execution (read: faster) of inventory access and command feedback. ");
-    buf+=sprintf(buf,"Bit 11 reduces the animation buffer for faster reactions and more stutter. ");
-    buf+=sprintf(buf,"Bit 12 writes application files to %%appdata%% instead of the current folder. ");
-    buf+=sprintf(buf,"Bit 13 enables the loading and saving of minimaps. ");
-    buf+=sprintf(buf,"Bit 14 and 15 increase gamma. ");
-    buf+=sprintf(buf,"Bit 16 makes the sliding top bar less sensitive. ");
-    buf+=sprintf(buf,"Bit 17 reduces lighting effects (more performance, less pretty). ");
+    buf+=sprintf(buf,"options is a bitfield.\nBit 0 (value of 1) enables the Dark GUI by Tegra.");
+    buf+=sprintf(buf,"Bit 1 enables the context menu.\nBit 2 the new keybindings.\nBit 3 the smaller bottom GUI.\n");
+    buf+=sprintf(buf,"Bit 4 the sliding away of the top GUI.\nBit 5 enables the bigger health/mana bars.\n");
+    buf+=sprintf(buf,"Bit 6 enables sound.\nBit 7 the large font.\nBit 8 true full screen mode.\nBit 9 enables the legacy mouse wheel logic.\n");
+    buf+=sprintf(buf,"Bit 10 enables out-of-order execution (read: faster) of inventory access and command feedback.\n");
+    buf+=sprintf(buf,"Bit 11 reduces the animation buffer for faster reactions and more stutter.\n");
+    buf+=sprintf(buf,"Bit 12 writes application files to %%appdata%% instead of the current folder.\n");
+    buf+=sprintf(buf,"Bit 13 enables the loading and saving of minimaps.\n");
+    buf+=sprintf(buf,"Bit 14 and 15 increase gamma.\n");
+    buf+=sprintf(buf,"Bit 16 makes the sliding top bar less sensitive.\n");
+    buf+=sprintf(buf,"Bit 17 reduces lighting effects (more performance, less pretty).\n");
+    buf+=sprintf(buf,"Bit 18 disabled the minimap.\n");
     buf+=sprintf(buf,"Default depends on screen height.\n\n");
     buf+=sprintf(buf,"cachesize is the size of the texture cache. Default is 8000. Lower numbers might crash!\n\n");
     buf+=sprintf(buf,"framespersecond will set the display rate in frames per second.\n\n");

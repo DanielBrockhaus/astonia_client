@@ -13,6 +13,8 @@ Bugs
 Soon
 ----
 
+- Version numbers
+
 - Re-write text chat scroll logic to be more understandable (and fix the stuck chat bug)
 
 - "Use With" needs to trump "Give" when using the new keyboard shortcuts. Otherwise Fire Underground station
@@ -34,6 +36,9 @@ Soon
 - Create the bigger fonts, not just use the pixel-doubled ones.
 
 - Lighting calculations are better now, but not completely right. Fix them again. Re-add shaded lighting for items.
+
+- Have right-click on items (old client mode) just give the hover item description text (if already cached)
+  instead of sending a look-at-item command to the server.
 
 Possibly
 --------

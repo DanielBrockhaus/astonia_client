@@ -36,6 +36,8 @@ SDL_Texture *maptex1=NULL,*maptex2=NULL;
 
 void minimap_init(void) {
 
+    if (game_options&GO_NOMAP) return;
+
     sx=dotx(DOT_MBR)-MAXMAP-6;
     sy=doty(DOT_MTL)+6;
 
@@ -74,6 +76,8 @@ static int map_load(void);
 
 void minimap_update(void) {
     int x,y,xs,xe,ox,oy;
+
+    if (game_options&GO_NOMAP) return;
 
     ox=originx-DIST;
     oy=originy-DIST;
@@ -149,6 +153,8 @@ void display_minimap(void) {
     int x,y,ix,iy,i;
     float dist;
     SDL_Rect dr,sr;
+
+    if (game_options&GO_NOMAP) return;
 
     if (visible&2) {  // display big map
         if (update1) {
@@ -367,6 +373,8 @@ static int map_load(void) {
 void minimap_compact(void) {
     int i,j,handle;
     char *filename,tmap[MAXMAP*MAXMAP],xmap[MAXMAP*MAXMAP];
+
+    if (game_options&GO_NOMAP) return;
 
     for (i=0; i<MAXSAVEMAP; i++) {
         filename=mapname(i);
