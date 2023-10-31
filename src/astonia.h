@@ -162,5 +162,5 @@ int butx(int bidx);
 int buty(int bidx);
 
 void dd_set_offset(int x,int y);
-
+char *client_version(void);
 

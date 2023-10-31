@@ -47,6 +47,17 @@ char* strcasestr(const char *haystack,const char *needle) {
     }
     return NULL;
 }
+void cmd_version(void) {
+    int i;
+    char *ptr;
+
+    addline("Client version: %s",client_version());
+
+    for (i=0; i<MAXMOD; i++) {
+        ptr=amod_version(i);
+        if (ptr) addline("%c-mod version: %s",'A'+i,ptr);
+    }
+}
 
 int client_cmd(char *buf) {
 
@@ -88,6 +99,10 @@ int client_cmd(char *buf) {
     	if (new_sound_volume >= 128) new_sound_volume = 128;
     	sound_volume = new_sound_volume;
     	addline("Volume is now at %d", sound_volume);
+    	return 1;
+    }
+    if (!strncmp(buf, "#version", 5) || !strncmp(buf, "/version", 5)) {
+        cmd_version();
     	return 1;
     }
     if (!strncmp(buf,"#set ",5) || !strncmp(buf,"/set ",5)) {

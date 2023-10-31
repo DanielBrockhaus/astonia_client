@@ -6,6 +6,7 @@
 
 void amod_init(void);
 void amod_exit(void);
+char *amod_version(void);
 void amod_gamestart(void);
 void amod_frame(void);
 void amod_tick(void);

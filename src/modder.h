@@ -2,8 +2,11 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
+#define MAXMOD  6
+
 int amod_init(void);
 void amod_exit(void);
+char *amod_version(int idx);
 void amod_gamestart(void);
 void amod_frame(void);
 void amod_tick(void);

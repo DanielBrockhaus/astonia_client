@@ -16,7 +16,7 @@ OBJS	=		src/gui/gui.o src/client/client.o src/client/skill.o src/game/dd.o src/g
 			src/gui/minimap.o
 
 bin/moac.exe lib/moac.a &:	$(OBJS)
-			$(CC) $(LDFLAGS) -Wl,--out-implib,lib/moac.a -o bin/moac.exe $(OBJS)  $(LIBS)
+			$(CC) $(LDFLAGS) -Wl,--out-implib,lib/moac.a -o bin/moac.exe $(OBJS) src/game/version.c $(LIBS)
 
 bin/amod.dll:		src/amod/amod.o lib/moac.a
 			$(CC) $(LDFLAGS) $(OPT) $(DEBUG) -shared -o bin/amod.dll src/amod/amod.o lib/moac.a

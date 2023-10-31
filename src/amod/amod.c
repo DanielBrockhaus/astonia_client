@@ -21,6 +21,10 @@
 #include "quests.c"
 #endif
 
+__declspec(dllexport) char *amod_version(void) {
+    return "Restart Demo 0.4";
+}
+
 __declspec(dllexport) void amod_gamestart(void) {
     note("Restart Client Demo v0.4 loaded.");
 }

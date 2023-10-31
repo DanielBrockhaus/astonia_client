@@ -20,8 +20,6 @@
 #include "../../src/gui.h"
 #include "../../src/sdl.h"
 
-#define MAXMOD  6
-
 struct mod {
     void (*_amod_init)(void);
     void (*_amod_exit)(void);
@@ -36,6 +34,8 @@ struct mod {
     int (*_amod_keyup)(int);
     void (*_amod_update_hover_texts)(void);
     int (*_amod_client_cmd)(char *buf);
+    char *(*_amod_version)(void);
+    int loaded;
 };
 
 struct mod mod[MAXMOD]={{NULL}};
@@ -59,6 +59,8 @@ int amod_init(void) {
         dll_instance=LoadLibrary(fname);
         if (!dll_instance) continue;;
 
+        mod[i].loaded=1;
+
         // amod
         if ((tmp=GetProcAddress(dll_instance,"amod_init"))) mod[i]._amod_init=tmp;
         if ((tmp=GetProcAddress(dll_instance,"amod_exit"))) mod[i]._amod_exit=tmp;
@@ -73,6 +75,7 @@ int amod_init(void) {
         if ((tmp=GetProcAddress(dll_instance,"amod_keyup"))) mod[i]._amod_keyup=tmp;
         if ((tmp=GetProcAddress(dll_instance,"amod_update_hover_texts"))) mod[i]._amod_update_hover_texts=tmp;
         if ((tmp=GetProcAddress(dll_instance,"amod_client_cmd"))) mod[i]._amod_client_cmd=tmp;
+        if ((tmp=GetProcAddress(dll_instance,"amod_version"))) mod[i]._amod_version=tmp;
         if (i!=0) continue; // only amod is allowed to override client stuff, the others can only add stuff
 
         if ((tmp=GetProcAddress(dll_instance,"amod_process"))) _amod_process=tmp;
@@ -230,5 +233,15 @@ int amod_prefetch(char *buf) {
 int amod_is_playersprite(int sprite) {
     if (_amod_is_playersprite) return _amod_is_playersprite(sprite);
     return 0;
+}
+
+char *amod_version(int idx) {
+    if (idx<0 || idx>=MAXMOD) return NULL;
+
+    if (mod[idx]._amod_version) return mod[idx]._amod_version();
+
+    if (mod[idx].loaded) return "unknown";
+
+    return NULL;
 }
 
