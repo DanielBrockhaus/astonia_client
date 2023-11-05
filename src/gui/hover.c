@@ -341,7 +341,7 @@ static int display_hover_skill(void) {
             armor=value[0][v]*5;
             weapon=value[0][v]/4;
             height+=20;
-        } else if (value[0][V_TACTICS] && (v==V_PULSE || v==V_WARCRY || v==V_HEAL || v==V_FREEZE || v==V_MAGICSHIELD || v==V_FLASH || v==V_FIREBALL)) {
+        } else if (value[0][V_TACTICS] && (v==V_PULSE || v==V_WARCRY || v==V_HEAL || v==V_FREEZE || v==V_FLASH || v==V_FIREBALL)) {
             tactics=tactics2spell(value[0][V_TACTICS]);
             height+=10;
         } else if (value[0][V_TACTICS] && v==V_IMMUNITY) {
