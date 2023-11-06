@@ -307,10 +307,10 @@ static int display_hover_skill(void) {
         if (game_skill[v].cost && v!=V_DEMON) {
             raisecost=raise_cost(v,value[1][v]);
             height+=10;
-        }
-        if (experience-experience_used>=0) {
-            unused=experience-experience_used;
-            height+=10;
+            if (experience-experience_used>=0) {
+                unused=experience-experience_used;
+                height+=10;
+            }
         }
 
         if (v1!=-1 && v2!=-1 && v3!=-3 && v!=V_DEMON) {
@@ -424,10 +424,10 @@ static int display_hover_skill(void) {
         if (raisecost) {
             dd_drawtext_fmt(sx+4,sy,0xffff,0,"%s exp to raise",nicenumber(raisecost));
             sy+=10;
-        }
-        if (unused>=0) {
-            dd_drawtext_fmt(sx+4,sy,0xffff,0,"You have %s unused exp",nicenumber(unused));
-            sy+=10;
+            if (unused>=0) {
+                dd_drawtext_fmt(sx+4,sy,0xffff,0,"You have %s unused exp",nicenumber(unused));
+                sy+=10;
+            }
         }
 
         return 0;
