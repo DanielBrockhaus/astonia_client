@@ -304,12 +304,12 @@ static int display_hover_skill(void) {
         v2=game_skill[v].base2;
         v3=game_skill[v].base3;
 
-        if (game_skill[v].cost) {
+        if (game_skill[v].cost && v!=V_DEMON) {
             raisecost=raise_cost(v,value[1][v]);
             height+=10;
         }
 
-        if (v1!=-1 && v2!=-1 && v3!=-3) {
+        if (v1!=-1 && v2!=-1 && v3!=-3 && v!=V_DEMON) {
             base=(value[0][v1]+value[0][v2]+value[0][v3])/5;
             height+=10;
             if (base>max(15,value[1][v]*2)) cap=max(15,value[1][v]*2);
