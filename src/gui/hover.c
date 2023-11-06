@@ -292,7 +292,7 @@ static char *nicenumber(int n) {
 
 static int display_hover_skill(void) {
     int sx,sy,height=0,width=200,v;
-    int v1,v2,v3,base=0,cap=0,offense=0,defense=0,speed=0,armor=0,weapon=0,raisecost=0,immune=0,spells=0,tactics=0;
+    int v1,v2,v3,base=0,cap=0,offense=0,defense=0,speed=0,armor=0,weapon=0,raisecost=0,immune=0,spells=0,tactics=0,athlete=0,unused=-1;
 
     if (capbut!=-1) return 0; //dont display hover when dragging scrollthumb
 
@@ -304,12 +304,16 @@ static int display_hover_skill(void) {
         v2=game_skill[v].base2;
         v3=game_skill[v].base3;
 
-        if (game_skill[v].cost) {
+        if (game_skill[v].cost && v!=V_DEMON) {
             raisecost=raise_cost(v,value[1][v]);
             height+=10;
+            if (experience-experience_used>=0) {
+                unused=experience-experience_used;
+                height+=10;
+            }
         }
 
-        if (v1!=-1 && v2!=-1 && v3!=-3) {
+        if (v1!=-1 && v2!=-1 && v3!=-3 && v!=V_DEMON) {
             base=(value[0][v1]+value[0][v2]+value[0][v3])/5;
             height+=10;
             if (base>max(15,value[1][v]*2)) cap=max(15,value[1][v]*2);
@@ -341,12 +345,18 @@ static int display_hover_skill(void) {
             armor=value[0][v]*5;
             weapon=value[0][v]/4;
             height+=20;
-        } else if (value[0][V_TACTICS] && (v==V_PULSE || v==V_WARCRY || v==V_HEAL || v==V_FREEZE || v==V_MAGICSHIELD || v==V_FLASH || v==V_FIREBALL)) {
+        } else if (value[0][V_TACTICS] && (v==V_PULSE || v==V_WARCRY || v==V_HEAL || v==V_FREEZE || v==V_FLASH || v==V_FIREBALL)) {
             tactics=tactics2spell(value[0][V_TACTICS]);
             height+=10;
         } else if (value[0][V_TACTICS] && v==V_IMMUNITY) {
             tactics=tactics2immune(value[0][V_TACTICS]+14);
             height+=10;
+        } else if (v==V_SPEED) {
+            if (value[0][V_SPEEDSKILL]) height+=10;
+            if (value[1][V_PROFBASE]) {
+                athlete=value[1][V_PROFBASE]*3;
+                height+=10;
+            }
         }
 
         if (height) height+=10; // add a free line if there are more lines to display
@@ -369,6 +379,14 @@ static int display_hover_skill(void) {
             if (cap && v!=V_SPEED)
                 dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gets +%d from (%s+%s+%s) (capped at %d)",base,basename(v1),basename(v2),basename(v3),cap);
             else dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gets +%d from (%s+%s+%s)",base,basename(v1),basename(v2),basename(v3));
+            sy+=10;
+        }
+        if (v==V_SPEED && value[0][V_SPEEDSKILL]) {
+            dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gets +%d from Speedskill",value[0][V_SPEEDSKILL]/2);
+            sy+=10;
+        }
+        if (athlete) {
+            dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gets +%d from Athlete",athlete);
             sy+=10;
         }
         if (tactics) {
@@ -406,6 +424,10 @@ static int display_hover_skill(void) {
         if (raisecost) {
             dd_drawtext_fmt(sx+4,sy,0xffff,0,"%s exp to raise",nicenumber(raisecost));
             sy+=10;
+            if (unused>=0) {
+                dd_drawtext_fmt(sx+4,sy,0xffff,0,"You have %s unused exp",nicenumber(unused));
+                sy+=10;
+            }
         }
 
         return 0;
