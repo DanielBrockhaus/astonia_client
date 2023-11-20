@@ -274,6 +274,7 @@ int do_display_questlog(int nr) {
     if (!questinit) {
         for (n=0; n<*game_questcount; n++) questlist[n]=n;
         qsort(questlist,*game_questcount,sizeof(int),questcmp);
+        questinit=1;
     }
 
     if (!havequest) {
