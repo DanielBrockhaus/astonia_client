@@ -13,8 +13,6 @@ Bugs
 Soon
 ----
 
-- Version numbers
-
 - Re-write text chat scroll logic to be more understandable (and fix the stuck chat bug)
 
 - "Use With" needs to trump "Give" when using the new keyboard shortcuts. Otherwise Fire Underground station

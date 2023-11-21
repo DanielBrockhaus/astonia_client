@@ -556,7 +556,7 @@ void display_usage(void) {
     buf+=sprintf(buf,"Bit 14 and 15 increase gamma.\n");
     buf+=sprintf(buf,"Bit 16 makes the sliding top bar less sensitive.\n");
     buf+=sprintf(buf,"Bit 17 reduces lighting effects (more performance, less pretty).\n");
-    buf+=sprintf(buf,"Bit 18 disabled the minimap.\n");
+    buf+=sprintf(buf,"Bit 18 disables the minimap.\n");
     buf+=sprintf(buf,"Default depends on screen height.\n\n");
     buf+=sprintf(buf,"cachesize is the size of the texture cache. Default is 8000. Lower numbers might crash!\n\n");
     buf+=sprintf(buf,"framespersecond will set the display rate in frames per second.\n\n");
