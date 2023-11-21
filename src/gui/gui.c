@@ -1410,7 +1410,8 @@ static void set_cmd_states(void) {
                 tmp=(mousey-(doty(DOT_HLP)+16))/40;
                 y=tmp*40+doty(DOT_HLP)+16;
                 if (tmp>=0 && tmp<=8 && mousey>=y && mousey<=y+10) {
-                    questsel=tmp;
+                    int qos=questonscreen[tmp];
+                    if ((qos!=-1) && (game_questlog[qos].flags&QLF_REPEATABLE) && (quest[qos].flags&QF_DONE) && quest[qos].done<10) questsel=tmp;
                 }
             }
         }

@@ -75,7 +75,16 @@ void actions_loaded(void);
 void minimap_clear(void);
 void minimap_compact(void);
 
+struct questlog{
+    char *name;
+    int minlevel,maxlevel;
+    char *giver;
+    char *area;
+    int exp;
+    unsigned int flags;
+};
 extern struct questlog *game_questlog;
+extern int questonscreen[10];
 extern int *game_questcount;
 extern int gear_lock;
 extern int last_right_click_invsel;

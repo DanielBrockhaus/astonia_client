@@ -158,6 +158,9 @@
 #define QF_OPEN		1
 #define QF_DONE		2
 
+#define QLF_REPEATABLE	(1u<<0)
+#define QLF_XREPEAT	(1u<<1)
+
 #define MAXSHRINE	256
 
 struct quest {

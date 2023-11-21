@@ -19,18 +19,6 @@
 
 static int havequest=0;
 
-#define QLF_REPEATABLE	(1u<<0)
-#define QLF_XREPEAT	(1u<<1)
-
-struct questlog {
-    char *name;
-    int minlevel,maxlevel;
-    char *giver;
-    char *area;
-    int exp;
-    unsigned int flags;
-};
-
 struct questlog _game_questlog[]={
     {"Lydia's Potion",1,2,"James","Cameron",15,QLF_REPEATABLE},         //0,
     {"Find the Magic Item",2,3,"Gwendylon","Cameron",75,QLF_REPEATABLE},        //1,
@@ -120,7 +108,7 @@ __declspec(dllexport) struct questlog *game_questlog=_game_questlog;
 int _game_questcount=ARRAYSIZE(_game_questlog);
 __declspec(dllexport) int *game_questcount=&_game_questcount;
 
-static int questonscreen[10];
+int questonscreen[10];
 
 int questproz(int cnt) {
     int n;
@@ -274,18 +262,19 @@ int do_display_questlog(int nr) {
     if (!questinit) {
         for (n=0; n<*game_questcount; n++) questlist[n]=n;
         qsort(questlist,*game_questcount,sizeof(int),questcmp);
+        questinit=1;
     }
 
     if (!havequest) {
         cmd_getquestlog();
         havequest=1;
     }
+    
+    for (n=0; n<10; n++) questonscreen[n]=-1;
 
     if (nr==10) return do_display_random();
 
     off=(nr-1)*9;
-
-    for (n=0; n<10; n++) questonscreen[n]=-1;
 
     for (pass=cnt=0; pass<2; pass++) {
         for (m=0; m<*game_questcount; m++) {
