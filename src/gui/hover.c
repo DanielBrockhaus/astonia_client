@@ -296,7 +296,7 @@ static int display_hover_skill(void) {
 
     if (capbut!=-1) return 0; //dont display hover when dragging scrollthumb
 
-    if (sklsel2!=-1 && tick-last_tick>HOVER_DELAY) {
+    if (skltab && sklsel2!=-1 && tick-last_tick>HOVER_DELAY) {
         v=skltab[sklsel2+skloff].v;
         if (v<0 || v>=*game_v_max) return 0;
 
