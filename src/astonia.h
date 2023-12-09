@@ -4,6 +4,14 @@
 
 #define DEVELOPER               // this one will compile the developer version - comment me out for the final release
 
+#ifndef ORG_NAME
+#define ORG_NAME NULL
+#endif
+
+#ifndef APP_NAME
+#define APP_NAME "Astonia"
+#endif
+
 //#define TICKPRINT
 
 #define SDL_FAST_MALLOC     // will use the C library instead of the error-checking client version
@@ -113,7 +121,7 @@
 extern int __yres;
 extern int quit;
 extern int frames_per_second;
-extern char localdata[MAX_PATH];
+extern char *localdata;
 
 #define GO_DARK     (1ull<<0)  // Dark GUI by Tegra
 #define GO_CONTEXT  (1ull<<1)  // Right-Click Context Menu

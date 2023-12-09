@@ -9,7 +9,6 @@
  */
 
 #include <windows.h>
-#include <shlobj.h>
 #include <stdint.h>
 #include <fcntl.h>
 #include <time.h>
@@ -25,7 +24,7 @@
 
 int quit=0;
 
-char localdata[MAX_PATH];
+char *localdata;
 
 static int panic_reached=0;
 static int xmemcheck_failed=0;
@@ -600,7 +599,7 @@ void save_options(void) {
     int handle;
     char filename[MAX_PATH];
 
-    if (game_options&GO_APPDATA) sprintf(filename,"%s\\Astonia\\%s",localdata,"moac.dat");
+    if (localdata) sprintf(filename,"%s%s",localdata,"moac.dat");
     else sprintf(filename,"%s","bin/data/moac.dat");
 
     handle=open(filename,O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,0666);
@@ -617,7 +616,7 @@ void load_options(void) {
     int handle;
     char filename[MAX_PATH];
 
-    if (game_options&GO_APPDATA) sprintf(filename,"%s\\Astonia\\%s",localdata,"moac.dat");
+    if (localdata) sprintf(filename,"%s%s",localdata,"moac.dat");
     else sprintf(filename,"%s","bin/data/moac.dat");
 
     handle=open(filename,O_RDONLY|O_BINARY);
@@ -659,11 +658,8 @@ int main(int argc,char *args[]) {
     if ((ret=parse_cmd(buffer))!=0) return -1;
 
     if (game_options&GO_APPDATA) {
-        SHGetFolderPath(NULL,CSIDL_APPDATA,NULL,0,localdata);
-        sprintf(filename,"%s\\Astonia",localdata);
-        mkdir(filename);
-
-        sprintf(filename,"%s\\Astonia\\%s",localdata,"moac.log");
+        localdata=SDL_GetPrefPath(ORG_NAME,APP_NAME);
+        sprintf(filename,"%s%s",localdata,"moac.log");
     } else sprintf(filename,"%s","moac.log");
 
     errorfp=fopen(filename,"a");
@@ -766,6 +762,8 @@ int main(int argc,char *args[]) {
     if (xmemcheck_failed) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"memory panic",memcheck_failed_str,NULL);
 
     net_exit();
+
+    if (localdata) SDL_free(localdata);
 
     xlog(errorfp,"Clean client shutdown. Thank you for playing!");
     fclose(errorfp);

@@ -1878,7 +1878,7 @@ void sdl_dump_spritecache(void) {
 
     qsort(dumpidx,MAX_TEXCACHE,sizeof(int),dump_cmp);
 
-    if (game_options&GO_APPDATA) sprintf(filename,"%s\\Astonia\\%s",localdata,"sdlt.txt");
+    if (localdata) sprintf(filename,"%s%s",localdata,"sdlt.txt");
     else sprintf(filename,"%s","sdlt.txt");
     fp=fopen(filename,"w");
 

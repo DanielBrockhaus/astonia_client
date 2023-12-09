@@ -137,7 +137,7 @@ static LONG WINAPI exceptionPrinter( LPEXCEPTION_POINTERS ep )
     fflush( stderr );
     fflush( errorfp ); fclose(errorfp);
 
-    if (game_options&GO_APPDATA) sprintf(filename,"Details written to %s\\Astonia\\%s",localdata,"moac.log");
+    if (localdata) sprintf(filename,"Details written to %s%s",localdata,"moac.log");
     else sprintf(filename,"Details written to %s","moac.log");
     display_messagebox("Application Crashed",filename);
 

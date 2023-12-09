@@ -259,7 +259,7 @@ void minimap_hide(void) {
 static char *mapname(int i) {
     static char filename[MAX_PATH];
 
-    if (game_options&GO_APPDATA) sprintf(filename,"%s\\Astonia\\map%03d.dat",localdata,i);
+    if (localdata) sprintf(filename,"%smap%03d.dat",localdata,i);
     else sprintf(filename,"bin/data/map%03d.dat",i);
 
     return filename;
