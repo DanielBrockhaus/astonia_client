@@ -9,7 +9,7 @@
  */
 
 #include <stdint.h>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include "../../src/astonia.h"
 #include "../../src/game.h"

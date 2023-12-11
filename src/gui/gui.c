@@ -11,7 +11,7 @@
 #include <windows.h>
 #include <psapi.h>
 #include <time.h>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include "../../src/astonia.h"
 #include "../../src/gui.h"
