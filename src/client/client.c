@@ -10,7 +10,7 @@
 #include <winsock2.h>
 #include <time.h>
 #include <zlib.h>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include "../../src/astonia.h"
 #include "../../src/client.h"

@@ -30,7 +30,7 @@
 #include <zip.h>
 
 #ifndef STANDALONE
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include "../../src/sdl/_sdl.h"
 #endif
 
