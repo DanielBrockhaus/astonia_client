@@ -230,17 +230,6 @@ int stom(int scrx,int scry,int *mapx,int *mapy) {
     return 1;
 }
 
-int gui_keymode(void) {
-    int ret=0;
-
-    if (GetAsyncKeyState(VK_SHIFT)&0x8000) ret|=SDL_KEYM_SHIFT;
-    if (GetAsyncKeyState(VK_CONTROL)&0x8000) ret|=SDL_KEYM_CTRL;
-    if (GetAsyncKeyState(VK_MENU)&0x8000) ret|=SDL_KEYM_ALT;
-
-    return ret;
-}
-
-
 // dx
 
 void dx_copysprite_emerald(int scrx,int scry,int emx,int emy) {
@@ -931,9 +920,9 @@ static void set_cmd_cursor(int cmd) {
 }
 
 void set_cmd_key_states(void) {
-    int km;
+    SDL_Keymod km;
 
-    km=gui_keymode();
+    km=SDL_GetModState();
 
     vk_shift=(km&SDL_KEYM_SHIFT) || shift_override;
     vk_control=(km&SDL_KEYM_CTRL) || control_override;
