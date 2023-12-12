@@ -9,6 +9,7 @@
  */
 
 #include <stdint.h>
+#include <stddef.h>
 
 #include "../../src/astonia.h"
 #include "../../src/gui.h"
