@@ -71,7 +71,7 @@ struct sdl_image {
     int16_t xoff,yoff;
 };
 
-void png_helper_read(png_struct *ps,unsigned char *buf,long long unsigned len) {
+void png_helper_read(png_struct *ps,unsigned char *buf,uint64_t len) {
     zip_fread(png_get_io_ptr(ps),buf,len);
 }
 
