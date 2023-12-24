@@ -23,16 +23,14 @@
  */
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <sys/stat.h>
-#ifdef STANDALONE
-#define SDL_MAIN_HANDLED
-#endif
-#include <SDL2/SDL.h>
 #include <png.h>
 #include <zip.h>
 
 #ifndef STANDALONE
+#include <SDL2/SDL.h>
 #include "../../src/sdl/_sdl.h"
 #endif
 
