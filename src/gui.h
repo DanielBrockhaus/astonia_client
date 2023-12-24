@@ -2,6 +2,8 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
+#include "dll.h"
+
 #define MAXACTIONSLOT       14
 
 struct quicks {
@@ -55,7 +57,7 @@ int _get_skltab_sep(int i);
 extern int (*get_skltab_index)(int n);
 int _get_skltab_index(int n);
 extern int (*get_skltab_show)(int i);
-__declspec(dllexport)int _get_skltab_show(int i);
+DLL_EXPORT int _get_skltab_show(int i);
 
 int context_getnm(void);
 int context_action_enabled(void);
@@ -66,10 +68,10 @@ void hover_invalidate_inv_delayed(int slot);
 void hover_invalidate_con(int slot);
 
 extern int (*do_display_random)(void);
-__declspec(dllexport) int _do_display_random(void);
+DLL_EXPORT int _do_display_random(void);
 
 extern int (*do_display_help)(int);
-__declspec(dllexport) int _do_display_help(int nr);
+DLL_EXPORT int _do_display_help(int nr);
 
 extern char action_row[2][MAXACTIONSLOT];
 extern int action_enabled;

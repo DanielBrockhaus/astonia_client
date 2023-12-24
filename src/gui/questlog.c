@@ -104,9 +104,9 @@ struct questlog _game_questlog[]={
 
 
 };
-__declspec(dllexport) struct questlog *game_questlog=_game_questlog;
+DLL_EXPORT struct questlog *game_questlog=_game_questlog;
 int _game_questcount=ARRAYSIZE(_game_questlog);
-__declspec(dllexport) int *game_questcount=&_game_questcount;
+DLL_EXPORT int *game_questcount=&_game_questcount;
 
 int questonscreen[10];
 
@@ -130,7 +130,7 @@ int questcmp(const void *a,const void *b) {
 }
 
 int (*do_display_random)(void)=_do_display_random;
-__declspec(dllexport) int _do_display_random(void) {
+DLL_EXPORT int _do_display_random(void) {
     int y=doty(DOT_HLP)+15,x,n,idx,bit,m;
     static short indec[10]={0,11,24,38,43,57,64,76,83,96};
     static short bribes[10]={0,15,22,34,48,54,67,78,86,93};

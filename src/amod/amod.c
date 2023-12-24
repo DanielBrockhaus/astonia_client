@@ -21,15 +21,15 @@
 #include "quests.c"
 #endif
 
-__declspec(dllexport) char *amod_version(void) {
+DLL_EXPORT char *amod_version(void) {
     return "Restart Demo 0.4";
 }
 
-__declspec(dllexport) void amod_gamestart(void) {
+DLL_EXPORT void amod_gamestart(void) {
     note("Restart Client Demo v0.4 loaded.");
 }
 
-__declspec(dllexport) int amod_client_cmd(char *buf) {
+DLL_EXPORT int amod_client_cmd(char *buf) {
     static unsigned long long option_ovr=0;
 
     if (!strncmp(buf, "#slow",5)) {
@@ -71,19 +71,19 @@ __declspec(dllexport) int amod_client_cmd(char *buf) {
     return 0;
 }
 
-__declspec(dllexport) int amod_keydown(int key) {
+DLL_EXPORT int amod_keydown(int key) {
     return 0;
 }
-__declspec(dllexport) int amod_keyup(int key) {
+DLL_EXPORT int amod_keyup(int key) {
     return 0;
 }
 
-__declspec(dllexport) int amod_is_playersprite(int sprite) {
+DLL_EXPORT int amod_is_playersprite(int sprite) {
     return (sprite==800 || sprite==801);
 }
 
 
-__declspec(dllexport) int amod_process(char *buf) {
+DLL_EXPORT int amod_process(char *buf) {
     switch (buf[0]) {
         case SV_MOD1:
             addline("process got sv_mod1");
@@ -91,18 +91,18 @@ __declspec(dllexport) int amod_process(char *buf) {
     }
     return 0;
 }
-__declspec(dllexport) int amod_prefetch(char *buf) {
+DLL_EXPORT int amod_prefetch(char *buf) {
     switch (buf[0]) {
         case SV_MOD1:   return 5;
     }
     return 0;
 }
 
-__declspec(dllexport) void amod_frame(void) {
+DLL_EXPORT void amod_frame(void) {
 
 }
 
-__declspec(dllexport) int do_display_help(int nr) {
+DLL_EXPORT int do_display_help(int nr) {
     int x=dotx(DOT_HLP)+10,y=doty(DOT_HLP)+8;
 
     switch (nr) {

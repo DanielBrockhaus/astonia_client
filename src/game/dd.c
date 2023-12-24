@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <SDL.h>
 
+#include "../../src/dll.h"
 #include "../../src/astonia.h"
 #include "../../src/game.h"
 #include "../../src/game/_game.h"
@@ -47,7 +48,7 @@ void dd_dump(FILE *fp) {
     fprintf(fp,"\n");
 }
 
-__declspec(dllexport) void dd_push_clip(void) {
+DLL_EXPORT void dd_push_clip(void) {
     if (clippos>=32) return;
 
     clipstore[clippos][0]=clipsx;
@@ -57,7 +58,7 @@ __declspec(dllexport) void dd_push_clip(void) {
     clippos++;
 }
 
-__declspec(dllexport) void dd_pop_clip(void) {
+DLL_EXPORT void dd_pop_clip(void) {
     if (clippos==0) return;
 
     clippos--;
@@ -67,7 +68,7 @@ __declspec(dllexport) void dd_pop_clip(void) {
     clipey=clipstore[clippos][3];
 }
 
-__declspec(dllexport) void dd_more_clip(int sx,int sy,int ex,int ey) {
+DLL_EXPORT void dd_more_clip(int sx,int sy,int ex,int ey) {
     if (sx>clipsx) clipsx=sx;
     if (sy>clipsy) clipsy=sy;
     if (ex<clipex) clipex=ex;
@@ -99,7 +100,7 @@ int dd_exit(void) {
     return 0;
 }
 
-__declspec(dllexport) int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry) {
+DLL_EXPORT int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry) {
     int stx;
 
     PARANOIA(if (!ddfx) paranoia("dd_copysprite_fx: ddfx=NULL"); )
@@ -173,7 +174,7 @@ void dd_copysprite_callfx(int sprite,int scrx,int scry,int light,int ml,int alig
     dd_copysprite_fx(&ddfx,scrx,scry);
 }
 
-__declspec(dllexport) void dd_copysprite(int sprite,int scrx,int scry,int light,int align) {
+DLL_EXPORT void dd_copysprite(int sprite,int scrx,int scry,int light,int align) {
     DDFX ddfx;
 
     bzero(&ddfx,sizeof(DDFX));
@@ -188,7 +189,7 @@ __declspec(dllexport) void dd_copysprite(int sprite,int scrx,int scry,int light,
     dd_copysprite_fx(&ddfx,scrx,scry);
 }
 
-__declspec(dllexport) void dd_rect(int sx,int sy,int ex,int ey,unsigned short int color) {
+DLL_EXPORT void dd_rect(int sx,int sy,int ex,int ey,unsigned short int color) {
     sdl_rect(sx,sy,ex,ey,color,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 }
 
@@ -196,7 +197,7 @@ void dd_shaded_rect(int sx,int sy,int ex,int ey,unsigned short color,unsigned sh
     sdl_shaded_rect(sx,sy,ex,ey,color,alpha,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 }
 
-__declspec(dllexport) void dd_line(int fx,int fy,int tx,int ty,unsigned short col) {
+DLL_EXPORT void dd_line(int fx,int fy,int tx,int ty,unsigned short col) {
     sdl_line(fx,fy,tx,ty,col,clipsx,clipsy,clipex,clipey,x_offset,y_offset);
 }
 
@@ -276,7 +277,7 @@ void dd_display_pulseback(int fx,int fy,int tx,int ty) {
 
 // text
 
-__declspec(dllexport) int dd_textlength(int flags,const char *text) {
+DLL_EXPORT int dd_textlength(int flags,const char *text) {
     DDFONT *font;
     int x;
     const char *c;
@@ -306,7 +307,7 @@ int dd_textlen(int flags,const char *text,int n) {
     return x;
 }
 
-__declspec(dllexport) int dd_drawtext(int sx,int sy,unsigned short int color,int flags,const char *text) {
+DLL_EXPORT int dd_drawtext(int sx,int sy,unsigned short int color,int flags,const char *text) {
     DDFONT *font;
 
     if (flags&DD__SHADEFONT) {
@@ -335,7 +336,7 @@ __declspec(dllexport) int dd_drawtext(int sx,int sy,unsigned short int color,int
     return sx;
 }
 
-__declspec(dllexport) int dd_drawtext_break(int x,int y,int breakx,unsigned short color,int flags,const char *ptr) {
+DLL_EXPORT int dd_drawtext_break(int x,int y,int breakx,unsigned short color,int flags,const char *ptr) {
     char buf[256];
     int xp,n;
     int size;
@@ -358,7 +359,7 @@ __declspec(dllexport) int dd_drawtext_break(int x,int y,int breakx,unsigned shor
     return y+10;
 }
 
-__declspec(dllexport) int dd_drawtext_nl(int x,int y,int unsigned short color,int flags,const char *ptr) {
+DLL_EXPORT int dd_drawtext_nl(int x,int y,int unsigned short color,int flags,const char *ptr) {
     char buf[256];
     int n;
 
@@ -374,7 +375,7 @@ __declspec(dllexport) int dd_drawtext_nl(int x,int y,int unsigned short color,in
     return y+10;
 }
 
-__declspec(dllexport) int dd_drawtext_break_length(int x,int y,int breakx,unsigned short color,int flags,const char *ptr) {
+DLL_EXPORT int dd_drawtext_break_length(int x,int y,int breakx,unsigned short color,int flags,const char *ptr) {
     char buf[256];
     int xp,n;
     int size;
@@ -396,11 +397,11 @@ __declspec(dllexport) int dd_drawtext_break_length(int x,int y,int breakx,unsign
     return y+10;
 }
 
-__declspec(dllexport) void dd_pixel(int x,int y,unsigned short col) {
+DLL_EXPORT void dd_pixel(int x,int y,unsigned short col) {
     sdl_pixel(x,y,col,x_offset,y_offset);
 }
 
-__declspec(dllexport) int dd_drawtext_fmt(int sx,int sy,unsigned short int color,int flags,const char *format,...) {
+DLL_EXPORT int dd_drawtext_fmt(int sx,int sy,unsigned short int color,int flags,const char *format,...) {
     char buf[1024];
     va_list va;
 
@@ -411,7 +412,7 @@ __declspec(dllexport) int dd_drawtext_fmt(int sx,int sy,unsigned short int color
     return dd_drawtext(sx,sy,color,flags,buf);
 }
 
-__declspec(dllexport) int dd_drawtext_break_fmt(int sx,int sy,int breakx,unsigned short int color,int flags,const char *format,...) {
+DLL_EXPORT int dd_drawtext_break_fmt(int sx,int sy,int breakx,unsigned short int color,int flags,const char *format,...) {
     char buf[1024];
     va_list va;
 

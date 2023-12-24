@@ -31,16 +31,16 @@ int kicked_out=0;
 static unsigned int unique=0;
 static unsigned int usum=0;
 int target_port=5556;
-__declspec(dllexport) int target_server=0;
-__declspec(dllexport) char password[16];
+DLL_EXPORT int target_server=0;
+DLL_EXPORT char password[16];
 static int zsinit;
 static struct z_stream_s zs;
 
-__declspec(dllexport) char username[40];
-__declspec(dllexport) int tick;
-__declspec(dllexport) int mirror=0;
-__declspec(dllexport) int realtime;
-__declspec(dllexport) int protocol_version=0;
+DLL_EXPORT char username[40];
+DLL_EXPORT int tick;
+DLL_EXPORT int mirror=0;
+DLL_EXPORT int realtime;
+DLL_EXPORT int protocol_version=0;
 
 int newmirror=0;
 int lasttick;           // ticks in inbuf
@@ -60,56 +60,56 @@ static unsigned char inbuf[MAX_INBUF];
 static int outused;
 static unsigned char outbuf[MAX_OUTBUF];
 
-__declspec(dllexport) int act;
-__declspec(dllexport) int actx;
-__declspec(dllexport) int acty;
+DLL_EXPORT int act;
+DLL_EXPORT int actx;
+DLL_EXPORT int acty;
 
-__declspec(dllexport) unsigned int cflags;        // current item flags
-__declspec(dllexport) unsigned int csprite;       // and sprite
+DLL_EXPORT unsigned int cflags;        // current item flags
+DLL_EXPORT unsigned int csprite;       // and sprite
 
-__declspec(dllexport) int originx;
-__declspec(dllexport) int originy;
-__declspec(dllexport) struct map map[MAPDX*MAPDY];
-__declspec(dllexport) struct map map2[MAPDX*MAPDY];
+DLL_EXPORT int originx;
+DLL_EXPORT int originy;
+DLL_EXPORT struct map map[MAPDX*MAPDY];
+DLL_EXPORT struct map map2[MAPDX*MAPDY];
 
-__declspec(dllexport) int value[2][V_MAX];
-__declspec(dllexport) int item[INVENTORYSIZE];
-__declspec(dllexport) int item_flags[INVENTORYSIZE];
-__declspec(dllexport) int hp;
-__declspec(dllexport) int mana;
-__declspec(dllexport) int rage;
-__declspec(dllexport) int endurance;
-__declspec(dllexport) int lifeshield;
-__declspec(dllexport) int experience;
-__declspec(dllexport) int experience_used;
-__declspec(dllexport) int mil_exp;
-__declspec(dllexport) int gold;
+DLL_EXPORT int value[2][V_MAX];
+DLL_EXPORT int item[INVENTORYSIZE];
+DLL_EXPORT int item_flags[INVENTORYSIZE];
+DLL_EXPORT int hp;
+DLL_EXPORT int mana;
+DLL_EXPORT int rage;
+DLL_EXPORT int endurance;
+DLL_EXPORT int lifeshield;
+DLL_EXPORT int experience;
+DLL_EXPORT int experience_used;
+DLL_EXPORT int mil_exp;
+DLL_EXPORT int gold;
 
-__declspec(dllexport) struct player player[MAXCHARS];
+DLL_EXPORT struct player player[MAXCHARS];
 
-__declspec(dllexport) union ceffect ceffect[MAXEF];
-__declspec(dllexport) unsigned char ueffect[MAXEF];
+DLL_EXPORT union ceffect ceffect[MAXEF];
+DLL_EXPORT unsigned char ueffect[MAXEF];
 
-__declspec(dllexport) int con_type;
-__declspec(dllexport) char con_name[80];
-__declspec(dllexport) int con_cnt;
-__declspec(dllexport) int container[CONTAINERSIZE];
-__declspec(dllexport) int price[CONTAINERSIZE];
-__declspec(dllexport) int itemprice[CONTAINERSIZE];
-__declspec(dllexport) int cprice;
+DLL_EXPORT int con_type;
+DLL_EXPORT char con_name[80];
+DLL_EXPORT int con_cnt;
+DLL_EXPORT int container[CONTAINERSIZE];
+DLL_EXPORT int price[CONTAINERSIZE];
+DLL_EXPORT int itemprice[CONTAINERSIZE];
+DLL_EXPORT int cprice;
 
-__declspec(dllexport) int lookinv[12];
-__declspec(dllexport) int looksprite,lookc1,lookc2,lookc3;
-__declspec(dllexport) char look_name[80];
-__declspec(dllexport) char look_desc[1024];
+DLL_EXPORT int lookinv[12];
+DLL_EXPORT int looksprite,lookc1,lookc2,lookc3;
+DLL_EXPORT char look_name[80];
+DLL_EXPORT char look_desc[1024];
 
-__declspec(dllexport) char pent_str[7][80];
+DLL_EXPORT char pent_str[7][80];
 
-__declspec(dllexport) int pspeed=0;   // 0=normal   1=fast      2=stealth     - like the server
+DLL_EXPORT int pspeed=0;   // 0=normal   1=fast      2=stealth     - like the server
 
 int may_teleport[64+32];
 
-__declspec(dllexport) int frames_per_second=TICKS;
+DLL_EXPORT int frames_per_second=TICKS;
 
 int sv_map01(unsigned char *buf,int *last,struct map *cmap) {
     int p,c;
@@ -792,8 +792,8 @@ void sv_prof(unsigned char *buf) {
     update_skltab=1;
 }
 
-__declspec(dllexport) struct quest quest[MAXQUEST];
-__declspec(dllexport) struct shrine_ppd shrine;
+DLL_EXPORT struct quest quest[MAXQUEST];
+DLL_EXPORT struct shrine_ppd shrine;
 
 void sv_questlog(unsigned char *buf) {
     int size;
@@ -1027,7 +1027,7 @@ int prefetch(unsigned char *buf,int size) {
     return prefetch_tick;
 }
 
-__declspec(dllexport) void client_send(void *buf,int len) {
+DLL_EXPORT void client_send(void *buf,int len) {
     if (len>MAX_OUTBUF-outused) return;
 
     memcpy(outbuf+outused,buf,len);
@@ -1754,18 +1754,18 @@ void cl_ticker(void) {
 }
 
 // X exp yield level Y
-__declspec(dllexport) int exp2level(int val) {
+DLL_EXPORT int exp2level(int val) {
     if (val<1) return 1;
 
     return max(1,(int)(sqrt(sqrt(val))));
 }
 
 // to reach level X you need Y exp
-__declspec(dllexport) int level2exp(int level) {
+DLL_EXPORT int level2exp(int level) {
     return pow(level,4);
 }
 
-__declspec(dllexport) int mapmn(int x,int y) {
+DLL_EXPORT int mapmn(int x,int y) {
     if (x<0 || y<0 || x>=MAPDX || y>=MAPDY) {
         return -1;
     }
