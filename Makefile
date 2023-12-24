@@ -12,7 +12,7 @@ OBJS	=		src/gui/gui.o src/client/client.o src/client/skill.o src/game/dd.o src/g
 			src/game/main.o src/game/sprite.o src/game/game.o src/modder/modder.o\
 			src/sdl/sound.o src/game/resource.o src/sdl/sdl.o src/helper/helper.o\
 			src/gui/dots.o src/gui/display.o src/gui/teleport.o src/gui/color.o src/gui/cmd.o\
-			src/gui/questlog.o src/gui/context.o src/gui/hover.c src/modder/sharedmem.o\
+			src/gui/questlog.o src/gui/context.o src/gui/hover.o src/modder/sharedmem.o\
 			src/gui/minimap.o
 
 bin/moac.exe lib/moac.a &:	$(OBJS)
