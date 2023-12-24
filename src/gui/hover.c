@@ -243,7 +243,6 @@ static int display_hover(void) {
 
 static void display_hover_update(void) {
     static int ivsel=-1,wsel=-1,csel=-1,ssel=-1,soff=0,ioff=0,coff=0;
-    int x,y,i,v;
 
     if (ivsel!=invsel || wsel!=weasel || csel!=consel || ssel!=sklsel2 ||
         soff!=skloff  || ioff!=invoff || coff!=conoff) {
