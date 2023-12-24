@@ -23,7 +23,7 @@
 
 uint64_t gui_time_misc=0;
 
-__declspec(dllexport) int game_slowdown=0;
+DLL_EXPORT int game_slowdown=0;
 
 #define MAXHELP		24
 #define MAXQUEST2	10
@@ -47,19 +47,19 @@ int show_look=0;
 
 int gui_topoff;     // offset of the top bar *above* the top of the window (0 ... -38)
 
-__declspec(dllexport) unsigned short int healthcolor,manacolor,endurancecolor,shieldcolor;
-__declspec(dllexport) unsigned short int whitecolor,lightgraycolor,graycolor,darkgraycolor,blackcolor;
-__declspec(dllexport) unsigned short int lightredcolor,redcolor,darkredcolor;
-__declspec(dllexport) unsigned short int lightgreencolor,greencolor,darkgreencolor;
-__declspec(dllexport) unsigned short int lightbluecolor,bluecolor,darkbluecolor;
-__declspec(dllexport) unsigned short int textcolor;
-__declspec(dllexport) unsigned short int lightorangecolor,orangecolor,darkorangecolor;
+DLL_EXPORT unsigned short int healthcolor,manacolor,endurancecolor,shieldcolor;
+DLL_EXPORT unsigned short int whitecolor,lightgraycolor,graycolor,darkgraycolor,blackcolor;
+DLL_EXPORT unsigned short int lightredcolor,redcolor,darkredcolor;
+DLL_EXPORT unsigned short int lightgreencolor,greencolor,darkgreencolor;
+DLL_EXPORT unsigned short int lightbluecolor,bluecolor,darkbluecolor;
+DLL_EXPORT unsigned short int textcolor;
+DLL_EXPORT unsigned short int lightorangecolor,orangecolor,darkorangecolor;
 
 unsigned int now;
 
 int cur_cursor=0;
 int mousex=300,mousey=300,vk_rbut,vk_lbut,shift_override=0,control_override=0;
-__declspec(dllexport) int vk_shift,vk_control,vk_alt;
+DLL_EXPORT int vk_shift,vk_control,vk_alt;
 int mousedx,mousedy;
 int vk_item,vk_char,vk_spell;
 
@@ -67,7 +67,7 @@ int vk_special=0,vk_special_time=0;
 
 // globals wea
 
-__declspec(dllexport) int weatab[12]={9,6,8,11,0,1,2,4,5,3,7,10};
+DLL_EXPORT int weatab[12]={9,6,8,11,0,1,2,4,5,3,7,10};
 char weaname[12][32]={"RING","HAND","HAND","RING","NECK","HEAD","BACK","BODY","BELT","ARMS","LEGS","FEET"};
 
 KEYTAB keytab[]={
@@ -167,9 +167,9 @@ int takegold;                   // the amout of gold to take
 char hitsel[256];               // something in the text (dx_drawtext()) is selected
 int hittype=0;
 
-__declspec(dllexport) SKLTAB *skltab=NULL;
+DLL_EXPORT SKLTAB *skltab=NULL;
 int skltab_max=0;
-__declspec(dllexport) int skltab_cnt=0;
+DLL_EXPORT int skltab_cnt=0;
 
 int invoff,max_invoff;
 int conoff,max_conoff;
@@ -930,7 +930,7 @@ void set_cmd_key_states(void) {
     vk_spell=vk_alt;
 }
 
-__declspec(dllexport) int get_near_ground(int x,int y) {
+DLL_EXPORT int get_near_ground(int x,int y) {
     int mapx,mapy;
 
     if (!stom(x,y,&mapx,&mapy)) return -1;
@@ -940,7 +940,7 @@ __declspec(dllexport) int get_near_ground(int x,int y) {
     return mapmn(mapx,mapy);
 }
 
-__declspec(dllexport) int get_near_item(int x,int y,int flag,int looksize) {
+DLL_EXPORT int get_near_item(int x,int y,int flag,int looksize) {
     int mapx,mapy,sx,sy,ex,ey,mn,scrx,scry,nearest=-1;
     double dist,nearestdist=100000000;
 
@@ -974,7 +974,7 @@ __declspec(dllexport) int get_near_item(int x,int y,int flag,int looksize) {
     return nearest;
 }
 
-__declspec(dllexport) int get_near_char(int x,int y,int looksize) {
+DLL_EXPORT int get_near_char(int x,int y,int looksize) {
     int mapx,mapy,sx,sy,ex,ey,mn,scrx,scry,nearest=-1;
     double dist,nearestdist=100000000;
 
@@ -1071,7 +1071,7 @@ static void set_conoff(int bymouse,int ny) {
 }
 
 int (*get_skltab_index)(int n)=_get_skltab_index;
-__declspec(dllexport) int _get_skltab_index(int n) {
+DLL_EXPORT int _get_skltab_index(int n) {
     static int itab[V_MAX+1]={
         -1,
         0,1,2,                          // powers
@@ -1091,12 +1091,12 @@ __declspec(dllexport) int _get_skltab_index(int n) {
 }
 
 int (*get_skltab_sep)(int i)=_get_skltab_sep;
-__declspec(dllexport)int _get_skltab_sep(int i) {
+DLL_EXPORT int _get_skltab_sep(int i) {
     return (i==0 || i==3 || i==7 || i==12 || i==17 || i==25 || i==28 || i==42 || i==43);
 }
 
 int (*get_skltab_show)(int i)=_get_skltab_show;
-__declspec(dllexport)int _get_skltab_show(int i) {
+DLL_EXPORT int _get_skltab_show(int i) {
     return (i==V_WEAPON || i==V_ARMOR || i==V_SPEED || i==V_LIGHT);
 }
 

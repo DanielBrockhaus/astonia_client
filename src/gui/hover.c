@@ -20,13 +20,13 @@
 #include "../../src/sdl.h"
 #include "../../src/modder.h"
 
-__declspec(dllexport) char hover_bless_text[120];
-__declspec(dllexport) char hover_freeze_text[120];
-__declspec(dllexport) char hover_potion_text[120];
-__declspec(dllexport) char hover_rage_text[120];
-__declspec(dllexport) char hover_level_text[120];
-__declspec(dllexport) char hover_rank_text[120];
-__declspec(dllexport) char hover_time_text[120];
+DLL_EXPORT char hover_bless_text[120];
+DLL_EXPORT char hover_freeze_text[120];
+DLL_EXPORT char hover_potion_text[120];
+DLL_EXPORT char hover_rage_text[120];
+DLL_EXPORT char hover_level_text[120];
+DLL_EXPORT char hover_rank_text[120];
+DLL_EXPORT char hover_time_text[120];
 
 static int display_hover(void);
 static void display_hover_update(void);

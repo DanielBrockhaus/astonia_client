@@ -1,5 +1,5 @@
 
-__declspec(dllexport) struct questlog game_questlog[]={
+DLL_EXPORT struct questlog game_questlog[]={
     {"Lydia's Potion",1,2,"James","Cameron",15,QLF_REPEATABLE},         //0,
     {"Find the Spoon of Doom",2,3,"Gwendolyn","Cameron",75,QLF_REPEATABLE},        //1,
     {"The Second Skull",3,5,"Gwendylon","Cameron",150,QLF_REPEATABLE},      //2,
@@ -84,6 +84,6 @@ __declspec(dllexport) struct questlog game_questlog[]={
 
 
 };
-__declspec(dllexport) int game_questcount=ARRAYSIZE(game_questlog);
+DLL_EXPORT int game_questcount=ARRAYSIZE(game_questlog);
 
 

@@ -5,10 +5,10 @@
 #define MOD_V_MAX       63
 #define MOD_V_PROFBASE  43
 
-__declspec(dllexport) int game_v_max=MOD_V_MAX;
-__declspec(dllexport) int game_v_profbase=MOD_V_PROFBASE;
+DLL_EXPORT int game_v_max=MOD_V_MAX;
+DLL_EXPORT int game_v_profbase=MOD_V_PROFBASE;
 
-__declspec(dllexport) struct skill game_skill[MOD_V_MAX] = {
+DLL_EXPORT struct skill game_skill[MOD_V_MAX] = {
 	//  Bases          Cost W M (0=not raisable, 1=skill, 2=attribute, 3=power)
     // Powers
     {"Hitpoints",-1,-1,-1,3,10},    // 0		done
@@ -93,7 +93,7 @@ __declspec(dllexport) struct skill game_skill[MOD_V_MAX] = {
     {"empty",-1,-1,-1,0,1} // 19
 };
 
-__declspec(dllexport) char *game_skilldesc[] = {
+DLL_EXPORT char *game_skilldesc[] = {
 	"Hitpoints ('life force') are reduced as you battle and sustain injury. The top red line above your head shows your Hitpoints level. If your Hitpoints level drops to zero, then you will die!",
     "Endurance enables you to run and fight with greater speed. When your Endurance is gone, you will slow down and feel exhausted.",
     "Magic users need Mana to cast spells. If your Mana runs out, then you can no longer cast spells or perform magic. If you stand completely still for a few moments, your Mana will replenish itself.",
@@ -172,7 +172,7 @@ __declspec(dllexport) char *game_skilldesc[] = {
     "prof20: write me!"
 };
 
-__declspec(dllexport) int get_skltab_index(int n) {
+DLL_EXPORT int get_skltab_index(int n) {
     static int itab[] = {
 		-1,
         0,1,2,                          // powers
@@ -191,11 +191,11 @@ __declspec(dllexport) int get_skltab_index(int n) {
     return itab[n];
 }
 
-__declspec(dllexport)int get_skltab_sep(int i) {
+DLL_EXPORT int get_skltab_sep(int i) {
     return (i==0 || i==3 || i==7 || i==12 || i==17 || i==25 || i==28 || i==42 || i==43);
 }
 
-__declspec(dllexport)int get_skltab_show(int i) {
+DLL_EXPORT int get_skltab_show(int i) {
     return (i==V_WEAPON || i==V_ARMOR || i==V_SPEED || i==V_LIGHT);
 }
 

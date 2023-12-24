@@ -15,6 +15,7 @@
 #include <png.h>
 #include <zip.h>
 
+#include "../../src/dll.h"
 #include "../../src/astonia.h"
 #include "../../src/sdl.h"
 #include "../../src/sdl/_sdl.h"
@@ -47,10 +48,10 @@ long long sdl_time_pre1=0;
 long long sdl_time_pre2=0;
 long long sdl_time_pre3=0;
 
-__declspec(dllexport) int sdl_scale=1;
-__declspec(dllexport) int sdl_frames=0;
-__declspec(dllexport) int sdl_multi=4;
-__declspec(dllexport) int sdl_cache_size=8000;
+DLL_EXPORT int sdl_scale=1;
+DLL_EXPORT int sdl_frames=0;
+DLL_EXPORT int sdl_multi=4;
+DLL_EXPORT int sdl_cache_size=8000;
 
 static zip_t *sdl_zip1=NULL;
 static zip_t *sdl_zip2=NULL;
@@ -64,7 +65,7 @@ static zip_t *sdl_zip2m=NULL;
 static SDL_sem *prework=NULL;
 static SDL_mutex *premutex=NULL;
 
-__declspec(dllexport) int __yres=YRES0;
+DLL_EXPORT int __yres=YRES0;
 
 static int sdlm_sprite=0;
 static int sdlm_scale=0;

@@ -7,7 +7,7 @@ CC=gcc
 OPT=-O3
 DEBUG=-gdwarf-4
 SDL_CFLAGS=$(shell $(SDL_CONFIG) --cflags)
-CFLAGS=$(OPT) $(DEBUG) -Wall -Wno-pointer-sign -Wno-char-subscripts -fno-omit-frame-pointer $(SDL_CFLAGS)
+CFLAGS=$(OPT) $(DEBUG) -Wall -Wno-pointer-sign -Wno-char-subscripts -fno-omit-frame-pointer -fvisibility=hidden $(SDL_CFLAGS)
 LDFLAGS=$(OPT) $(DEBUG) -Wl,-subsystem,windows
 
 SDL_LIBS=$(shell $(SDL_CONFIG) --libs)

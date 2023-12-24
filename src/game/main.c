@@ -32,7 +32,7 @@ static int panic_reached=0;
 static int xmemcheck_failed=0;
 char user_keys[10]={'Q','W','E','A','S','D','Z','X','C','V'};
 
-__declspec(dllexport) uint64_t game_options=GO_NOTSET;
+DLL_EXPORT uint64_t game_options=GO_NOTSET;
 
 static char memcheck_failed_str[]={"memcheck failed"};
 static char panic_reached_str[]={"panic failure"};
@@ -58,7 +58,7 @@ void main_dump(FILE *fp) {
 
 // note, warn, fail, paranoia, addline
 
-__declspec(dllexport) int note(const char *format,...) {
+DLL_EXPORT int note(const char *format,...) {
     va_list va;
     char buf[1024];
 
@@ -76,7 +76,7 @@ __declspec(dllexport) int note(const char *format,...) {
     return 0;
 }
 
-__declspec(dllexport) int warn(const char *format,...) {
+DLL_EXPORT int warn(const char *format,...) {
     va_list va;
     char buf[1024];
 
@@ -92,7 +92,7 @@ __declspec(dllexport) int warn(const char *format,...) {
     return 0;
 }
 
-__declspec(dllexport) int fail(const char *format,...) {
+DLL_EXPORT int fail(const char *format,...) {
     va_list va;
     char buf[1024];
 
@@ -110,7 +110,7 @@ __declspec(dllexport) int fail(const char *format,...) {
     return -1;
 }
 
-__declspec(dllexport) void paranoia(const char *format,...) {
+DLL_EXPORT void paranoia(const char *format,...) {
     va_list va;
 
     fprintf(errorfp,"PARANOIA EXIT in ");
@@ -148,7 +148,7 @@ void addlinesep(void) {
     _addlinesep=1;
 }
 
-__declspec(dllexport) void addline(const char *format,...) {
+DLL_EXPORT void addline(const char *format,...) {
     va_list va;
     char buf[1024];
 
@@ -567,10 +567,10 @@ void display_usage(void) {
     free(txt);
 }
 
-__declspec(dllexport) char server_url[256];
-__declspec(dllexport) int server_port=0;
-__declspec(dllexport) int want_width=0;
-__declspec(dllexport) int want_height=0;
+DLL_EXPORT char server_url[256];
+DLL_EXPORT int server_port=0;
+DLL_EXPORT int want_width=0;
+DLL_EXPORT int want_height=0;
 
 int parse_cmd(char *s) {
     int n;
