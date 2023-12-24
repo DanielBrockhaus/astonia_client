@@ -487,7 +487,7 @@ int net_exit(void) {
 // parsing command line
 
 void display_messagebox(char *title,char *text) {
-    MessageBox(NULL,text,title,MB_APPLMODAL|MB_OK|MB_ICONEXCLAMATION);
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,title,text,NULL);
 }
 
 void display_usage(void) {
@@ -516,7 +516,7 @@ void display_usage(void) {
     buf+=sprintf(buf,"cachesize is the size of the texture cache. Default is 8000. Lower numbers might crash!\n\n");
     buf+=sprintf(buf,"framespersecond will set the display rate in frames per second.\n\n");
 
-    MessageBox(NULL,txt,"Usage",MB_APPLMODAL|MB_OK|MB_ICONEXCLAMATION);
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION,"Usage",txt,NULL);
 
     printf("%s",txt);
 
@@ -692,7 +692,7 @@ int main(int argc,char *args[]) {
 
     // next init (only once)
     if (net_init()==-1) {
-        MessageBox(NULL,"Can't Initialize Windows Networking Libraries.","Error",MB_APPLMODAL|MB_OK|MB_ICONSTOP);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error","Can't Initialize Networking Libraries.",NULL);
         return -1;
     }
 
@@ -762,8 +762,8 @@ int main(int argc,char *args[]) {
 
     list_mem();
 
-    if (panic_reached) MessageBox(NULL,panic_reached_str,"recursion panic",MB_APPLMODAL|MB_OK|MB_ICONSTOP);
-    if (xmemcheck_failed) MessageBox(NULL,memcheck_failed_str,"memory panic",MB_APPLMODAL|MB_OK|MB_ICONSTOP);
+    if (panic_reached) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"recursion panic",panic_reached_str,NULL);
+    if (xmemcheck_failed) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"memory panic",memcheck_failed_str,NULL);
 
     net_exit();
 
