@@ -1,5 +1,7 @@
 all: bin/moac.exe
 
+WINDRES=windres
+LDD=ldd
 CC=gcc
 OPT=-O3
 DEBUG=-gdwarf-4
@@ -60,13 +62,13 @@ src/sdl/sdl.o:		src/sdl/sdl.c src/astonia.h src/sdl.h src/sdl/_sdl.h
 src/sdl/sound.o:      	src/sdl/sound.c src/astonia.h src/sdl.h src/sdl/_sdl.h
 
 src/game/resource.o:	src/game/resource.rc src/game/resource.h res/moa3.ico
-			windres -F pe-x86-64 src/game/resource.rc src/game/resource.o
+			$(WINDRES) -F pe-x86-64 src/game/resource.rc src/game/resource.o
 
 clean:
 		-rm -f src/*/*.o bin/*.exe bin/*.dll
 
 distrib:
-	ldd bin/moac.exe | grep mingw | awk 'NF == 4 { system("cp " $$3 " bin") }'
+	$(LDD) bin/moac.exe | grep mingw | awk 'NF == 4 { system("cp " $$3 " bin") }'
 	zip windows_client.zip -r bin res create_shortcut.bat eula.txt
 
 
