@@ -2259,7 +2259,9 @@ int main_loop(void) {
                     cl_ticker();
                 }
                 amod_tick();
+                #ifdef ENABLE_SHAREDMEM
                 sharedmem_update();
+                #endif
             }
         }
 

@@ -700,7 +700,9 @@ int main(int argc,char *args[]) {
     #endif
 
     amod_init();
+    #ifdef ENABLE_SHAREDMEM
     sharedmem_init();
+    #endif
 
     load_options();
 
@@ -775,7 +777,9 @@ int main(int argc,char *args[]) {
 
     main_loop();
 
+    #ifdef ENABLE_SHAREDMEM
     sharedmem_exit();
+    #endif
     amod_exit();
     main_exit();
     sound_exit();
