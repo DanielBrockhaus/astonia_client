@@ -18,7 +18,8 @@ OBJS	=		src/gui/gui.o src/client/client.o src/client/skill.o src/game/dd.o src/g
 			src/sdl/sound.o src/game/resource.o src/sdl/sdl.o src/helper/helper.o\
 			src/gui/dots.o src/gui/display.o src/gui/teleport.o src/gui/color.o src/gui/cmd.o\
 			src/gui/questlog.o src/gui/context.o src/gui/hover.o src/gui/minimap.o\
-			src/modder/sharedmem_windows.o src/game/crash_handler_windows.o
+			src/modder/sharedmem_windows.o src/game/crash_handler_windows.o\
+			src/game/memory_windows.o
 
 bin/moac.exe lib/moac.a &:	$(OBJS)
 			$(CC) $(LDFLAGS) -Wl,--out-implib,lib/moac.a -o bin/moac.exe $(OBJS) src/game/version.c $(LIBS)
@@ -65,6 +66,7 @@ src/sdl/sdl.o:		src/sdl/sdl.c src/astonia.h src/sdl.h src/sdl/_sdl.h
 src/sdl/sound.o:      	src/sdl/sound.c src/astonia.h src/sdl.h src/sdl/_sdl.h
 
 src/game/crash_handler_windows.o: src/game/crash_handler_windows.c
+src/game/memory_windows.o: src/game/memory_windows.c
 
 src/game/resource.o:	src/game/resource.rc src/game/resource.h res/moa3.ico
 			$(WINDRES) -F pe-x86-64 src/game/resource.rc src/game/resource.o
