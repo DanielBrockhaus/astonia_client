@@ -28,8 +28,10 @@ static unsigned int socktime=0;
 int socktimeout=0;
 static int change_area=0;
 int kicked_out=0;
-static unsigned int unique=0;
-static unsigned int usum=0;
+unsigned int unique=0;
+#ifdef STORE_UNIQUE
+unsigned int usum=0;
+#endif
 int target_port=5556;
 DLL_EXPORT int target_server=0;
 DLL_EXPORT char password[16];
@@ -804,35 +806,15 @@ void sv_questlog(unsigned char *buf) {
     memcpy(&shrine,buf+1+size,sizeof(struct shrine_ppd));
 }
 
-static void save_unique(void) {
-    HKEY hk;
-
-    if (RegCreateKey(HKEY_CURRENT_USER,"Software\\Microsoft\\Notepad",&hk)!=ERROR_SUCCESS) return;
-
-    unique=unique^0xfe2abc82;
-    usum=unique^0x3e5fba04;
-
-    RegSetValueEx(hk,"fInput1",0,REG_DWORD,(void *)&unique,4);
-    RegSetValueEx(hk,"fInput2",0,REG_DWORD,(void *)&usum,4);
-}
-
-static void load_unique(void) {
-    HKEY hk;
-    int size=4,type;
-
-    if (RegCreateKey(HKEY_CURRENT_USER,"Software\\Microsoft\\Notepad",&hk)!=ERROR_SUCCESS) return;
-
-    RegQueryValueEx(hk,"fInput1",0,(void *)&type,(void *)&unique,(void *)&size);
-    RegQueryValueEx(hk,"fInput2",0,(void *)&type,(void *)&usum,(void *)&size);
-
-    if ((unique^0x3e5fba04)!=usum) unique=usum=0;
-    else unique=unique^0xfe2abc82;
-}
+void save_unique(void);
+void load_unique(void);
 
 void sv_unique(unsigned char *buf) {
     if (unique!=*(unsigned int *)(buf+1)) {
         unique=*(unsigned int *)(buf+1);
+        #ifdef STORE_UNIQUE
         save_unique();
+        #endif
     }
 }
 
@@ -1440,7 +1422,9 @@ void send_info(int sock) {
     getpeername(sock,(struct sockaddr *)&addr,&len);
     *(unsigned int *)(buf+4)=addr.sin_addr.s_addr;
 
+    #ifdef STORE_UNIQUE
     load_unique();
+    #endif
 
     *(unsigned int *)(buf+8)=unique;
 
