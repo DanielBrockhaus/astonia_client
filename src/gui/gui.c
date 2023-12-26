@@ -9,7 +9,6 @@
  */
 
 #include <windows.h>
-#include <psapi.h>
 #include <time.h>
 #include <SDL.h>
 
@@ -544,6 +543,8 @@ void display_wheel(void) {
     dd_pop_clip();
 }
 
+size_t get_memory_usage(void);
+
 static void display(void) {
     extern int memptrs[MAX_MEM];
     extern int memsize[MAX_MEM];
@@ -642,14 +643,11 @@ display_graphs:
         //static int frame_min=99,frame_max=0,frame_step=0;
         //static int tick_min=99,tick_max=0,tick_step=0;
         int px=800-110,py=35+(!(game_options&GO_SMALLTOP) ? 0 : gui_topoff);
-        PROCESS_MEMORY_COUNTERS mi;
-
-        GetProcessMemoryInfo(GetCurrentProcess(),&mi,sizeof(mi));
 
         //dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"skip %3.0f%%",100.0*skip/tota);
         //dd_drawtext_fmt(px,py+=10,0xffff,DD_SMALL|DD_LEFT|DD_FRAME|DD_NOCACHE,"idle %3.0f%%",100.0*idle/tota);
         //dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME|DD_NOCACHE,"Tex: %5.2f MB",mem_tex/(1024.0*1024.0));
-        dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME|DD_NOCACHE,"Mem: %5.2f MB",mi.WorkingSetSize/(1024.0*1024.0));
+        dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_LEFT|DD_FRAME|DD_NOCACHE,"Mem: %5.2f MB",get_memory_usage()/(1024.0*1024.0));
 
 #if 0
         if (pre_in>=pre_3) size=pre_in-pre_3;
