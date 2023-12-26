@@ -2186,13 +2186,15 @@ void sdl_loop(void) {
                 gui_sdl_mouseproc(event.wheel.x,event.wheel.y,SDL_MOUM_WHEEL,0);
                 break;
             case SDL_WINDOWEVENT:
+                #ifdef ENABLE_DRAGHACK
                 if (event.window.event==SDL_WINDOWEVENT_FOCUS_GAINED) {
                     int x, y;
                     Uint32 mouseState = SDL_GetMouseState(&x, &y);
                     if (mouseState&SDL_BUTTON(SDL_BUTTON_LEFT)) {
-                        gui_sdl_draghack();                        
+                        gui_sdl_draghack();
                     }
                 }
+                #endif
                 break;
         }
     }

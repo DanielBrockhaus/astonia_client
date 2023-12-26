@@ -7,7 +7,7 @@ CC=gcc
 OPT=-O3
 DEBUG=-gdwarf-4
 SDL_CFLAGS=$(shell $(SDL_CONFIG) --cflags)
-CFLAGS=$(OPT) $(DEBUG) -Wall -Wno-pointer-sign -Wno-char-subscripts -fno-omit-frame-pointer -fvisibility=hidden -DSTORE_UNIQUE -DENABLE_CRASH_HANDLER -DENABLE_SHAREDMEM $(SDL_CFLAGS)
+CFLAGS=$(OPT) $(DEBUG) -Wall -Wno-pointer-sign -Wno-char-subscripts -fno-omit-frame-pointer -fvisibility=hidden -DSTORE_UNIQUE -DENABLE_CRASH_HANDLER -DENABLE_SHAREDMEM -DENABLE_DRAGHACK $(SDL_CFLAGS)
 LDFLAGS=$(OPT) $(DEBUG) -Wl,-subsystem,windows
 
 SDL_LIBS=$(shell $(SDL_CONFIG) --libs)
@@ -19,7 +19,7 @@ OBJS	=		src/gui/gui.o src/client/client.o src/client/skill.o src/game/dd.o src/g
 			src/gui/dots.o src/gui/display.o src/gui/teleport.o src/gui/color.o src/gui/cmd.o\
 			src/gui/questlog.o src/gui/context.o src/gui/hover.o src/gui/minimap.o\
 			src/modder/sharedmem_windows.o src/game/crash_handler_windows.o\
-			src/game/memory_windows.o src/client/unique_windows.o
+			src/game/memory_windows.o src/gui/draghack_windows.o src/client/unique_windows.o
 
 bin/moac.exe lib/moac.a &:	$(OBJS)
 			$(CC) $(LDFLAGS) -Wl,--out-implib,lib/moac.a -o bin/moac.exe $(OBJS) src/game/version.c $(LIBS)
@@ -68,6 +68,7 @@ src/sdl/sound.o:      	src/sdl/sound.c src/astonia.h src/sdl.h src/sdl/_sdl.h
 src/client/unique_windows.o: src/client/unique_windows.c
 src/game/crash_handler_windows.o: src/game/crash_handler_windows.c
 src/game/memory_windows.o: src/game/memory_windows.c
+src/gui/draghack_windows.o: src/gui/draghack_windows.c
 
 src/game/resource.o:	src/game/resource.rc src/game/resource.h res/moa3.ico
 			$(WINDRES) -F pe-x86-64 src/game/resource.rc src/game/resource.o
