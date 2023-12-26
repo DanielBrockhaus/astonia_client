@@ -63,8 +63,7 @@ src/game/resource.o:	src/game/resource.rc src/game/resource.h res/moa3.ico
 			windres -F pe-x86-64 src/game/resource.rc src/game/resource.o
 
 clean:
-		-rm src/client/*.o src/game/*.o src/gui/*.o helper/*.o src/sdl/*.o src/amod/*.o
-		-rm bin/*.exe bin/*.dll
+		-rm -f src/*/*.o bin/*.exe bin/*.dll
 
 distrib:
 	ldd bin/moac.exe | grep mingw | awk 'NF == 4 { system("cp " $$3 " bin") }'
