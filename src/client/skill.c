@@ -39,7 +39,7 @@ struct skill _game_skill[V_MAX]={
     {"Light",-1,-1,-1,0,0},    // 9		done
     {"Speed",V_AGI,V_AGI,V_STR,0,0},    // 10		done
 
-    {"Pulse",V_INT,V_WIS,V_STR,1,1},    // 11		done
+    {"Pulse",V_INT,V_INT,V_WIS,1,1},    // 11		done
 
     // Primary Fighting Skills
     {"Dagger",V_INT,V_AGI,V_STR,1,1},    // 12		done
