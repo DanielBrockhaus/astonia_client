@@ -8,6 +8,7 @@
  *
  */
 
+#include <inttypes.h>
 #include <stdint.h>
 #include <fcntl.h>
 #include <SDL.h>
@@ -199,7 +200,7 @@ int sdl_init(int width,int height,char *title) {
         else if (YRES>=580) game_options=GO_DEFAULTS|GO_SMALLBOT;
         else game_options=GO_DEFAULTS|GO_SMALLBOT|GO_SMALLTOP;
     }
-    note("SDL using %dx%d scale %d, options=%llu",XRES,YRES,sdl_scale,game_options);
+    note("SDL using %dx%d scale %d, options=%" PRIu64,XRES,YRES,sdl_scale,game_options);
 
     sdl_create_cursors();
 

@@ -8,6 +8,7 @@
  *
  */
 
+#include <inttypes.h>
 #include <time.h>
 #include <SDL.h>
 
@@ -685,12 +686,12 @@ display_graphs:
         dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_NOCACHE|DD_LEFT|DD_FRAME,"TT %d %d",tick_min,tick_max);
 #endif
         size=gui_frametime/2;
-        dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_NOCACHE|DD_LEFT|DD_FRAME,"Frametime %lld",gui_frametime);
+        dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_NOCACHE|DD_LEFT|DD_FRAME,"Frametime %" PRId64,gui_frametime);
         sdl_bargraph_add(sizeof(pre2_graph),pre2_graph,size<42?size:42);
         sdl_bargraph(px,py+=40,sizeof(pre2_graph),pre2_graph,x_offset,y_offset);
 
         size=gui_ticktime/2;
-        dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_NOCACHE|DD_LEFT|DD_FRAME,"Ticktime %lld",gui_ticktime);
+        dd_drawtext_fmt(px,py+=10,IRGB(8,31,8),DD_NOCACHE|DD_LEFT|DD_FRAME,"Ticktime %" PRId64,gui_ticktime);
         sdl_bargraph_add(sizeof(pre3_graph),pre3_graph,size<42?size:42);
         sdl_bargraph(px,py+=40,sizeof(pre3_graph),pre3_graph,x_offset,y_offset);
 #if 0

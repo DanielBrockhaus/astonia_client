@@ -7,6 +7,7 @@
  *
  */
 
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -39,7 +40,7 @@ DLL_EXPORT int amod_client_cmd(char *buf) {
 
     if (!strncmp(buf, "#option ", 8)) {
     	option_ovr=strtoull(&buf[8],NULL,10);
-        addline("Old options=%llu, new options=%llu",game_options,option_ovr);
+        addline("Old options=%" PRIu64 ", new options=%llu",game_options,option_ovr);
     	return 1;
     }
 
