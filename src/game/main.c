@@ -10,7 +10,7 @@
 
 #include <windows.h>
 #include <stdint.h>
-#include <fcntl.h>
+#include <stdio.h>
 #include <time.h>
 #include <SDL.h>
 
@@ -147,11 +147,11 @@ DLL_EXPORT void addline(const char *format,...) {
 
 // io
 
-int rread(int fd,void *ptr,int size) {
+int rread(FILE *fp,void *ptr,int size) {
     int n;
 
     while (size>0) {
-        n=read(fd,ptr,size);
+        n=fread(ptr,1,size,fp);
         if (n<0) return -1;
         if (n==0) return 1;
         size-=n;
@@ -161,16 +161,18 @@ int rread(int fd,void *ptr,int size) {
 }
 
 char* load_ascii_file(char *filename,int ID) {
-    int fd,size;
+    FILE *fp;
+    int size;
     char *ptr;
 
-    if ((fd=open(filename,O_RDONLY|O_BINARY))==-1) return NULL;
-    if ((size=lseek(fd,0,SEEK_END))==-1) { close(fd); return NULL; }
-    if (lseek(fd,0,SEEK_SET)==-1) { close(fd); return NULL; }
+    if (!(fp=fopen(filename,"rb"))) return NULL;
+    if (fseek(fp,0,SEEK_END)!=0) { fclose(fp); return NULL; }
+    size=ftell(fp);
+    if (fseek(fp,0,SEEK_SET)!=0) { fclose(fp); return NULL; }
     ptr=xmalloc(size+1,ID);
-    if (rread(fd,ptr,size)) { xfree(ptr); close(fd); return NULL; }
+    if (rread(fp,ptr,size)) { xfree(ptr); fclose(fp); return NULL; }
     ptr[size]=0;
-    close(fd);
+    fclose(fp);
 
     return ptr;
 }
@@ -593,37 +595,37 @@ int parse_cmd(char *s) {
 }
 
 void save_options(void) {
-    int handle;
+    FILE *fp;
     char filename[MAX_PATH];
 
     if (localdata) sprintf(filename,"%s%s",localdata,"moac.dat");
     else sprintf(filename,"%s","bin/data/moac.dat");
 
-    handle=open(filename,O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,0666);
-    if (handle==-1) return;
+    fp=fopen(filename,"wb");
+    if (!fp) return;
 
-    write(handle,&user_keys,sizeof(user_keys));
-    write(handle,&action_row,sizeof(action_row));
-    write(handle,&action_enabled,sizeof(action_enabled));
-    write(handle,&gear_lock,sizeof(gear_lock));
-    close(handle);
+    fwrite(&user_keys,sizeof(user_keys),1,fp);
+    fwrite(&action_row,sizeof(action_row),1,fp);
+    fwrite(&action_enabled,sizeof(action_enabled),1,fp);
+    fwrite(&gear_lock,sizeof(gear_lock),1,fp);
+    fclose(fp);
 }
 
 void load_options(void) {
-    int handle;
+    FILE *fp;
     char filename[MAX_PATH];
 
     if (localdata) sprintf(filename,"%s%s",localdata,"moac.dat");
     else sprintf(filename,"%s","bin/data/moac.dat");
 
-    handle=open(filename,O_RDONLY|O_BINARY);
-    if (handle==-1) return;
+    fp=fopen(filename,"rb");
+    if (!fp) return;
 
-    read(handle,&user_keys,sizeof(user_keys));
-    read(handle,&action_row,sizeof(action_row));
-    read(handle,&action_enabled,sizeof(action_enabled));
-    read(handle,&gear_lock,sizeof(gear_lock));
-    close(handle);
+    fread(&user_keys,sizeof(user_keys),1,fp);
+    fread(&action_row,sizeof(action_row),1,fp);
+    fread(&action_enabled,sizeof(action_enabled),1,fp);
+    fread(&gear_lock,sizeof(gear_lock),1,fp);
+    fclose(fp);
 
     actions_loaded();
 }

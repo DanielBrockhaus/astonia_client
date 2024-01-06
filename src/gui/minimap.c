@@ -7,9 +7,8 @@
  */
 
 #include <stdint.h>
+#include <stdio.h>
 #include <SDL.h>
-#include <unistd.h>
-#include <fcntl.h>
 
 #include "../../src/astonia.h"
 #include "../../src/gui.h"
@@ -266,7 +265,8 @@ static char *mapname(int i) {
 }
 
 static void map_save(void) {
-    int i,cnt,handle;
+    FILE *fp;
+    int i,cnt;
     char *filename;
 
     for (i=cnt=0; i<MAXMAP*MAXMAP; i++) {
@@ -282,9 +282,9 @@ static void map_save(void) {
     if (mapnr==-1) {
         for (i=0; i<MAXSAVEMAP; i++) {
             filename=mapname(i);
-            handle=open(filename,O_RDONLY);
-            close(handle);
-            if (handle==-1) break;
+            fp=fopen(filename,"rb");
+            if (!fp) break;
+            fclose(fp);
         }
         if (i==MAXSAVEMAP) {
             warn("Area map storage full! Please use /compactmap to merge duplicate maps.");
@@ -295,9 +295,9 @@ static void map_save(void) {
 
     filename=mapname(mapnr);
     //note("saving area map to %s",filename);
-    handle=open(filename,O_RDWR|O_BINARY|O_TRUNC|O_CREAT,0644);
-    write(handle,_mmap,sizeof(_mmap));
-    close(handle);
+    fp=fopen(filename,"wb");
+    fwrite(_mmap,sizeof(_mmap),1,fp);
+    fclose(fp);
 }
 
 static int map_compare(char *tmap,char *xmap) {
@@ -334,16 +334,17 @@ static void map_merge(char *xmap,char *tmap) {
 }
 
 static int map_load(void) {
-    int i,hit,handle,besti=-1,besthit=0;
+    FILE *fp;
+    int i,hit,besti=-1,besthit=0;
     unsigned char tmap[MAXMAP*MAXMAP];
     char *filename;
 
     for (i=0; i<MAXSAVEMAP; i++) {
         filename=mapname(i);
-        handle=open(filename,O_RDONLY|O_BINARY);
-        if (handle==-1) continue;
-        read(handle,tmap,sizeof(tmap));
-        close(handle);
+        fp=fopen(filename,"rb");
+        if (!fp) continue;
+        fread(tmap,sizeof(tmap),1,fp);
+        fclose(fp);
 
         if (!(hit=map_compare(tmap,_mmap))) continue;
 
@@ -355,10 +356,10 @@ static int map_load(void) {
     if (besti!=-1) {
         filename=mapname(besti);
         //note("loading area map from %s (%d hits)",filename,besthit);
-        handle=open(filename,O_RDONLY);
-        if (handle==-1) return -1;
-        read(handle,tmap,sizeof(tmap));
-        close(handle);
+        fp=fopen(filename,"rb");
+        if (!fp) return -1;
+        fread(tmap,sizeof(tmap),1,fp);
+        fclose(fp);
 
         map_merge(_mmap,tmap);
 
@@ -371,35 +372,36 @@ static int map_load(void) {
 
 
 void minimap_compact(void) {
-    int i,j,handle;
+    FILE *fp;
+    int i,j;
     char *filename,tmap[MAXMAP*MAXMAP],xmap[MAXMAP*MAXMAP];
 
     if (game_options&GO_NOMAP) return;
 
     for (i=0; i<MAXSAVEMAP; i++) {
         filename=mapname(i);
-        handle=open(filename,O_RDONLY|O_BINARY);
-        if (handle==-1) continue;
-        read(handle,tmap,sizeof(tmap));
-        close(handle);
+        fp=fopen(filename,"rb");
+        if (!fp) continue;
+        fread(tmap,sizeof(tmap),1,fp);
+        fclose(fp);
 
         for (j=i+1; j<MAXSAVEMAP; j++) {
             filename=mapname(j);
-            handle=open(filename,O_RDONLY|O_BINARY);
-            if (handle==-1) continue;
-            read(handle,xmap,sizeof(xmap));
-            close(handle);
+            fp=fopen(filename,"rb");
+            if (!fp) continue;
+            fread(xmap,sizeof(xmap),1,fp);
+            fclose(fp);
 
             if (map_compare(tmap,xmap)) {
                 map_merge(tmap,xmap);
                 filename=mapname(i);
-                handle=open(filename,O_RDONLY|O_BINARY);
-                if (handle==-1) continue;
-                write(handle,tmap,sizeof(tmap));
-                close(handle);
+                fp=fopen(filename,"rb");
+                if (!fp) continue;
+                fwrite(tmap,sizeof(tmap),1,fp);
+                fclose(fp);
 
                 filename=mapname(j);
-                unlink(filename);
+                remove(filename);
                 note("merged map %d into map %d",j,i);
             }
         }

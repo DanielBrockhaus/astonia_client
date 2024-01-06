@@ -102,12 +102,6 @@ int _get_lay_sprite(int sprite,int lay);
 extern int (*get_offset_sprite)(int sprite,int *px,int *py);
 int _get_offset_sprite(int sprite,int *px,int *py);
 
-int rread(int fd,void *ptr,int size);
-char* load_ascii_file(char *filename,int ID);
-int xmemcheck(void *ptr);
-void rrandomize(void);
-void rseed(int seed);
-
 int dd_init(void);
 int dd_exit(void);
 void dd_draw_bless(int x,int y,int ticker,int strength,int front);

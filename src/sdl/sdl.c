@@ -10,7 +10,7 @@
 
 #include <inttypes.h>
 #include <stdint.h>
-#include <fcntl.h>
+#include <stdio.h>
 #include <SDL.h>
 #include <SDL_mixer.h>
 #include <png.h>
@@ -2319,21 +2319,21 @@ uint32_t *sdl_load_png(char *filename,int *dx,int *dy) {
    Windows cursor file: 32x32 pixels with 1 bit depth. */
 
 SDL_Cursor *sdl_create_cursor(char *filename) {
-    int handle;
+    FILE *fp;
     unsigned char mask[128],data[128],buf[326];
     unsigned char mask2[128*16],data2[128*16];
 
-    handle=open(filename,O_RDONLY|O_BINARY);
-    if (handle==-1) {
+    fp=fopen(filename,"rb");
+    if (!fp) {
         warn("SDL Error: Could not open cursor file %s.\n",filename);
         return NULL;
     }
 
-    if (read(handle,buf,326)!=326) {
+    if (fread(buf,1,326,fp)!=326) {
         warn("SDL Error: Read cursor file failed.\n");
         return NULL;
     }
-    close(handle);
+    fclose(fp);
 
     // translate .cur
     for (int i=0; i<32; i++) {
