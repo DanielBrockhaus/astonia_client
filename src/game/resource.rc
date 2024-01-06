@@ -1,5 +1,5 @@
+#include <windows.h>
 #include "resource.h"
 
 IDI_MOAC ICON "res/moa3.ico"
-
-
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "moac.exe.xml"

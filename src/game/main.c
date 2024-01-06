@@ -8,7 +8,6 @@
  *
  */
 
-#include <windows.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
@@ -682,8 +681,6 @@ int main(int argc,char *args[]) {
     }
 
     xlog(errorfp,"Client started with -h%d -w%d -o%d",want_height,want_width,game_options);
-
-    SetProcessDPIAware(); // I hate Windows very much.
 
     // next init (only once)
     if (net_init()==-1) {
