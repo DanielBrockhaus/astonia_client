@@ -45,7 +45,7 @@ DLL_EXPORT int amod_client_cmd(char *buf) {
     }
 
     if (!strncmp(buf,"#reset",6)) {
-        char opt[20][100];
+        char opt[20][258];
         sprintf(opt[0],"-u%s",username);
         sprintf(opt[1],"-p%s",password);
         sprintf(opt[2],"-d%s",server_url);
