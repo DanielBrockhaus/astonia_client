@@ -5,10 +5,9 @@
 *.pak
 *.lnk
 *.dat
-*.o
-*.exe
-*.dll
-moac.*
+*.log
+/bin/
+/lib/
 moac_gcc.*
 sdlt.txt
 
