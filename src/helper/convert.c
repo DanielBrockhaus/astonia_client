@@ -25,9 +25,15 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <sys/stat.h>
 #include <png.h>
 #include <zip.h>
+
+#ifdef _WIN32
+#include <direct.h>
+#define mkdir(pathname,mode) _mkdir(pathname)
+#else
+#include <sys/stat.h>
+#endif
 
 #ifndef STANDALONE
 #include <SDL.h>
@@ -394,12 +400,12 @@ int main(int argc,char *args[]) {
     p.filename=args[1];
     sprite=atoi(args[2]);
 
-    mkdir("../gfxp");
+    mkdir("../gfxp",0777);
     for (s=1; s<5; s++) {
         sprintf(buf,"../gfxp/x%d",s);
-        mkdir(buf);
+        mkdir(buf,0777);
         sprintf(buf,"../gfxp/x%d/%08d",s,(sprite/1000)*1000);
-        mkdir(buf);
+        mkdir(buf,0777);
     }
 
     if (tolower(args[3][0])=='w') {
