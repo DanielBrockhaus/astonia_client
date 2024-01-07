@@ -2175,7 +2175,8 @@ int calc_tick_delay_normal(int size) {
 
 int main_loop(void) {
     void prefetch_game(int attick);
-    int tmp,timediff,ltick=0,attick;
+    int64_t timediff;
+    int tmp,ltick=0,attick;
     long long start;
     int do_one_tick=1;
     uint64_t gui_last_frame=0,gui_last_tick=0;
