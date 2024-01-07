@@ -22,6 +22,12 @@
 #include "quests.c"
 #endif
 
+#ifdef _WIN32
+#define MOAC_EXE "bin\\moac.exe"
+#else
+#define MOAC_EXE "bin/moac"
+#endif
+
 DLL_EXPORT char *amod_version(void) {
     return "Restart Demo 0.4";
 }
@@ -57,12 +63,12 @@ DLL_EXPORT int amod_client_cmd(char *buf) {
         sprintf(opt[8],"-m%d",sdl_multi);
         sprintf(opt[9],"-t%d",server_port);
 
-        printf("bin\\moac.exe ");
+        printf(MOAC_EXE);
         for (int i=0; i<10; i++) {
-            printf("%s ",opt[i]);
+            printf(" %s",opt[i]);
         }
         printf("\n");
-        execl("bin\\moac.exe","bin\\moac.exe",opt[0],opt[1],opt[2],opt[3],opt[4],opt[5],opt[6],opt[7],opt[8],opt[9],NULL);
+        execl(MOAC_EXE,MOAC_EXE,opt[0],opt[1],opt[2],opt[3],opt[4],opt[5],opt[6],opt[7],opt[8],opt[9],NULL);
     }
 
     if (!strncmp(buf,"#echo",5)) {
