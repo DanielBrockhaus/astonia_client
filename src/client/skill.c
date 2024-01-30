@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 
+#include "../dll.h"
 #include "../../src/astonia.h"
 #include "../../src/game.h"
 #include "../../src/game/_game.h"
@@ -107,7 +108,7 @@ struct skill _game_skill[V_MAX]={
 
 struct skill *game_skill=_game_skill;
 
-__declspec(dllexport) int raise_cost(int v,int n) {
+DLL_EXPORT int raise_cost(int v,int n) {
     int nr,seyan;
 
     // hack to determine if we are a seyan:

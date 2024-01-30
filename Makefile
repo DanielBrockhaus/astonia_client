@@ -1,19 +1,25 @@
 all: bin/moac.exe
 
+SDL_CONFIG=sdl2-config
+WINDRES=windres
+LDD=ldd
 CC=gcc
 OPT=-O3
 DEBUG=-gdwarf-4
-CFLAGS=$(OPT) $(DEBUG) -Wall -Wno-pointer-sign -Wno-char-subscripts -fno-omit-frame-pointer
+SDL_CFLAGS=$(shell $(SDL_CONFIG) --cflags)
+CFLAGS=$(OPT) $(DEBUG) -Wall -Wno-pointer-sign -Wno-char-subscripts -fno-omit-frame-pointer -fvisibility=hidden -DENABLE_CRASH_HANDLER -DENABLE_SHAREDMEM $(SDL_CFLAGS)
 LDFLAGS=$(OPT) $(DEBUG) -Wl,-subsystem,windows
 
-LIBS = -lwsock32 -lws2_32 -lz -lpng -lsdl2 -lSDL2_mixer -lsdl2main -lzip -ldwarfstack
+SDL_LIBS=$(shell $(SDL_CONFIG) --libs)
+LIBS = -lwsock32 -lws2_32 -lz -lpng -lzip -ldwarfstack $(SDL_LIBS) -lSDL2_mixer
 
 OBJS	=		src/gui/gui.o src/client/client.o src/client/skill.o src/game/dd.o src/game/font.o\
 			src/game/main.o src/game/sprite.o src/game/game.o src/modder/modder.o\
 			src/sdl/sound.o src/game/resource.o src/sdl/sdl.o src/helper/helper.o\
 			src/gui/dots.o src/gui/display.o src/gui/teleport.o src/gui/color.o src/gui/cmd.o\
-			src/gui/questlog.o src/gui/context.o src/gui/hover.c src/modder/sharedmem.o\
-			src/gui/minimap.o
+			src/gui/questlog.o src/gui/context.o src/gui/hover.o src/gui/minimap.o\
+			src/modder/sharedmem_windows.o src/game/crash_handler_windows.o\
+			src/game/memory_windows.o
 
 bin/moac.exe lib/moac.a &:	$(OBJS)
 			$(CC) $(LDFLAGS) -Wl,--out-implib,lib/moac.a -o bin/moac.exe $(OBJS) src/game/version.c $(LIBS)
@@ -54,20 +60,22 @@ src/helper/helper.o:	src/helper/helper.c src/astonia.h
 src/helper/convert.o:	src/helper/convert.c src/astonia.h src/sdl.h src/sdl/_sdl.h
 
 src/modder/modder.o:	src/modder/modder.c src/astonia.h src/modder.h src/modder/_modder.h src/client.h
-src/modder/sharedmem.o:	src/modder/sharedmem.c src/astonia.h src/modder.h src/modder/_modder.h src/client.h
+src/modder/sharedmem_windows.o:	src/modder/sharedmem_windows.c src/astonia.h src/modder.h src/modder/_modder.h src/client.h
 
 src/sdl/sdl.o:		src/sdl/sdl.c src/astonia.h src/sdl.h src/sdl/_sdl.h
 src/sdl/sound.o:      	src/sdl/sound.c src/astonia.h src/sdl.h src/sdl/_sdl.h
 
+src/game/crash_handler_windows.o: src/game/crash_handler_windows.c
+src/game/memory_windows.o: src/game/memory_windows.c
+
 src/game/resource.o:	src/game/resource.rc src/game/resource.h res/moa3.ico
-			windres -F pe-x86-64 src/game/resource.rc src/game/resource.o
+			$(WINDRES) -F pe-x86-64 src/game/resource.rc src/game/resource.o
 
 clean:
-		-rm src/client/*.o src/game/*.o src/gui/*.o helper/*.o src/sdl/*.o src/amod/*.o
-		-rm bin/*.exe bin/*.dll
+		-rm -f src/*/*.o bin/*.exe bin/*.dll
 
 distrib:
-	ldd bin/moac.exe | grep mingw | awk 'NF == 4 { system("cp " $$3 " bin") }'
+	$(LDD) bin/moac.exe | grep mingw | awk 'NF == 4 { system("cp " $$3 " bin") }'
 	zip windows_client.zip -r bin res create_shortcut.bat eula.txt
 
 

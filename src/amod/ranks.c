@@ -2,7 +2,7 @@
  * Example of modding the ranknames (using vanilla data for easy editing)
  */
 
-__declspec(dllexport) char *game_rankname[]={
+DLL_EXPORT char *game_rankname[]={
     "nobody",               //0
     "Private",              //1
     "Private First Class",  //2
@@ -30,5 +30,5 @@ __declspec(dllexport) char *game_rankname[]={
     "Warlord of Astonia"    //24    lvl 125
 };
 
-__declspec(dllexport) int game_rankcount=ARRAYSIZE(game_rankname);
+DLL_EXPORT int game_rankcount=ARRAYSIZE(game_rankname);
 
