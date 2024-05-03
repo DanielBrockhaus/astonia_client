@@ -598,6 +598,7 @@ static void display(void) {
                 dd_drawtext_fmt(800/2,540/2-0,textcolor,DD_LARGE|DD_CENTER|DD_FRAME,"Please check %s for troubleshooting advice.",game_url);
             }
         }
+        goto display_graphs;    // I know, I know. goto considered harmful and all that.
         return;
     }
 
@@ -634,6 +635,8 @@ static void display(void) {
     context_display(mousex,mousey);
     display_vnquest();
     display_helpandquest(); // display last because it is on top
+
+display_graphs:
 
     int duration=SDL_GetTicks64()-start;
 
@@ -2247,7 +2250,7 @@ int main_loop(void) {
         poll_network();
 
         // synchronise frames and ticks if at the same speed
-        if (MPF==MPT) nextframe=nexttick;
+        if (sockstate==4 && MPF==MPT) nextframe=nexttick;
 
         // check if we can go on
         if (sockstate>2) {
@@ -2280,7 +2283,7 @@ int main_loop(void) {
 
         if (timediff>-MPF/2) {
 #ifdef TICKPRINT
-            printf("Display tick %d, Frame %d\n",tick,frame);
+            printf("Display tick %d\n",tick);
 #endif
             gui_frametime=SDL_GetTicks64()-gui_last_frame;
             gui_last_frame=SDL_GetTicks64();
@@ -2302,7 +2305,7 @@ int main_loop(void) {
             flip_at(nextframe);
         } else {
 #ifdef TICKPRINT
-            printf("Skip tick %d, Frame %d\n",tick,frame);
+            printf("Skip tick %d\n",tick);
 #endif
             skip-=timediff;
 
