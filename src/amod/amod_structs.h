@@ -132,6 +132,7 @@
 #define V_IMMUNITY	37
 
 #define V_DEMON		38
+#define V_DURATION  39
 #define V_RAGE		40
 #define V_COLD		41
 #define V_PROFESSION	42
