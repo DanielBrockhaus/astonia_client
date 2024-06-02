@@ -29,11 +29,11 @@ void set_dot(int didx,int x,int y,int flags) {
     dot[didx].y=y;
 }
 
-__declspec(dllexport) int dotx(int didx) {
+DLL_EXPORT int dotx(int didx) {
     return dot[didx].x;
 }
 
-__declspec(dllexport) int doty(int didx) {
+DLL_EXPORT int doty(int didx) {
     if (dot[didx].flags&DOTF_TOPOFF) return dot[didx].y+gui_topoff;
     return dot[didx].y;
 }
@@ -49,11 +49,11 @@ void set_but(int bidx,int x,int y,int hitrad,int flags) {
     but[bidx].sqhitrad=hitrad*hitrad;
 }
 
-__declspec(dllexport) int butx(int bidx) {
+DLL_EXPORT int butx(int bidx) {
     return but[bidx].x;
 }
 
-__declspec(dllexport) int buty(int bidx) {
+DLL_EXPORT int buty(int bidx) {
     if (but[bidx].flags&BUTF_TOPOFF) return but[bidx].y+gui_topoff;
     return but[bidx].y;
 }

@@ -701,7 +701,7 @@ char **game_rankname=_game_rankname;
 int _game_rankcount=ARRAYSIZE(_game_rankname);
 int *game_rankcount=&_game_rankcount;
 
-__declspec(dllexport) int mil_rank(int exp) {
+DLL_EXPORT int mil_rank(int exp) {
     int n;
 
     for (n=1; n<50; n++) {

@@ -13,9 +13,7 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <time.h>
-#define SDL_MAIN_HANDLED
-#include <SDL2/SDL.h>
-#include <dwarfstack.h>
+#include <SDL.h>
 
 #include "../../src/astonia.h"
 #include "../../src/game.h"
@@ -33,33 +31,16 @@ static int panic_reached=0;
 static int xmemcheck_failed=0;
 char user_keys[10]={'Q','W','E','A','S','D','Z','X','C','V'};
 
-__declspec(dllexport) uint64_t game_options=GO_NOTSET;
+DLL_EXPORT uint64_t game_options=GO_NOTSET;
 
 static char memcheck_failed_str[]={"memcheck failed"};
 static char panic_reached_str[]={"panic failure"};
 
-static FILE *errorfp;
-
-void main_dump(FILE *fp) {
-    int i;
-    unsigned long long tmp;
-
-    fprintf(fp,"Main datadump:\n");
-
-    fprintf(fp,"game_options: %llu\n",game_options);
-    for (i=0; i<64; i++) {
-        tmp=1llu<<i;
-        if (game_options&tmp)
-            fprintf(fp,"game_option: %llu\n",tmp);
-    }
-
-
-    fprintf(fp,"\n");
-}
+FILE *errorfp;
 
 // note, warn, fail, paranoia, addline
 
-__declspec(dllexport) int note(const char *format,...) {
+DLL_EXPORT int note(const char *format,...) {
     va_list va;
     char buf[1024];
 
@@ -77,7 +58,7 @@ __declspec(dllexport) int note(const char *format,...) {
     return 0;
 }
 
-__declspec(dllexport) int warn(const char *format,...) {
+DLL_EXPORT int warn(const char *format,...) {
     va_list va;
     char buf[1024];
 
@@ -93,7 +74,7 @@ __declspec(dllexport) int warn(const char *format,...) {
     return 0;
 }
 
-__declspec(dllexport) int fail(const char *format,...) {
+DLL_EXPORT int fail(const char *format,...) {
     va_list va;
     char buf[1024];
 
@@ -111,7 +92,7 @@ __declspec(dllexport) int fail(const char *format,...) {
     return -1;
 }
 
-__declspec(dllexport) void paranoia(const char *format,...) {
+DLL_EXPORT void paranoia(const char *format,...) {
     va_list va;
 
     fprintf(errorfp,"PARANOIA EXIT in ");
@@ -149,7 +130,7 @@ void addlinesep(void) {
     _addlinesep=1;
 }
 
-__declspec(dllexport) void addline(const char *format,...) {
+DLL_EXPORT void addline(const char *format,...) {
     va_list va;
     char buf[1024];
 
@@ -197,15 +178,6 @@ char* load_ascii_file(char *filename,int ID) {
 
 // memory
 
-//#define malloc_proc(size) GlobalAlloc(GPTR,size)
-//#define realloc_proc(ptr,size) GlobalReAlloc(ptr,size,GMEM_MOVEABLE)
-//#define free_proc(ptr) GlobalFree(ptr)
-
-HANDLE myheap;
-#define malloc_proc(size) myheapalloc(size)
-#define realloc_proc(ptr,size) myheaprealloc(ptr,size)
-#define free_proc(ptr) myheapfree(ptr)
-
 int memused=0;
 int memptrused=0;
 
@@ -248,33 +220,10 @@ static char *memname[MAX_MEM]={
     "MEM_TEMP10"
 };
 
-void* myheapalloc(int size) {
-    void *ptr;
-
-    memptrused++;
-    ptr=HeapAlloc(myheap,HEAP_ZERO_MEMORY,size);
-    memused+=HeapSize(myheap,0,ptr);
-
-    return ptr;
-}
-
-void* myheaprealloc(void *ptr,int size) {
-    memused-=HeapSize(myheap,0,ptr);
-    ptr=HeapReAlloc(myheap,HEAP_ZERO_MEMORY,ptr,size);
-    memused+=HeapSize(myheap,0,ptr);
-
-    return ptr;
-}
-
-void myheapfree(void *ptr) {
-    memptrused--;
-    memused-=HeapSize(myheap,0,ptr);
-    HeapFree(myheap,0,ptr);
-}
+unsigned long long get_total_system_memory(void);
 
 void list_mem(void) {
     int i,flag=0;
-    MEMORYSTATUS ms;
     extern long long mem_tex;
 
     note("--mem----------------------");
@@ -289,15 +238,7 @@ void list_mem(void) {
     note("---------------------------");
     note("Texture Cache: %.2fMB",mem_tex/(1024.0*1024.0));
 
-    bzero(&ms,sizeof(ms));
-    ms.dwLength=sizeof(ms);
-    GlobalMemoryStatus(&ms);
-
-    note("UsedMem=%.2fG of %.2fG",(memused+mem_tex)/1024.0/1024.0/1024.0,ms.dwTotalPhys/1024.0/1024.0/1024.0);
-
-    i=HeapValidate(myheap,0,NULL);
-    if (!i) note("validate says: %d",i);
-
+    note("UsedMem=%.2fG of %.2fG",(memused+mem_tex)/1024.0/1024.0/1024.0,get_total_system_memory()/1024.0/1024.0/1024.0);
 }
 
 static int memcheckset=0;
@@ -332,13 +273,16 @@ void* xmalloc(int size,int ID) {
     if (!memcheckset) {
         for (memcheckset=0; memcheckset<sizeof(memcheck); memcheckset++) memcheck[memcheckset]=rrand(256);
         sprintf(memcheck,"!MEMCKECK MIGHT FAIL!");
-        myheap=HeapCreate(0,0,0);
     }
 
     if (!size) return NULL;
 
-    mem=malloc_proc(8+sizeof(memcheck)+size+sizeof(memcheck));
+    memptrused++;
+
+    mem=malloc(8+sizeof(memcheck)+size+sizeof(memcheck));
     if (!mem) { fail("OUT OF MEMORY !!!"); return NULL; }
+
+    memused+=8+sizeof(memcheck)+size+sizeof(memcheck);
 
     if (ID>=MAX_MEM) { fail("xmalloc: ill mem id"); return NULL; }
 
@@ -403,7 +347,10 @@ void xfree(void *ptr) {
     memsize[0]-=mem->size;
     memptrs[0]-=1;
 
-    free_proc(mem);
+    memptrused--;
+    memused-=8+sizeof(memcheck)+mem->size+sizeof(memcheck);
+
+    free(mem);
 }
 
 void xinfo(void *ptr) {
@@ -434,8 +381,12 @@ void* xrealloc(void *ptr,int size,int ID) {
     memsize[0]-=mem->size;
     memptrs[0]-=1;
 
-    mem=realloc_proc(mem,8+sizeof(memcheck)+size+sizeof(memcheck));
+    memused-=8+sizeof(memcheck)+mem->size+sizeof(memcheck);
+
+    mem=realloc(mem,8+sizeof(memcheck)+size+sizeof(memcheck));
     if (!mem) { fail("xrealloc: OUT OF MEMORY !!!"); return NULL; }
+
+    memused+=8+sizeof(memcheck)+size+sizeof(memcheck);
 
     mem->ID=ID;
     mem->size=size;
@@ -474,8 +425,12 @@ void* xrecalloc(void *ptr,int size,int ID) {
     memsize[0]-=mem->size;
     memptrs[0]-=1;
 
-    mem=realloc_proc(mem,8+sizeof(memcheck)+size+sizeof(memcheck));
+    memused-=8+sizeof(memcheck)+mem->size+sizeof(memcheck);
+
+    mem=realloc(mem,8+sizeof(memcheck)+size+sizeof(memcheck));
     if (!mem) { fail("xrecalloc: OUT OF MEMORY !!!"); return NULL; }
+
+    memused+=8+sizeof(memcheck)+size+sizeof(memcheck);
 
     if (size-mem->size>0) {
         bzero(((unsigned char *)(mem))+8+sizeof(memcheck)+mem->size,size-mem->size);
@@ -568,10 +523,10 @@ void display_usage(void) {
     free(txt);
 }
 
-__declspec(dllexport) char server_url[256];
-__declspec(dllexport) int server_port=0;
-__declspec(dllexport) int want_width=0;
-__declspec(dllexport) int want_height=0;
+DLL_EXPORT char server_url[256];
+DLL_EXPORT int server_port=0;
+DLL_EXPORT int want_width=0;
+DLL_EXPORT int want_height=0;
 
 int parse_cmd(char *s) {
     int n;
@@ -691,125 +646,7 @@ void convert_cmd_line(char *d,int argc,char *args[],int maxsize) {
     *d=0;
 }
 
-static void errPrint(uint64_t addr,const char *filename,int lineno,const char *funcname,void *context,int columnno) {
-  int *count = context;
-  const char *delim = strrchr( filename,'/' );
-  if( delim ) filename = delim + 1;
-  delim = strrchr( filename,'\\' );
-  if( delim ) filename = delim + 1;
-
-  void *ptr = (void*)(uintptr_t)addr;
-  switch( lineno )
-  {
-    case DWST_BASE_ADDR:
-      fprintf( stderr,"base address: 0x%p (%s)\n",ptr,filename );
-      fprintf( errorfp,"base address: 0x%p (%s)\n",ptr,filename );
-      break;
-
-    case DWST_NOT_FOUND:
-    case DWST_NO_DBG_SYM:
-    case DWST_NO_SRC_FILE:
-      fprintf( stderr,"    stack %02d: 0x%p (%s)\n",(*count),ptr,filename );
-      fprintf( errorfp,"    stack %02d: 0x%p (%s)\n",(*count),ptr,filename );
-      (*count)++;
-      break;
-
-    default:
-      if( ptr ) {
-        fprintf( stderr,"    stack %02d: 0x%p",(*count),ptr );
-        fprintf( errorfp,"    stack %02d: 0x%p",(*count),ptr );
-        (*count)++;
-      } else {
-        fprintf( stderr,"                %*s",(int)sizeof(void*)*2,"" );
-        fprintf( errorfp,"                %*s",(int)sizeof(void*)*2,"" );
-      }
-      fprintf( stderr," (%s:%d",filename,lineno );
-      fprintf( errorfp," (%s:%d",filename,lineno );
-      if( columnno>0 ) {
-        fprintf( stderr, ":%d",columnno );
-        fprintf( errorfp, ":%d",columnno );
-      }
-      fprintf( stderr, ")" );
-      fprintf( errorfp, ")" );
-      if( funcname ) {
-        fprintf( stderr," [%s]",funcname );
-        fprintf( errorfp," [%s]",funcname );
-      }
-      fprintf( stderr,"\n" );
-      fprintf( errorfp,"\n" );
-      break;
-  }
-}
-
-static LONG WINAPI exceptionPrinter( LPEXCEPTION_POINTERS ep )
-{
-    void sdl_dump(FILE *fp);
-    void dd_dump(FILE *fp);
-    void gui_dump(FILE *fp);
-    char filename[MAX_PATH+128];
-
-    fprintf( stderr,"\nApplication crashed!\n\n");
-    fprintf(errorfp,"\n\n");
-    xlog( errorfp,"Application crashed!\n");
-
-    main_dump(stderr); main_dump(errorfp);
-    sdl_dump(stderr); sdl_dump(errorfp);
-    dd_dump(stderr); dd_dump(errorfp);
-    gui_dump(stderr); gui_dump(errorfp);
-
-    DWORD code = ep->ExceptionRecord->ExceptionCode;
-    const char *desc = "";
-    switch( code ) {
-#define EX_DESC( name ) \
-    case EXCEPTION_##name: desc = " (" #name ")"; \
-                           break
-
-        EX_DESC( ACCESS_VIOLATION );
-        EX_DESC( ARRAY_BOUNDS_EXCEEDED );
-        EX_DESC( BREAKPOINT );
-        EX_DESC( DATATYPE_MISALIGNMENT );
-        EX_DESC( FLT_DENORMAL_OPERAND );
-        EX_DESC( FLT_DIVIDE_BY_ZERO );
-        EX_DESC( FLT_INEXACT_RESULT );
-        EX_DESC( FLT_INVALID_OPERATION );
-        EX_DESC( FLT_OVERFLOW );
-        EX_DESC( FLT_STACK_CHECK );
-        EX_DESC( FLT_UNDERFLOW );
-        EX_DESC( ILLEGAL_INSTRUCTION );
-        EX_DESC( IN_PAGE_ERROR );
-        EX_DESC( INT_DIVIDE_BY_ZERO );
-        EX_DESC( INT_OVERFLOW );
-        EX_DESC( INVALID_DISPOSITION );
-        EX_DESC( NONCONTINUABLE_EXCEPTION );
-        EX_DESC( PRIV_INSTRUCTION );
-        EX_DESC( SINGLE_STEP );
-        EX_DESC( STACK_OVERFLOW );
-    }
-    fprintf( stderr,"code: 0x%08lX%s\n",code,desc );
-    fprintf( errorfp,"code: 0x%08lX%s\n",code,desc );
-
-    if( code==EXCEPTION_ACCESS_VIOLATION &&
-      ep->ExceptionRecord->NumberParameters==2 ){
-        ULONG_PTR flag = ep->ExceptionRecord->ExceptionInformation[0];
-        ULONG_PTR addr = ep->ExceptionRecord->ExceptionInformation[1];
-        fprintf( stderr,"%s violation at 0x%p\n",flag==8?"data execution prevention":(flag?"write access":"read access"),(void*)addr );
-        fprintf( errorfp,"%s violation at 0x%p\n",flag==8?"data execution prevention":(flag?"write access":"read access"),(void*)addr );
-    }
-
-    int count=0;
-    dwstOfException(ep->ContextRecord,&errPrint,&count);
-
-    fflush( stderr );
-    fflush( errorfp ); fclose(errorfp);
-
-    if (game_options&GO_APPDATA) sprintf(filename,"Details written to %s\\Astonia\\%s",localdata,"moac.log");
-    else sprintf(filename,"Details written to %s","moac.log");
-    display_messagebox("Application Crashed",filename);
-
-    sdl_dump_spritecache();
-
-    return( EXCEPTION_EXECUTE_HANDLER );
-}
+void register_crash_handler(void);
 
 // main
 int main(int argc,char *args[]) {
@@ -832,10 +669,14 @@ int main(int argc,char *args[]) {
     errorfp=fopen(filename,"a");
     if (!errorfp) errorfp=stderr;
 
-    SetUnhandledExceptionFilter(exceptionPrinter);
+    #ifdef ENABLE_CRASH_HANDLER
+    register_crash_handler();
+    #endif
 
     amod_init();
+    #ifdef ENABLE_SHAREDMEM
     sharedmem_init();
+    #endif
 
     load_options();
 
@@ -910,7 +751,9 @@ int main(int argc,char *args[]) {
 
     main_loop();
 
+    #ifdef ENABLE_SHAREDMEM
     sharedmem_exit();
+    #endif
     amod_exit();
     main_exit();
     sound_exit();

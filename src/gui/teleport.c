@@ -81,7 +81,7 @@ static int mirror_pos[26*2]={
 
 int clan_offset=0;
 
-__declspec(dllexport) void set_teleport(int idx,int x,int y) {
+DLL_EXPORT void set_teleport(int idx,int x,int y) {
     if (idx<0 || idx>=64) return;
 
     tele[idx*2]=x;
