@@ -55,7 +55,7 @@
 #define SV_MIL_EXP		51
 #define SV_QUESTLOG		52
 #define SV_PROTOCOL		53
-#define SV_VNQUEST      54
+#define SV_RESERVED1    54
 #define SV_RESERVED2    55
 #define SV_RESERVED3    56
 #define SV_RESERVED4    57
@@ -91,21 +91,4 @@ int open_client(char *username,char *password);
 int init_network(void);
 void exit_network(void);
 void bzero_client(int part);
-
-struct vn_quest {
-    uint16_t ID;
-    uint16_t sprite;
-    uint16_t title;
-    uint16_t para1;
-    uint16_t para2;
-    uint16_t para3;
-    uint16_t line1;
-    uint16_t line2;
-    uint16_t line3;
-    uint16_t line4;
-    uint16_t butt1;
-    uint16_t butt2;
-
-    char text[0];
-};
 

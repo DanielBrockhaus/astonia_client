@@ -1090,31 +1090,5 @@ void display_selfbars(void) {
     } else display_bar(x+xs*2+xd*2,y,manap,manacolor,xs,ys);
 }
 
-void display_vnquest(void) {
-    int x,y,xp,yp;
 
-    if (!vnq.title) return;
-
-    x=dotx(DOT_MTL)+(dotx(DOT_MBR)-dotx(DOT_MTL)-500)/2;
-    y=doty(DOT_MTL)+(doty(DOT_MBR)-doty(DOT_MTL)-300)/2;
-
-    dd_copysprite(860,x,y,DDFX_NLIGHT,DD_NORMAL);
-    dd_copysprite(vnq.sprite,x+11,y+11,DDFX_NLIGHT,DD_NORMAL);
-
-    xp=x+304;
-    yp=y+26;
-    if (vnq.title) { dd_drawtext(xp+94,yp,whitecolor,DD_BIG|DD_CENTER,vnq.title); yp+=26; }
-    if (vnq.para1) yp=dd_drawtext_break(xp,yp,xp+186,lightgraycolor,0,vnq.para1)+5;
-    if (vnq.para2) yp=dd_drawtext_break(xp,yp,xp+186,lightgraycolor,0,vnq.para2)+5;
-    if (vnq.para3) yp=dd_drawtext_break(xp,yp,xp+186,lightgraycolor,0,vnq.para3)+5;
-    yp+=10;
-
-    if (vnq.line1) { dd_drawtext(xp,yp,whitecolor,0,vnq.line1); yp+=10; }
-    if (vnq.line2) { dd_drawtext(xp+10,yp,lightgraycolor,0,vnq.line2); yp+=10; }
-    if (vnq.line3) { dd_drawtext(xp+10,yp,lightgraycolor,0,vnq.line3); yp+=10; }
-    if (vnq.line4) { dd_drawtext(xp+10,yp,lightgraycolor,0,vnq.line4); }
-
-    if (vnq.butt1) dd_drawtext(x+362,y+281,blackcolor,DD_CENTER,vnq.butt1);
-    if (vnq.butt2) dd_drawtext(x+440,y+281,blackcolor,DD_CENTER,vnq.butt2);
-}
 

@@ -111,8 +111,6 @@ int may_teleport[64+32];
 
 __declspec(dllexport) int frames_per_second=TICKS;
 
-struct vnquest vnq={0};
-
 int sv_map01(unsigned char *buf,int *last,struct map *cmap) {
     int p,c;
 
@@ -843,53 +841,6 @@ void sv_protocol(unsigned char *buf) {
     //note("Astonia Protocol Version %d established!",protocol_version);
 }
 
-int svl_vnquest(unsigned char *buf) {
-    int len;
-
-    len=*(uint16_t*)(buf+1);
-
-    return 3+len+sizeof(struct vn_quest);
-}
-
-int vnquest_helper(char **dest,char *ptr,int size) {
-    if (*dest) xfree(*dest);
-
-    if (size) {
-        *dest=xmalloc(size+1,MEM_TEMP8);
-        memcpy(*dest,ptr,size);
-        (*dest)[size]=0;
-    } else *dest=NULL;
-
-    return size;
-}
-
-int sv_vnquest(unsigned char *buf) {
-    int len;
-    struct vn_quest *vq;
-    char *ptr;
-
-    vq=(void*)(buf+3);
-    ptr=buf+3+sizeof(struct vn_quest);
-
-    vnq.ID=vq->ID;
-    vnq.sprite=vq->sprite;
-
-    ptr+=vnquest_helper(&vnq.title,ptr,vq->title);
-    ptr+=vnquest_helper(&vnq.para1,ptr,vq->para1);
-    ptr+=vnquest_helper(&vnq.para2,ptr,vq->para2);
-    ptr+=vnquest_helper(&vnq.para3,ptr,vq->para3);
-    ptr+=vnquest_helper(&vnq.line1,ptr,vq->line1);
-    ptr+=vnquest_helper(&vnq.line2,ptr,vq->line2);
-    ptr+=vnquest_helper(&vnq.line3,ptr,vq->line3);
-    ptr+=vnquest_helper(&vnq.line4,ptr,vq->line4);
-    ptr+=vnquest_helper(&vnq.butt1,ptr,vq->butt1);
-    ptr+=vnquest_helper(&vnq.butt2,ptr,vq->butt2);
-
-    len=*(uint16_t*)(buf+1);
-
-    return 3+len+sizeof(struct vn_quest);
-}
-
 void process(unsigned char *buf,int size) {
     int len=0,panic=0,last=-1;
 
@@ -963,7 +914,6 @@ void process(unsigned char *buf,int size) {
                 case SV_UNIQUE:			        sv_unique(buf); len=5; break;
                 case SV_QUESTLOG:		        sv_questlog(buf); len=101+sizeof(struct shrine_ppd); break;
                 case SV_PROTOCOL:               sv_protocol(buf); len=2; break;
-                case SV_VNQUEST:                len=sv_vnquest(buf); break;
 
                 default:                        len=amod_process(buf);
                                                 if (!len) {
@@ -1056,7 +1006,6 @@ int prefetch(unsigned char *buf,int size) {
                 case SV_UNIQUE:			        len=5; break;
                 case SV_QUESTLOG:		        len=101+sizeof(struct shrine_ppd); break;
                 case SV_PROTOCOL:               len=2; break;
-                case SV_VNQUEST:                len=svl_vnquest(buf); break;
 
                 default:                        len=amod_prefetch(buf);
                                                 if (!len) {
