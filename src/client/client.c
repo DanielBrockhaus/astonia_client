@@ -1227,6 +1227,12 @@ void cmd_some_spell(int spell,int x,int y,int chr) {
     client_send(buf,len);
 }
 
+void cmd_some_spell_ex(int spell,int x,int y,int chr,char *file,int line) {
+    if (spell==0) {
+        addline("Warning caused by %s, line %d",file,line);
+    }
+    cmd_some_spell(spell,x,y,chr);
+}
 void cmd_raise(int vn) {
     char buf[16];
 

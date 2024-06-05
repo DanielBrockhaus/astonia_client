@@ -1657,7 +1657,8 @@ static void cmd_action(void) {
     }
 }
 
-static void exec_cmd(int cmd,int a) {
+#define exec_cmd(a,b)   exec_cmd_ex(a,b,__FILE__,__LINE__)
+static void exec_cmd_ex(int cmd,int a,char *file,int line) {
     action_ovr=-1;
     context_key_reset();
 
@@ -1711,7 +1712,7 @@ static void exec_cmd(int cmd,int a) {
         case CMD_ITM_CAST_R:    cmd_some_spell(CL_BALL,originx-MAPDX/2+itmsel%MAPDX,originy-MAPDY/2+itmsel/MAPDX,0); break;
         case CMD_CHR_CAST_R:    cmd_some_spell(CL_BALL,0,0,map[chrsel].cn); break;
 
-        case CMD_SLF_CAST_K:	cmd_some_spell(a,0,0,map[plrmn].cn); break;
+        case CMD_SLF_CAST_K:	cmd_some_spell_ex(a,0,0,map[plrmn].cn,file,line); break;
         case CMD_MAP_CAST_K:    cmd_some_spell(a,originx-MAPDX/2+mapsel%MAPDX,originy-MAPDY/2+mapsel/MAPDX,0); break;
         case CMD_CHR_CAST_K:    cmd_some_spell(a,0,0,map[chrsel].cn); break;
 

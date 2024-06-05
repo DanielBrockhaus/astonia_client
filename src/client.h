@@ -555,6 +555,7 @@ void cmd_stop(void);
 void cmd_kill(int cn);
 void cmd_give(int cn);
 void cmd_some_spell(int spell,int x,int y,int chr);
+void cmd_some_spell_ex(int spell,int x,int y,int chr,char *file,int line);
 void cmd_raise(int vn);
 void cmd_con(int pos);
 void cmd_look_con(int pos);
