@@ -11,6 +11,8 @@ Bugs
 
 - When spell icons option is enabled, you are able to see the active pent record for that mirror by toggling the show icons tab, it shows when icons show, does not show when icons are hidden. However if you are playing with Spell Icons disabled in launcher, you are unable to see the active pent record at all and you only see the current pent number you have activated in that session. This happens when both compact top and bottom are enabled
 
+- cmd_some_spell() gives "Warning: unknow spell 0". Caused by exec_cmd(): case CMD_SLF_CAST_K: ... Seems to be connected to the new keyboard shortcuts.
+
 Soon
 ----
 
