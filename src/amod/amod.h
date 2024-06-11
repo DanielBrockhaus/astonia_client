@@ -179,6 +179,7 @@ __declspec(dllimport) int _get_skltab_sep(int i);
 __declspec(dllimport) int _get_skltab_index(int n);
 __declspec(dllimport) int _get_skltab_show(int i);
 __declspec(dllimport) int _do_display_random(void);
+__declspec(dllimport) int _do_display_help(int nr);
 
 // ------------ declarations for functions the mod might provide -------------------
 int is_cut_sprite(int sprite);
@@ -199,5 +200,6 @@ int get_skltab_sep(int i);
 int get_skltab_index(int n);
 int get_skltab_show(int i);
 int do_display_random(void);
+int do_display_help(int nr);
 
 

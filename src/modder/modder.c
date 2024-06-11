@@ -101,6 +101,7 @@ int amod_init(void) {
         if ((tmp=GetProcAddress(dll_instance,"get_skltab_sep"))) get_skltab_sep=tmp;
         if ((tmp=GetProcAddress(dll_instance,"get_skltab_show"))) get_skltab_show=tmp;
         if ((tmp=GetProcAddress(dll_instance,"do_display_random"))) do_display_random=tmp;
+        if ((tmp=GetProcAddress(dll_instance,"do_display_help"))) do_display_help=tmp;
 
         // client variables
         if ((tmp=GetProcAddress(dll_instance,"game_email_main"))) game_email_main=tmp;

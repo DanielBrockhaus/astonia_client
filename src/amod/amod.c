@@ -102,3 +102,19 @@ __declspec(dllexport) void amod_frame(void) {
 
 }
 
+__declspec(dllexport) int do_display_help(int nr) {
+    int x=dotx(DOT_HLP)+10,y=doty(DOT_HLP)+8;
+
+    switch (nr) {
+        case 19:
+            y=dd_drawtext_break(x,y,x+192,whitecolor,0,"Reading books, signs, etc."); y+=5;
+            y=dd_drawtext_break(x,y,x+192,graycolor,0,"To read a book, turn off your computer and take the book. Open it. Choose a page. Read. To read signs, use SHIFT + RIGHT CLICK."); y+=10;
+            break;
+
+        default:
+            return _do_display_help(nr);
+    }
+
+    return y;
+}
+

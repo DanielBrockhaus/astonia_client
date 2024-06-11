@@ -259,7 +259,8 @@ void dx_copysprite_emerald(int scrx,int scry,int emx,int emy) {
 }
 
 
-int do_display_help(int nr) {
+int (*do_display_help)(int)=_do_display_help;
+__declspec(dllexport) int _do_display_help(int nr) {
     int x=dotx(DOT_HLP)+10,y=doty(DOT_HLP)+8,oldy;
 
     switch (nr) {
