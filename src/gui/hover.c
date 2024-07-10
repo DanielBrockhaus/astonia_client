@@ -359,6 +359,23 @@ static int display_hover_skill(void) {
             }
         }
 
+        if (!value[0][V_BODYCONTROL])
+        {
+            switch (v)
+            {
+            case V_BLESS:
+            case V_HEAL:
+            case V_FREEZE:
+            case V_MAGICSHIELD:
+            case V_FLASH:
+            case V_FIREBALL:
+            case V_PULSE:
+                armor = value[0][v] / 8.0 * 17.5;
+                height += 10;
+                break;
+            }
+        }
+
         if (height) height+=10; // add a free line if there are more lines to display
 
         height+=dd_drawtext_break_length(0,0,width-12,0xffff,0,game_skilldesc[v]);
