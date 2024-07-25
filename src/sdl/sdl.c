@@ -51,6 +51,7 @@ __declspec(dllexport) int sdl_scale=1;
 __declspec(dllexport) int sdl_frames=0;
 __declspec(dllexport) int sdl_multi=4;
 __declspec(dllexport) int sdl_cache_size=8000;
+int sdl_width=800,sdl_height=600;
 
 static zip_t *sdl_zip1=NULL;
 static zip_t *sdl_zip2=NULL;
@@ -97,7 +98,7 @@ void sdl_dump(FILE *fp) {
 #define GO_DEFAULTS (GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE)
 //#define GO_DEFAULTS (GO_CONTEXT|GO_ACTION|GO_BIGBAR|GO_PREDICT|GO_SHORT|GO_MAPSAVE|GO_NOMAP)
 
-int sdl_init(int width,int height,char *title) {
+int sdl_init(int width,int height,char *title,int real_width,int real_height) {
     int len,i;
     SDL_DisplayMode DM;
 
@@ -116,7 +117,15 @@ int sdl_init(int width,int height,char *title) {
         height=DM.h;
     }
 
-    sdlwnd = SDL_CreateWindow(title, DM.w/2-width/2, DM.h/2-height/2, width, height, SDL_WINDOW_SHOWN);
+    sdl_width=width;
+    sdl_height=height;
+
+    if (!real_width || !real_height) {
+        real_width=width;
+        real_height=height;
+    }
+
+    sdlwnd = SDL_CreateWindow(title, DM.w/2-real_width/2, DM.h/2-real_height/2, real_width, real_height, SDL_WINDOW_SHOWN|SDL_WINDOW_RESIZABLE);
     if (!sdlwnd) {
         fail("SDL_Init Error: %s",SDL_GetError());
         SDL_Quit();
@@ -198,7 +207,11 @@ int sdl_init(int width,int height,char *title) {
         else if (YRES>=580) game_options=GO_DEFAULTS|GO_SMALLBOT;
         else game_options=GO_DEFAULTS|GO_SMALLBOT|GO_SMALLTOP;
     }
-    note("SDL using %dx%d scale %d, options=%llu",XRES,YRES,sdl_scale,game_options);
+    note("SDL using %dx%d scale %d, options=%llu, real %dx%d, phys %dx%d",XRES,YRES,sdl_scale,game_options,real_width,real_height,width,height);
+    if (real_width && real_height &&
+        (real_width!=sdl_width || real_height!=sdl_height)) {
+        SDL_RenderSetLogicalSize(sdlren,sdl_width,sdl_height);
+    }
 
     sdl_create_cursors();
 
@@ -2191,6 +2204,9 @@ void sdl_loop(void) {
                     if (mouseState&SDL_BUTTON(SDL_BUTTON_LEFT)) {
                         gui_sdl_draghack();                        
                     }
+                }
+                if (event.window.event==SDL_WINDOWEVENT_RESIZED) {
+                    SDL_RenderSetLogicalSize(sdlren,sdl_width,sdl_height);
                 }
                 break;
         }

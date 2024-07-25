@@ -541,6 +541,7 @@ void display_usage(void) {
     txt=buf=malloc(1024*8);
     buf+=sprintf(buf,"The Astonia Client can only be started from the command line or with a specially created shortcut.\n\n");
     buf+=sprintf(buf,"Usage: moac -u playername -p password -d url\n ... [-w width] [-h height]\n");
+    buf+=sprintf(buf," ... [-l scale to this width] [-i scale to this height]\n");
     buf+=sprintf(buf," ... [-m threads] [-o options] [-c cachesize]\n ... [-k framespersecond]\n\n");
     buf+=sprintf(buf,"url being, for example, \"server.astonia.com\" or \"192.168.77.132\" (without the quotes).\n\n");
     buf+=sprintf(buf,"width and height are the desired window size. If this matches the desktop size the client will start in windowed borderless pseudo-fullscreen mode.\n\n");
@@ -572,6 +573,8 @@ __declspec(dllexport) char server_url[256];
 __declspec(dllexport) int server_port=0;
 __declspec(dllexport) int want_width=0;
 __declspec(dllexport) int want_height=0;
+__declspec(dllexport) int real_width=0;
+__declspec(dllexport) int real_height=0;
 
 int parse_cmd(char *s) {
     int n;
@@ -609,6 +612,19 @@ int parse_cmd(char *s) {
                     want_width=strtol(s,&end,10);
                     s=end;
                 } else want_width=800;
+            } else if (tolower(*s)=='i') {    // -i <real horizontal_resolution>
+                s++;
+                while (isspace(*s)) s++;
+                real_height=strtol(s,&end,10);
+                s=end;
+                if (*s=='p') s++;
+            } else if (tolower(*s)=='l') {    // -l <real vertical_resolution>
+                s++;
+                while (isspace(*s)) s++;
+                if (isdigit(*s)) {
+                    real_width=strtol(s,&end,10);
+                    s=end;
+                } else real_width=800;
             } else if (tolower(*s)=='m') { // -m Multi-Threaded
                 s++;
                 while (isspace(*s)) s++;
@@ -873,12 +889,19 @@ int main(int argc,char *args[]) {
     // init random
     rrandomize();
 
+    if (!real_height && real_width) real_height=real_width*3/4;
+    if (!real_width && real_height) real_width=real_height*4/3;
+
     if (!want_height) {
         if (want_width==800) want_height=600;
         else if (want_width==1600) want_height=1200;
         else if (want_width==2400) want_height=1800;
         else if (want_width==3200) want_height=2400;
         else if (want_width) want_height=want_width*9/16;
+        else if (real_height>=2400) want_height=2400;
+        else if (real_height>=1800) want_height=1800;
+        else if (real_height>=1200) want_height=1200;
+        else if (real_height) want_height=600;
     }
     if (!want_width) {
         if (want_height==600) want_width=800;
@@ -888,10 +911,17 @@ int main(int argc,char *args[]) {
         else if (want_height==2000) want_width=3200;
         else if (want_height==2400) want_width=3200;
         else if (want_height) want_width=want_height*16/9;
+        else if (real_width>=3200) want_width=3200;
+        else if (real_width>=2400) want_width=2400;
+        else if (real_width>=1600) want_width=1600;
+        else if (real_width) want_width=800;
     }
+    if (!real_height) real_height=want_height;
+
+    if (!real_width) real_width=want_width;
 
     sprintf(buf,"Astonia 3 v%d.%d.%d",(VERSION>>16)&255,(VERSION>>8)&255,(VERSION)&255);
-    if (!sdl_init(want_width,want_height,buf)) {
+    if (!sdl_init(want_width,want_height,buf,real_width,real_height)) {
         dd_exit();
         net_exit();
         return -1;

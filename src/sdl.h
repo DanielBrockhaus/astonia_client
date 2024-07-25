@@ -56,7 +56,7 @@ void sdl_set_cursor_pos(int x,int y);
 void sdl_show_cursor(int flag);
 void sdl_capture_mouse(int flag);
 int sdl_tx_load(int sprite,int sink,int freeze,int scale,int cr,int cg,int cb,int light,int sat,int c1,int c2,int c3,int shine,int ml,int ll,int rl,int ul,int dl,const char *text,int text_color,int text_flags,void *text_font,int checkonly,int preload,int fortick);
-int sdl_init(int width,int height,char *title);
+int sdl_init(int width,int height,char *title,int real_width,int real_height);
 void sdl_exit(void);
 void sdl_loop(void);
 int sdl_clear(void);
