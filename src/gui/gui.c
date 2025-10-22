@@ -1360,7 +1360,7 @@ static void set_cmd_states(void) {
 
     // update fkeyitem
     fkeyitem[0]=fkeyitem[1]=fkeyitem[2]=fkeyitem[3]=0;
-    for (i=30; i<30+INVENTORYSIZE; i++) {
+    for (i=30; i<INVENTORYSIZE; i++) {
         c=(i-2)%4;
         if (fkeyitem[c]==0 && (is_fkey_use_item(i))) fkeyitem[c]=i;
     }
