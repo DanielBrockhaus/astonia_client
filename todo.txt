@@ -46,8 +46,6 @@ Possibly
 
 - Continue cleanup of GUI. Use DOTs instead of hardcoded pixel positions.
 
-- Port the winsock stuff to SDL_net
-
 - Add stuff to the client window to make it 960 pixels wide to fill a standard 16:9 display.
 
 - Create mod for V3.5.

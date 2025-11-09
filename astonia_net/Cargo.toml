@@ -1,0 +1,19 @@
+[package]
+name = "astonia_net"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "astonia_net"
+crate-type = ["cdylib"]
+
+[dependencies]
+libc = "0.2.177"
+mio = { version = "1", default-features=false, features=["os-poll", "net"] }
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+opt-level = 3
+panic = "abort"
+strip = true

@@ -12,7 +12,7 @@
 #include <stdarg.h>
 #include <math.h>
 #include <stdio.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 #include "../../src/dll.h"
 #include "../../src/astonia.h"

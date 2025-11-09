@@ -506,7 +506,7 @@ extern int originy;
 
 extern int sockstate;
 extern int socktimeout;
-extern int target_server;
+extern char *target_server;
 extern int target_port;
 extern int kicked_out;
 

@@ -141,7 +141,7 @@ DLL_IMPORT char hover_level_text[120];
 DLL_IMPORT char hover_rank_text[120];
 DLL_IMPORT char hover_time_text[120];
 
-DLL_IMPORT int target_server;
+DLL_IMPORT char *target_server;
 
 DLL_IMPORT char password[16];
 DLL_IMPORT char username[40];

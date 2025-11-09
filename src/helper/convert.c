@@ -36,7 +36,7 @@
 #endif
 
 #ifndef STANDALONE
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include "../../src/sdl/_sdl.h"
 #endif
 

@@ -8,7 +8,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 #include "../../src/astonia.h"
 #include "../../src/gui.h"

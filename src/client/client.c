@@ -7,10 +7,10 @@
  *
  */
 
-#include <winsock2.h>
+#include "../../include/astonia_net.h"
 #include <time.h>
 #include <zlib.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 #include "../../src/astonia.h"
 #include "../../src/client.h"
@@ -22,7 +22,7 @@
 int display_gfx=0,display_time=0;
 static int rec_bytes=0;
 static int sent_bytes=0;
-static int sock=-1;
+static astonia_sock *sock = NULL;
 int sockstate=0;
 static unsigned int socktime=0;
 int socktimeout=0;
@@ -33,7 +33,7 @@ unsigned int unique=0;
 unsigned int usum=0;
 #endif
 int target_port=5556;
-DLL_EXPORT int target_server=0;
+DLL_EXPORT char *target_server=NULL;
 DLL_EXPORT char password[16];
 static int zsinit;
 static struct z_stream_s zs;
@@ -112,6 +112,20 @@ DLL_EXPORT int pspeed=0;   // 0=normal   1=fast      2=stealth     - like the se
 int may_teleport[64+32];
 
 DLL_EXPORT int frames_per_second=TICKS;
+
+static inline unsigned short net_read16(const void *p) {
+    const unsigned char *b = (const unsigned char*)p;
+    return (unsigned short)((b[0] << 8) | b[1]);
+}
+
+static inline void ipv4_be_to_string(uint32_t be, char out[16]) {
+    unsigned char o0 = (unsigned char)((be >> 24) & 0xFF);
+    unsigned char o1 = (unsigned char)((be >> 16) & 0xFF);
+    unsigned char o2 = (unsigned char)((be >>  8) & 0xFF);
+    unsigned char o3 = (unsigned char)((be      ) & 0xFF);
+    /* out must be at least 16 bytes (xxx.xxx.xxx.xxx\0) */
+    snprintf(out, 16, "%u.%u.%u.%u", (unsigned)o0, (unsigned)o1, (unsigned)o2, (unsigned)o3);
+}
 
 int sv_map01(unsigned char *buf,int *last,struct map *cmap) {
     int p,c;
@@ -1247,7 +1261,7 @@ void cmd_text(char *text) {
 
     buf[0]=CL_TEXT;
 
-    for (len=0; text[len] && text[len]!='°' && len<254; len++) buf[len+2]=text[len];
+    for (len=0; text[len] && text[len]!='Â°' && len<254; len++) buf[len+2]=text[len];
 
     buf[2+len]=0;
     buf[1]=len+1;
@@ -1382,7 +1396,7 @@ void bzero_client(int part) {
 }
 
 int close_client(void) {
-    if (sock!=-1) { closesocket(sock); sock=-1; }
+    if (sock) { astonia_net_close(sock); sock=NULL; }
     if (zsinit) { inflateEnd(&zs); zsinit=0; }
 
     sockstate=0;
@@ -1409,26 +1423,16 @@ void decrypt(char *name,char *password) {
     }
 }
 
-void send_info(int sock) {
-    struct sockaddr_in addr;
-    int len;
-    char buf[80];
-
-    len=sizeof(addr);
-    getsockname(sock,(struct sockaddr *)&addr,&len);
-    *(unsigned int *)(buf+0)=addr.sin_addr.s_addr;
-
-    len=sizeof(addr);
-    getpeername(sock,(struct sockaddr *)&addr,&len);
-    *(unsigned int *)(buf+4)=addr.sin_addr.s_addr;
+void send_info(astonia_sock *s) {
+    char buf[12] = {0};
+    astonia_net_peer_ipv4(s, (unsigned int*)(buf+4));
 
     #ifdef STORE_UNIQUE
     load_unique();
     #endif
 
     *(unsigned int *)(buf+8)=unique;
-
-    send(sock,buf,12,0);
+    (void)astonia_net_send(s, buf, 12);
 }
 
 int poll_network(void) {
@@ -1441,14 +1445,10 @@ int poll_network(void) {
 
     // create nonblocking socket
     if (sockstate==0 && !kicked_out) {
-
-        struct sockaddr_in addr;
-        unsigned long one=1;
-
         if (SDL_GetTicks()<socktime) return 0;
 
         // reset socket
-        if (sock!=-1) { closesocket(sock); sock=-1; }
+        if (sock) { astonia_net_close(sock); sock=NULL; }
         if (zsinit) { inflateEnd(&zs); zsinit=0; }
 
         change_area=0;
@@ -1461,32 +1461,21 @@ int poll_network(void) {
             socktimeout=time(NULL);
         }
 
-        // create socket
-        if ((sock=socket(PF_INET,SOCK_STREAM,0))==INVALID_SOCKET) {
-            fail("creating socket failed (%d)",WSAGetLastError());
-            sock=-1;
-            sockstate=-1;   // fail - no retry
+        // connect to server (non-blocking); require hostname string
+        if (target_server == NULL) {
+            fail("Server URL not specified.");
+            sockstate=-3;   // fail - no retry
             return -1;
         }
 
-        // set to nonblocking
-        if (ioctlsocket(sock,FIONBIO,&one)==-1) {
-            fail("ioctlsocket(non-blocking) failed (%d)\n",WSAGetLastError());
-            sockstate=-2;   // fail - no retry
+        sock = astonia_net_connect(target_server, (unsigned short)target_port, 300);
+        if (!sock) {
+            fail("creating socket failed");
+            sockstate=0;
+            socktime=SDL_GetTicks()+5000;
             return -1;
         }
 
-        // connect to server
-        addr.sin_family=AF_INET;
-        addr.sin_port=htons(target_port);
-        addr.sin_addr.s_addr=htonl(target_server);
-        if ((connect(sock,(struct sockaddr *)&addr,sizeof(addr)))) {
-            if (WSAGetLastError()!=WSAEWOULDBLOCK) {
-                fail("connect failed (%d)\n",WSAGetLastError());
-                sockstate=-3;   // fail - no retry
-                return -1;
-            }
-        }
         // statechange
         sockstate=1;
         // return 0;
@@ -1494,38 +1483,29 @@ int poll_network(void) {
 
     // wait until connect is ok
     if (sockstate==1) {
-
-        struct fd_set outset,errset;
-        struct timeval timeout;
-
         if (SDL_GetTicks()<socktime) return 0;
 
-
-        FD_ZERO(&outset);
-        FD_ZERO(&errset);
-        FD_SET((unsigned int)sock,&outset);
-        FD_SET((unsigned int)sock,&errset);
-
-        timeout.tv_sec=0;
-        timeout.tv_usec=50;
-        n=select(sock+1,NULL,&outset,&errset,&timeout);
-        if (n==0) {
-            // timed out
+        n = astonia_net_poll(sock, 2, 50);
+        if (n==0) {                      /* timeout -> try next frame */
             socktime=SDL_GetTicks()+50;
             return 0;
-        }
-
-        if (FD_ISSET(sock,&errset)) {
-            note("select connect failed (%d)",WSAGetLastError());
+        } else if (n<0 || (n & 2)==0) {  /* error or not writable */
+            note("connect failed");
             sockstate=0;
             socktime=SDL_GetTicks()+5000;
             return -1;
         }
 
-        if (!FD_ISSET(sock,&outset)) {
-            note("can we see this (select without timeout and none set) ?");
-            sockstate=-4;   // fail - no retry
-            return -1;
+        {
+            uint32_t be = 0;
+            char ip[16] = "unknown";
+            if (astonia_net_peer_ipv4(sock, &be) == 0 && be != 0) {
+                ipv4_be_to_string(be, ip);
+                note("Using login server at %s (%s):%u", target_server, ip, (unsigned)target_port);
+            } else {
+                // Could be IPv6 or not yet retrievable; still log the hostname.
+                note("Using login server at %s:%u", target_server, (unsigned)target_port);
+            }
         }
 
         // statechange
@@ -1546,16 +1526,16 @@ int poll_network(void) {
 
         bzero(tmp,sizeof(tmp));
         strcpy(tmp,username);
-        send(sock,tmp,40,0);
+        astonia_net_send(sock,tmp,40);
 
         // send password
         bzero(tmp,sizeof(tmp));
         strcpy(tmp,password);
         decrypt(username,tmp);
-        send(sock,tmp,16,0);
+        astonia_net_send(sock,tmp,16);
 
         *(unsigned int *)(tmp)=(0x8fd46100|0x01);   // magic code + version 1
-        send(sock,tmp,4,0);
+        astonia_net_send(sock,tmp,4);
         send_info(sock);
 
         // statechange
@@ -1586,32 +1566,36 @@ int poll_network(void) {
     }
 
     // send
-    if (outused && sockstate==4) {
-        n=send(sock,outbuf,outused,0);
-
-        if (n<=0) {
-            addline("connection lost during write (%d)\n",WSAGetLastError());
-            sockstate=0;
-            socktimeout=time(NULL);
+    if (outused && sockstate==4 && sock) {
+        n=(int)astonia_net_send(sock,outbuf,outused);
+        if (n==0) {
+            addline("connection lost during write\n");
+            sockstate=0; socktimeout=time(NULL);
             return -1;
+        } else if (n<0) {
+            // would-block -> no progress this frame
+            n=0;
+        } else {
+            memmove(outbuf,outbuf+n,outused-n);
+            outused-=n;
+            sent_bytes+=n;
         }
-
-        memmove(outbuf,outbuf+n,outused-n);
-        outused-=n;
-        sent_bytes+=n;
     }
 
     // recv
-    n=recv(sock,(char *)inbuf+inused,MAX_INBUF-inused,0);
-    if (n<=0) {
-        if (WSAGetLastError()!=WSAEWOULDBLOCK) {
-            addline("connection lost during read (%d)\n",WSAGetLastError());
-            sockstate=0;
-            socktimeout=time(NULL);
-            return -1;
+    n=0;
+    if (sock && astonia_net_poll(sock, 1, 0)>0) {
+        n=(int)astonia_net_recv(sock,(char *)inbuf+inused,MAX_INBUF-inused);
+        if (n<0) {
+            n=0; /* would-block */
+        } else if (n==0) {
+            addline("connection lost during read\n");
+            sockstate=0; socktimeout=time(NULL); return -1;
         }
-        return 0;
+    } else {
+        return 0; /* no data this frame */
     }
+     
     inused+=n;
     rec_bytes+=n;
 
@@ -1620,7 +1604,7 @@ int poll_network(void) {
         if (inused>=lastticksize+1 && *(inbuf+lastticksize)&0x40) {
             lastticksize+=1+(*(inbuf+lastticksize)&0x3F);
         } else if (inused>=lastticksize+2) {
-            lastticksize+=2+(ntohs(*(unsigned short *)(inbuf+lastticksize))&0x3FFF);
+            lastticksize+=2+(net_read16(inbuf+lastticksize)&0x3FFF);
         } else break;
 
         lasttick++;
@@ -1659,7 +1643,7 @@ int next_tick(void) {
         if (inused<ticksize) return 0;
         indone=1;
     } else if (inused>=2 && !(*(inbuf)&0x40)) {
-        ticksize=2+(ntohs(*(unsigned short *)(inbuf))&0x3FFF);
+        ticksize=2+(net_read16(inbuf)&0x3FFF);
         if (inused<ticksize) return 0;
         indone=2;
     } else {
