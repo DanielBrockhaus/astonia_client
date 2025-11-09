@@ -1261,7 +1261,7 @@ void cmd_text(char *text) {
 
     buf[0]=CL_TEXT;
 
-    for (len=0; text[len] && text[len]!='°' && len<254; len++) buf[len+2]=text[len];
+    for (len=0; text[len] && text[len]!=(char)0xB0 && len<254; len++) buf[len+2]=text[len];
 
     buf[2+len]=0;
     buf[1]=len+1;

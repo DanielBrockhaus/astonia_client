@@ -81,7 +81,7 @@ static int textlength(char *text) {
     char *c,buf[4];
 
     for (x=0,c=text; *c; c++) {
-        if (c[0]=='°') {
+        if (c[0]==(char)0xB0) {
             if (c[1]=='c') {
                 if (isdigit(c[2])) {
                     if (isdigit(c[3])) {
@@ -117,11 +117,11 @@ int hover_capture_text(char *line) {
         return 1;
     }
 
-    if (line[0]=='°' && line[1]=='c' && line[2]=='5' && last_look) {
+    if (line[0]==(char)0xB0 && line[1]=='c' && line[2]=='5' && last_look) {
         capture=1;
     }
 
-    if (line[0]=='°' && line[1]=='c' && line[2]=='5' && line[3]=='.') {
+    if (line[0]==(char)0xB0 && line[1]=='c' && line[2]=='5' && line[3]=='.') {
         capture=last_look=0;
         last_right_click_invsel=-1;
         return 1;
@@ -204,7 +204,7 @@ static int display_hover(void) {
 
             for (i=0; hi[slot].desc[n][i]; i++) {
 
-                if (hi[slot].desc[n][i]=='°') {
+                if (hi[slot].desc[n][i]==(char)0xB0) {
                     if (hi[slot].desc[n][i+1]=='c') {
                         if (isdigit(hi[slot].desc[n][i+2])) {
                             if (hi[slot].desc[n][i+2]=='5') col=IRGB(31,31,31);
