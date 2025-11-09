@@ -104,7 +104,11 @@ int hover_capture_text(char *line) {
 
     while (isspace(*line)) line++;
 
-    if (strncmp(line,"°°°ITEMDESC",11)==0) {
+    if ( (unsigned char)line[0] == 0xB0 &&
+        (unsigned char)line[1] == 0xB0 &&
+        (unsigned char)line[2] == 0xB0 &&
+        strncmp(line+3, "ITEMDESC", 8) == 0)
+      {
         last_invsel=atoi(line+11);
         if (last_invsel>=1000) last_invsel=last_invsel%1000+INVENTORYSIZE;
         if (last_invsel<0 || last_invsel>INVENTORYSIZE*2) {
@@ -269,7 +273,7 @@ int tactics2spell(int val) {
     return val*0.125;
 }
 
-static char *basename(int v) {
+static char *vbasename(int v) {
     switch (v) {
         case V_WIS: return "WIS";
         case V_INT: return "INT";
@@ -391,8 +395,8 @@ static int display_hover_skill(void) {
 
         if (base) {
             if (cap && v!=V_SPEED)
-                dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gets +%d from (%s+%s+%s) (capped at %d)",base,basename(v1),basename(v2),basename(v3),cap);
-            else dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gets +%d from (%s+%s+%s)",base,basename(v1),basename(v2),basename(v3));
+                dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gets +%d from (%s+%s+%s) (capped at %d)",base,vbasename(v1),vbasename(v2),vbasename(v3),cap);
+            else dd_drawtext_fmt(sx+4,sy,0xffff,0,"Gets +%d from (%s+%s+%s)",base,vbasename(v1),vbasename(v2),vbasename(v3));
             sy+=10;
         }
         if (v==V_SPEED && value[0][V_SPEEDSKILL]) {
