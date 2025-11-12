@@ -1,6 +1,7 @@
 /*
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
+#include "../dll.h"
 
 #define INVDX                   4
 #define INVDY                   (__invdy)
@@ -263,11 +264,13 @@ extern int actsel;
 extern int skl_look_sel;
 extern int action_ovr;                  // action bar overrides other functions
 
-extern int weatab[12];
+DLL_EXPORT extern int weatab[12];
 extern char weaname[12][32];
 
 extern int cur_cursor;
-extern int mousex,mousey,vk_shift,vk_control,vk_alt,vk_rbut,vk_lbut,shift_override;
+extern int mousex,mousey;
+DLL_EXPORT extern int vk_shift,vk_control,vk_alt;
+extern int vk_rbut,vk_lbut,shift_override;
 extern int mousedx,mousedy;
 extern int vk_item,vk_char,vk_spell;
 
@@ -286,9 +289,9 @@ extern int rcmd;
 
 extern int takegold;                   // the amout of gold to take
 
-extern SKLTAB *skltab;
+DLL_EXPORT extern SKLTAB *skltab;
 extern int skltab_max;
-extern int skltab_cnt;
+DLL_EXPORT extern int skltab_cnt;
 
 extern KEYTAB keytab[];
 extern int max_keytab;
@@ -337,9 +340,9 @@ void cmd_color(int nr);
 void cmd_reset(void);
 void cmd_proc(int key);
 
-int get_near_char(int x,int y,int looksize);
-int get_near_item(int x,int y,int flag,int looksize);
-int get_near_ground(int x,int y);
+DLL_EXPORT int get_near_char(int x,int y,int looksize);
+DLL_EXPORT int get_near_item(int x,int y,int flag,int looksize);
+DLL_EXPORT int get_near_ground(int x,int y);
 
 int context_open(int mx,int my);
 void context_display(int mx,int my);
@@ -356,13 +359,13 @@ int context_key_set_cmd(void);
 void context_key_reset(void);
 int context_key_click(void);
 
-extern char hover_bless_text[];
-extern char hover_freeze_text[];
-extern char hover_potion_text[];
-extern char hover_rage_text[];
-extern char hover_level_text[];
-extern char hover_rank_text[];
-extern char hover_time_text[];
+DLL_EXPORT extern char hover_bless_text[];
+DLL_EXPORT extern char hover_freeze_text[];
+DLL_EXPORT extern char hover_potion_text[];
+DLL_EXPORT extern char hover_rage_text[];
+DLL_EXPORT extern char hover_level_text[];
+DLL_EXPORT extern char hover_rank_text[];
+DLL_EXPORT extern char hover_time_text[];
 
 int action_key2slot(int key);
 int action_slot2key(int slot);

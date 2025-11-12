@@ -28,13 +28,13 @@ extern int itmsel;                     // mn
 extern int chrsel;                     // mn
 extern int mapsel;                     // mn
 
-extern unsigned short int healthcolor,manacolor,endurancecolor,shieldcolor;
-extern unsigned short int whitecolor,lightgraycolor,graycolor,darkgraycolor,blackcolor;
-extern unsigned short int lightredcolor,redcolor,darkredcolor;
-extern unsigned short int lightgreencolor,greencolor,darkgreencolor;
-extern unsigned short int lightbluecolor,bluecolor,darkbluecolor;
-extern unsigned short int lightorangecolor,orangecolor,darkorangecolor;
-extern unsigned short int textcolor;
+DLL_EXPORT extern unsigned short int healthcolor,manacolor,endurancecolor,shieldcolor;
+DLL_EXPORT extern unsigned short int whitecolor,lightgraycolor,graycolor,darkgraycolor,blackcolor;
+DLL_EXPORT extern unsigned short int lightredcolor,redcolor,darkredcolor;
+DLL_EXPORT extern unsigned short int lightgreencolor,greencolor,darkgreencolor;
+DLL_EXPORT extern unsigned short int lightbluecolor,bluecolor,darkbluecolor;
+DLL_EXPORT extern unsigned short int lightorangecolor,orangecolor,darkorangecolor;
+DLL_EXPORT extern unsigned short int textcolor;
 extern int update_skltab;
 
 extern int teleporter;
@@ -53,9 +53,9 @@ int main_loop(void);
 void main_exit(void);
 
 extern int (*get_skltab_sep)(int i);
-int _get_skltab_sep(int i);
+DLL_EXPORT int _get_skltab_sep(int i);
 extern int (*get_skltab_index)(int n);
-int _get_skltab_index(int n);
+DLL_EXPORT int _get_skltab_index(int n);
 extern int (*get_skltab_show)(int i);
 DLL_EXPORT int _get_skltab_show(int i);
 
@@ -88,9 +88,9 @@ struct questlog{
     int exp;
     unsigned int flags;
 };
-extern struct questlog *game_questlog;
+DLL_EXPORT extern struct questlog *game_questlog;
 extern int questonscreen[10];
-extern int *game_questcount;
+DLL_EXPORT extern int *game_questcount;
 extern int gear_lock;
 extern int last_right_click_invsel;
 

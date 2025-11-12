@@ -3,15 +3,22 @@ all: bin/moac.exe
 SDL_CONFIG=sdl2-config
 WINDRES=windres
 LDD=ldd
-CC=gcc
+CC=clang
 OPT=-O3
 DEBUG=-gdwarf-4
 SDL_CFLAGS=$(shell $(SDL_CONFIG) --cflags)
-CFLAGS=$(OPT) $(DEBUG) -Wall -Wno-pointer-sign -Wno-char-subscripts -fno-omit-frame-pointer -fvisibility=hidden -DSTORE_UNIQUE -DENABLE_CRASH_HANDLER -DENABLE_SHAREDMEM -DENABLE_DRAGHACK $(SDL_CFLAGS)
+SDL_PREFIX=$(shell $(SDL_CONFIG) --prefix)
+SDL_INC_ROOT=$(SDL_PREFIX)/include
+CFLAGS=$(OPT) $(DEBUG) -Wall -Wno-pointer-sign -Wno-char-subscripts -fno-omit-frame-pointer -fvisibility=hidden -DSTORE_UNIQUE -DENABLE_CRASH_HANDLER -DENABLE_SHAREDMEM -DENABLE_DRAGHACK $(SDL_CFLAGS) -I$(SDL_INC_ROOT)
 LDFLAGS=$(OPT) $(DEBUG) -Wl,-subsystem,windows
+LDFLAGS_CONSOLE=$(OPT) $(DEBUG) -Wl,-subsystem,console
 
 SDL_LIBS=$(shell $(SDL_CONFIG) --libs)
 LIBS = -lwsock32 -lws2_32 -lz -lpng -lzip -ldwarfstack $(SDL_LIBS) -lSDL2_mixer
+
+ASTONIA_NET_DIR=astonia_net
+ASTONIA_NET_TGT=x86_64-pc-windows-gnu
+ASTONIA_NET_LIB=$(ASTONIA_NET_DIR)/target/$(ASTONIA_NET_TGT)/release/libastonia_net.dll.a
 
 OBJS	=		src/gui/gui.o src/client/client.o src/client/skill.o src/game/dd.o src/game/font.o\
 			src/game/main.o src/game/sprite.o src/game/game.o src/modder/modder.o\
@@ -21,8 +28,14 @@ OBJS	=		src/gui/gui.o src/client/client.o src/client/skill.o src/game/dd.o src/g
 			src/modder/sharedmem_windows.o src/game/crash_handler_windows.o\
 			src/game/memory_windows.o src/gui/draghack_windows.o src/client/unique_windows.o
 
-bin/moac.exe lib/moac.a &:	$(OBJS)
-			$(CC) $(LDFLAGS) -Wl,--out-implib,lib/moac.a -o bin/moac.exe $(OBJS) src/game/version.c $(LIBS)
+bin/moac.exe lib/moac.a &:	$(OBJS) $(ASTONIA_NET_LIB)
+			$(CC) $(LDFLAGS) -Wl,--out-implib,lib/moac.a -o bin/moac.exe $(OBJS) $(ASTONIA_NET_LIB) src/game/version.c $(LIBS)
+
+bin/moac_dbg.exe &:	$(OBJS) $(ASTONIA_NET_LIB)
+			$(CC) $(LDFLAGS_CONSOLE) -Wl,--out-implib,lib/moac_dbg.a -o bin/moac_dbg.exe $(OBJS) $(ASTONIA_NET_LIB) src/game/version.c $(LIBS)
+
+$(ASTONIA_NET_LIB):
+			cargo build --release --manifest-path $(ASTONIA_NET_DIR)/Cargo.toml --target $(ASTONIA_NET_TGT)
 
 bin/amod.dll:		src/amod/amod.o lib/moac.a
 			$(CC) $(LDFLAGS) $(OPT) $(DEBUG) -shared -o bin/amod.dll src/amod/amod.o lib/moac.a
@@ -77,11 +90,11 @@ clean:
 		-rm -f src/*/*.o bin/*.exe bin/*.dll
 
 distrib:
-	$(LDD) bin/moac.exe | grep mingw | awk 'NF == 4 { system("cp " $$3 " bin") }'
+	$(LDD) bin/moac.exe | grep clang | awk 'NF == 4 { system("cp " $$3 " bin") }'
 	zip windows_client.zip -r bin res create_shortcut.bat eula.txt
 
 
 amod:		bin/amod.dll bin/moac.exe
 convert:	bin/convert.exe
 anicopy:	bin/anicopy.exe
-
+debug:		bin/moac_dbg.exe

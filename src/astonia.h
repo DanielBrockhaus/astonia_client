@@ -2,6 +2,8 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
+#include "dll.h"
+
 #define DEVELOPER               // this one will compile the developer version - comment me out for the final release
 
 #ifndef ORG_NAME
@@ -118,9 +120,9 @@
 #define MAX_PATH 260
 #endif
 
-extern int __yres;
+DLL_EXPORT extern int __yres;
 extern int quit;
-extern int frames_per_second;
+DLL_EXPORT extern int frames_per_second;
 extern char *localdata;
 
 #define GO_DARK     (1ull<<0)  // Dark GUI by Tegra
@@ -145,13 +147,13 @@ extern char *localdata;
 
 #define GO_NOTSET   (1ull<<63) // No -o given on command line
 
-extern uint64_t game_options;
+DLL_EXPORT extern uint64_t game_options;
 
-void addline(const char *format,...) __attribute__((format(printf, 1, 2)));
-int  note(const char *format,...) __attribute__((format(printf, 1, 2)));
-int  warn(const char *format,...) __attribute__((format(printf, 1, 2)));
-int  fail(const char *format,...) __attribute__((format(printf, 1, 2)));
-void paranoia(const char *format,...) __attribute__((format(printf, 1, 2)));
+DLL_EXPORT void addline(const char *format,...) __attribute__((format(printf, 1, 2)));
+DLL_EXPORT int  note(const char *format,...) __attribute__((format(printf, 1, 2)));
+DLL_EXPORT int  warn(const char *format,...) __attribute__((format(printf, 1, 2)));
+DLL_EXPORT int  fail(const char *format,...) __attribute__((format(printf, 1, 2)));
+DLL_EXPORT void paranoia(const char *format,...) __attribute__((format(printf, 1, 2)));
 void display_messagebox(char *title,char *text);
 
 void* xmalloc(int size,int ID);
@@ -164,10 +166,10 @@ char* xstrdup(const char *src,int ID);
 int rrand(int range);
 
 void init_dots(void);
-int dotx(int didx);
-int doty(int didx);
-int butx(int bidx);
-int buty(int bidx);
+DLL_EXPORT int dotx(int didx);
+DLL_EXPORT int doty(int didx);
+DLL_EXPORT int butx(int bidx);
+DLL_EXPORT int buty(int bidx);
 
 void dd_set_offset(int x,int y);
 char *client_version(void);

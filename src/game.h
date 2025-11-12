@@ -2,6 +2,8 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
+#include "dll.h"
+
 #define DD_OFFSET        0       // this has to be zero, so bzero on the structures default this
 #define DD_CENTER        1       // also used in dd_drawtext
 #define DD_NORMAL        2
@@ -86,25 +88,25 @@ extern int stom_off_x,stom_off_y;
 extern int __textdisplay_sy;
 extern int x_offset,y_offset;
 
-int dd_textlength(int flags,const char *text);
+DLL_EXPORT int dd_textlength(int flags,const char *text);
 int dd_textlen(int flags,const char *text,int n);
-int dd_drawtext(int sx,int sy,unsigned short int color,int flags,const char *text);
-int dd_drawtext_fmt(int sx,int sy,unsigned short int color,int flags,const char *format,...) __attribute__((format(printf, 5, 6)));
-int dd_drawtext_break_fmt(int sx,int sy,int breakx,unsigned short int color,int flags,const char *format,...)  __attribute__((format(printf, 6, 7)));
-int dd_drawtext_nl(int x,int y,int unsigned short color,int flags,const char *ptr);
-int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry);
-void dd_copysprite(int sprite,int scrx,int scry,int light,int align);
+DLL_EXPORT int dd_drawtext(int sx,int sy,unsigned short int color,int flags,const char *text);
+DLL_EXPORT int dd_drawtext_fmt(int sx,int sy,unsigned short int color,int flags,const char *format,...) __attribute__((format(printf, 5, 6)));
+DLL_EXPORT int dd_drawtext_break_fmt(int sx,int sy,int breakx,unsigned short int color,int flags,const char *format,...)  __attribute__((format(printf, 6, 7)));
+DLL_EXPORT int dd_drawtext_nl(int x,int y,int unsigned short color,int flags,const char *ptr);
+DLL_EXPORT int dd_copysprite_fx(DDFX *ddfx,int scrx,int scry);
+DLL_EXPORT void dd_copysprite(int sprite,int scrx,int scry,int light,int align);
 void dd_copysprite_callfx(int sprite,int scrx,int scry,int light,int mli,int align);
-int dd_drawtext_break(int x,int y,int breakx,unsigned short color,int flags,const char *ptr);
-int dd_drawtext_break_length(int x,int y,int breakx,unsigned short color,int flags,const char *ptr);
-void dd_rect(int sx,int sy,int ex,int ey,unsigned short int color);
-void dd_push_clip(void);
-void dd_pop_clip(void);
-void dd_more_clip(int sx,int sy,int ex,int ey);
+DLL_EXPORT int dd_drawtext_break(int x,int y,int breakx,unsigned short color,int flags,const char *ptr);
+DLL_EXPORT int dd_drawtext_break_length(int x,int y,int breakx,unsigned short color,int flags,const char *ptr);
+DLL_EXPORT void dd_rect(int sx,int sy,int ex,int ey,unsigned short int color);
+DLL_EXPORT void dd_push_clip(void);
+DLL_EXPORT void dd_pop_clip(void);
+DLL_EXPORT void dd_more_clip(int sx,int sy,int ex,int ey);
 void dd_set_clip(int sx,int sy,int ex,int ey);
 void dd_text_pageup(void);
 void dd_text_pagedown(void);
-void dd_line(int fx,int fy,int tx,int ty,unsigned short col);
+DLL_EXPORT void dd_line(int fx,int fy,int tx,int ty,unsigned short col);
 void dd_display_text(void);
 int dd_scantext(int x,int y,char *hit);
 int dd_char_len(char c);
@@ -115,20 +117,20 @@ void dd_text_linedown(void);
 int dd_offset_x(void);
 int dd_offset_y(void);
 void dd_list_text(void);
-void dd_pixel(int x,int y,unsigned short col);
+DLL_EXPORT void dd_pixel(int x,int y,unsigned short col);
 extern int (*trans_asprite)(int mn,int sprite,int attick,unsigned char *pscale,unsigned char *pcr,unsigned char *pcg,unsigned char *pcb,unsigned char *plight,unsigned char *psat,unsigned short *pc1,unsigned short *pc2,unsigned short *pc3,unsigned short *pshine);
-int _trans_asprite(int mn,int sprite,int attick,unsigned char *pscale,unsigned char *pcr,unsigned char *pcg,unsigned char *pcb,unsigned char *plight,unsigned char *psat,unsigned short *pc1,unsigned short *pc2,unsigned short *pc3,unsigned short *pshine);
+DLL_EXPORT int _trans_asprite(int mn,int sprite,int attick,unsigned char *pscale,unsigned char *pcr,unsigned char *pcg,unsigned char *pcb,unsigned char *plight,unsigned char *psat,unsigned short *pc1,unsigned short *pc2,unsigned short *pc3,unsigned short *pshine);
 extern int (*trans_charno)(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,int *psat,int *pc1,int *pc2,int *pc3,int *pshine,int attick);
-int _trans_charno(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,int *psat,int *pc1,int *pc2,int *pc3,int *pshine,int attick);
+DLL_EXPORT int _trans_charno(int csprite,int *pscale,int *pcr,int *pcg,int *pcb,int *plight,int *psat,int *pc1,int *pc2,int *pc3,int *pshine,int attick);
 extern int (*additional_sprite)(int sprite,int attick);
-int _additional_sprite(int sprite,int attick);
+DLL_EXPORT int _additional_sprite(int sprite,int attick);
 extern int (*get_player_sprite)(int nr,int zdir,int action,int step,int duration,int attick);
-int _get_player_sprite(int nr,int zdir,int action,int step,int duration,int attick);
+DLL_EXPORT int _get_player_sprite(int nr,int zdir,int action,int step,int duration,int attick);
 void save_options(void);
 extern int (*opt_sprite)(int sprite);
-int _opt_sprite(int sprite);
+DLL_EXPORT int _opt_sprite(int sprite);
 extern int (*no_lighting_sprite)(int sprite);
-int _no_lighting_sprite(int sprite);
+DLL_EXPORT int _no_lighting_sprite(int sprite);
 
 struct map;
 int get_sink(int mn,struct map *cmap);

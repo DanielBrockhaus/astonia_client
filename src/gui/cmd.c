@@ -67,7 +67,7 @@ int client_cmd(char *buf) {
     }
 
     if (!strncmp(buf,"#crash",6) || !strncmp(buf,"/crash",6)) {
-        *(int*)0=42;
+        *(volatile int*)0=42;
         return 1;
     }
 

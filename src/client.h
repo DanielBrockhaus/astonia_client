@@ -1,6 +1,7 @@
 /*
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
+#include "./dll.h"
 
 #define MAXCHARS	2048
 
@@ -456,89 +457,88 @@ struct client_info {
     struct client_surface surface[CL_MAX_SURFACE];
 };
 
-extern struct map map[MAPDX*MAPDY];
-extern struct map map2[MAPDX*MAPDY];
+DLL_EXPORT extern struct map map[MAPDX*MAPDY];
+DLL_EXPORT extern struct map map2[MAPDX*MAPDY];
 
-extern int value[2][V_MAX];
+DLL_EXPORT extern int value[2][V_MAX];
 extern int *game_v_max;
 extern int *game_v_profbase;
-extern int item[INVENTORYSIZE];
-extern int item_flags[INVENTORYSIZE];
-extern int hp;
-extern int mana;
-extern int rage;
-extern int endurance;
-extern int lifeshield;
-extern int experience;
-extern int experience_used;
-extern int gold;
-extern int tick;
+DLL_EXPORT extern int item[INVENTORYSIZE];
+DLL_EXPORT extern int item_flags[INVENTORYSIZE];
+DLL_EXPORT extern int hp;
+DLL_EXPORT extern int mana;
+DLL_EXPORT extern int rage;
+DLL_EXPORT extern int endurance;
+DLL_EXPORT extern int lifeshield;
+DLL_EXPORT extern int experience;
+DLL_EXPORT extern int experience_used;
+DLL_EXPORT extern int gold;
+DLL_EXPORT extern int tick;
 extern int lasttick;                    // ticks in inbuf
 extern int q_size;
 
-extern unsigned int cflags;     // current item (item under mouse cursor) flags
-extern unsigned int csprite;    // and sprite
+DLL_EXPORT extern unsigned int cflags;     // current item (item under mouse cursor) flags
+DLL_EXPORT extern unsigned int csprite;    // and sprite
 
-extern int con_cnt;
-extern int con_type;
-extern char con_name[80];
-extern int container[CONTAINERSIZE];
-extern int price[CONTAINERSIZE];
-extern int itemprice[CONTAINERSIZE];
-extern int cprice;
-extern int protocol_version;
+DLL_EXPORT extern int con_cnt;
+DLL_EXPORT extern int con_type;
+DLL_EXPORT extern char con_name[80];
+DLL_EXPORT extern int container[CONTAINERSIZE];
+DLL_EXPORT extern int price[CONTAINERSIZE];
+DLL_EXPORT extern int itemprice[CONTAINERSIZE];
+DLL_EXPORT extern int cprice;
+DLL_EXPORT extern int protocol_version;
 
-extern int lookinv[12];
 extern int looklevel;
-extern int mirror,newmirror;
+DLL_EXPORT extern int mirror,newmirror;
 extern int may_teleport[64+32];
-extern int pspeed;   // 0=ill 1=stealth 2=normal 3=fast
+DLL_EXPORT extern int pspeed;   // 0=ill 1=stealth 2=normal 3=fast
 
-extern char username[40];
-extern char password[16];
+DLL_EXPORT extern char username[40];
+DLL_EXPORT extern char password[16];
 
-extern union ceffect ceffect[MAXEF];
-extern unsigned char ueffect[MAXEF];
-extern struct player player[MAXCHARS];
+DLL_EXPORT extern union ceffect ceffect[MAXEF];
+DLL_EXPORT extern unsigned char ueffect[MAXEF];
+DLL_EXPORT extern struct player player[MAXCHARS];
 
-extern int originx;
-extern int originy;
+DLL_EXPORT extern int originx;
+DLL_EXPORT extern int originy;
 
 extern int sockstate;
 extern int socktimeout;
-extern char *target_server;
+DLL_EXPORT extern char *target_server;
 extern int target_port;
 extern int kicked_out;
 
 extern char **game_skilldesc;
 extern struct skill *game_skill;
 
-extern int act;
-extern int actx;
-extern int acty;
+DLL_EXPORT extern int act;
+DLL_EXPORT extern int actx;
+DLL_EXPORT extern int acty;
 
-extern int lookinv[12];
-extern int looksprite,lookc1,lookc2,lookc3;
-extern char look_name[80];
-extern char look_desc[1024];
+DLL_EXPORT extern int lookinv[12];
+DLL_EXPORT extern int looksprite,lookc1,lookc2,lookc3;
+DLL_EXPORT extern char look_name[80];
+DLL_EXPORT extern char look_desc[1024];
 
-extern int realtime;
-extern int mil_exp;
+DLL_EXPORT extern int realtime;
+DLL_EXPORT extern int mil_exp;
 extern int display_gfx;
 extern int display_time;
 
-extern char pent_str[7][80];
+DLL_EXPORT extern char pent_str[7][80];
 
-extern struct quest quest[];
-extern struct shrine_ppd shrine;
+DLL_EXPORT extern struct quest quest[];
+DLL_EXPORT extern struct shrine_ppd shrine;
 
 void cmd_text(char *text);
-int mapmn(int x,int y);
+DLL_EXPORT int mapmn(int x,int y);
 int find_cn_ceffect(int cn,int skip);
 int find_ceffect(int fn);
-int level2exp(int level);
-int exp2level(int val);
-int raise_cost(int v,int n);
+DLL_EXPORT int level2exp(int level);
+DLL_EXPORT int exp2level(int val);
+DLL_EXPORT int raise_cost(int v,int n);
 void cmd_move(int x,int y);
 void cmd_swap(int with);
 void cmd_use_inv(int with);

@@ -2,6 +2,8 @@
  * Part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
  */
 
+#include "../dll.h"
+
 #define GND_LAY         100
 #define GND2_LAY        101
 #define GNDSHD_LAY      102
@@ -21,7 +23,7 @@
 #define DD__SHADEFONT	128
 #define DD__FRAMEFONT	256
 
-#define DDT             '°' // draw text terminator - (zero stays one, too)
+#define DDT             '\xB0' // draw text terminator - (zero stays one, too)
 
 #define DL_STEP 128
 
@@ -86,21 +88,21 @@ extern DDFONT *fontc_framed;
 
 int is_top_sprite(int sprite,int itemhint);
 extern int (*is_cut_sprite)(int sprite);
-int _is_cut_sprite(int sprite);
+DLL_EXPORT int _is_cut_sprite(int sprite);
 extern int (*is_mov_sprite)(int sprite,int itemhint);
-int _is_mov_sprite(int sprite,int itemhint);
+DLL_EXPORT int _is_mov_sprite(int sprite,int itemhint);
 extern int (*is_door_sprite)(int sprite);
-int _is_door_sprite(int sprite);
+DLL_EXPORT int _is_door_sprite(int sprite);
 extern int (*is_yadd_sprite)(int sprite);
-int _is_yadd_sprite(int sprite);
+DLL_EXPORT int _is_yadd_sprite(int sprite);
 extern int (*get_chr_height)(int csprite);
-int _get_chr_height(int csprite);
+DLL_EXPORT int _get_chr_height(int csprite);
 extern void (*trans_csprite)(int mn,struct map *cmap,int attick);
-void _trans_csprite(int mn,struct map *cmap,int attick);
+DLL_EXPORT void _trans_csprite(int mn,struct map *cmap,int attick);
 extern int (*get_lay_sprite)(int sprite,int lay);
-int _get_lay_sprite(int sprite,int lay);
+DLL_EXPORT int _get_lay_sprite(int sprite,int lay);
 extern int (*get_offset_sprite)(int sprite,int *px,int *py);
-int _get_offset_sprite(int sprite,int *px,int *py);
+DLL_EXPORT int _get_offset_sprite(int sprite,int *px,int *py);
 
 int dd_init(void);
 int dd_exit(void);

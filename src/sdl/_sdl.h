@@ -75,7 +75,7 @@ struct ddfont {
 };
 #endif
 
-#define DDT             '°' // draw text terminator - (zero stays one, too)
+#define DDT             '\xB0' // draw text terminator - (zero stays one, too)
 
 int sdl_ic_load(int sprite);
 int sdl_pre_backgnd(void *ptr);

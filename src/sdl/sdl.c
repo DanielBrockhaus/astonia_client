@@ -2226,7 +2226,7 @@ int sdlt_yres(int stx) {
     return sdlt[stx].yres;
 }
 
-uint32_t *sdl_load_png(char *filename,int *dx,int *dy) {
+DLL_EXPORT uint32_t *sdl_load_png(char *filename,int *dx,int *dy) {
     int x,y,xres,yres,tmp,r,g,b,a;
     int format;
     unsigned char **row;

@@ -7,6 +7,7 @@
  *
  */
 
+#include "../../src/dll.h"
 #include "../../include/astonia_net.h"
 #include <time.h>
 #include <zlib.h>

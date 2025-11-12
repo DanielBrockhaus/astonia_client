@@ -5,7 +5,7 @@
  *
  * Displays mouse-over (hover) texts.
  *
- * Add "log_char(cn,LOG_SYSTEM,0,"°c5.");" to the very end of int look_item() in tool.c!
+ * Add "log_char(cn,LOG_SYSTEM,0,"ï¿½c5.");" to the very end of int look_item() in tool.c!
  *
  */
 
