@@ -12,6 +12,9 @@
 #include <stdio.h>
 #include <time.h>
 #include <SDL2/SDL.h>
+#ifdef _WIN32
+    #include <windows.h>
+#endif
 
 #include "../../src/astonia.h"
 #include "../../src/game.h"
@@ -666,6 +669,10 @@ int main(int argc,char *args[]) {
     }
 
     xlog(errorfp,"Client started with -h%d -w%d -o%d",want_height,want_width,game_options);
+
+    #ifdef _WIN32
+        SetProcessDPIAware();
+    #endif
 
     target_server=server_url;
 
