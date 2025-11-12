@@ -279,7 +279,7 @@ void* xmalloc(int size,int ID) {
 
     memptrused++;
 
-    mem=malloc(8+sizeof(memcheck)+size+sizeof(memcheck));
+    mem=calloc(1, 8+sizeof(memcheck)+size+sizeof(memcheck));
     if (!mem) { fail("OUT OF MEMORY !!!"); return NULL; }
 
     memused+=8+sizeof(memcheck)+size+sizeof(memcheck);
