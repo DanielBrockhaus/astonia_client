@@ -1,0 +1,50 @@
+# Linux environment for building Astonia for Linux
+#
+# Build and tag the Docker image first:
+#   docker build -f Dockerfile.linux -t astonia-linux-build .
+#
+# And then run it:
+#   docker run --rm -i -e HOST_UID=$(id -u) -e HOST_GID=$(id -g) -v "$PWD:/app" -w /app astonia-linux-build
+#
+# The wrapper script will fix ownership of output files after the build completes.
+
+FROM archlinux:latest
+
+# Install basic dependencies and development tools
+RUN pacman -Syu --noconfirm \
+    curl \
+    wget \
+    git \
+    base-devel \
+    sdl2 \
+    sdl2_mixer \
+    libpng \
+    libzip \
+    zlib \
+    zig \
+    && pacman -Scc --noconfirm
+
+# Install Rust
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Set default toolchain (needed even though we specified it above, to ensure it's configured)
+RUN rustup default stable
+
+# Set Zig cache directory to /app (mounted volume) so it's writable
+# Note: We don't override CARGO_HOME or RUSTUP_HOME - rustup needs to find
+# its installation in /root/.cargo. Cargo's build cache (target/) will be in
+# the project directory anyway, which is what we want for persistence.
+ENV ZIG_GLOBAL_CACHE_DIR="/app/.cache/zig"
+
+# Create wrapper script that builds and fixes ownership
+RUN printf '#!/bin/bash\nset -e\nzig build "$@"\nif [ -n "$HOST_UID" ] && [ -n "$HOST_GID" ]; then\n    chown -R "$HOST_UID:$HOST_GID" /app/zig-out /app/.cache 2>/dev/null || true\nfi\n' > /usr/local/bin/build.sh && \
+    chmod +x /usr/local/bin/build.sh
+
+# Set working directory
+WORKDIR /app
+
+# Default command: build with Zig and fix ownership
+ENTRYPOINT ["/bin/bash", "/usr/local/bin/build.sh"]
+CMD ["--release=fast"]
+
