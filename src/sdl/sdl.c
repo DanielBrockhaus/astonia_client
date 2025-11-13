@@ -2230,7 +2230,6 @@ uint32_t *sdl_load_png(char *filename,int *dx,int *dy) {
     FILE *fp;
     png_structp png_ptr;
     png_infop info_ptr;
-    png_infop end_info;
 
     fp=fopen(filename,"rb");
     if (!fp) return NULL;
@@ -2240,9 +2239,6 @@ uint32_t *sdl_load_png(char *filename,int *dx,int *dy) {
 
     info_ptr=png_create_info_struct(png_ptr);
     if (!info_ptr) { fclose(fp); png_destroy_read_struct(&png_ptr,(png_infopp)NULL,(png_infopp)NULL); warn("create info1\n"); return NULL; }
-
-    end_info=png_create_info_struct(png_ptr);
-    if (!end_info) { fclose(fp); png_destroy_read_struct(&png_ptr,&info_ptr,(png_infopp)NULL); warn("create info2\n"); return NULL; }
 
     png_init_io(png_ptr,fp);
     png_set_strip_16(png_ptr);
