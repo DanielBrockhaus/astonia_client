@@ -9,6 +9,7 @@
  */
 
 #include <stdint.h>
+#include <stddef.h>
 #include <SDL2/SDL.h>
 
 #include "../../src/astonia.h"
@@ -28,7 +29,8 @@ static int stat_dlsortcalls,stat_dlused;
 int namesize=DD_SMALL;
 
 DL* dl_next(void) {
-    int d,diff;
+    int d;
+    ptrdiff_t diff;
     DL *rem;
 
     if (dlused==dlmax) {
