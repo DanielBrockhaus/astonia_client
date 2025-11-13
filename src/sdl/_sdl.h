@@ -12,7 +12,10 @@
 #define IGET_G(c)       ((((uint32_t)(c))>>8)&0xFF)
 #define IGET_B(c)       ((((uint32_t)(c))>>0)&0xFF)
 #define IRGB(r,g,b)     (((r)<<0)|((g)<<8)|((b)<<16))
-#define IRGBA(r,g,b,a)  (((a)<<24)|((r)<<16)|((g)<<8)|((b)<<0))
+#define IRGBA(r,g,b,a)  (((uint32_t)(a)<<24)| \
+                         ((uint32_t)(r)<<16)| \
+                         ((uint32_t)(g)<<8)| \
+                         ((uint32_t)(b)<<0))
 
 #define SF_USED         (1<<0)
 #define SF_SPRITE       (1<<1)
