@@ -207,8 +207,8 @@ void display_minimap(void) {
     if (visible==1) {
         if (update2) {
             bzero(mapix2,sizeof(mapix2));
-            for (iy=-MINIMAP; iy<=MINIMAP; iy++) {
-                for (ix=-MINIMAP; ix<=MINIMAP; ix++) {
+            for (iy=-MINIMAP; iy<MINIMAP; iy++) {
+                for (ix=-MINIMAP; ix<MINIMAP; ix++) {
 
                     dist=sqrtf(ix*ix+iy*iy);
                     if (dist>MINIMAP) continue;
