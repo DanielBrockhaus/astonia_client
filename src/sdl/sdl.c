@@ -1397,7 +1397,7 @@ static inline unsigned int hashfunc_text(const char *text,int color,int flags) {
         } else t2=t3=0;
     } else t1=t2=t3=0;
 
-    hash=(t0<<0)^(t1<<3)^(t2<<6)^(t3<<9)^(color<<0)^(flags<<5);
+    hash=(t0<<0)^(t1<<3)^(t2<<6)^(t3<<9)^((uint32_t)color<<0)^((uint32_t)flags<<5);
 
     return hash%MAX_TEXHASH;
 }
