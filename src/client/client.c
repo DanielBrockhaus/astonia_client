@@ -9,6 +9,7 @@
 
 #include "../../src/dll.h"
 #include "../../include/astonia_net.h"
+#include <SDL2/SDL_timer.h>
 #include <time.h>
 #include <zlib.h>
 #include <SDL2/SDL.h>
@@ -114,6 +115,34 @@ int may_teleport[64+32];
 
 DLL_EXPORT int frames_per_second=TICKS;
 
+// Unaligned load/store helpers
+static inline uint32_t load_ulong(const void *p) { 
+    unsigned long v;
+    memcpy(&v, p, sizeof v);
+    return v;
+}
+static inline uint32_t load_u32(const void *p) { 
+    uint32_t v;
+    memcpy(&v, p, sizeof v);
+    return v; 
+}
+static inline uint16_t load_u16(const void *p) { 
+    uint16_t v;
+    memcpy(&v, p, sizeof v);
+    return v; 
+}
+static inline int16_t  load_i16(const void *p) { 
+    int16_t v;
+    memcpy(&v, p, sizeof v);
+    return v; 
+}
+static inline void store_u16(void *p, uint16_t v) { 
+    memcpy(p, &v, sizeof v); 
+}
+static inline void store_u32(void *p, uint32_t v) { 
+    memcpy(p, &v, sizeof v); 
+}
+
 static inline unsigned short net_read16(const void *p) {
     const unsigned char *b = (const unsigned char*)p;
     return (unsigned short)((b[0] << 8) | b[1]);
@@ -143,22 +172,22 @@ int sv_map01(unsigned char *buf,int *last,struct map *cmap) {
         c=*last+*(unsigned char *)(buf+1);
     } else {
         p=3;
-        c=*(unsigned short *)(buf+1);
+        c=load_u16(buf+1);
     }
 
     if (c>MAPDX*MAPDY || c<0) { fail("sv_map01 illegal call with c=%d\n",c); exit(-1); }
 
     if (buf[0]&1) {
-        cmap[c].ef[0]=*(unsigned int *)(buf+p); p+=4;
+        cmap[c].ef[0]=load_u32(buf+p); p+=4;
     }
     if (buf[0]&2) {
-        cmap[c].ef[1]=*(unsigned int *)(buf+p); p+=4;
+        cmap[c].ef[1]=load_u32(buf+p); p+=4;
     }
     if (buf[0]&4) {
-        cmap[c].ef[2]=*(unsigned int *)(buf+p); p+=4;
+        cmap[c].ef[2]=load_u32(buf+p); p+=4;
     }
     if (buf[0]&8) {
-        cmap[c].ef[3]=*(unsigned int *)(buf+p); p+=4;
+        cmap[c].ef[3]=load_u32(buf+p); p+=4;
     }
 
     *last=c;
@@ -180,14 +209,14 @@ int sv_map10(unsigned char *buf,int *last,struct map *cmap) {
         c=*last+*(unsigned char *)(buf+1);
     } else {
         p=3;
-        c=*(unsigned short *)(buf+1);
+        c=load_u16(buf+1);
     }
 
     if (c>MAPDX*MAPDY || c<0) { fail("sv_map10 illegal call with c=%d\n",c); exit(-1); }
 
     if (buf[0]&1) {
-        cmap[c].csprite=*(unsigned int *)(buf+p); p+=4;
-        cmap[c].cn=*(unsigned short *)(buf+p); p+=2;
+        cmap[c].csprite=load_u32(buf+p); p+=4;
+        cmap[c].cn=load_u16(buf+p); p+=2;
     }
     if (buf[0]&2) {
         cmap[c].action=*(unsigned char *)(buf+p); p++;
@@ -230,28 +259,28 @@ int sv_map11(unsigned char *buf,int *last,struct map *cmap) {
         c=*last+*(unsigned char *)(buf+1);
     } else {
         p=3;
-        c=*(unsigned short *)(buf+1);
+        c=load_u16(buf+1);
     }
 
     if (c>MAPDX*MAPDY || c<0) { fail("sv_map11 illegal call with c=%d\n",c); exit(-1); }
 
     if (buf[0]&1) {
-        tmp32=*(unsigned int *)(buf+p); p+=4;
+        tmp32=load_u32(buf+p); p+=4;
         cmap[c].gsprite=(unsigned short int)(tmp32&0x0000FFFF);
         cmap[c].gsprite2=(unsigned short int)(tmp32>>16);
     }
     if (buf[0]&2) {
-        tmp32=*(unsigned int *)(buf+p); p+=4;
+        tmp32=load_u32(buf+p); p+=4;
         cmap[c].fsprite=(unsigned short int)(tmp32&0x0000FFFF);
         cmap[c].fsprite2=(unsigned short int)(tmp32>>16);
     }
     if (buf[0]&4) {
-        cmap[c].isprite=*(unsigned int *)(buf+p); p+=4;
+        cmap[c].isprite=load_u32(buf+p); p+=4;
         if (cmap[c].isprite&0x80000000) {
             cmap[c].isprite&=~0x80000000;
-            cmap[c].ic1=*(unsigned short *)(buf+p); p+=2;
-            cmap[c].ic2=*(unsigned short *)(buf+p); p+=2;
-            cmap[c].ic3=*(unsigned short *)(buf+p); p+=2;
+            cmap[c].ic1=load_u16(buf+p); p+=2;
+            cmap[c].ic2=load_u16(buf+p); p+=2;
+            cmap[c].ic3=load_u16(buf+p); p+=2;
         } else {
             cmap[c].ic1=0;
             cmap[c].ic2=0;
@@ -260,7 +289,7 @@ int sv_map11(unsigned char *buf,int *last,struct map *cmap) {
     }
     if (buf[0]&8) {
         if (*(unsigned char *)(buf+p)) {
-            cmap[c].flags=*(unsigned short *)(buf+p); p+=2;
+            cmap[c].flags=load_u16(buf+p); p+=2;
         } else {
             cmap[c].flags=*(unsigned char *)(buf+p); p++;
         }
@@ -274,7 +303,7 @@ int sv_map11(unsigned char *buf,int *last,struct map *cmap) {
 int svl_ping(char *buf) {
     int t,diff;
 
-    t=*(unsigned int *)(buf+1);
+    t=load_u32(buf+1);
     diff=SDL_GetTicks()-t;
     addline("RTT1: %.2fms",diff/1000.0);
 
@@ -284,7 +313,7 @@ int svl_ping(char *buf) {
 int sv_ping(char *buf) {
     int t,diff;
 
-    t=*(unsigned int *)(buf+1);
+    t=load_u32(buf+1);
     diff=SDL_GetTicks()-t;
     addline("RTT2: %.2fms",diff/1000.0);
 
@@ -330,29 +359,29 @@ void sv_setval(unsigned char *buf,int nr) {
     n=buf[1];
     if (n<0 || n>=(*game_v_max)) return;
 
-    if (nr!=0 || n!=V_PROFESSION) value[nr][n]=*(short *)(buf+2);
+    if (nr!=0 || n!=V_PROFESSION) value[nr][n]=load_i16(buf+2);
 
     update_skltab=1;
 }
 
 void sv_sethp(unsigned char *buf) {
-    hp=*(short *)(buf+1);
+    hp=load_i16(buf+1);
 }
 
 void sv_endurance(unsigned char *buf) {
-    endurance=*(short *)(buf+1);
+    endurance=load_i16(buf+1);
 }
 
 void sv_lifeshield(unsigned char *buf) {
-    lifeshield=*(short *)(buf+1);
+    lifeshield=load_i16(buf+1);
 }
 
 void sv_setmana(unsigned char *buf) {
-    mana=*(short *)(buf+1);
+    mana=load_i16(buf+1);
 }
 
 void sv_setrage(unsigned char *buf) {
-    rage=*(short *)(buf+1);
+    rage=load_i16(buf+1);
 }
 
 void sv_setitem(unsigned char *buf) {
@@ -361,27 +390,27 @@ void sv_setitem(unsigned char *buf) {
     n=buf[1];
     if (n<0 || n>=INVENTORYSIZE) return;
 
-    item[n]=*(unsigned int *)(buf+2);
-    item_flags[n]=*(unsigned int *)(buf+6);
+    item[n]=load_u32(buf+2);
+    item_flags[n]=load_u32(buf+6);
 
     hover_invalidate_inv(n);
 }
 
 void sv_setorigin(unsigned char *buf) {
-    originx=*(unsigned short int *)(buf+1);
-    originy=*(unsigned short int *)(buf+3);
+    originx=load_u16(buf+1);
+    originy=load_u16(buf+3);
 }
 
 void sv_settick(unsigned char *buf) {
-    tick=*(unsigned int *)(buf+1);
+    tick=load_u32(buf+1);
 }
 
 void sv_mirror(unsigned char *buf) {
-    mirror=newmirror=*(unsigned int *)(buf+1);
+    mirror=newmirror=load_u32(buf+1);
 }
 
 void sv_realtime(unsigned char *buf) {
-    realtime=*(unsigned int *)(buf+1);
+    realtime=load_u32(buf+1);
 }
 
 void sv_speedmode(unsigned char *buf) {
@@ -393,15 +422,15 @@ void sv_fightmode(unsigned char *buf) {
 }
 
 void sv_setcitem(unsigned char *buf) {
-    csprite=*(unsigned int *)(buf+1);
-    cflags=*(unsigned int *)(buf+5);
+    csprite=load_u32(buf+1);
+    cflags=load_u32(buf+5);
 }
 
 void sv_act(unsigned char *buf) {
 
-    act=*(unsigned short int *)(buf+1);
-    actx=*(unsigned short int *)(buf+3);
-    acty=*(unsigned short int *)(buf+5);
+    act=load_u16(buf+1);
+    actx=load_u16(buf+3);
+    acty=load_u16(buf+5);
 
     if (act) teleporter=0;
 }
@@ -410,7 +439,7 @@ int sv_text(unsigned char *buf) {
     int len;
     char line[1024];
 
-    len=*(unsigned short *)(buf+1);
+    len=load_u16(buf+1);
     if (len<1000) {
         memcpy(line,buf+3,len);
         line[len]=0;
@@ -450,7 +479,7 @@ int sv_text(unsigned char *buf) {
 int svl_text(unsigned char *buf) {
     int len;
 
-    len=*(unsigned short *)(buf+1);
+    len=load_u16(buf+1);
     return len+3;
 }
 
@@ -500,7 +529,7 @@ int sv_name(unsigned char *buf) {
     int len,cn;
 
     len=buf[12];
-    cn=*(unsigned short *)(buf+1);
+    cn=load_u16(buf+1);
 
     if (cn<1 || cn>=MAXCHARS) addline("illegal cn %d in sv_name",cn);
     else {
@@ -508,9 +537,9 @@ int sv_name(unsigned char *buf) {
         player[cn].name[len]=0;
 
         player[cn].level=*(unsigned char *)(buf+3);
-        player[cn].c1=*(unsigned short *)(buf+4);
-        player[cn].c2=*(unsigned short *)(buf+6);
-        player[cn].c3=*(unsigned short *)(buf+8);
+        player[cn].c1=load_u16(buf+4);
+        player[cn].c2=load_u16(buf+6);
+        player[cn].c3=load_u16(buf+8);
         player[cn].clan=*(unsigned char *)(buf+10);
         player[cn].pk_status=*(unsigned char *)(buf+11);
     }
@@ -579,7 +608,10 @@ int sv_ceffect(unsigned char *buf) {
     int nr,type,len=0; //,fn,arg;
 
     nr=buf[1];
-    type=((struct cef_generic *)(buf+2))->type;
+
+    struct cef_generic tmp;
+    memcpy(&tmp, buf + 2, sizeof tmp);
+    type=tmp.type;
 
     switch (type) {
         case 1:		len=sizeof(struct cef_shield); break;
@@ -633,7 +665,10 @@ int svl_ceffect(unsigned char *buf) {
     int nr,type,len=0;
 
     nr=buf[1];
-    type=((struct cef_generic *)(buf+2))->type;
+
+    struct cef_generic tmp;
+    memcpy(&tmp, buf + 2, sizeof tmp);
+    type=tmp.type;
 
     switch (type) {
         case 1:		len=sizeof(struct cef_shield); break;
@@ -677,7 +712,7 @@ void sv_container(unsigned char *buf) {
     nr=buf[1];
     if (nr<0 || nr>=CONTAINERSIZE) { fail("illegal nr %d in sv_container!",nr);  exit(-1); }
 
-    container[nr]=*(unsigned int *)(buf+2);
+    container[nr]=load_u32(buf+2);
     hover_invalidate_con(nr);
 }
 
@@ -687,7 +722,7 @@ void sv_price(unsigned char *buf) {
     nr=buf[1];
     if (nr<0 || nr>=CONTAINERSIZE) { fail("illegal nr %d in sv_price!",nr);  exit(-1); }
 
-    price[nr]=*(unsigned int *)(buf+2);
+    price[nr]=load_u32(buf+2);
 }
 
 void sv_itemprice(unsigned char *buf) {
@@ -696,15 +731,15 @@ void sv_itemprice(unsigned char *buf) {
     nr=buf[1];
     if (nr<0 || nr>=CONTAINERSIZE) { fail("illegal nr %d in sv_itemprice!",nr);  exit(-1); }
 
-    itemprice[nr]=*(unsigned int *)(buf+2);
+    itemprice[nr]=load_u32(buf+2);
 }
 
 void sv_cprice(unsigned char *buf) {
-    cprice=*(unsigned int *)(buf+1);
+    cprice=load_u32(buf+1);
 }
 
 void sv_gold(unsigned char *buf) {
-    gold=*(unsigned int *)(buf+1);
+    gold=load_u32(buf+1);
 }
 
 void sv_concnt(unsigned char *buf) {
@@ -721,23 +756,23 @@ void sv_contype(unsigned char *buf) {
 }
 
 void sv_exp(unsigned char *buf) {
-    experience=*(unsigned long *)(buf+1);
+    experience=load_ulong(buf+1);
     update_skltab=1;
 }
 
 void sv_exp_used(unsigned char *buf) {
-    experience_used=*(unsigned long *)(buf+1);
+    experience_used=load_ulong(buf+1);
     update_skltab=1;
 }
 
 void sv_mil_exp(unsigned char *buf) {
-    mil_exp=*(unsigned long *)(buf+1);
+    mil_exp=load_ulong(buf+1);
 }
 
 void sv_cycles(unsigned char *buf) {
     int c;
 
-    c=*(unsigned long *)(buf+1);
+    c=load_ulong(buf+1);
 
     server_cycles=server_cycles*0.99+c*0.01;
 }
@@ -745,12 +780,12 @@ void sv_cycles(unsigned char *buf) {
 void sv_lookinv(unsigned char *buf) {
     int n;
 
-    looksprite=*(unsigned int *)(buf+1);
-    lookc1=*(unsigned int *)(buf+5);
-    lookc2=*(unsigned int *)(buf+9);
-    lookc3=*(unsigned int *)(buf+13);
+    looksprite=load_u32(buf+1);
+    lookc1=load_u32(buf+5);
+    lookc2=load_u32(buf+9);
+    lookc3=load_u32(buf+13);
     for (n=0; n<12; n++) {
-        lookinv[n]=*(unsigned int *)(buf+17+n*4);
+        lookinv[n]=load_u32(buf+17+n*4);
     }
     show_look=1;
 }
@@ -761,9 +796,9 @@ void sv_server(unsigned char *buf) {
     // address. BUT the vanilla server has a wrong IP hardcoded and this breaks the clients
     // for the most common case of a single host running all areas. So. Commented out:
 
-    //target_server=*(unsigned int *)(buf+1);
+    //target_server=load_u32(buf+1);
 
-    target_port=*(unsigned short *)(buf+5);
+    target_port=load_u16(buf+5);
 }
 
 void sv_logindone(void) {
@@ -774,9 +809,9 @@ void sv_logindone(void) {
 void sv_special(unsigned char *buf) {
     unsigned int type,opt1,opt2;
 
-    type=*(unsigned int *)(buf+1);
-    opt1=*(unsigned int *)(buf+5);
-    opt2=*(unsigned int *)(buf+9);
+    type=load_u32(buf+1);
+    opt1=load_u32(buf+5);
+    opt2=load_u32(buf+9);
 
     switch (type) {
         case 0:		display_gfx=opt1; display_time=tick; break;
@@ -825,8 +860,8 @@ void save_unique(void);
 void load_unique(void);
 
 void sv_unique(unsigned char *buf) {
-    if (unique!=*(unsigned int *)(buf+1)) {
-        unique=*(unsigned int *)(buf+1);
+    if (unique!=load_u32(buf+1)) {
+        unique=load_u32(buf+1);
         #ifdef STORE_UNIQUE
         save_unique();
         #endif
@@ -959,7 +994,7 @@ int prefetch(unsigned char *buf,int size) {
                                                 len=10; break;
 
                 case SV_SETORIGIN:              len=5; break;
-                case SV_SETTICK:                prefetch_tick=*(unsigned int *)(buf+1); len=5; break;
+                case SV_SETTICK:                prefetch_tick=load_u32(buf+1); len=5; break;
                 case SV_SETCITEM:               if (game_options&GO_PREDICT) sv_setcitem(buf);
                                                 len=9; break;
 
@@ -1035,8 +1070,8 @@ void cmd_move(int x,int y) {
     char buf[16];
 
     buf[0]=CL_MOVE;
-    *(unsigned short int *)(buf+1)=x;
-    *(unsigned short int *)(buf+3)=y;
+    store_u16(buf+1, x);
+    store_u16(buf+3, y);
     client_send(buf,5);
 }
 
@@ -1044,7 +1079,7 @@ void cmd_ping(void) {
     char buf[16];
 
     buf[0]=CL_PING;
-    *(unsigned int *)(buf+1)=SDL_GetTicks();
+    store_u32((unsigned char*)buf+1, (uint32_t)SDL_GetTicks());
     client_send(buf,5);
 }
 
@@ -1081,8 +1116,8 @@ void cmd_take(int x,int y) {
     char buf[16];
 
     buf[0]=CL_TAKE;
-    *(unsigned short int *)(buf+1)=x;
-    *(unsigned short int *)(buf+3)=y;
+    store_u16(buf+1, x);
+    store_u16(buf+3, y);
     client_send(buf,5);
 }
 
@@ -1090,8 +1125,8 @@ void cmd_look_map(int x,int y) {
     char buf[16];
 
     buf[0]=CL_LOOK_MAP;
-    *(unsigned short int *)(buf+1)=x;
-    *(unsigned short int *)(buf+3)=y;
+    store_u16(buf+1, x);
+    store_u16(buf+3, y);
     client_send(buf,5);
 }
 
@@ -1099,8 +1134,8 @@ void cmd_look_item(int x,int y) {
     char buf[16];
 
     buf[0]=CL_LOOK_ITEM;
-    *(unsigned short int *)(buf+1)=x;
-    *(unsigned short int *)(buf+3)=y;
+    store_u16(buf+1, x);
+    store_u16(buf+3, y);
     client_send(buf,5);
 }
 
@@ -1116,7 +1151,7 @@ void cmd_look_char(int cn) {
     char buf[16];
 
     buf[0]=CL_LOOK_CHAR;
-    *(unsigned short *)(buf+1)=cn;
+    store_u16(buf+1, cn);
     client_send(buf,3);
 }
 
@@ -1124,8 +1159,8 @@ void cmd_use(int x,int y) {
     char buf[16];
 
     buf[0]=CL_USE;
-    *(unsigned short int *)(buf+1)=x;
-    *(unsigned short int *)(buf+3)=y;
+    store_u16(buf+1, x);
+    store_u16(buf+3, y);
     client_send(buf,5);
 }
 
@@ -1133,8 +1168,8 @@ void cmd_drop(int x,int y) {
     char buf[16];
 
     buf[0]=CL_DROP;
-    *(unsigned short int *)(buf+1)=x;
-    *(unsigned short int *)(buf+3)=y;
+    store_u16(buf+1, x);
+    store_u16(buf+3, y);
     client_send(buf,5);
 }
 
@@ -1171,7 +1206,7 @@ void cmd_kill(int cn) {
     char buf[16];
 
     buf[0]=CL_KILL;
-    *(unsigned short int *)(buf+1)=cn;
+    store_u16(buf+1, cn);
     client_send(buf,3);
 }
 
@@ -1179,7 +1214,7 @@ void cmd_give(int cn) {
     char buf[16];
 
     buf[0]=CL_GIVE;
-    *(unsigned short int *)(buf+1)=cn;
+    store_u16(buf+1, cn);
     client_send(buf,3);
 }
 
@@ -1190,7 +1225,7 @@ void cmd_some_spell(int spell,int x,int y,int chr) {
         case CL_BLESS:
         case CL_HEAL:
             buf[0]=spell;
-            *(unsigned short *)(buf+1)=chr;
+            store_u16(buf+1, chr);
             len=3;
             break;
 
@@ -1198,11 +1233,11 @@ void cmd_some_spell(int spell,int x,int y,int chr) {
         case CL_BALL:
             buf[0]=spell;
             if (x) {
-                *(unsigned short *)(buf+1)=x;
-                *(unsigned short *)(buf+3)=y;
+                store_u16(buf+1, x);
+                store_u16(buf+3, y);
             } else {
-                *(unsigned short *)(buf+1)=0;
-                *(unsigned short *)(buf+3)=chr;
+                store_u16(buf+1, 0);
+                store_u16(buf+3, chr);
             }
 
             len=5;
@@ -1228,7 +1263,7 @@ void cmd_raise(int vn) {
     char buf[16];
 
     buf[0]=CL_RAISE;
-    *(unsigned short int *)(buf+1)=vn;
+    store_u16(buf+1, vn);
     client_send(buf,3);
 }
 
@@ -1236,7 +1271,7 @@ void cmd_take_gold(int vn) {
     char buf[16];
 
     buf[0]=CL_TAKE_GOLD;
-    *(unsigned int *)(buf+1)=vn;
+    store_u32(buf+1, vn);
     client_send(buf,5);
 }
 
@@ -1426,13 +1461,15 @@ void decrypt(char *name,char *password) {
 
 void send_info(astonia_sock *s) {
     char buf[12] = {0};
-    astonia_net_peer_ipv4(s, (unsigned int*)(buf+4));
+    uint32_t ip;
+    astonia_net_peer_ipv4(s, &ip);
+    store_u32(buf + 4, ip);
 
     #ifdef STORE_UNIQUE
     load_unique();
     #endif
 
-    *(unsigned int *)(buf+8)=unique;
+    store_u32(buf+8, unique);
     (void)astonia_net_send(s, buf, 12);
 }
 
@@ -1535,7 +1572,7 @@ int poll_network(void) {
         decrypt(username,tmp);
         astonia_net_send(sock,tmp,16);
 
-        *(unsigned int *)(tmp)=(0x8fd46100|0x01);   // magic code + version 1
+        store_u32(tmp, 0x8fd46100|0x01);   // magic code + version 1
         astonia_net_send(sock,tmp,4);
         send_info(sock);
 
@@ -1718,7 +1755,7 @@ void cl_ticker(void) {
     char buf[256];
 
     buf[0]=CL_TICKER;
-    *(unsigned int *)(buf+1)=tick;
+    store_u32(buf+1, tick);
     client_send(buf,5);
 }
 
