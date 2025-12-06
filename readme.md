@@ -1,7 +1,10 @@
+# We Have Moved!
+Any possible future development will happen at [AstoniaCommunity](https://github.com/AstoniaCommunity/astonia_community_client).
+
+
+
 # Astonia Client
 This file is part of Astonia Client (c) Daniel Brockhaus. Please read license.txt.
-
-This is the new and shiny Astonia 3 client.
 
 ## Windows Executable
 You can find a ready-to-run client that works with a vanilla server under
