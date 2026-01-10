@@ -643,7 +643,7 @@ int parse_cmd(char *s) {
 
 void save_options(void) {
     int handle;
-    char filename[MAX_PATH];
+    char filename[MAX_PATH+MAX_PATH];
 
     if (game_options&GO_APPDATA) sprintf(filename,"%s\\Astonia\\%s",localdata,"moac.dat");
     else sprintf(filename,"%s","bin/data/moac.dat");
@@ -660,7 +660,7 @@ void save_options(void) {
 
 void load_options(void) {
     int handle;
-    char filename[MAX_PATH];
+    char filename[MAX_PATH+MAX_PATH];
 
     if (game_options&GO_APPDATA) sprintf(filename,"%s\\Astonia\\%s",localdata,"moac.dat");
     else sprintf(filename,"%s","bin/data/moac.dat");
@@ -816,7 +816,7 @@ int main(int argc,char *args[]) {
     int ret;
     char buf[80],buffer[1024];
     struct hostent *he;
-    char filename[MAX_PATH];
+    char filename[MAX_PATH+MAX_PATH];
 
     convert_cmd_line(buffer,argc,args,1000);
     if ((ret=parse_cmd(buffer))!=0) return -1;

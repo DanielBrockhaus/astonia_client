@@ -1869,7 +1869,7 @@ int dump_cmp(const void *ca,const void *cb) {
 void sdl_dump_spritecache(void) {
     int i,n,cnt=0,uni=0,text=0;
     long long size=0;
-    char filename[MAX_PATH];
+    char filename[MAX_PATH+MAX_PATH+MAX_PATH];
     FILE *fp;
 
     dumpidx=xmalloc(sizeof(int)*MAX_TEXCACHE,MEM_TEMP);
