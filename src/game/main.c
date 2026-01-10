@@ -908,7 +908,7 @@ int main(int argc,char *args[]) {
         else if (want_height) want_width=want_height*16/9;
     }
 
-    sprintf(buf,"Astonia 3 v%d.%d.%d",(VERSION>>16)&255,(VERSION>>8)&255,(VERSION)&255);
+    sprintf(buf,"Astonia 3 v%d.%d",sv_ver/10,sv_ver%10);
     if (!sdl_init(want_width,want_height,buf)) {
         dd_exit();
         net_exit();

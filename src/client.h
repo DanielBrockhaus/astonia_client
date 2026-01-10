@@ -15,8 +15,6 @@
 #define CMF_INFRA	128
 #define CMF_UNDERWATER	256
 
-#define VERSION         0x030100
-
 typedef enum {
 	V_HP = 0,
 	V_ENDURANCE = 1,
