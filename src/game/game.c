@@ -159,6 +159,30 @@ DL* dl_call_bless(int layer,int x,int y,int ticker,int strength,int front) {
     return dl;
 }
 
+DL *dl_call_heal(int layer, int x, int y, int start, int front)
+{
+	DL *dl;
+
+	dl = dl_next();
+
+	dl->call = DLC_HEAL;
+	dl->layer = layer;
+
+	dl->call_x1 = x;
+	dl->call_y1 = y;
+	dl->call_x2 = start;
+	dl->call_x3 = front;
+
+	dl->x = x;
+	if (front) {
+		dl->y = y + 8;
+	} else {
+		dl->y = y - 8;
+	}
+
+	return dl;
+}
+
 DL* dl_call_pulse(int layer,int x,int y,int nr,int size,int color) {
     DL *dl;
 
@@ -324,6 +348,9 @@ void dl_play(void) {
                     break;
                 case DLC_BLESS:
                     dd_draw_bless(dlsort[d]->call_x1,dlsort[d]->call_y1,dlsort[d]->call_x2,dlsort[d]->call_y2,dlsort[d]->call_x3);
+                    break;
+                case DLC_HEAL:
+                    dd_draw_heal(dlsort[d]->call_x1, dlsort[d]->call_y1, dlsort[d]->call_x2, dlsort[d]->call_x3);
                     break;
                 case DLC_POTION:
                     dd_draw_potion(dlsort[d]->call_x1,dlsort[d]->call_y1,dlsort[d]->call_x2,dlsort[d]->call_y2,dlsort[d]->call_x3);
@@ -818,7 +845,10 @@ static void display_game_spells(void) {
                         break;
 
                     case 10: // heal
-                        dl=dl_next_set(GME_LAY,50114,scrx+map[mn].xadd,scry+map[mn].yadd+1,DDFX_NLIGHT);
+                        if (sv_ver == 35) {
+                            dl_call_heal(GME_LAY, scrx + map[mn].xadd, scry + map[mn].yadd, (int)ceffect[nr].heal.start, 1);
+                            dl_call_heal(GME_LAY, scrx + map[mn].xadd, scry + map[mn].yadd, (int)ceffect[nr].heal.start, 0);
+                        } else dl=dl_next_set(GME_LAY,50114,scrx+map[mn].xadd,scry+map[mn].yadd+1,DDFX_NLIGHT);
                         if (!dl) { note("error in heal #1"); break; }
                         break;
 
@@ -1067,7 +1097,7 @@ static void display_game_names(void) {
         frame=DD_FRAME;
 
         if (player[map[mn].cn].clan) {
-            col=clancolor[player[map[mn].cn].clan];
+            col=clancolor[((player[map[mn].cn].clan-1)%32)+1];
             if (player[map[mn].cn].clan==3) frame=DD_WFRAME;
         }
 
@@ -1514,6 +1544,39 @@ void display_pents(void) {
         else yoff=0;
         dd_drawtext(dotx(DOT_BOT)+550,doty(DOT_BOT)-80+n*10-yoff,col,DD_SMALL|DD_FRAME,pent_str[n]+1);
     }
+}
+
+static void display_otext(void)
+{
+	int n, cnt;
+	unsigned short col;
+
+	for (n = cnt = 0; n < MAXOTEXT; n++) {
+		if (!otext[n].text) {
+			continue;
+		}
+		if (otext[n].type < 3 && tick - otext[n].time > TICKS * 5) {
+			continue;
+		}
+		if (tick - otext[n].time > TICKS * 65) {
+			continue;
+		}
+		if (otext[n].type > 1) {
+			if (n == 0) {
+				col = redcolor;
+			} else {
+				col = darkredcolor;
+			}
+		} else {
+			if (n == 0) {
+				col = greencolor;
+			} else {
+				col = darkgreencolor;
+			}
+		}
+		dd_drawtext(400, 420 - cnt * 12, col, DD_LARGE | DD_FRAME | DD_CENTER, otext[n].text);
+		cnt++;
+	}
 }
 
 void display_game(void) {

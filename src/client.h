@@ -17,63 +17,62 @@
 
 #define VERSION         0x030100
 
-#define V_HP		0
-#define V_ENDURANCE	1
-#define V_MANA		2
+typedef enum {
+	V_HP = 0,
+	V_ENDURANCE = 1,
+	V_MANA = 2,
+	V_WIS = 3,
+	V_INT = 4,
+	V_AGI = 5,
+	V_STR = 6,
+	V_ARMOR = 7,
+	V_WEAPON = 8,
+	V_LIGHT = 9,
+	V_SPEED = 10,
+	V_PULSE = 11,
+	V_DAGGER = 12,
+	V_HAND = 13,
+	V_STAFF = 14,
+	V_SWORD = 15,
+	V_TWOHAND = 16,
+	V_ARMORSKILL = 17,
+	V_ATTACK = 18,
+	V_PARRY = 19,
+	V_WARCRY = 20,
+	V_TACTICS = 21,
+	V_SURROUND = 22,
+	V_BODYCONTROL = 23,
+	V_SPEEDSKILL = 24,
+	V_BARTER = 25,
+	V_PERCEPT = 26,
+	V_STEALTH = 27,
+	V_BLESS = 28,
+	V_HEAL = 29,
+	V_FREEZE = 30,
+	V_MAGICSHIELD = 31,
+	V_FLASH = 32,
+	V_FIREBALL = 33,
+	V_REGENERATE = 35,
+	V_MEDITATE = 36,
+	V_IMMUNITY = 37,
+	V_DEMON = 38,
+	V_DURATION = 39,
+	V_RAGE = 40,
+	V_COLD = 41,
+	V_PROFESSION = 42,
 
-#define V_WIS         	3
-#undef  V_INT           // everyone likes windoof
-#define V_INT          	4
-#define V_AGI         	5
-#define V_STR       	6
+	V_ILLEGAL = -1
+} vval_t;
 
-#define V_ARMOR		7
-#define V_WEAPON	8
-#define V_LIGHT		9
-#define V_SPEED		10
+#define V3_PROFBASE  43
+#define V35_PROFBASE 50
+#define V_PROFBASE   (*game_v_profbase)
 
-#define V_PULSE		11
-#define V_DAGGER       	12
-#define V_HAND         	13
-#define V_STAFF        	14
-#define V_SWORD        	15
-#define V_TWOHAND      	16
+#define P3_MAX  20
+#define P35_MAX 10
 
-#define V_ARMORSKILL   	17
-#define V_ATTACK       	18
-#define V_PARRY	       	19
-#define V_WARCRY       	20
-#define V_TACTICS      	21
-#define V_SURROUND     	22
-#define V_BODYCONTROL	23
-#define V_SPEEDSKILL	24
-
-#define V_BARTER       	25
-#define V_PERCEPT      	26
-#define V_STEALTH      	27
-
-#define V_BLESS		28
-#define V_HEAL		29
-#define V_FREEZE	30
-#define V_MAGICSHIELD	31
-#define V_FLASH		32
-
-#define V_FIREBALL	33
-//#define V_BALL		34
-
-#define V_REGENERATE	35
-#define V_MEDITATE	36
-#define V_IMMUNITY	37
-
-#define V_DEMON		38
-#define V_DURATION  39
-#define V_RAGE		40
-#define V_COLD		41
-#define V_PROFESSION	42
-
-#define V_PROFBASE	    (*game_v_profbase)  // 43
-#define P_MAX		    20
-#define V_MAX	        200
+#define V35_MAX (V35_PROFBASE + P35_MAX)
+#define V_MAX   200
 
 #define CL_NOP			1
 #define CL_MOVE			2
@@ -134,8 +133,16 @@
 #define PAC_GIVE	15
 #define PAC_BERSERK	16
 
-#define INVENTORYSIZE	110
-#define CONTAINERSIZE	(INVENTORYSIZE)
+#define V3_INVENTORYSIZE 110
+#define V3_CONTAINERSIZE (V3_INVENTORYSIZE)
+
+#define V35_INVENTORYSIZE 70
+#define V35_CONTAINERSIZE 130
+
+#define MAX_INVENTORYSIZE (V3_INVENTORYSIZE)
+#define MAX_CONTAINERSIZE (V35_CONTAINERSIZE)
+
+__declspec(dllexport) extern int _inventorysize, _containersize;
 
 #define IF_USE		(1<<4)
 #define IF_WNHEAD       (1<<5)	// can be worn on head
@@ -462,8 +469,8 @@ extern struct map map2[MAPDX*MAPDY];
 extern int value[2][V_MAX];
 extern int *game_v_max;
 extern int *game_v_profbase;
-extern int item[INVENTORYSIZE];
-extern int item_flags[INVENTORYSIZE];
+extern int item[MAX_INVENTORYSIZE];
+extern int item_flags[MAX_INVENTORYSIZE];
 extern int hp;
 extern int mana;
 extern int rage;
@@ -482,9 +489,9 @@ extern unsigned int csprite;    // and sprite
 extern int con_cnt;
 extern int con_type;
 extern char con_name[80];
-extern int container[CONTAINERSIZE];
-extern int price[CONTAINERSIZE];
-extern int itemprice[CONTAINERSIZE];
+extern int container[MAX_CONTAINERSIZE];
+extern int price[MAX_CONTAINERSIZE];
+extern int itemprice[MAX_CONTAINERSIZE];
 extern int cprice;
 extern int protocol_version;
 
@@ -574,4 +581,109 @@ void cl_client_info(struct client_info *ci);
 void cl_ticker(void);
 int close_client(void);
 int is_char_ceffect(int type);
+
+// Version 3.5 overlay text
+#define MAXOTEXT 10
+
+struct otext {
+	char *text;
+	int time;
+	int type;
+};
+extern struct otext otext[MAXOTEXT];
+
+typedef enum {
+	V3_HP = V_HP,
+	V3_ENDURANCE = V_ENDURANCE,
+	V3_MANA = V_MANA,
+	V3_WIS = V_WIS,
+	V3_INT = V_INT,
+	V3_AGI = V_AGI,
+	V3_STR = V_STR,
+	V3_ARMOR = V_ARMOR,
+	V3_WEAPON = V_WEAPON,
+	V3_LIGHT = V_LIGHT,
+	V3_SPEED = V_SPEED,
+	V3_PULSE = V_PULSE,
+	V3_DAGGER = V_DAGGER,
+	V3_HAND = V_HAND,
+	V3_STAFF = V_STAFF,
+	V3_SWORD = V_SWORD,
+	V3_TWOHAND = V_TWOHAND,
+	V3_ARMORSKILL = V_ARMORSKILL,
+	V3_ATTACK = V_ATTACK,
+	V3_PARRY = V_PARRY,
+	V3_WARCRY = V_WARCRY,
+	V3_TACTICS = V_TACTICS,
+	V3_SURROUND = V_SURROUND,
+	V3_BODYCONTROL = V_BODYCONTROL,
+	V3_SPEEDSKILL = V_SPEEDSKILL,
+	V3_BARTER = V_BARTER,
+	V3_PERCEPT = V_PERCEPT,
+	V3_STEALTH = V_STEALTH,
+	V3_BLESS = V_BLESS,
+	V3_HEAL = V_HEAL,
+	V3_FREEZE = V_FREEZE,
+	V3_MAGICSHIELD = V_MAGICSHIELD,
+	V3_FLASH = V_FLASH,
+	V3_FIREBALL = V_FIREBALL,
+	V3_REGENERATE = V_REGENERATE,
+	V3_MEDITATE = V_MEDITATE,
+	V3_IMMUNITY = V_IMMUNITY,
+	V3_DEMON = V_DEMON,
+	V3_DURATION = V_DURATION,
+	V3_RAGE = V_RAGE,
+	V3_COLD = V_COLD,
+	V3_PROFESSION = V_PROFESSION
+} v3_t;
+
+typedef enum {
+	V35_HP = 0,
+	V35_ENDURANCE = 1,
+	V35_MANA = 2,
+	V35_WIS = 3,
+	V35_INT = 4,
+	V35_AGI = 5,
+	V35_STR = 6,
+	V35_ARMOR = 7,
+	V35_WEAPON = 8,
+	V35_OFFENSE = 9,
+	V35_DEFENSE = 10,
+	V35_LIGHT = 11,
+	V35_SPEED = 12,
+	V35_DAGGER = 13,
+	V35_HAND = 14,
+	V35_STAFF = 15,
+	V35_SWORD = 16,
+	V35_TWOHAND = 17,
+	V35_ATTACK = 18,
+	V35_PARRY = 19,
+	V35_WARCRY = 20,
+	V35_TACTICS = 21,
+	V35_SURROUND = 22,
+	V35_SPEEDSKILL = 23,
+	V35_BARTER = 24,
+	V35_PERCEPT = 25,
+	V35_STEALTH = 26,
+	V35_BLESS = 27,
+	V35_HEAL = 28,
+	V35_FREEZE = 29,
+	V35_MAGICSHIELD = 30,
+	V35_FLASH = 31,
+	V35_FIRE = 32,
+	V35_REGENERATE = 33,
+	V35_MEDITATE = 34,
+	V35_IMMUNITY = 35,
+	V35_DEMON = 36,
+	V35_DURATION = 37,
+	V35_RAGE = 38,
+	V35_COLD = 39,
+	V35_PROFESSION = 40,
+
+	V35_ILLEGAL = -1
+} v35_t;
+
+vval_t v_val(svval_t v);
+svval_t sv_val(vval_t v);
+void set_v35_inventory(void);
 

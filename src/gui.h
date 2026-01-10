@@ -40,6 +40,8 @@ extern int show_tutor;
 extern char tutor_text[1024];
 extern int show_look;
 
+void set_v35_keytab(void);
+void set_v35_actions(void);
 void mtos(int mapx,int mapy,int *scrx,int *scry);
 int stom(int scrx,int scry,int *mapx,int *mapy);
 void set_mapoff(int cx,int cy,int mdx,int mdy);
@@ -71,7 +73,9 @@ __declspec(dllexport) int _do_display_random(void);
 extern int (*do_display_help)(int);
 __declspec(dllexport) int _do_display_help(int nr);
 
-extern char action_row[2][MAXACTIONSLOT];
+extern char (*action_row)[MAXACTIONSLOT];
+extern char v3_action_row[2][MAXACTIONSLOT];
+extern char v35_action_row[2][MAXACTIONSLOT];
 extern int action_enabled;
 void actions_loaded(void);
 

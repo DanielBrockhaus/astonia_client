@@ -70,42 +70,82 @@ int vk_special=0,vk_special_time=0;
 __declspec(dllexport) int weatab[12]={9,6,8,11,0,1,2,4,5,3,7,10};
 char weaname[12][32]={"RING","HAND","HAND","RING","NECK","HEAD","BACK","BODY","BELT","ARMS","LEGS","FEET"};
 
-KEYTAB keytab[]={
-    {'1',0,0,1,0,"FIREBALL",TGT_CHR,CL_FIREBALL,V_FIREBALL},
-    {'2',0,0,1,0,"LIGHTNINGBALL",TGT_CHR,CL_BALL,V_FLASH},
-    {'3',0,0,1,0,"FLASH",TGT_SLF,CL_FLASH,V_FLASH},
-    {'4',0,0,1,0,"FREEZE",TGT_SLF,CL_FREEZE,V_FREEZE},
-    {'5',0,0,1,0,"SHIELD",TGT_SLF,CL_MAGICSHIELD,V_MAGICSHIELD},
-    {'6',0,0,1,0,"BLESS",TGT_CHR,CL_BLESS,V_BLESS},
-    {'7',0,0,1,0,"HEAL",TGT_CHR,CL_HEAL,V_HEAL},
-    {'8',0,0,1,0,"WARCRY",TGT_SLF,CL_WARCRY,V_WARCRY},
-    {'9',0,0,1,0,"PULSE",TGT_SLF,CL_PULSE,V_PULSE},
-    {'0',0,0,1,0,"FIRERING",TGT_SLF,CL_FIREBALL,V_FIREBALL},
+KEYTAB v3_keytab[]={
+    {'1',0,0,1,0,"FIREBALL",TGT_CHR,CL_FIREBALL,V3_FIREBALL},
+    {'2',0,0,1,0,"LIGHTNINGBALL",TGT_CHR,CL_BALL,V3_FLASH},
+    {'3',0,0,1,0,"FLASH",TGT_SLF,CL_FLASH,V3_FLASH},
+    {'4',0,0,1,0,"FREEZE",TGT_SLF,CL_FREEZE,V3_FREEZE},
+    {'5',0,0,1,0,"SHIELD",TGT_SLF,CL_MAGICSHIELD,V3_MAGICSHIELD},
+    {'6',0,0,1,0,"BLESS",TGT_CHR,CL_BLESS,V3_BLESS},
+    {'7',0,0,1,0,"HEAL",TGT_CHR,CL_HEAL,V3_HEAL},
+    {'8',0,0,1,0,"WARCRY",TGT_SLF,CL_WARCRY,V3_WARCRY},
+    {'9',0,0,1,0,"PULSE",TGT_SLF,CL_PULSE,V3_PULSE},
+    {'0',0,0,1,0,"FIRERING",TGT_SLF,CL_FIREBALL,V3_FIREBALL},
 
-    {'1',0,0,1,1,"FIREBALL",TGT_CHR,CL_FIREBALL,V_FIREBALL},
-    {'2',0,0,1,1,"LIGHTNINGBALL",TGT_CHR,CL_BALL,V_FLASH},
-    {'3',0,0,1,1,"FLASH",TGT_SLF,CL_FLASH,V_FLASH},
-    {'4',0,0,1,1,"FREEZE",TGT_SLF,CL_FREEZE,V_FREEZE},
-    {'5',0,0,1,1,"SHIELD",TGT_SLF,CL_MAGICSHIELD,V_MAGICSHIELD},
-    {'6',0,0,1,1,"BLESS",TGT_CHR,CL_BLESS,V_BLESS},
-    {'7',0,0,1,1,"HEAL",TGT_CHR,CL_HEAL,V_HEAL},
-    {'8',0,0,1,1,"WARCRY",TGT_SLF,CL_WARCRY,V_WARCRY},
-    {'9',0,0,1,1,"PULSE",TGT_SLF,CL_PULSE,V_PULSE},
-    {'0',0,0,1,1,"FIRERING",TGT_SLF,CL_FIREBALL,V_FIREBALL},
+    {'1',0,0,1,1,"FIREBALL",TGT_CHR,CL_FIREBALL,V3_FIREBALL},
+    {'2',0,0,1,1,"LIGHTNINGBALL",TGT_CHR,CL_BALL,V3_FLASH},
+    {'3',0,0,1,1,"FLASH",TGT_SLF,CL_FLASH,V3_FLASH},
+    {'4',0,0,1,1,"FREEZE",TGT_SLF,CL_FREEZE,V3_FREEZE},
+    {'5',0,0,1,1,"SHIELD",TGT_SLF,CL_MAGICSHIELD,V3_MAGICSHIELD},
+    {'6',0,0,1,1,"BLESS",TGT_CHR,CL_BLESS,V3_BLESS},
+    {'7',0,0,1,1,"HEAL",TGT_CHR,CL_HEAL,V3_HEAL},
+    {'8',0,0,1,1,"WARCRY",TGT_SLF,CL_WARCRY,V3_WARCRY},
+    {'9',0,0,1,1,"PULSE",TGT_SLF,CL_PULSE,V3_PULSE},
+    {'0',0,0,1,1,"FIRERING",TGT_SLF,CL_FIREBALL,V3_FIREBALL},
 
-    {'1',0,0,0,1,"FIREBALL",TGT_MAP,CL_FIREBALL,V_FIREBALL},
-    {'2',0,0,0,1,"LIGHTNINGBALL",TGT_MAP,CL_BALL,V_FLASH},
-    {'3',0,0,0,1,"FLASH",TGT_SLF,CL_FLASH,V_FLASH},
-    {'4',0,0,0,1,"FREEZE",TGT_SLF,CL_FREEZE,V_FREEZE},
-    {'5',0,0,0,1,"SHIELD",TGT_SLF,CL_MAGICSHIELD,V_MAGICSHIELD},
-    {'6',0,0,0,1,"BLESS SELF",TGT_SLF,CL_BLESS,V_BLESS},
-    {'7',0,0,0,1,"HEAL SELF",TGT_SLF,CL_HEAL,V_HEAL},
-    {'8',0,0,0,1,"WARCRY",TGT_SLF,CL_WARCRY,V_WARCRY},
-    {'9',0,0,0,1,"PULSE",TGT_SLF,CL_PULSE,V_PULSE},
-    {'0',0,0,0,1,"FIRERING",TGT_SLF,CL_FIREBALL,V_FIREBALL},
+    {'1',0,0,0,1,"FIREBALL",TGT_MAP,CL_FIREBALL,V3_FIREBALL},
+    {'2',0,0,0,1,"LIGHTNINGBALL",TGT_MAP,CL_BALL,V3_FLASH},
+    {'3',0,0,0,1,"FLASH",TGT_SLF,CL_FLASH,V3_FLASH},
+    {'4',0,0,0,1,"FREEZE",TGT_SLF,CL_FREEZE,V3_FREEZE},
+    {'5',0,0,0,1,"SHIELD",TGT_SLF,CL_MAGICSHIELD,V3_MAGICSHIELD},
+    {'6',0,0,0,1,"BLESS SELF",TGT_SLF,CL_BLESS,V3_BLESS},
+    {'7',0,0,0,1,"HEAL SELF",TGT_SLF,CL_HEAL,V3_HEAL},
+    {'8',0,0,0,1,"WARCRY",TGT_SLF,CL_WARCRY,V3_WARCRY},
+    {'9',0,0,0,1,"PULSE",TGT_SLF,CL_PULSE,V3_PULSE},
+    {'0',0,0,0,1,"FIRERING",TGT_SLF,CL_FIREBALL,V3_FIREBALL},
 };
 
-int max_keytab=sizeof(keytab)/sizeof(KEYTAB);
+int max_v3_keytab=sizeof(v3_keytab)/sizeof(KEYTAB);
+
+KEYTAB v35_keytab[] = {
+    {'1', 0, 0, 1, 0, "FIREBALL", TGT_CHR, CL_FIREBALL, V35_FIRE, 0},
+    {'2', 0, 0, 1, 0, "LIGHTNINGBALL", TGT_CHR, CL_BALL, V35_FLASH, 0},
+    {'3', 0, 0, 1, 0, "FLASH", TGT_SLF, CL_FLASH, V35_FLASH, 0},
+    {'4', 0, 0, 1, 0, "FREEZE", TGT_SLF, CL_FREEZE, V35_FREEZE, 0},
+    {'5', 0, 0, 1, 0, "SHIELD", TGT_SLF, CL_MAGICSHIELD, V35_MAGICSHIELD, 0},
+    {'6', 0, 0, 1, 0, "BLESS SELF", TGT_SLF, CL_BLESS, V35_BLESS, 0},
+    {'7', 0, 0, 1, 0, "HEAL", TGT_CHR, CL_HEAL, V35_HEAL, 0},
+    {'8', 0, 0, 1, 0, "WARCRY", TGT_SLF, CL_WARCRY, V35_WARCRY, 0},
+    {'9', 0, 0, 1, 0, "FIRERING", TGT_SLF, CL_FIREBALL, V35_FIRE, 0},
+    {'0', 0, 0, 1, 0, "empty", -1, -1, -1, 0},
+
+    {'1', 0, 0, 1, 1, "FIREBALL", TGT_CHR, CL_FIREBALL, V35_FIRE, 0},
+    {'2', 0, 0, 1, 1, "LIGHTNINGBALL", TGT_CHR, CL_BALL, V35_FLASH, 0},
+    {'3', 0, 0, 1, 1, "FLASH", TGT_SLF, CL_FLASH, V35_FLASH, 0},
+    {'4', 0, 0, 1, 1, "FREEZE", TGT_SLF, CL_FREEZE, V35_FREEZE, 0},
+    {'5', 0, 0, 1, 1, "SHIELD", TGT_SLF, CL_MAGICSHIELD, V35_MAGICSHIELD, 0},
+    {'6', 0, 0, 1, 1, "BLESS SELF", TGT_SLF, CL_BLESS, V35_BLESS, 0},
+    {'7', 0, 0, 1, 1, "HEAL", TGT_CHR, CL_HEAL, V35_HEAL, 0},
+    {'8', 0, 0, 1, 1, "WARCRY", TGT_SLF, CL_WARCRY, V35_WARCRY, 0},
+    {'9', 0, 0, 1, 1, "FIRERING", TGT_SLF, CL_FIREBALL, V35_FIRE, 0},
+    {'0', 0, 0, 1, 0, "empty", -1, -1, -1, 0},
+
+    {'1', 0, 0, 0, 1, "FIREBALL", TGT_MAP, CL_FIREBALL, V35_FIRE, 0},
+    {'2', 0, 0, 0, 1, "LIGHTNINGBALL", TGT_MAP, CL_BALL, V35_FLASH, 0},
+    {'3', 0, 0, 0, 1, "FLASH", TGT_SLF, CL_FLASH, V35_FLASH, 0},
+    {'4', 0, 0, 0, 1, "FREEZE", TGT_SLF, CL_FREEZE, V35_FREEZE, 0},
+    {'5', 0, 0, 0, 1, "SHIELD", TGT_SLF, CL_MAGICSHIELD, V35_MAGICSHIELD, 0},
+    {'6', 0, 0, 0, 1, "BLESS SELF", TGT_SLF, CL_BLESS, V35_BLESS, 0},
+    {'7', 0, 0, 0, 1, "HEAL SELF", TGT_SLF, CL_HEAL, V35_HEAL, 0},
+    {'8', 0, 0, 0, 1, "WARCRY", TGT_SLF, CL_WARCRY, V35_WARCRY, 0},
+    {'9', 0, 0, 0, 1, "FIRERING", TGT_SLF, CL_FIREBALL, V35_FIRE, 0},
+    {'0', 0, 0, 1, 0, "empty", -1, -1, -1, 0},
+};
+
+int max_v35_keytab=sizeof(v35_keytab)/sizeof(KEYTAB);
+
+KEYTAB *keytab = v3_keytab;
+int max_keytab = sizeof(v3_keytab) / sizeof(KEYTAB);
 
 struct special_tab {
     char *name;
@@ -115,26 +155,47 @@ struct special_tab {
     int req;
 };
 
-struct special_tab special_tab[]={
+struct special_tab v3_special_tab[]={
     {"Walk",0,0,0,0,0},
     {"Use/Take",1,0,0,0,0},
     {"Attack/Give",0,1,0,0,0},
-    {"Warcry",0,0,CL_WARCRY,TGT_SLF,V_WARCRY},
-    {"Pulse",0,0,CL_PULSE,TGT_SLF,V_PULSE},
-    {"Fireball-CHAR",0,1,CL_FIREBALL,TGT_CHR,V_FIREBALL},
-    {"Fireball-MAP",0,0,CL_FIREBALL,TGT_MAP,V_FIREBALL},
-    {"Firering",0,0,CL_FIREBALL,TGT_SLF,V_FIREBALL},
-    {"LBall-CHAR",0,1,CL_BALL,TGT_CHR,V_FLASH},
-    {"LBall-MAP",0,0,CL_BALL,TGT_MAP,V_FLASH},
-    {"Flash",0,0,CL_FLASH,TGT_SLF,V_FLASH},
-    {"Freeze",0,0,CL_FREEZE,TGT_SLF,V_FREEZE},
-    {"Shield",0,0,CL_MAGICSHIELD,TGT_SLF,V_MAGICSHIELD},
-    {"Bless-SELF",0,0,CL_BLESS,TGT_SLF,V_BLESS},
-    {"Bless-CHAR",0,1,CL_BLESS,TGT_CHR,V_BLESS},
-    {"Heal-SELF",0,0,CL_HEAL,TGT_SLF,V_HEAL},
-    {"Heal-CHAR",0,1,CL_HEAL,TGT_CHR,V_HEAL}
+    {"Warcry",0,0,CL_WARCRY,TGT_SLF,V3_WARCRY},
+    {"Pulse",0,0,CL_PULSE,TGT_SLF,V3_PULSE},
+    {"Fireball-CHAR",0,1,CL_FIREBALL,TGT_CHR,V3_FIREBALL},
+    {"Fireball-MAP",0,0,CL_FIREBALL,TGT_MAP,V3_FIREBALL},
+    {"Firering",0,0,CL_FIREBALL,TGT_SLF,V3_FIREBALL},
+    {"LBall-CHAR",0,1,CL_BALL,TGT_CHR,V3_FLASH},
+    {"LBall-MAP",0,0,CL_BALL,TGT_MAP,V3_FLASH},
+    {"Flash",0,0,CL_FLASH,TGT_SLF,V3_FLASH},
+    {"Freeze",0,0,CL_FREEZE,TGT_SLF,V3_FREEZE},
+    {"Shield",0,0,CL_MAGICSHIELD,TGT_SLF,V3_MAGICSHIELD},
+    {"Bless-SELF",0,0,CL_BLESS,TGT_SLF,V3_BLESS},
+    {"Bless-CHAR",0,1,CL_BLESS,TGT_CHR,V3_BLESS},
+    {"Heal-SELF",0,0,CL_HEAL,TGT_SLF,V3_HEAL},
+    {"Heal-CHAR",0,1,CL_HEAL,TGT_CHR,V3_HEAL}
 };
-int max_special=sizeof(special_tab)/sizeof(special_tab[0]);
+int max_v3_special=sizeof(v3_special_tab)/sizeof(v3_special_tab[0]);
+
+struct special_tab v35_special_tab[] = {
+    {"Walk", 0, 0, 0, 0, 0},
+    {"Use/Take", 1, 0, 0, 0, 0},
+    {"Attack/Give", 0, 1, 0, 0, 0},
+    {"Warcry", 0, 0, CL_WARCRY, TGT_SLF, V35_WARCRY},
+    {"Fireball-CHAR", 0, 1, CL_FIREBALL, TGT_CHR, V35_FIRE},
+    {"Fireball-MAP", 0, 0, CL_FIREBALL, TGT_MAP, V35_FIRE},
+    {"Firering", 0, 0, CL_FIREBALL, TGT_SLF, V35_FIRE},
+    {"LBall-CHAR", 0, 1, CL_BALL, TGT_CHR, V35_FLASH},
+    {"LBall-MAP", 0, 0, CL_BALL, TGT_MAP, V35_FLASH},
+    {"Flash", 0, 0, CL_FLASH, TGT_SLF, V35_FLASH},
+    {"Freeze", 0, 0, CL_FREEZE, TGT_SLF, V35_FREEZE},
+    {"Shield", 0, 0, CL_MAGICSHIELD, TGT_SLF, V35_MAGICSHIELD},
+    {"Bless-SELF", 0, 0, CL_BLESS, TGT_SLF, V35_BLESS},
+    {"Heal-SELF", 0, 0, CL_HEAL, TGT_SLF, V35_HEAL},
+    {"Heal-CHAR", 0, 1, CL_HEAL, TGT_CHR, V35_HEAL}};
+int max_v35_special = sizeof(v35_special_tab) / sizeof(v35_special_tab[0]);
+
+struct special_tab *special_tab = v3_special_tab;
+int max_special = sizeof(v3_special_tab) / sizeof(v3_special_tab[0]);
 
 int fkeyitem[4];
 
@@ -263,6 +324,8 @@ void dx_copysprite_emerald(int scrx,int scry,int emx,int emy) {
 int (*do_display_help)(int)=_do_display_help;
 __declspec(dllexport) int _do_display_help(int nr) {
     int x=dotx(DOT_HLP)+10,y=doty(DOT_HLP)+8,oldy;
+
+    if (sv_ver == 35) return dd_drawtext_break(x, y, x + 192, whitecolor, 0, "V3.5 Help not implemented, awaiting help system rework.")+15;
 
     switch (nr) {
         case 1:
@@ -1087,7 +1150,7 @@ static void set_conoff(int bymouse,int ny) {
 
 int (*get_skltab_index)(int n)=_get_skltab_index;
 __declspec(dllexport) int _get_skltab_index(int n) {
-    static int itab[V_MAX+1]={
+    static int v3_itab[V_MAX+1]={
         -1,
         0,1,2,                          // powers
         3,4,5,6,                        // bases
@@ -1102,17 +1165,31 @@ __declspec(dllexport) int _get_skltab_index(int n) {
         -2                              // end marker
     };
 
-    return itab[n];
+    static int v35_itab[V_MAX + 1] = {-1, 0, 1, 2, // powers
+	    3, 4, 5, 6, // bases
+	    7, 8, 9, 10, 11, 12, 36, 39, // armor etc
+	    13, 14, 15, 16, 17, 38, // fight skills
+	    18, 19, 21, // 2ndary fight skills
+	    20, 22, 23, 35, // 3rd fight skills
+	    27, 28, 29, 30, 31, 32, 37, // spells
+	    24, 25, 26, 33, 34, // misc skills
+	    40, // professions...
+	    50, 51, 52, 53, 54, 55, 56, 57, 58, 59, -2};
+
+	if (sv_ver == 35)  return v35_itab[n];
+	else return v3_itab[n];
 }
 
 int (*get_skltab_sep)(int i)=_get_skltab_sep;
 __declspec(dllexport)int _get_skltab_sep(int i) {
-    return (i==0 || i==3 || i==7 || i==12 || i==17 || i==25 || i==28 || i==42 || i==43);
+    if (sv_ver == 35) return (i == 0 || i == 3 || i == 7 || i == 13 || i == 18 || i == 20 || i == 27 || i == 24 || i == 40 || i == 50);
+	else return (i==0 || i==3 || i==7 || i==12 || i==17 || i==25 || i==28 || i==42 || i==43);
 }
 
 int (*get_skltab_show)(int i)=_get_skltab_show;
 __declspec(dllexport)int _get_skltab_show(int i) {
-    return (i==V_WEAPON || i==V_ARMOR || i==V_SPEED || i==V_LIGHT);
+    if (sv_ver == 35) return (i == V35_WEAPON || i == V35_ARMOR || i == V35_SPEED || i == V35_LIGHT || i == V35_OFFENSE || i == V35_DEFENSE);
+	else return (i==V3_WEAPON || i==V3_ARMOR || i==V3_SPEED || i==V3_LIGHT);
 }
 
 static void set_skltab(void) {
@@ -1157,7 +1234,7 @@ static void set_skltab(void) {
 
             if (use==skltab_max) skltab=xrealloc(skltab,(skltab_max+=8)*sizeof(SKLTAB),MEM_GUI);
 
-            if (value[1][i] && i!=V_DEMON && i!=V_COLD && i<V_PROFBASE) skltab[use].button=1;
+            if (value[1][i] && i!=sv_val(V_DEMON) && i!=sv_val(V_COLD) && i<V_PROFBASE) skltab[use].button=1;
             else skltab[use].button=0;
 
             skltab[use].v=i;
@@ -1341,7 +1418,7 @@ static void set_cmd_states(void) {
         set_conoff(0,conoff);
         set_skloff(0,skloff);
     }
-    max_invoff=((INVENTORYSIZE-30)/INVDX)-INVDY;
+    max_invoff=((_inventorysize-30)/INVDX)-INVDY;
     set_button_flags();
 
     plrmn=mapmn(MAPDX/2,MAPDY/2);
@@ -1361,7 +1438,7 @@ static void set_cmd_states(void) {
 
     // update fkeyitem
     fkeyitem[0]=fkeyitem[1]=fkeyitem[2]=fkeyitem[3]=0;
-    for (i=30; i<INVENTORYSIZE; i++) {
+    for (i=30; i<_inventorysize; i++) {
         c=(i-2)%4;
         if (fkeyitem[c]==0 && (is_fkey_use_item(i))) fkeyitem[c]=i;
     }
@@ -1704,7 +1781,7 @@ static void exec_cmd(int cmd,int a) {
         case CMD_CHR_LOOK:      cmd_look_char(map[chrsel].cn); return;
         case CMD_INV_LOOK:      cmd_look_inv(invsel); last_right_click_invsel=invsel; return;
         case CMD_WEA_LOOK:      cmd_look_inv(weatab[weasel]); last_right_click_invsel=weatab[weasel]; return;
-        case CMD_CON_LOOK:      cmd_look_con(consel); last_right_click_invsel=INVENTORYSIZE+consel; return;
+        case CMD_CON_LOOK:      cmd_look_con(consel); last_right_click_invsel=_inventorysize+consel; return;
 
         case CMD_MAP_CAST_L:    cmd_some_spell(CL_FIREBALL,originx-MAPDX/2+mapsel%MAPDX,originy-MAPDY/2+mapsel/MAPDX,0); break;
         case CMD_ITM_CAST_L:    cmd_some_spell(CL_FIREBALL,originx-MAPDX/2+itmsel%MAPDX,originy-MAPDY/2+itmsel/MAPDX,0); break;
@@ -1744,9 +1821,19 @@ static void exec_cmd(int cmd,int a) {
         case CMD_SPEED1:        if (pspeed!=1) cmd_speed(1); return;
         case CMD_SPEED2:        if (pspeed!=2) cmd_speed(2); return;
 
-        case CMD_TELEPORT:	if (telsel==1042) clan_offset=16-clan_offset;
-            else {
-                if (telsel>=64 && telsel<=100) cmd_teleport(telsel+clan_offset);
+        case CMD_TELEPORT:
+            int offset = 100, clan_bound = 16;
+
+    		if (sv_ver == 35) {
+    			offset = 200;
+    			clan_bound = 48;
+    		}
+
+            if (telsel==1042) {
+                clan_offset += 16;
+    			if (clan_offset > clan_bound) clan_offset = 0;
+            } else {
+                if (telsel>=64 && telsel<=offset) cmd_teleport(telsel+clan_offset);
                 else cmd_teleport(telsel);
             }
             return;
@@ -2003,7 +2090,7 @@ void gui_sdl_mouseproc(int x,int y,int what,int clicks) {
             shift_override=0;
             control_override=0;
             mdown=0;
-            if ((game_options&GO_WHEEL) &&special_tab[vk_special].spell) {
+            if ((game_options&GO_WHEEL) && special_tab[vk_special].spell) {
                 if (special_tab[vk_special].target==TGT_MAP) exec_cmd(CMD_MAP_CAST_K,special_tab[vk_special].spell);
                 else if (special_tab[vk_special].target==TGT_CHR) exec_cmd(CMD_CHR_CAST_K,special_tab[vk_special].spell);
                 else if (special_tab[vk_special].target==TGT_SLF) exec_cmd(CMD_SLF_CAST_K,special_tab[vk_special].spell);
@@ -2146,6 +2233,14 @@ void main_exit(void) {
     skltab_cnt=0;
 
     exit_game();
+}
+
+void set_v35_keytab(void)
+{
+	keytab = v35_keytab;
+	max_keytab = max_v35_keytab;
+	special_tab = v35_special_tab;
+	max_special = max_v35_special;
 }
 
 void flip_at(unsigned int t) {
