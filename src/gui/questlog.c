@@ -135,6 +135,7 @@ __declspec(dllexport) int _do_display_random(void) {
     static short indec[10]={0,11,24,38,43,57,64,76,83,96};
     static short bribes[10]={0,15,22,34,48,54,67,78,86,93};
     static short welding[10]={0,18,27,32,46,52,62,72,81,98};
+    static short welding2[10] = {0, 12, 25, 35, 44, 56, 65, 77, 89, 95};
     static short edge[10]={0,13,26,36,42,59,66,74,88,91};
     static short kindness[10]={0,21,55};
     static short jobless[10]={0,20,45,61,82,97};
@@ -182,6 +183,23 @@ __declspec(dllexport) int _do_display_random(void) {
     }
     y+=12;
 
+    if (sv_ver == 35) {
+		x = dd_drawtext(dotx(DOT_HLP) + 10, y, graycolor, 0, "Welding: ");
+		for (n = 1; n < 10; n++) {
+			m = (unsigned int)n + 72U;
+			idx = m / 32U;
+			bit = 1 << (m & 31);
+			if (shrine.used[idx] & bit) {
+				x = dd_drawtext(x, y, graycolor, 0, "- ");
+			} else {
+				if (welding2[n] < shrine.continuity) {
+					x = dd_drawtext_fmt(x, y, graycolor, 0, "%d ", welding2[n]);
+				}
+			}
+		}
+		y += 12;
+	}
+
     x=dd_drawtext(dotx(DOT_HLP)+10,y,graycolor,0,"LOE: ");
     for (n=1; n<10; n++) {
         m=n+30;
@@ -195,18 +213,20 @@ __declspec(dllexport) int _do_display_random(void) {
     }
     y+=12;
 
-    x=dd_drawtext(dotx(DOT_HLP)+10,y,graycolor,0,"Kindness: ");
-    for (n=1; n<3; n++) {
-        m=n+40;
-        idx=m/32;
-        bit=1<<(m&31);
-        if (shrine.used[idx]&bit) {
-            x=dd_drawtext(x,y,graycolor,0,"- ");
-        } else {
-            if (kindness[n]<shrine.continuity) x=dd_drawtext_fmt(x,y,graycolor,0,"%d ",kindness[n]);
+    if (sv_ver == 30) {
+        x=dd_drawtext(dotx(DOT_HLP)+10,y,graycolor,0,"Kindness: ");
+        for (n=1; n<3; n++) {
+            m=n+40;
+            idx=m/32;
+            bit=1<<(m&31);
+            if (shrine.used[idx]&bit) {
+                x=dd_drawtext(x,y,graycolor,0,"- ");
+            } else {
+                if (kindness[n]<shrine.continuity) x=dd_drawtext_fmt(x,y,graycolor,0,"%d ",kindness[n]);
+            }
         }
+        y+=12;
     }
-    y+=12;
 
     x=dd_drawtext(dotx(DOT_HLP)+10,y,graycolor,0,"Security: ");
     for (n=1; n<9; n++) {

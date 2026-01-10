@@ -411,33 +411,69 @@ void display_skill(void) {
         if (barsize>0) dd_rect(bsx,bsy,bsx+barsize,bsy+1,bluecolor);
         else if (barsize<0) dd_rect(bsx,bsy,bex+barsize,bsy+1,redcolor);
 
-        switch (skltab[i].v) {
-            case V_WEAPON:
-            case V_SPEED:
-            case V_LIGHT:
-            case V_COLD:
-                sprintf(buf,"%d",skltab[i].curr);
-                break;
-            case V_ARMOR:
-                sprintf(buf,"%.2f",skltab[i].curr/20.0);
-                break;
-            case V_MANA:
-                sprintf(buf,"%d/%2d/%2d",mana,skltab[i].base,skltab[i].curr);
-                break;
-            case V_HP:
-                if (lifeshield) sprintf(buf,"%d+%d/%2d/%2d",hp,lifeshield,skltab[i].base,skltab[i].curr);
-                else sprintf(buf,"%d/%2d/%2d",hp,skltab[i].base,skltab[i].curr);
-                break;
-            case V_ENDURANCE:
-                sprintf(buf,"%d/%2d/%2d",endurance,skltab[i].base,skltab[i].curr);
-                break;
-            default:
-                if (!amod_display_skill_line(skltab[i].v,skltab[i].base,skltab[i].curr,cn,buf)) {
-                    if (skltab[i].v>=V_PROFBASE) sprintf(buf,"%d",skltab[i].base);
-                    else sprintf(buf,"%2d/%2d",skltab[i].base,skltab[i].curr);
-                }
-                break;
-        }
+        int done = 0;
+		if (sv_ver == 35) {
+			switch (skltab[i].v) {
+			case V35_OFFENSE:
+			case V35_DEFENSE:
+				sprintf(buf, "%d", skltab[i].curr + rage / 4);
+				done = 1;
+				break;
+
+			case V35_IMMUNITY:
+				sprintf(buf, "%2d/%2d", skltab[i].base, skltab[i].curr + rage / 4);
+				done = 1;
+				break;
+			case V35_WEAPON:
+				sprintf(buf, "%.2f", skltab[i].curr / 20.0);
+				done = 1;
+				break;
+			}
+		} else {
+			switch (skltab[i].v) {
+			case V3_WEAPON:
+				sprintf(buf, "%d", skltab[i].curr);
+				done = 1;
+				break;
+			}
+		}
+
+		if (!done) {
+			switch (v_val(skltab[i].v)) {
+			case V_SPEED:
+			case V_LIGHT:
+			case V_COLD:
+				sprintf(buf, "%d", skltab[i].curr);
+				break;
+
+			case V_ARMOR:
+				sprintf(buf, "%.2f", skltab[i].curr / 20.0);
+				break;
+			case V_MANA:
+				sprintf(buf, "%d/%2d/%2d", mana, skltab[i].base, skltab[i].curr);
+				break;
+			case V_HP:
+				if (lifeshield) {
+					sprintf(buf, "%d+%d/%2d/%2d", hp, lifeshield, skltab[i].base, skltab[i].curr);
+				} else {
+					sprintf(buf, "%d/%2d/%2d", hp, skltab[i].base, skltab[i].curr);
+				}
+				break;
+			case V_ENDURANCE:
+				sprintf(buf, "%d/%2d/%2d", endurance, skltab[i].base, skltab[i].curr);
+				break;
+			default:
+				if (!amod_display_skill_line(skltab[i].v, skltab[i].base, skltab[i].curr, cn, buf)) {
+					if (skltab[i].v >= V_PROFBASE) {
+						sprintf(buf, "%d", skltab[i].base);
+					} else {
+						sprintf(buf, "%2d/%2d", skltab[i].base, skltab[i].curr);
+					}
+				}
+				break;
+				;
+			}
+		}
 
         dd_drawtext(bsx,yt,textcolor,DD_LARGE|DD_LEFT,skltab[i].name);
         dd_drawtext(bex,yt,textcolor,DD_LARGE|DD_RIGHT,buf);
@@ -613,6 +649,15 @@ void display_selfspells(void) {
                 dd_pop_clip();
                 sprintf(hover_bless_text,"Bless: %ds to go",(ceffect[nr].bless.stop-tick)/24);
                 break;
+            case 10:
+#define HEALDURATION (TICKS * 8)
+    			step = 50 * (tick - ceffect[nr].heal.start) / HEALDURATION;
+    			dd_push_clip();
+    			dd_more_clip(0, 0, 800, doty(DOT_SSP) + 119 - 68);
+    			dd_copysprite(997, dotx(DOT_SSP) + 1 * 10, doty(DOT_SSP) + step, DDFX_NLIGHT, DD_NORMAL);
+    			dd_pop_clip();
+    			sprintf(hover_heal_text, "Heal: %.1fs to go", (ceffect[nr].heal.start + HEALDURATION - tick) / 24.0);
+    			break;
             case 11:
                 step=50-50*(ceffect[nr].freeze.stop-tick)/(ceffect[nr].freeze.stop-ceffect[nr].freeze.start);
                 dd_push_clip();
@@ -740,15 +785,16 @@ void display_rage(void) {
 
     sprintf(hover_rage_text,"Rage: Not active");
 
-    if (!value[0][V_RAGE] || !rage) return;
+    if (!value[0][sv_val(V_RAGE)] || !rage)return;
 
-    step=50-50*rage/value[0][V_RAGE];
+    step=50-50*rage/value[0][sv_val(V_RAGE)];
     dd_push_clip();
     dd_more_clip(0,0,800,doty(DOT_SSP)+119-68);
     dd_copysprite(997,dotx(DOT_SSP)+3*10,doty(DOT_SSP)+step,DDFX_NLIGHT,DD_NORMAL);
     dd_pop_clip();
 
-    sprintf(hover_rage_text,"Rage: %d%%",100*rage/value[0][V_RAGE]);
+    if (sv_ver == 35) sprintf(hover_rage_text, "Rage: +%d", rage / 4);
+	else sprintf(hover_rage_text,"Rage: %d%%",100*rage/value[0][V3_RAGE]);
 }
 
 void display_game_special(void) {
@@ -800,14 +846,14 @@ void display_game_special(void) {
     }
 }
 
-char action_row[2][MAXACTIONSLOT]={
+char v3_action_row[2][MAXACTIONSLOT]={
    //01234567890123
     "asd   fg   h l",
     " qwertzuiop m "
 };
 int action_enabled=1;
 
-static char *action_text[MAXACTIONSLOT]={
+static char *v3_action_text[MAXACTIONSLOT]={
     "Attack",
     "Fireball",
     "Lightning Ball",
@@ -824,7 +870,7 @@ static char *action_text[MAXACTIONSLOT]={
     "Look"
 };
 
-static char *action_desc[MAXACTIONSLOT]={
+static char *v3_action_desc[MAXACTIONSLOT]={
     "Attacks another character using your equipped weapon, or your hands.",
     "Throws a fireball. Explodes for huge splash damage when it hits.",
     "Throws a slow moving ball of lightning. It will deal medium damage over time to enemies it passes.",
@@ -841,7 +887,7 @@ static char *action_desc[MAXACTIONSLOT]={
     "Look at characters or items in the world."
 };
 
-static int action_skill[MAXACTIONSLOT]={
+static int v3_action_skill[MAXACTIONSLOT]={
     V_PERCEPT,
     V_FIREBALL,
     V_FLASH,
@@ -857,6 +903,43 @@ static int action_skill[MAXACTIONSLOT]={
     -1,
     -1
 };
+
+char v35_action_row[2][MAXACTIONSLOT] = {
+    // 01234567890123
+    "asd   f   g  ", " qwertzuiop m"};
+
+static char *v35_action_text[MAXACTIONSLOT] = {"Attack", "Fireball", "Lightning Ball", "Flash", "Freeze",
+    "Magic Shield", "Bless", "Heal", "Warcry", "NOOP", "Firering", "Take/Use/Give/Drop", "Map", "Look"};
+
+static char *v35_action_desc[MAXACTIONSLOT] = {"Attacks another character using your equipped weapon, or your hands.",
+    "Throws a fireball. Explodes for huge splash damage when it hits.",
+    "Throws a slow moving ball of lightning. It will deal medium damage over time to enemies it passes.",
+    "Summons a small ball of lightning to your side. It will deal medium damage over time to enemies near you.",
+    "Slows down enemies close to you.",
+    "Summons a magic shield that will protect you from damage. Collapses when used up.",
+    "Increases the basic attributes (WIS/INT/AGI/STR) of yourself.", "Restores some of the target's hitpoints.",
+    "Gives you a temporary Life Shield, blocking some damage. Slows enemies and might interrupt spellcasting in a "
+    "fairly wide radius around you.",
+    "NOOP", "Deals high damage to adjacent enemies.",
+    "Interact with items. Can be used to take or use an item on the ground, or to drop or give an item on your mouse "
+    "cursor.",
+    "Cycles between the minimap, the big map and no map.", "Look at characters or items in the world."};
+
+static int v35_action_skill[MAXACTIONSLOT] = {V35_PERCEPT, V35_FIRE, V35_FLASH, V35_FLASH, V35_FREEZE, V35_MAGICSHIELD,
+    V35_BLESS, V35_HEAL, V35_WARCRY, -2, V35_FIRE, V35_PERCEPT, -1, -1};
+
+char (*action_row)[MAXACTIONSLOT] = v3_action_row;
+static char **action_text = v3_action_text;
+static char **action_desc = v3_action_desc;
+static int *action_skill = v3_action_skill;
+
+void set_v35_actions(void)
+{
+	action_row = v35_action_row;
+	action_text = v35_action_text;
+	action_desc = v35_action_desc;
+	action_skill = v35_action_skill;
+}
 
 void actions_loaded(void) {
     int i;
@@ -881,9 +964,9 @@ void actions_loaded(void) {
 
 int has_action_skill(int i) {
     if (action_skill[i]==-1) return 1;
+    if (action_skill[i]==-2) return 0;
     return value[0][action_skill[i]];
 }
-
 
 int action_key2slot(int key) {
     int i;
@@ -994,7 +1077,7 @@ void display_action(void) {
                     y=30;
                     if (action_row[0][i]>' ' && action_row[1][i]>' ') {
                         if (row==0) dd_drawtext(butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i)-y,IRGB(31,31,31),DD_FRAME|DD_CENTER,"(Aimed at character version)");
-                        else if (action_skill[i]==V_BLESS || action_skill[i]==V_HEAL) dd_drawtext(butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i)-y,IRGB(31,31,31),DD_FRAME|DD_CENTER,"(Aimed at self version)");
+                        else if (action_skill[i]==sv_val(V_BLESS) || action_skill[i]==sv_val(V_HEAL)) dd_drawtext(butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i)-y,IRGB(31,31,31),DD_FRAME|DD_CENTER,"(Aimed at self version)");
                         else dd_drawtext(butx(BUT_ACT_BEG+i),buty(BUT_ACT_BEG+i)-y,IRGB(31,31,31),DD_FRAME|DD_CENTER,"(Aimed at map tile version)");
                         y+=10;
                     }
@@ -1049,7 +1132,7 @@ static void display_bar(int sx,int sy,int perc,unsigned short color,int xs,int y
 }
 
 static int warcryperccost(void) {
-    if (value[0][V_ENDURANCE]) return 100*value[0][V_WARCRY]/value[0][V_ENDURANCE]/3+1;
+    if (value[0][sv_val(V_ENDURANCE)]) return 100*value[0][sv_val(V_WARCRY)]/value[0][sv_val(V_ENDURANCE)]/3+1;
     else return 911;
 }
 
@@ -1067,7 +1150,7 @@ void display_selfbars(void) {
     lifep=map[plrmn].health;
     shieldp=map[plrmn].shield;
     manap=map[plrmn].mana;
-    if (value[0][V_ENDURANCE]) endup=100*endurance/value[0][V_ENDURANCE]; else endup=100;
+    if (value[0][V_ENDURANCE]) endup=100*endurance/value[0][sv_val(V_ENDURANCE)]; else endup=100;
 
     lifep=min(110,lifep);
     shieldp=min(110,shieldp);
@@ -1076,9 +1159,9 @@ void display_selfbars(void) {
 
     display_bar(x,y,lifep,healthcolor,xs,ys);
     display_bar(x+xs+xd,y,shieldp,shieldcolor,xs,ys);
-    if (!value[0][V_MANA]) {
+    if (!value[0][sv_val(V_MANA)]) {
         display_bar(x+xs*2+xd*2,y,endup,endurancecolor,xs,ys);
-        if (value[0][V_WARCRY]) {
+        if (value[0][sv_val(V_WARCRY)]) {
             int wpc = warcryperccost();
             for (int i=wpc; i<100; i+=wpc) {
                 int j;

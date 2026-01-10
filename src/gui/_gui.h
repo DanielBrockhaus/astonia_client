@@ -291,7 +291,7 @@ extern SKLTAB *skltab;
 extern int skltab_max;
 extern int skltab_cnt;
 
-extern KEYTAB keytab[];
+extern KEYTAB *keytab;
 extern int max_keytab;
 
 extern int clan_offset;
@@ -359,6 +359,7 @@ int context_key_click(void);
 
 extern char hover_bless_text[];
 extern char hover_freeze_text[];
+extern char hover_heal_text[];
 extern char hover_potion_text[];
 extern char hover_rage_text[];
 extern char hover_level_text[];

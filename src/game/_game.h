@@ -34,6 +34,7 @@
 #define DLC_RAIN	7
 #define DLC_PULSE	8
 #define DLC_PULSEBACK	9
+#define DLC_HEAL      10 // v35 only
 
 struct xxximage {
     unsigned short int xres;
@@ -111,6 +112,7 @@ void rseed(int seed);
 int dd_init(void);
 int dd_exit(void);
 void dd_draw_bless(int x,int y,int ticker,int strength,int front);
+void dd_draw_heal(int x, int y, int start, int front);
 void dd_draw_potion(int x,int y,int ticker,int strength,int front);
 void dd_draw_rain(int x,int y,int ticker,int strength,int front);
 void dd_draw_curve(int cx,int cy,int nr,int size,unsigned short col);

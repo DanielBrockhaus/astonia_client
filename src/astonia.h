@@ -164,3 +164,6 @@ int buty(int bidx);
 void dd_set_offset(int x,int y);
 char *client_version(void);
 
+typedef int32_t svval_t; // skill index, server side (V3_HP, V3_BLESS *or* V35_HP, V35_BLESS)
+extern int sv_ver;
+

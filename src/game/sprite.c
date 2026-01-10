@@ -855,6 +855,17 @@ __declspec(dllexport) int _trans_charno(int csprite,int *pscale,int *pcr,int *pc
 
         case 568:	csprite=58; c1=IRGB(16,31,16); c2=IRGB(6,20,6); c3=IRGB(28,16,16); break; // queen fiona
 
+        case 569: csprite = 66; c1 = IRGB(16, 31, 16); c2 = IRGB(6, 20, 6); c3 = IRGB(28, 16, 16); break; // bridge guard 1
+    	case 570: csprite = 81; c1 = IRGB(16, 31, 16); c2 = IRGB(6, 20, 6); c3 = IRGB(28, 16, 16); break; // bridge guard 2
+    	case 571: csprite = 46; c1 = IRGB(31, 16, 16); c2 = IRGB(20, 6, 6); c3 = IRGB(28, 16, 16); break; // student
+    	case 572: csprite = 46; c1 = IRGB(31, 20, 20); c2 = IRGB(16, 6, 6); c3 = IRGB(22, 16, 16); break; // gladiator
+    	case 573: csprite = 111; c1 = IRGB(16, 8, 8); c2 = IRGB(14, 6, 6); c3 = IRGB(24, 22, 8); break; // teacher
+    	case 574: csprite = 101; c1 = IRGB(16, 8, 8); c2 = IRGB(14, 6, 6); c3 = IRGB(8, 8, 8); break; // teacher
+    	case 575: csprite = 102; c1 = IRGB(16, 8, 8); c2 = IRGB(14, 6, 6); c3 = IRGB(12, 8, 8); break; // teacher
+    	case 576: csprite = 110; c1 = IRGB(8, 8, 16); c2 = IRGB(6, 6, 14); c3 = IRGB(24, 22, 8); break; // teacher
+
+    	case 577: csprite = 89; c1 = IRGB(31, 20, 20); c2 = IRGB(16, 6, 6); c3 = IRGB(22, 16, 16); break;
+
         case 800: csprite=120; break;
         case 801: csprite=121; break;
         case 802: csprite=122; break;

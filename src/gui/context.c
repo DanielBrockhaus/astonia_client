@@ -128,7 +128,7 @@ static void makemenu(void) {
         }
 
         if (csel==MAPDX*MAPDY/2) {
-            if (value[0][V_FLASH]) {
+            if (value[0][sv_val(V_FLASH)]) {
                 sprintf(menu.line[menu.linecnt],"Cast Flash");
                 menu.cmd[menu.linecnt]=CMD_CHR_CAST_K;
                 menu.opt1[menu.linecnt]=0;
@@ -136,7 +136,7 @@ static void makemenu(void) {
                 menu.linecnt++;
             }
 
-            if (value[0][V_FREEZE]) {
+            if (value[0][sv_val(V_FREEZE)]) {
                 sprintf(menu.line[menu.linecnt],"Cast Freeze");
                 menu.cmd[menu.linecnt]=CMD_CHR_CAST_K;
                 menu.opt1[menu.linecnt]=0;
@@ -144,7 +144,7 @@ static void makemenu(void) {
                 menu.linecnt++;
             }
 
-            if (value[0][V_PULSE]) {
+            if (sv_ver==30 && value[0][V_PULSE]) {
                 sprintf(menu.line[menu.linecnt],"Cast Pulse");
                 menu.cmd[menu.linecnt]=CMD_CHR_CAST_K;
                 menu.opt1[menu.linecnt]=0;
@@ -152,7 +152,7 @@ static void makemenu(void) {
                 menu.linecnt++;
             }
 
-            if (value[0][V_WARCRY]) {
+            if (value[0][sv_val(V_WARCRY)]) {
                 sprintf(menu.line[menu.linecnt],"Warcry");
                 menu.cmd[menu.linecnt]=CMD_CHR_CAST_K;
                 menu.opt1[menu.linecnt]=0;
@@ -160,7 +160,7 @@ static void makemenu(void) {
                 menu.linecnt++;
             }
 
-            if (value[0][V_MAGICSHIELD]) {
+            if (value[0][sv_val(V_MAGICSHIELD)]) {
                 sprintf(menu.line[menu.linecnt],"Cast Magic Shield");
                 menu.cmd[menu.linecnt]=CMD_CHR_CAST_K;
                 menu.opt1[menu.linecnt]=0;
@@ -168,7 +168,7 @@ static void makemenu(void) {
                 menu.linecnt++;
             }
 
-            if (value[0][V_HEAL]) {
+            if (value[0][sv_val(V_HEAL)]) {
                 sprintf(menu.line[menu.linecnt],"Cast Heal");
                 menu.cmd[menu.linecnt]=CMD_CHR_CAST_K;
                 menu.opt1[menu.linecnt]=map[csel].cn;;
@@ -176,7 +176,7 @@ static void makemenu(void) {
                 menu.linecnt++;
             }
 
-            if (value[0][V_BLESS]) {
+            if (value[0][sv_val(V_BLESS)]) {
                 sprintf(menu.line[menu.linecnt],"Cast Bless");
                 menu.cmd[menu.linecnt]=CMD_CHR_CAST_K;
                 menu.opt1[menu.linecnt]=map[csel].cn;;
@@ -184,7 +184,7 @@ static void makemenu(void) {
                 menu.linecnt++;
             }
         } else {
-            if (value[0][V_FIREBALL]) {
+            if (value[0][sv_val(V_FIREBALL)]) {
                 sprintf(menu.line[menu.linecnt],"Fireball %s",name);
                 menu.cmd[menu.linecnt]=CMD_CHR_CAST_K;
                 menu.opt1[menu.linecnt]=map[csel].cn;
@@ -192,7 +192,7 @@ static void makemenu(void) {
                 menu.linecnt++;
             }
 
-            if (value[0][V_FLASH]) {
+            if (value[0][sv_val(V_FLASH)]) {
                 sprintf(menu.line[menu.linecnt],"L'ball %s",name);
                 menu.cmd[menu.linecnt]=CMD_CHR_CAST_K;
                 menu.opt1[menu.linecnt]=map[csel].cn;
@@ -200,7 +200,7 @@ static void makemenu(void) {
                 menu.linecnt++;
             }
 
-            if (value[0][V_HEAL]) {
+            if (value[0][sv_val(V_HEAL)]) {
                 sprintf(menu.line[menu.linecnt],"Heal %s",name);
                 menu.cmd[menu.linecnt]=CMD_CHR_CAST_K;
                 menu.opt1[menu.linecnt]=map[csel].cn;;
@@ -208,7 +208,7 @@ static void makemenu(void) {
                 menu.linecnt++;
             }
 
-            if (value[0][V_BLESS]) {
+            if (sv_ver==30 && value[0][V_BLESS]) {
                 sprintf(menu.line[menu.linecnt],"Bless %s",name);
                 menu.cmd[menu.linecnt]=CMD_CHR_CAST_K;
                 menu.opt1[menu.linecnt]=map[csel].cn;;

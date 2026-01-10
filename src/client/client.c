@@ -73,8 +73,8 @@ __declspec(dllexport) struct map map[MAPDX*MAPDY];
 __declspec(dllexport) struct map map2[MAPDX*MAPDY];
 
 __declspec(dllexport) int value[2][V_MAX];
-__declspec(dllexport) int item[INVENTORYSIZE];
-__declspec(dllexport) int item_flags[INVENTORYSIZE];
+__declspec(dllexport) int item[MAX_INVENTORYSIZE];
+__declspec(dllexport) int item_flags[MAX_INVENTORYSIZE];
 __declspec(dllexport) int hp;
 __declspec(dllexport) int mana;
 __declspec(dllexport) int rage;
@@ -93,9 +93,9 @@ __declspec(dllexport) unsigned char ueffect[MAXEF];
 __declspec(dllexport) int con_type;
 __declspec(dllexport) char con_name[80];
 __declspec(dllexport) int con_cnt;
-__declspec(dllexport) int container[CONTAINERSIZE];
-__declspec(dllexport) int price[CONTAINERSIZE];
-__declspec(dllexport) int itemprice[CONTAINERSIZE];
+__declspec(dllexport) int container[MAX_CONTAINERSIZE];
+__declspec(dllexport) int price[MAX_CONTAINERSIZE];
+__declspec(dllexport) int itemprice[MAX_CONTAINERSIZE];
 __declspec(dllexport) int cprice;
 
 __declspec(dllexport) int lookinv[12];
@@ -110,6 +110,11 @@ __declspec(dllexport) int pspeed=0;   // 0=normal   1=fast      2=stealth     - 
 int may_teleport[64+32];
 
 __declspec(dllexport) int frames_per_second=TICKS;
+
+__declspec(dllexport) int _inventorysize = V3_INVENTORYSIZE;
+__declspec(dllexport) int _containersize = V3_CONTAINERSIZE;
+
+struct otext otext[MAXOTEXT];
 
 int sv_map01(unsigned char *buf,int *last,struct map *cmap) {
     int p,c;
@@ -313,7 +318,7 @@ void sv_setval(unsigned char *buf,int nr) {
     n=buf[1];
     if (n<0 || n>=(*game_v_max)) return;
 
-    if (nr!=0 || n!=V_PROFESSION) value[nr][n]=*(short *)(buf+2);
+    if (nr!=0 || n!=sv_val(V_PROFESSION)) value[nr][n]=*(short *)(buf+2);
 
     update_skltab=1;
 }
@@ -342,7 +347,7 @@ void sv_setitem(unsigned char *buf) {
     int n;
 
     n=buf[1];
-    if (n<0 || n>=INVENTORYSIZE) return;
+    if (n<0 || n>=_inventorysize) return;
 
     item[n]=*(unsigned int *)(buf+2);
     item_flags[n]=*(unsigned int *)(buf+6);
@@ -420,6 +425,14 @@ int sv_text(unsigned char *buf) {
                 strcpy(pent_str[5],line+2);
             } else if (line[1]=='9') {
                 strcpy(pent_str[6],line+2);
+            } else if (line[1] == '0') {
+				if (otext[MAXOTEXT - 1].text) {
+					xfree(otext[MAXOTEXT - 1].text);
+				}
+				memmove(otext + 1, otext, sizeof(otext) - sizeof(otext[0]));
+				otext[0].text = xstrdup(line + 3, MEM_GUI);
+				otext[0].time = tick;
+				otext[0].type = line[2] - '0';
             }
         } else {
             if (!hover_capture_text(line))
@@ -658,7 +671,7 @@ void sv_container(unsigned char *buf) {
     int nr;
 
     nr=buf[1];
-    if (nr<0 || nr>=CONTAINERSIZE) { fail("illegal nr %d in sv_container!",nr);  exit(-1); }
+    if (nr<0 || nr>=_containersize) { fail("illegal nr %d in sv_container!",nr);  exit(-1); }
 
     container[nr]=*(unsigned int *)(buf+2);
     hover_invalidate_con(nr);
@@ -668,7 +681,7 @@ void sv_price(unsigned char *buf) {
     int nr;
 
     nr=buf[1];
-    if (nr<0 || nr>=CONTAINERSIZE) { fail("illegal nr %d in sv_price!",nr);  exit(-1); }
+    if (nr<0 || nr>=_containersize) { fail("illegal nr %d in sv_price!",nr);  exit(-1); }
 
     price[nr]=*(unsigned int *)(buf+2);
 }
@@ -677,7 +690,7 @@ void sv_itemprice(unsigned char *buf) {
     int nr;
 
     nr=buf[1];
-    if (nr<0 || nr>=CONTAINERSIZE) { fail("illegal nr %d in sv_itemprice!",nr);  exit(-1); }
+    if (nr<0 || nr>=_containersize) { fail("illegal nr %d in sv_itemprice!",nr);  exit(-1); }
 
     itemprice[nr]=*(unsigned int *)(buf+2);
 }
@@ -694,7 +707,7 @@ void sv_concnt(unsigned char *buf) {
     int nr;
 
     nr=buf[1];
-    if (nr<0 || nr>CONTAINERSIZE) { fail("illegal nr %d in sv_contcnt!",nr);  exit(-1); }
+    if (nr<0 || nr>_containersize) { fail("illegal nr %d in sv_contcnt!",nr);  exit(-1); }
 
     con_cnt=nr;
 }
@@ -769,9 +782,11 @@ void sv_special(unsigned char *buf) {
 }
 
 void sv_teleport(unsigned char *buf) {
-    int n,i,b;
+    int n,i,b,len=64+32;
 
-    for (n=0; n<64+32; n++) {
+	if (sv_ver==35)  len=64;
+
+    for (n=0; n<len; n++) {
         i=n/8;
         b=1<<(n&7);
         if (buf[i+1]&b) may_teleport[n]=1;
@@ -782,12 +797,14 @@ void sv_teleport(unsigned char *buf) {
 }
 
 void sv_prof(unsigned char *buf) {
-    int n,cnt=0;
+    int n,cnt=0,pmax=P3_MAX;
 
-    for (n=0; n<P_MAX; n++) {
+    if (sv_ver==35) pmax=P35_MAX;
+
+    for (n=0; n<pmax; n++) {
         cnt+=(value[1][n+V_PROFBASE]=buf[n+1]);
     }
-    value[0][V_PROFESSION]=cnt;
+    value[0][sv_val(V_PROFESSION)]=cnt;
 
     update_skltab=1;
 }
@@ -906,10 +923,10 @@ void process(unsigned char *buf,int size) {
                 case SV_FIGHTMODE:		        sv_fightmode(buf); len=2; break;
                 case SV_LOGINDONE:		        sv_logindone(); len=1; break;
                 case SV_SPECIAL:		        sv_special(buf); len=13; break;
-                case SV_TELEPORT:		        sv_teleport(buf); len=13; break;
+                case SV_TELEPORT:		        sv_teleport(buf); len=(sv_ver==35 ? 9 : 13); break;
 
                 case SV_MIRROR:                 sv_mirror(buf); len=5; break;
-                case SV_PROF:			        sv_prof(buf); len=21; break;
+                case SV_PROF:			        sv_prof(buf); len=(sv_ver==35 ? P35_MAX+1 : P3_MAX+1); break;
                 case SV_PING:			        len=sv_ping(buf); break;
                 case SV_UNIQUE:			        sv_unique(buf); len=5; break;
                 case SV_QUESTLOG:		        sv_questlog(buf); len=101+sizeof(struct shrine_ppd); break;
@@ -1000,8 +1017,8 @@ int prefetch(unsigned char *buf,int size) {
                 case SV_FIGHTMODE:		        len=2; break;
                 case SV_LOGINDONE:              bzero(map2,sizeof(map2)); len=1; break;
                 case SV_SPECIAL:		        len=13; break;
-                case SV_TELEPORT:		        len=13; break;
-                case SV_PROF:			        len=21; break;
+                case SV_TELEPORT:		        len=(sv_ver==35 ? 9 : 13); break;
+                case SV_PROF:			        len=(sv_ver==35 ? P35_MAX+1 : P3_MAX+1); break;
                 case SV_PING:			        len=svl_ping(buf); break;
                 case SV_UNIQUE:			        len=5; break;
                 case SV_QUESTLOG:		        len=101+sizeof(struct shrine_ppd); break;
@@ -1151,9 +1168,12 @@ void cmd_speed(int mode) {
 
 void cmd_teleport(int nr) {
     char buf[64];
+    int off=100;
+
+    if (sv_ver==35) off=200;
 
     if (nr>100) {   // ouch
-        newmirror=nr-100;
+        newmirror=nr-off;
         return;
     }
 
@@ -1393,6 +1413,7 @@ void bzero_client(int part) {
         pent_str[0][0]=pent_str[1][0]=pent_str[2][0]=pent_str[3][0]=pent_str[4][0]=pent_str[5][0]=pent_str[6][0]=0;
 
         bzero(may_teleport,sizeof(may_teleport));
+        bzero(otext, sizeof(otext));
 
         amod_areachange();
         minimap_clear();
@@ -1770,5 +1791,11 @@ __declspec(dllexport) int mapmn(int x,int y) {
         return -1;
     }
     return (x+y*MAPDX);
+}
+
+void set_v35_inventory(void)
+{
+	_inventorysize = V35_INVENTORYSIZE;
+	_containersize = V35_CONTAINERSIZE;
 }
 

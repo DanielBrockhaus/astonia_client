@@ -103,7 +103,8 @@ int client_cmd(char *buf) {
     }
     if (!strncmp(buf, "#version", 5) || !strncmp(buf, "/version", 5)) {
         cmd_version();
-    	return 1;
+        if (sv_ver==35) return 0;
+        return 1;
     }
     if (!strncmp(buf,"#set ",5) || !strncmp(buf,"/set ",5)) {
         int what,key;
