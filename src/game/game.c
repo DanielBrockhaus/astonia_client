@@ -848,8 +848,10 @@ static void display_game_spells(void) {
                         if (sv_ver == 35) {
                             dl_call_heal(GME_LAY, scrx + map[mn].xadd, scry + map[mn].yadd, (int)ceffect[nr].heal.start, 1);
                             dl_call_heal(GME_LAY, scrx + map[mn].xadd, scry + map[mn].yadd, (int)ceffect[nr].heal.start, 0);
-                        } else dl=dl_next_set(GME_LAY,50114,scrx+map[mn].xadd,scry+map[mn].yadd+1,DDFX_NLIGHT);
-                        if (!dl) { note("error in heal #1"); break; }
+                        } else {
+                            dl=dl_next_set(GME_LAY,50114,scrx+map[mn].xadd,scry+map[mn].yadd+1,DDFX_NLIGHT);
+                            if (!dl) { note("error in heal #1"); break; }
+                        }
                         break;
 
                     case 12: // burn //
@@ -1585,6 +1587,7 @@ void display_game(void) {
     display_game_map(map);
     display_game_names();
     display_pents();
+    display_otext();
 }
 
 // make quick
