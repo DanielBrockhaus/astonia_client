@@ -5,7 +5,7 @@
 #define INVDX                   4
 #define INVDY                   (__invdy)
 #define CONDX                   4
-#define CONDY                   4
+#define CONDY                   (__condy)
 #define SKLDY                   (__skldy)
 #define SKLWIDTH                145
 #define LINEHEIGHT              10
@@ -278,6 +278,7 @@ extern int conoff,max_conoff;
 extern int skloff,max_skloff;
 extern int __skldy;
 extern int __invdy;
+extern int __condy;
 
 extern int fkeyitem[4];
 

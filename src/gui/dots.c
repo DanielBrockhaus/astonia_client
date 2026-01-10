@@ -90,8 +90,13 @@ void init_dots(void) {
     // inventory top left and bottom right
     set_dot(DOT_IN1,645,doty(DOT_BOT)+2,0);
     set_dot(DOT_IN2,795,doty(DOT_BO2)-2,0);
-    if (!sbot) __invdy=4;
-    else __invdy=3;
+    if (!sbot) {
+        __invdy=4;
+        __condy=4;
+    } else {
+        __invdy=3;
+        __condy=3;
+    }
 
     // scroll bars
     set_dot(DOT_SCL,160+5,0,0);
