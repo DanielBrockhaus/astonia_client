@@ -144,7 +144,7 @@ static void makemenu(void) {
                 menu.linecnt++;
             }
 
-            if (sv_ver==30 && value[0][V_PULSE]) {
+            if (sv_ver==30 && value[0][V3_PULSE]) {
                 sprintf(menu.line[menu.linecnt],"Cast Pulse");
                 menu.cmd[menu.linecnt]=CMD_CHR_CAST_K;
                 menu.opt1[menu.linecnt]=0;
@@ -208,7 +208,7 @@ static void makemenu(void) {
                 menu.linecnt++;
             }
 
-            if (sv_ver==30 && value[0][V_BLESS]) {
+            if (sv_ver==30 && value[0][V3_BLESS]) {
                 sprintf(menu.line[menu.linecnt],"Bless %s",name);
                 menu.cmd[menu.linecnt]=CMD_CHR_CAST_K;
                 menu.opt1[menu.linecnt]=map[csel].cn;;

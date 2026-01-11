@@ -471,7 +471,6 @@ void display_skill(void) {
 					}
 				}
 				break;
-				;
 			}
 		}
 

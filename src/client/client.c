@@ -1172,7 +1172,7 @@ void cmd_teleport(int nr) {
 
     if (sv_ver==35) off=200;
 
-    if (nr>100) {   // ouch
+    if (nr>off) {   // ouch
         newmirror=nr-off;
         return;
     }
