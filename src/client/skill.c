@@ -194,7 +194,7 @@ __declspec(dllexport) int raise_cost(int v,int n) {
 
     nr=n-game_skill[v].start+1+5;
 
-    if (sv_ver==30 && value[0][V_ATTACK] && value[0][V_BLESS]) return max(1,nr*nr*nr*game_skill[v].cost*4/30);
+    if (sv_ver==30 && value[0][V3_ATTACK] && value[0][V3_BLESS]) return max(1,nr*nr*nr*game_skill[v].cost*4/30);
     else return max(1,nr*nr*nr*game_skill[v].cost/10);
 }
 
@@ -463,11 +463,8 @@ static vval_t v35_val(svval_t v)
 
 vval_t v_val(svval_t v)
 {
-	if (sv_ver == 35) {
-		return v35_val(v);
-	} else {
-		return v3_val(v);
-	}
+	if (sv_ver == 35)  return v35_val(v);
+	else return v3_val(v);
 }
 
 static svval_t sv3_val(vval_t v)
@@ -571,11 +568,8 @@ static svval_t sv35_val(vval_t v)
 
 svval_t sv_val(vval_t v)
 {
-	if (sv_ver == 35) {
-		return sv35_val(v);
-	} else {
-		return sv3_val(v);
-	}
+	if (sv_ver == 35) return sv35_val(v);
+	else return sv3_val(v);
 }
 
 
