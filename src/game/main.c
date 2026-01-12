@@ -658,8 +658,8 @@ void save_options(void) {
     if (handle==-1) return;
 
     write(handle,&user_keys,sizeof(user_keys));
-    write(handle,&v3_action_row,sizeof(action_row));
-    write(handle,&v35_action_row,sizeof(action_row));
+    write(handle,&v3_action_row,sizeof(v3_action_row));
+    write(handle,&v35_action_row,sizeof(v35_action_row));
     write(handle,&action_enabled,sizeof(action_enabled));
     write(handle,&gear_lock,sizeof(gear_lock));
     close(handle);
@@ -676,8 +676,8 @@ void load_options(void) {
     if (handle==-1) return;
 
     read(handle,&user_keys,sizeof(user_keys));
-    read(handle,&v3_action_row,sizeof(action_row));
-    read(handle,&v35_action_row,sizeof(action_row));
+    read(handle,&v3_action_row,sizeof(v3_action_row));
+    read(handle,&v35_action_row,sizeof(v35_action_row));
     read(handle,&action_enabled,sizeof(action_enabled));
     read(handle,&gear_lock,sizeof(gear_lock));
     close(handle);
