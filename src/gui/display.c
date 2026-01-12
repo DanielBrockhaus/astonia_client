@@ -904,11 +904,26 @@ static int v3_action_skill[MAXACTIONSLOT]={
 };
 
 char v35_action_row[2][MAXACTIONSLOT] = {
-    // 01234567890123
-    "asd   f   g  ", " qwertzuiop m"};
+  // 01234567890123
+    "asd        g l",
+    " qwertzuiop m "};
 
-static char *v35_action_text[MAXACTIONSLOT] = {"Attack", "Fireball", "Lightning Ball", "Flash", "Freeze",
-    "Magic Shield", "Bless", "Heal", "Warcry", "NOOP", "Firering", "Take/Use/Give/Drop", "Map", "Look"};
+static char *v35_action_text[MAXACTIONSLOT] = {
+    "Attack",   //0
+    "Fireball", //1
+    "Lightning Ball", //2
+    "Flash",    //3
+    "Freeze",   //4
+    "Magic Shield", //5
+    "Bless",    //6
+    "Heal",     //7
+    "Warcry",   //8
+    "NOOP",
+    "Firering", //10
+    "Take/Use/Give/Drop", //11
+    "Map",      //12
+    "Look"      //13
+};
 
 static char *v35_action_desc[MAXACTIONSLOT] = {"Attacks another character using your equipped weapon, or your hands.",
     "Throws a fireball. Explodes for huge splash damage when it hits.",

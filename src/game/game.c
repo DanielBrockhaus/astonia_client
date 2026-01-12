@@ -1210,6 +1210,27 @@ int get_sink(int mn,struct map *cmap) {
     return (cmap[mn].sink*(tot-x-y)+cmap[mn2].sink*(x+y))/tot;
 }
 
+static int dx_fix_mage_sprite(int sprite) {
+    switch (sprite) {
+        case 163818:
+        case 163819:
+
+        case 164818:
+        case 164819:
+
+        case 168818:
+        case 168819:
+
+        case 169818:
+        case 169819:
+        case 169844:
+        case 169845:
+        case 169846:
+        case 169847:	return -1;
+    }
+    return 0;
+}
+
 void display_game_map(struct map *cmap) {
     int i,nr,mapx,mapy,mn,scrx,scry,light,mna,sprite,sink,xoff,yoff,start;
     DL *dl;
@@ -1434,7 +1455,7 @@ void display_game_map(struct map *cmap) {
 
         // blit chars
         if (cmap[mn].csprite) {
-            dl=dl_next_set(GME_LAY,cmap[mn].rc.sprite,scrx+cmap[mn].xadd,scry+cmap[mn].yadd,chrsel==mn?DDFX_BRIGHT:light);
+            dl=dl_next_set(GME_LAY,cmap[mn].rc.sprite,scrx+cmap[mn].xadd+dx_fix_mage_sprite(cmap[mn].rc.sprite),scry+cmap[mn].yadd,chrsel==mn?DDFX_BRIGHT:light);
             if (!dl) { note("error in game #9"); continue; }
             sink=get_sink(mn,cmap);
             dl->ddfx.sink=sink;
