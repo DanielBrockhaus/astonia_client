@@ -632,6 +632,7 @@ void display_selfspells(void) {
 
     sprintf(hover_bless_text,"Bless: Not active");
     sprintf(hover_freeze_text,"Freeze: Not active");
+    sprintf(hover_heal_text,"Heal: Not active");
     sprintf(hover_potion_text,"Potion: Not active");
 
     for (n=0; n<4; n++) {
@@ -650,20 +651,24 @@ void display_selfspells(void) {
                 break;
             case 10:
 #define HEALDURATION (TICKS * 8)
-    			step = 50 * (tick - ceffect[nr].heal.start) / HEALDURATION;
-    			dd_push_clip();
-    			dd_more_clip(0, 0, 800, doty(DOT_SSP) + 119 - 68);
-    			dd_copysprite(997, dotx(DOT_SSP) + 1 * 10, doty(DOT_SSP) + step, DDFX_NLIGHT, DD_NORMAL);
-    			dd_pop_clip();
-    			sprintf(hover_heal_text, "Heal: %.1fs to go", (ceffect[nr].heal.start + HEALDURATION - tick) / 24.0);
+                if (sv_ver==35) {
+                    step=50*(tick-ceffect[nr].heal.start)/HEALDURATION;
+                    dd_push_clip();
+                    dd_more_clip(0, 0, 800, doty(DOT_SSP) + 119 - 68);
+                    dd_copysprite(997, dotx(DOT_SSP) + 1 * 10, doty(DOT_SSP) + step, DDFX_NLIGHT, DD_NORMAL);
+                    dd_pop_clip();
+                    sprintf(hover_heal_text, "Heal: %.1fs to go", (ceffect[nr].heal.start + HEALDURATION - tick) / 24.0);
+                }
     			break;
             case 11:
-                step=50-50*(ceffect[nr].freeze.stop-tick)/(ceffect[nr].freeze.stop-ceffect[nr].freeze.start);
-                dd_push_clip();
-                dd_more_clip(0,0,800,doty(DOT_SSP)+119-68);
-                dd_copysprite(997,dotx(DOT_SSP)+1*10,doty(DOT_SSP)+step,DDFX_NLIGHT,DD_NORMAL);
-                dd_pop_clip();
-                sprintf(hover_freeze_text,"Freeze: %ds to go",(ceffect[nr].freeze.stop-tick)/24);
+                if (sv_ver==30) {
+                    step=50-50*(ceffect[nr].freeze.stop-tick)/(ceffect[nr].freeze.stop-ceffect[nr].freeze.start);
+                    dd_push_clip();
+                    dd_more_clip(0,0,800,doty(DOT_SSP)+119-68);
+                    dd_copysprite(997,dotx(DOT_SSP)+1*10,doty(DOT_SSP)+step,DDFX_NLIGHT,DD_NORMAL);
+                    dd_pop_clip();
+                    sprintf(hover_freeze_text,"Freeze: %ds to go",(ceffect[nr].freeze.stop-tick)/24);
+                }
                 break;
 
             case 14:
@@ -1145,7 +1150,10 @@ static void display_bar(int sx,int sy,int perc,unsigned short color,int xs,int y
     if (perc>0) dd_shaded_rect(sx,sy+ys-perc,sx+xs,sy+ys,color,95);
 }
 
+#define WARCRYCOST (12)
 static int warcryperccost(void) {
+    if (sv_ver==35) return 100*WARCRYCOST/value[0][sv_val(V_ENDURANCE)];
+
     if (value[0][sv_val(V_ENDURANCE)]) return 100*value[0][sv_val(V_WARCRY)]/value[0][sv_val(V_ENDURANCE)]/3+1;
     else return 911;
 }
