@@ -910,7 +910,7 @@ static int v3_action_skill[MAXACTIONSLOT]={
 
 char v35_action_row[2][MAXACTIONSLOT] = {
   // 01234567890123
-    "asd        g l",
+    "asd    b   g l",
     " qwertzuiop m "};
 
 static char *v35_action_text[MAXACTIONSLOT] = {
@@ -971,6 +971,7 @@ void actions_loaded(void) {
     action_row[0][3]=' ';
     action_row[0][4]=' ';
     action_row[0][5]=' ';
+    if (sv_ver==35) action_row[0][6]=' ';
     action_row[0][8]=' ';
     action_row[0][9]=' ';
     action_row[0][10]=' ';
