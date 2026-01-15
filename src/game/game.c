@@ -1571,7 +1571,7 @@ void display_pents(void) {
 
 static void display_otext(void)
 {
-	int n, cnt;
+	int n, cnt, y;
 	unsigned short col;
 
 	for (n = cnt = 0; n < MAXOTEXT; n++) {
@@ -1597,7 +1597,10 @@ static void display_otext(void)
 				col = darkgreencolor;
 			}
 		}
-		dd_drawtext(400, 420 - cnt * 12, col, DD_LARGE | DD_FRAME | DD_CENTER, otext[n].text);
+        if (context_action_enabled()) y = doty(DOT_ACT)-30;
+        else y = doty(DOT_MBR)-20;
+
+        dd_drawtext(400,y-cnt*12,col,DD_LARGE|DD_FRAME|DD_CENTER,otext[n].text);
 		cnt++;
 	}
 }
