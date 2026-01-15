@@ -176,6 +176,8 @@ int get_teleport(int x,int y) {
         if (abs(dotx(DOT_TEL)+337-x)<8 && abs(doty(DOT_TEL)+24+n*12-y)<8) return n+64;
     }
     for (n=0; n<8; n++) {
+        if (sv_ver==30 && 8+clan_offset+n==31) continue;
+        if (sv_ver == 35 && 8 + clan_offset + n >= 60) continue;
         if (sv_ver == 30 && !may_teleport[n+64+8+clan_offset]) continue;
 
         if (abs(dotx(DOT_TEL)+389-x)<8 && abs(doty(DOT_TEL)+24+n*12-y)<8) return n+64+8;
