@@ -107,7 +107,7 @@ void minimap_update(void) {
             else set_pix(ox+x,oy+y,4);
         }
     }
-    if (rewrite_cnt>4) {
+    if (rewrite_cnt>8) {
         memset(_mmap,0,sizeof(_mmap));
         update1=update2=1;
         note("MAP CHANGED: %d",rewrite_cnt);
@@ -396,7 +396,7 @@ void minimap_compact(void) {
             if (map_compare(tmap,xmap)) {
                 map_merge(tmap,xmap);
                 filename=mapname(i);
-                handle=open(filename,O_RDONLY|O_BINARY);
+                handle=open(filename,O_WRONLY|O_BINARY);
                 if (handle==-1) continue;
                 write(handle,tmap,sizeof(tmap));
                 close(handle);
